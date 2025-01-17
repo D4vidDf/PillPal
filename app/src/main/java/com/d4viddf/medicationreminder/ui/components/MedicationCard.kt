@@ -24,7 +24,7 @@ fun MedicationCard(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(64.dp)
     ) {
         Row(
             modifier = Modifier

@@ -7,15 +7,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.ui.screens.AppNavigation
-import com.d4viddf.medicationreminder.ui.theme.MedicationReminderLightTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.DarkGreen
 
 @Composable
 fun MedicationReminderApp() {
-    MedicationReminderLightTheme {
+    AppTheme {
         // A surface container using the 'surface' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.surface
         ) {
             val navController = rememberNavController()
             AppNavigation(navController = navController) // Pass the navController to AppNavigation

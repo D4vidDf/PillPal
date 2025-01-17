@@ -30,16 +30,13 @@ fun HomeScreen(
         topBar = {
             TopAppBar(title = { Text("Medications") })
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAddMedicationClick) {
-                Icon(Icons.Default.Add, contentDescription = "Add Medication")
-            }
-        },
+
         bottomBar = {
             BottomNavBar(
                 onHomeClick = { /* Handle Home button click */ },
                 onSettingsClick = { /* Handle Settings button click */ },
-                onAddClick = onAddMedicationClick
+                onAddClick = onAddMedicationClick,
+                selectedIndex = 0
             )
         }
     ) { innerPadding ->

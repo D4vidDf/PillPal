@@ -26,6 +26,8 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationInfo
 import com.d4viddf.medicationreminder.data.ScheduleType
+import com.d4viddf.medicationreminder.ui.theme.DarkGreen
+import com.d4viddf.medicationreminder.ui.theme.LightGreenAccent
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.util.*
@@ -174,7 +176,8 @@ fun AddMedicationScreen(
                         .height(56.dp)
                         .padding(start = 8.dp),
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
+                        containerColor = LightGreenAccent,
+                        contentColor = DarkGreen
                     )
                 ) {
                     Text(if (step < 3) "Next" else "Save Medication")
@@ -328,3 +331,4 @@ fun MedicationSummary(
         Text(text = "End Date: $endDate")
     }
 }
+
