@@ -36,9 +36,6 @@ fun BottomNavBar(
             icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
             selected = selectedIndex == 0, // Set selected state based on index
             onClick = onHomeClick,
-            // Add background color for selected state
-            colors = NavigationBarItemDefaults.colors(
-            )
         )
         // Empty NavigationBarItem for spacing, you can adjust the weight as needed
         FloatingActionButton(
@@ -53,9 +50,6 @@ fun BottomNavBar(
             icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
             selected = selectedIndex == 1, // Set selected state based on index
             onClick = onSettingsClick,
-            // Add background color for selected state
-            colors = NavigationBarItemDefaults.colors(
-            )
         )
     }
 
