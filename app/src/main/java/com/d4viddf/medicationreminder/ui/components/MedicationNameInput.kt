@@ -99,7 +99,6 @@ fun MedicationNameInput(
                     onDismissRequest = {
                         // Dropdown should only close when an option is selected
                     },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.secondary) // Set background color to light green accent
                 ) {
                     // First option for custom input
                     DropdownMenuItem(
@@ -108,10 +107,7 @@ fun MedicationNameInput(
                             expanded = false
                             onMedicationSelected(null)
                         },
-                        colors = MenuDefaults.itemColors(
-                            textColor = MaterialTheme.colorScheme.onSecondary
-                        ),
-                        modifier = Modifier.padding(4.dp).background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.large)
+                        modifier = Modifier.padding(4.dp)
                     )
                     // Displaying search results
                     searchResults.forEach { result ->
@@ -122,10 +118,7 @@ fun MedicationNameInput(
                                 onMedicationNameChange(result.name)
                                 onMedicationSelected(result)
                             },
-                            colors = MenuDefaults.itemColors(
-                                textColor = MaterialTheme.colorScheme.onSecondary
-                            ),
-                            modifier = Modifier.padding(4.dp).background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.large)
+                            modifier = Modifier.padding(4.dp)
                         )
                     }
                 }

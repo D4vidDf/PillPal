@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -13,9 +14,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.CarouselDefaults
-import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.data.MedicationType
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +72,7 @@ fun MedicationTypeSelector(
             }
         }
 
-         /*LazyRow(
+         LazyRow(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxWidth()
@@ -97,10 +96,12 @@ fun MedicationTypeSelector(
                     MedicationTypeItem(type = type)
                 }
             }
-        }*/
+        }
+
+        /*val carouselState = rememberCarouselState { medicationTypes.count() }
 
         HorizontalUncontainedCarousel(
-            state = rememberCarouselState { medicationTypes.count()},
+            state = carouselState,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(230.dp)
@@ -119,13 +120,50 @@ fun MedicationTypeSelector(
                             0xFFF0BF70
                         ) else Color(0xFF264443)
                     ),
-                    onClick = { onTypeSelected(medicationTypes.get(index = index).id) }
+                    onClick = {
+                        onTypeSelected(medicationTypes[index].id)
+                    }
                 ) {
-                    MedicationTypeItem(type = medicationTypes.get(index = index))
+                    MedicationTypeItem(type = medicationTypes[index])
                 }
             }
+        }*/
+
+        /*val coroutineScope = rememberCoroutineScope()
+        val pagerState = rememberPagerState()
+
+        HorizontalPager(
+            count = medicationTypes.count(),
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(230.dp)
+                .padding(horizontal = 0.dp, vertical = 8.dp),
+            itemSpacing = 8.dp, // Adjust spacing as needed
+        ) { index ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (medicationTypes[index].id == selectedTypeId) Color(
+                        0xFFF0BF70
+                    ) else Color(0xFF264443)
+                ),
+                onClick = { onTypeSelected(medicationTypes[index].id) }
+            ) {
+                MedicationTypeItem(type = medicationTypes[index])
+            }
         }
+
+        // Center-align the first item when the carousel is first displayed
+        LaunchedEffect(Unit) {
+            if (medicationTypes.isNotEmpty()) {
+                pagerState.scrollToPage(0)
+            }
+        }*/
     }
+}
 
 
 @Composable
