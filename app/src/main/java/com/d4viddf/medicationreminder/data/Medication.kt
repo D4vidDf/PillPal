@@ -8,7 +8,7 @@ data class Medication(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val typeId: Int?,
-    val color: Int,
+    val color: String,
     val dosage: String?,          // Dosage information, e.g., "500 mg"
     val packageSize: Int,         // Number of doses in the package
     val remainingDoses: Int,      // Number of doses left in the package

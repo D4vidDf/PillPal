@@ -16,7 +16,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MedicationReminder"
-        tools:targetApi="35">
+        tools:targetApi="35"
+        android:enableOnBackInvokedCallback="true"
+        >
 
         <!-- Main Activity Declaration -->
         <activity

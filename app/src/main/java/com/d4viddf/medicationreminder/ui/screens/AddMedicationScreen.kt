@@ -26,6 +26,7 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationInfo
 import com.d4viddf.medicationreminder.data.ScheduleType
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.theme.DarkGreen
 import com.d4viddf.medicationreminder.ui.theme.LightGreenAccent
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ fun AddMedicationScreen(
 ) {
     var step by remember { mutableStateOf(0) }
     var selectedTypeId by remember { mutableStateOf(1) }
-    var selectedColor by remember { mutableStateOf(Color(0xFF264443)) }
+    var selectedColor by remember { mutableStateOf(MedicationColor.BLUE) }
     var startDate by remember { mutableStateOf("Select Start Date") }
     var endDate by remember { mutableStateOf("Select End Date") }
     var frequency by remember { mutableStateOf("Once a day") }
@@ -112,7 +113,7 @@ fun AddMedicationScreen(
                                     Medication(
                                         name = medicationName,
                                         typeId = selectedTypeId,
-                                        color = selectedColor.hashCode(),
+                                        color = selectedColor.toString(),
                                         dosage = if (dosage.isNotEmpty()) dosage else null,
                                         packageSize = packageSize.toInt(),
                                         remainingDoses = packageSize.toInt(),
@@ -258,7 +259,7 @@ fun AddMedicationScreen(
                     MedicationSummary(
                         typeId = selectedTypeId,
                         medicationName = medicationName,
-                        color = selectedColor,
+                        color = MedicationColor.valueOf(selectedColor.toString()).backgroundColor,
                         dosage = dosage,
                         packageSize = packageSize,
                         frequency = frequency,

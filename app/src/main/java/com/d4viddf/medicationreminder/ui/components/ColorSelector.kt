@@ -13,14 +13,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.colors.medicationColors
 
 @Composable
 fun ColorSelector(
-    selectedColor: Color,
-    onColorSelected: (Color) -> Unit,
+    selectedColor: MedicationColor,
+    onColorSelected: (MedicationColor) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = remember { listOf(Color(0xFFFFA726), Color(0xFFE57373), Color(0xFF64B5F6), Color(0xFF81C784), Color(0xFFFFEB3B)) }
+    val colors = medicationColors // Use the MedicationColors enum
 
     Column(
         modifier = modifier.padding(16.dp),
@@ -43,7 +45,7 @@ fun ColorSelector(
                     modifier = Modifier
                         .size(48.dp)
                         .border(4.dp, borderColor, CircleShape)
-                        .background(color, shape = CircleShape)
+                        .background(color.backgroundColor, shape = CircleShape)
                         .clickable { onColorSelected(color) }
                 )
             }

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 
 @Composable
 fun MedicationCard(
@@ -32,7 +33,7 @@ fun MedicationCard(
                 .fillMaxWidth()
         ) {
             // Medication icon or avatar
-            MedicationAvatar(color = Color(medication.color))
+            MedicationAvatar(color = MedicationColor.valueOf(medication.color).backgroundColor)
 
             Spacer(modifier = Modifier.width(16.dp))
 
