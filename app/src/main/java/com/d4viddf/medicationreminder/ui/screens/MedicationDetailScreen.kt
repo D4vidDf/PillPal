@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -60,28 +61,64 @@ fun MedicationDetailsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 0.dp, top = 16.dp),
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { /* Handle back button click */ }) {
-                        Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = "Back")
+                    // Back Button with Fully Rounded Corners and Larger Icon
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp) // Slightly smaller size for the box
+                            .background(
+                                color = Color.Black.copy(alpha = 0.4f),
+                                shape = CircleShape // Fully rounded corners for the back button
+                            )
+                            .clickable { onNavigateBack() }, // Make it clickable
+                        contentAlignment = Alignment.Center // Center the icon
+                    ) {
+                        Icon(
+                            Icons.Rounded.KeyboardArrowLeft,
+                            contentDescription = "Back",
+                            modifier = Modifier.size(28.dp), // Slightly larger icon
+                            tint = Color.White
+                        )
                     }
-                    Text(
-                        text = "Edit",
-                        modifier = Modifier.clickable { /* Handle edit button click */ })
+
+                    // Edit Text with Rounded Corners and Smaller Size
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = Color.Black.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(8.dp) // Rounded corners for the text box
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp) // Adjust padding for smaller size
+                            .clickable { /* Handle edit action */ },
+                        contentAlignment = Alignment.Center // Center the text
+                    ) {
+                        Text(
+                            text = "Edit",
+                            fontSize = 14.sp, // Slightly smaller text
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
+
+
+
+                Spacer(modifier = Modifier.height(      16.dp))
                 // 2.1 Medication Name and Dosage
                 Row {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = medication?.name ?: "",
-                            fontSize = 48.sp,
+                            fontSize = 36.sp,
                             fontWeight = FontWeight.Bold,
-                            color= Color.White
+                            color= color.textColor,
+                                    lineHeight = (36.sp * 1.2)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = medication?.dosage ?: "", fontSize = 20.sp, color= Color.White)
+                        Text(text = medication?.dosage ?: "", fontSize = 20.sp, color= color.textColor)
                     }
                     // 2.2 Pill Image
                     Spacer(modifier = Modifier.width(16.dp))
@@ -109,13 +146,13 @@ fun MedicationDetailsScreen(
                             CircularProgressIndicator(
                                 modifier = Modifier.width(200.dp),
                                 progress = { currentProgress },
-                                trackColor = Color.Transparent,
-                                color = Color.White,
+                                trackColor = color.progressBackColor,
+                                color = color.progressBarColor,
                                 strokeWidth = 10.dp,
                             )
                             Spacer(modifier = Modifier.height(10.dp))
-                            Text(text = "Progress", fontSize = 18.sp,color= Color.White)
-                            Text(text = "8/30", fontWeight = FontWeight.Bold, fontSize = 58.sp,color= Color.White)
+                            Text(text = "Progress", fontSize = 18.sp,color= color.textColor)
+                            Text(text = "8/30", fontWeight = FontWeight.Bold, fontSize = 58.sp,color= color.textColor)
                         }
                     }
                 }
@@ -126,14 +163,14 @@ fun MedicationDetailsScreen(
                     .height(80.dp)
                     .padding(start = 20.dp, end = 20.dp)
                     .background(
-                        color = Color(21,19,48),
+                        color = color.cardColor,
                         shape = RoundedCornerShape(14.dp)
                     ),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically) {
-                    CounterItem(value = "1", label = "tablet")
-                    CounterItem(value = "3x", label = "times a day")
-                    CounterItem(value = "10", label = "days")
+                    CounterItem(value = "1", label = "table",color = color.onBackgroundColor)
+                    CounterItem(value = "3x", label = "times a day",color = color.onBackgroundColor)
+                    CounterItem(value = "10", label = "days",color = color.onBackgroundColor)
                 }
 
             }
@@ -166,9 +203,9 @@ fun MedicationDetailsScreen(
 
 // Helper composables for CounterItem and ScheduleItem
 @Composable
-fun CounterItem(value: String, label: String) {
+fun CounterItem(value: String, label: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, fontSize = 28.sp, fontWeight = FontWeight.Bold,color= Color.White)
+        Text(text = value, fontSize = 28.sp, fontWeight = FontWeight.Bold,color = color)
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = label, fontSize = 14.sp,color= Color.White)
     }

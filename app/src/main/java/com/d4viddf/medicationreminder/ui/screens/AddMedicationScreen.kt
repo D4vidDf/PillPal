@@ -43,7 +43,7 @@ fun AddMedicationScreen(
 ) {
     var step by remember { mutableStateOf(0) }
     var selectedTypeId by remember { mutableStateOf(1) }
-    var selectedColor by remember { mutableStateOf(MedicationColor.BLUE) }
+    var selectedColor by remember { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
     var startDate by remember { mutableStateOf("Select Start Date") }
     var endDate by remember { mutableStateOf("Select End Date") }
     var frequency by remember { mutableStateOf("Once a day") }

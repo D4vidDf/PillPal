@@ -17,20 +17,22 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
+        composable(Screen.Home.route) {
             HomeScreen(
-                onAddMedicationClick = { navController.navigate("addEditMedication") },
-                onMedicationClick = { medicationId -> navController.navigate("medicationDetails/$medicationId") }
+                onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) },
+                onMedicationClick = { medicationId -> // Correct lambda for passing medication ID
+                    navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                }
             )
         }
-        composable("addEditMedication") {
+        composable(Screen.AddMedication.route) {
             AddMedicationScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
-        composable("medicationDetails/{medicationId}") { backStackEntry ->
-            val medicationId = backStackEntry.arguments?.getString("medicationId")?.toIntOrNull()
+        composable(Screen.MedicationDetails.route) { backStackEntry ->
+            val medicationId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
             if (medicationId != null) {
                 MedicationDetailsScreen(
                     medicationId = medicationId,
