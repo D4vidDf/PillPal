@@ -63,5 +63,9 @@ class MedicationInfoViewModel @Inject constructor(
         }
     }
 
+    fun clearSearchResults() {
+        _medicationSearchResults.value = emptyList()
+    }
+
 
 }

@@ -3,22 +3,25 @@ package com.d4viddf.medicationreminder.ui.screens
 import MedicationSearchResult
 import android.app.DatePickerDialog
 import android.content.Context
+import android.graphics.fonts.Font
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.d4viddf.medicationreminder.ui.components.ColorSelector
-import com.d4viddf.medicationreminder.ui.components.FrequencySelector
-import com.d4viddf.medicationreminder.ui.components.GenericTextFieldInput
-import com.d4viddf.medicationreminder.ui.components.MedicationNameInput
-import com.d4viddf.medicationreminder.ui.components.MedicationTypeSelector
+import com.d4viddf.medicationreminder.ui.components.*
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
@@ -26,6 +29,7 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationInfo
 import com.d4viddf.medicationreminder.data.ScheduleType
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.theme.DarkGreen
 import com.d4viddf.medicationreminder.ui.theme.LightGreenAccent
 import kotlinx.coroutines.launch
@@ -40,9 +44,10 @@ fun AddMedicationScreen(
     medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
-    var step by remember { mutableStateOf(0) }
+    var currentStep by remember { mutableStateOf(0) }
+    var progress by remember { mutableStateOf(0f) }
     var selectedTypeId by remember { mutableStateOf(1) }
-    var selectedColor by remember { mutableStateOf(Color(0xFF264443)) }
+    var selectedColor by remember { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
     var startDate by remember { mutableStateOf("Select Start Date") }
     var endDate by remember { mutableStateOf("Select End Date") }
     var frequency by remember { mutableStateOf("Once a day") }
@@ -62,126 +67,130 @@ fun AddMedicationScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Add Medication") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+            // Capture the width of the title
+            var titleWidth by remember { mutableStateOf(0) }
+
+            Column {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally // Center the title horizontally
+                        ) {
+                            Text(
+                                text = if (medicationName.isBlank() || currentStep==0) "New medication" else medicationName.substringBefore(" "),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .onGloballyPositioned {
+                                        titleWidth = it.size.width
+                                    }
+                            )
+
+                            // Progress bar
+                            LinearProgressIndicator(
+                                progress = progress,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, start = 10.dp, end = 10.dp) // Add some space between the title and the progress bar
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        if (currentStep > 0) {
+                            IconButton(onClick = {
+                                currentStep--
+                                progress = (currentStep + 1) / 5f
+                            },modifier = Modifier.width(64.dp)) {
+                                Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = "Back", )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.width(48.dp))
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateBack,modifier = Modifier.width(64.dp)) {
+                            Icon(Icons.Rounded.Close, contentDescription = "Close")
+                        }
                     }
-                }
-            )
+                )
+            }
         },
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (step > 0) {
-                    OutlinedButton(
-                        onClick = { if (step > 0) step-- },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .padding(end = 8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary,
-                        )
-                    ) {
-                        Text("Previous")
-                    }
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
+            Button(
+                onClick = {
+                    if (currentStep < 4 && medicationName.isNotBlank()) { // Check if medication name is not blank
+                        currentStep++
+                        progress = (currentStep + 1) / 5f
+                    } else if (currentStep == 4) {
+                        coroutineScope.launch {
+                            val medicationId = medicationViewModel.insertMedication(
+                                Medication(
+                                    name = medicationName,
+                                    typeId = selectedTypeId,
+                                    color = selectedColor.toString(),
+                                    dosage = if (dosage.isNotEmpty()) dosage else null,
+                                    packageSize = packageSize.toInt(),
+                                    remainingDoses = packageSize.toInt(),
+                                    startDate = if (startDate != "Select Start Date") startDate else null,
+                                    endDate = if (endDate != "Select End Date") endDate else null,
+                                    reminderTime = null
+                                )
+                            )
 
-                val isNextButtonEnabled = when (step) {
-                    0 -> medicationName.isNotBlank()
-                    1 -> dosage.isNotBlank() && packageSize.isNotBlank() && packageSize.toIntOrNull() != null && packageSize.toInt() > 0
-                    else -> true
-                }
+                            medicationId?.let {
+                                val scheduleType = when (frequency) {
+                                    "Once a day" -> ScheduleType.DAILY
+                                    "Weekly" -> ScheduleType.WEEKLY
+                                    "As Needed" -> ScheduleType.AS_NEEDED
+                                    "Interval" -> ScheduleType.INTERVAL
+                                    "Multiple times a day" -> ScheduleType.CUSTOM_ALARMS
+                                    else -> ScheduleType.DAILY
+                                }
 
-                FilledTonalButton(
-                    onClick = {
-                        if (step < 3) {
-                            step++
-                        } else {
-                            coroutineScope.launch {
-                                val medicationId = medicationViewModel.insertMedication(
-                                    Medication(
-                                        name = medicationName,
-                                        typeId = selectedTypeId,
-                                        color = selectedColor.hashCode(),
-                                        dosage = if (dosage.isNotEmpty()) dosage else null,
-                                        packageSize = packageSize.toInt(),
-                                        remainingDoses = packageSize.toInt(),
-                                        startDate = if (startDate != "Select Start Date") startDate else null,
-                                        endDate = if (endDate != "Select End Date") endDate else null,
-                                        reminderTime = null
+                                medicationScheduleViewModel.insertSchedule(
+                                    MedicationSchedule(
+                                        medicationId = it,
+                                        scheduleType = scheduleType,
+                                        intervalHours = if (frequency == "Interval") intervalHours else null,
+                                        intervalMinutes = if (frequency == "Interval") intervalMinutes else null,
+                                        daysOfWeek = if (frequency == "Once a day" || frequency == "Weekly") selectedDays.joinToString(",") else null,
+                                        specificTimes = if (frequency == "Multiple times a day") selectedTimes.joinToString(",") { time ->
+                                            time.toString()
+                                        } else null
                                     )
                                 )
 
-                                medicationId?.let {
-                                    // Save Medication Schedule
-                                    val scheduleType = when (frequency) {
-                                        "Once a day" -> ScheduleType.DAILY
-                                        "Weekly" -> ScheduleType.WEEKLY
-                                        "As Needed" -> ScheduleType.AS_NEEDED
-                                        "Interval" -> ScheduleType.INTERVAL
-                                        "Multiple times a day" -> ScheduleType.CUSTOM_ALARMS
-                                        else -> ScheduleType.DAILY
-                                    }
-
-                                    medicationScheduleViewModel.insertSchedule(
-                                        MedicationSchedule(
+                                medicationSearchResult?.let { result ->
+                                    medicationInfoViewModel.insertMedicationInfo(
+                                        MedicationInfo(
                                             medicationId = it,
-                                            scheduleType = scheduleType,
-                                            intervalHours = if (frequency == "Interval") intervalHours else null,
-                                            intervalMinutes = if (frequency == "Interval") intervalMinutes else null,
-                                            daysOfWeek = if (frequency == "Once a day" || frequency == "Weekly") selectedDays.joinToString(",") else null,
-                                            specificTimes = if (frequency == "Multiple times a day") selectedTimes.joinToString(",") { time ->
-                                                time.toString()
-                                            } else null
+                                            description = result.description,
+                                            atcCode = result.atcCode,
+                                            safetyNotes = result.safetyNotes,
+                                            administrationRoutes = result.administrationRoutes.joinToString(","),
+                                            dosage = result.dosage,
+                                            documentUrls = result.documentUrls.joinToString(","),
+                                            nregistro = result.nregistro,
+                                            labtitular = result.labtitular,
+                                            comercializado = result.comercializado,
+                                            requiereReceta = result.requiereReceta,
+                                            generico = result.generico
                                         )
                                     )
-
-                                    // Save Medication Info
-                                    medicationSearchResult?.let { result ->
-                                        medicationInfoViewModel.insertMedicationInfo(
-                                            MedicationInfo(
-                                                medicationId = it,
-                                                description = result.description,
-                                                atcCode = result.atcCode,
-                                                safetyNotes = result.safetyNotes,
-                                                administrationRoutes = result.administrationRoutes.joinToString(","),
-                                                dosage = result.dosage,
-                                                documentUrls = result.documentUrls.joinToString(","),
-                                                nregistro = result.nregistro,
-                                                labtitular = result.labtitular,
-                                                comercializado = result.comercializado,
-                                                requiereReceta = result.requiereReceta,
-                                                generico = result.generico
-                                            )
-                                        )
-                                    }
                                 }
-                                onNavigateBack()
                             }
+                            onNavigateBack()
                         }
-                    },
-                    enabled = isNextButtonEnabled,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .padding(start = 8.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = LightGreenAccent,
-                        contentColor = DarkGreen
-                    )
-                ) {
-                    Text(if (step < 3) "Next" else "Save Medication")
-                }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = MaterialTheme.shapes.medium,
+                enabled = medicationName.isNotBlank() // Button enabled only if medication name is not blank
+            ) {
+                Text("Confirm")
             }
         }
     ) { innerPadding ->
@@ -190,13 +199,10 @@ fun AddMedicationScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            when (step) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when (currentStep) {
                 0 -> {
-                    MedicationTypeSelector(
-                        selectedTypeId = selectedTypeId,
-                        onTypeSelected = { selectedTypeId = it }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
                     MedicationNameInput(
                         medicationName = medicationName,
                         onMedicationNameChange = { medicationName = it },
@@ -209,7 +215,15 @@ fun AddMedicationScreen(
                         }
                     )
                 }
+
                 1 -> {
+                    MedicationTypeSelector(
+                        selectedTypeId = selectedTypeId,
+                        onTypeSelected = { selectedTypeId = it }
+                    )
+                }
+
+                2 -> {
                     GenericTextFieldInput(
                         label = "Dosage",
                         value = dosage,
@@ -226,7 +240,8 @@ fun AddMedicationScreen(
                         isError = packageSize.toIntOrNull() == null || packageSize.toInt() <= 0
                     )
                 }
-                2 -> {
+
+                3 -> {
                     FrequencySelector(
                         selectedFrequency = frequency,
                         onFrequencySelected = { frequency = it },
@@ -254,11 +269,12 @@ fun AddMedicationScreen(
                         context = context
                     )
                 }
-                3 -> {
+
+                4 -> {
                     MedicationSummary(
                         typeId = selectedTypeId,
                         medicationName = medicationName,
-                        color = selectedColor,
+                        color = MedicationColor.valueOf(selectedColor.toString()).backgroundColor,
                         dosage = dosage,
                         packageSize = packageSize,
                         frequency = frequency,
@@ -275,7 +291,6 @@ fun AddMedicationScreen(
         }
     }
 }
-
 
 @Composable
 fun DatePickerButton(
@@ -331,4 +346,3 @@ fun MedicationSummary(
         Text(text = "End Date: $endDate")
     }
 }
-

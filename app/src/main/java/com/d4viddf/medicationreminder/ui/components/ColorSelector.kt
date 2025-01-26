@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,14 +14,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.colors.medicationColors
 
 @Composable
 fun ColorSelector(
-    selectedColor: Color,
-    onColorSelected: (Color) -> Unit,
+    selectedColor: MedicationColor,
+    onColorSelected: (MedicationColor) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = remember { listOf(Color(0xFFFFA726), Color(0xFFE57373), Color(0xFF64B5F6), Color(0xFF81C784), Color(0xFFFFEB3B)) }
+    val colors = medicationColors // Use the MedicationColors enum
 
     Column(
         modifier = modifier.padding(16.dp),
@@ -33,17 +36,18 @@ fun ColorSelector(
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        Row(
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            colors.forEach { color ->
+            items(colors.size) { index ->
+                val color = colors[index]
                 val borderColor = if (color == selectedColor) MaterialTheme.colorScheme.primary else Color.Transparent
                 Box(
                     modifier = Modifier
                         .size(48.dp)
                         .border(4.dp, borderColor, CircleShape)
-                        .background(color, shape = CircleShape)
+                        .background(color.backgroundColor, shape = CircleShape)
                         .clickable { onColorSelected(color) }
                 )
             }

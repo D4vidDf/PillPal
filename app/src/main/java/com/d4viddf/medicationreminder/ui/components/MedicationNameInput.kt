@@ -1,19 +1,25 @@
 package com.d4viddf.medicationreminder.ui.components
 
 import MedicationSearchResult
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +28,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationNameInput(
-    label: String = "Medication Name",
     medicationName: String,
     onMedicationNameChange: (String) -> Unit,
     onMedicationSelected: (MedicationSearchResult?) -> Unit,
@@ -30,105 +35,74 @@ fun MedicationNameInput(
     viewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var expanded by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }
     val focusManager = LocalFocusManager.current
 
     Column(modifier = modifier.padding(16.dp)) {
-        // Input Label Above the TextField
-        Text(
-            text = label,
-            style = MaterialTheme.typography.headlineMedium,
-            color = if (isInputValid) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(bottom = 4.dp)
+        // OutlinedTextField for medication name
+        OutlinedTextField(
+            value = medicationName,
+            onValueChange = {
+                onMedicationNameChange(it)
+                isInputValid = it.isNotEmpty()
+
+                // Only search if the input is at least 3 characters long
+                if (it.length >= 3) {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        viewModel.searchMedication(it)
+                    }
+                } else {
+                    // Clear search results if the input is less than 3 characters
+                    viewModel.clearSearchResults()
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            textStyle = TextStyle(
+                fontSize = 20.sp, // Make the text larger
+                fontWeight = FontWeight.Bold // Make the text bold
+            ),
+            singleLine = true,
+            placeholder = {
+                Text(
+                    text = "Medication Name",
+                    fontSize = 20.sp, // Make the placeholder text larger
+                    fontWeight = FontWeight.Bold, // Make the placeholder text bold
+                    color = Color.LightGray // Set the placeholder text color
+                )
+            },
+            trailingIcon = {
+                IconButton(onClick = { onMedicationNameChange("") }) { // Clear the search when the icon is clicked
+                    Icon(Icons.Default.Close, contentDescription = "Clear search")
+                }
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                }
+            ),
+            isError = !isInputValid
         )
 
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = {
-                if (!expanded) {
-                    expanded = true
-                }
-            }
+        // Scrollable list of search results
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
-            OutlinedTextField(
-                value = medicationName,
-                onValueChange = {
-                    onMedicationNameChange(it)
-                    isInputValid = it.isNotEmpty()
-
-                    if (it.length >= 3) {
-                        expanded = true // Ensure dropdown is open when typing a valid name
-                        isLoading = true
-                        coroutineScope.launch(Dispatchers.IO) {
-                            viewModel.searchMedication(it)
-                            isLoading = false
+            items(searchResults) { result ->
+                Text(
+                    text = result.name,
+                    modifier = Modifier
+                        .clickable {
+                            onMedicationSelected(result)
                         }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .menuAnchor(),
-                textStyle = MaterialTheme.typography.bodyLarge,
-                singleLine = true,
-                trailingIcon = {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    } else {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                    }
-                ),
-                shape = MaterialTheme.shapes.large, // Rounded corners for TextField
-                isError = !isInputValid
-            )
-
-            if (expanded) {
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = {
-                        // Dropdown should only close when an option is selected
-                    },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.secondary) // Set background color to light green accent
-                ) {
-                    // First option for custom input
-                    DropdownMenuItem(
-                        text = { Text("Personalized Entry: $medicationName") },
-                        onClick = {
-                            expanded = false
-                            onMedicationSelected(null)
-                        },
-                        colors = MenuDefaults.itemColors(
-                            textColor = MaterialTheme.colorScheme.onSecondary
-                        ),
-                        modifier = Modifier.padding(4.dp).background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.large)
-                    )
-                    // Displaying search results
-                    searchResults.forEach { result ->
-                        DropdownMenuItem(
-                            text = { Text(result.name) },
-                            onClick = {
-                                expanded = false
-                                onMedicationNameChange(result.name)
-                                onMedicationSelected(result)
-                            },
-                            colors = MenuDefaults.itemColors(
-                                textColor = MaterialTheme.colorScheme.onSecondary
-                            ),
-                            modifier = Modifier.padding(4.dp).background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.large)
-                        )
-                    }
-                }
+                        .padding(4.dp)
+                )
             }
         }
 
@@ -139,13 +113,5 @@ fun MedicationNameInput(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-
-        // Description below TextField
-        Text(
-            text = "Enter the name of the medication you want to search for. You can also select from the suggestions below.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(top = 8.dp)
-        )
     }
 }
