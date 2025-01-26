@@ -20,6 +20,7 @@ import androidx.room.migration.Migration
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): MedicationDatabase {

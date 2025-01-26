@@ -23,7 +23,13 @@ fun MedicationCard(
     medication: Medication,
     onClick: () -> Unit // Callback for navigation
 ) {
-    val color = MedicationColor.valueOf(medication.color)
+    val color = if (medication.color is Int) {
+        // Assuming 'medication.color' is an Int representing a color resource ID
+        MedicationColor.LIGHT_ORANGE
+    } else {
+        // Assuming 'medication.color' is a String representing a MedicationColor enum name
+        MedicationColor.valueOf(medication.color)
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
