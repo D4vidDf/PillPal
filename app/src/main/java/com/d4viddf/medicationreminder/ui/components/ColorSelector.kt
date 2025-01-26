@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,11 +36,12 @@ fun ColorSelector(
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        Row(
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            colors.forEach { color ->
+            items(colors.size) { index ->
+                val color = colors[index]
                 val borderColor = if (color == selectedColor) MaterialTheme.colorScheme.primary else Color.Transparent
                 Box(
                     modifier = Modifier
