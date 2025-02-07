@@ -2,6 +2,7 @@
 accompanistPager = "<latest_version>"
 agp = "8.7.3"
 coilCompose = "2.1.0"
+coilComposeVersion = "2.4.0"
 hiltNavigationCompose = "1.2.0"
 kotlin = "2.0.20"
 coreKtx = "1.15.0"
@@ -29,6 +30,7 @@ accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pa
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-compose-v240 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

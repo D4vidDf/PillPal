@@ -14,8 +14,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.0.1"
+        versionCode = 5
+        versionName = "0.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(libs.coil.compose)
+
 
     // OkHttp
     implementation(libs.okhttp)

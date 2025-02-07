@@ -3,12 +3,8 @@ package com.d4viddf.medicationreminder.ui.screens
 import MedicationSearchResult
 import android.app.DatePickerDialog
 import android.content.Context
-import android.graphics.fonts.Font
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowLeft
 import androidx.compose.material3.*
@@ -21,17 +17,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.d4viddf.medicationreminder.ui.components.*
-import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
-import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationInfo
+import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.theme.DarkGreen
-import com.d4viddf.medicationreminder.ui.theme.LightGreenAccent
+import com.d4viddf.medicationreminder.ui.components.*
+import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
+import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
+import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.util.*
@@ -88,12 +82,13 @@ fun AddMedicationScreen(
                             )
 
                             // Progress bar
-                            LinearProgressIndicator(
-                                progress = progress,
+                            if (currentStep!=0) LinearProgressIndicator(
+                                progress = {progress},
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 8.dp, start = 10.dp, end = 10.dp) // Add some space between the title and the progress bar
                             )
+                            else Spacer(modifier = Modifier.fillMaxWidth())
                         }
                     },
                     navigationIcon = {
@@ -138,7 +133,7 @@ fun AddMedicationScreen(
                                 )
                             )
 
-                            medicationId?.let {
+                            medicationId.let {
                                 val scheduleType = when (frequency) {
                                     "Once a day" -> ScheduleType.DAILY
                                     "Weekly" -> ScheduleType.WEEKLY
@@ -186,8 +181,8 @@ fun AddMedicationScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                shape = MaterialTheme.shapes.medium,
+                    .padding(16.dp).height(60.dp),
+                shape = MaterialTheme.shapes.extraLarge,
                 enabled = medicationName.isNotBlank() // Button enabled only if medication name is not blank
             ) {
                 Text("Confirm")
@@ -217,9 +212,18 @@ fun AddMedicationScreen(
                 }
 
                 1 -> {
-                    MedicationTypeSelector(
-                        selectedTypeId = selectedTypeId,
-                        onTypeSelected = { selectedTypeId = it }
+                    Column(modifier = Modifier.weight(1f)) {
+                        MedicationTypeSelector(
+                            selectedTypeId = selectedTypeId,
+                            onTypeSelected = { selectedTypeId = it },
+                            modifier = Modifier.fillMaxSize(), // Make it fill the available space,
+                                    selectedColor = selectedColor
+                        )
+                    }
+                    // Color selection is now below the medication type grid
+                    ColorSelector(
+                        selectedColor = selectedColor,
+                        onColorSelected = { selectedColor = it }
                     )
                 }
 
