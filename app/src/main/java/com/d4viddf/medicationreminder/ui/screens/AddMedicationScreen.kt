@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,23 +39,23 @@ fun AddMedicationScreen(
     medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
-    var currentStep by remember { mutableStateOf(0) }
-    var progress by remember { mutableStateOf(0f) }
-    var selectedTypeId by remember { mutableStateOf(1) }
-    var selectedColor by remember { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
-    var startDate by remember { mutableStateOf("Select Start Date") }
-    var endDate by remember { mutableStateOf("Select End Date") }
-    var frequency by remember { mutableStateOf("Once a day") }
-    var medicationName by remember { mutableStateOf("") }
-    var dosage by remember { mutableStateOf("") }
-    var packageSize by remember { mutableStateOf("") }
-    var selectedTimes by remember { mutableStateOf(listOf<LocalTime>()) }
-    var intervalHours by remember { mutableStateOf(0) }
-    var intervalMinutes by remember { mutableStateOf(0) }
-    var selectedDays by remember { mutableStateOf(listOf<Int>()) }
+    var currentStep by rememberSaveable { mutableStateOf(0) }
+    var progress by rememberSaveable { mutableStateOf(0f) }
+    var selectedTypeId by rememberSaveable { mutableStateOf(1) }
+    var selectedColor by rememberSaveable { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
+    var startDate by rememberSaveable { mutableStateOf("Select Start Date") }
+    var endDate by rememberSaveable { mutableStateOf("Select End Date") }
+    var frequency by rememberSaveable { mutableStateOf("Once a day") }
+    var medicationName by rememberSaveable { mutableStateOf("") }
+    var dosage by rememberSaveable { mutableStateOf("") }
+    var packageSize by rememberSaveable { mutableStateOf("") }
+    var selectedTimes by rememberSaveable { mutableStateOf(listOf<LocalTime>()) }
+    var intervalHours by rememberSaveable { mutableStateOf(0) }
+    var intervalMinutes by rememberSaveable { mutableStateOf(0) }
+    var selectedDays by rememberSaveable { mutableStateOf(listOf<Int>()) }
 
     // Medication search result to be saved
-    var medicationSearchResult by remember { mutableStateOf<MedicationSearchResult?>(null) }
+    var medicationSearchResult by rememberSaveable { mutableStateOf<MedicationSearchResult?>(null) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -69,10 +70,12 @@ fun AddMedicationScreen(
                     title = {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally // Center the title horizontally
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = if (medicationName.isBlank() || currentStep==0) "New medication" else medicationName.substringBefore(" "),
+                                text = if (medicationName.isBlank() || currentStep == 0) "New medication" else medicationName.substringBefore(
+                                    " "
+                                ),
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier
@@ -82,11 +85,11 @@ fun AddMedicationScreen(
                             )
 
                             // Progress bar
-                            if (currentStep!=0) LinearProgressIndicator(
-                                progress = {progress},
+                            if (currentStep!= 0) LinearProgressIndicator(
+                                progress = { progress },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 8.dp, start = 10.dp, end = 10.dp) // Add some space between the title and the progress bar
+                                    .padding(top = 8.dp, start = 10.dp, end = 10.dp)
                             )
                             else Spacer(modifier = Modifier.fillMaxWidth())
                         }
@@ -96,15 +99,15 @@ fun AddMedicationScreen(
                             IconButton(onClick = {
                                 currentStep--
                                 progress = (currentStep + 1) / 5f
-                            },modifier = Modifier.width(64.dp)) {
-                                Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = "Back", )
+                            }, modifier = Modifier.width(64.dp)) {
+                                Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = "Back")
                             }
                         } else {
                             Spacer(modifier = Modifier.width(48.dp))
                         }
                     },
                     actions = {
-                        IconButton(onClick = onNavigateBack,modifier = Modifier.width(64.dp)) {
+                        IconButton(onClick = onNavigateBack, modifier = Modifier.width(64.dp)) {
                             Icon(Icons.Rounded.Close, contentDescription = "Close")
                         }
                     }
@@ -114,7 +117,7 @@ fun AddMedicationScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    if (currentStep < 4 && medicationName.isNotBlank()) { // Check if medication name is not blank
+                    if (currentStep < 4 && medicationName.isNotBlank()) {
                         currentStep++
                         progress = (currentStep + 1) / 5f
                     } else if (currentStep == 4) {
@@ -127,8 +130,8 @@ fun AddMedicationScreen(
                                     dosage = if (dosage.isNotEmpty()) dosage else null,
                                     packageSize = packageSize.toInt(),
                                     remainingDoses = packageSize.toInt(),
-                                    startDate = if (startDate != "Select Start Date") startDate else null,
-                                    endDate = if (endDate != "Select End Date") endDate else null,
+                                    startDate = if (startDate!= "Select Start Date") startDate else null,
+                                    endDate = if (endDate!= "Select End Date") endDate else null,
                                     reminderTime = null
                                 )
                             )
@@ -149,8 +152,12 @@ fun AddMedicationScreen(
                                         scheduleType = scheduleType,
                                         intervalHours = if (frequency == "Interval") intervalHours else null,
                                         intervalMinutes = if (frequency == "Interval") intervalMinutes else null,
-                                        daysOfWeek = if (frequency == "Once a day" || frequency == "Weekly") selectedDays.joinToString(",") else null,
-                                        specificTimes = if (frequency == "Multiple times a day") selectedTimes.joinToString(",") { time ->
+                                        daysOfWeek = if (frequency == "Once a day" || frequency == "Weekly") selectedDays.joinToString(
+                                            ","
+                                        ) else null,
+                                        specificTimes = if (frequency == "Multiple times a day") selectedTimes.joinToString(
+                                            ","
+                                        ) { time ->
                                             time.toString()
                                         } else null
                                     )
@@ -163,7 +170,8 @@ fun AddMedicationScreen(
                                             description = result.description,
                                             atcCode = result.atcCode,
                                             safetyNotes = result.safetyNotes,
-                                            administrationRoutes = result.administrationRoutes.joinToString(","),
+                                            administrationRoutes =
+                                            result.administrationRoutes.joinToString(","),
                                             dosage = result.dosage,
                                             documentUrls = result.documentUrls.joinToString(","),
                                             nregistro = result.nregistro,
@@ -181,9 +189,13 @@ fun AddMedicationScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp).height(60.dp),
+                    .padding(16.dp)
+                    .padding(
+                        WindowInsets.navigationBars.asPaddingValues()
+                    ) // Add navigation bar padding
+                    .height(60.dp),
                 shape = MaterialTheme.shapes.extraLarge,
-                enabled = medicationName.isNotBlank() // Button enabled only if medication name is not blank
+                enabled = medicationName.isNotBlank()
             ) {
                 Text("Confirm")
             }
@@ -192,7 +204,7 @@ fun AddMedicationScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(WindowInsets.safeDrawing.asPaddingValues())
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -203,9 +215,9 @@ fun AddMedicationScreen(
                         onMedicationNameChange = { medicationName = it },
                         onMedicationSelected = { result ->
                             medicationSearchResult = result
-                            if (result != null) {
+                            if (result!= null) {
                                 medicationName = result.name
-                                dosage = result.dosage ?: ""
+                                dosage = result.dosage?: ""
                             }
                         }
                     )
@@ -216,8 +228,8 @@ fun AddMedicationScreen(
                         MedicationTypeSelector(
                             selectedTypeId = selectedTypeId,
                             onTypeSelected = { selectedTypeId = it },
-                            modifier = Modifier.fillMaxSize(), // Make it fill the available space,
-                                    selectedColor = selectedColor
+                            modifier = Modifier.fillMaxSize(),
+                            selectedColor = selectedColor
                         )
                     }
                     // Color selection is now below the medication type grid
