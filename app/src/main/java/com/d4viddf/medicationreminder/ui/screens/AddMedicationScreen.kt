@@ -240,20 +240,13 @@ fun AddMedicationScreen(
                 }
 
                 2 -> {
-                    GenericTextFieldInput(
-                        label = "Dosage",
-                        value = dosage,
-                        onValueChange = { dosage = it },
-                        description = "Enter the dosage as indicated by your healthcare provider.",
-                        isError = dosage.isBlank()
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    GenericTextFieldInput(
-                        label = "Package Size",
-                        value = packageSize,
-                        onValueChange = { packageSize = it },
-                        description = "Enter the number of doses available in the package.",
-                        isError = packageSize.toIntOrNull() == null || packageSize.toInt() <= 0
+                    // New component for step 2
+                    MedicationDosageAndPackageSizeInput(
+                        selectedTypeId = selectedTypeId,
+                        dosage = dosage,
+                        onDosageChange = { dosage = it },
+                        packageSize = packageSize,
+                        onPackageSizeChange = { packageSize = it }
                     )
                 }
 
