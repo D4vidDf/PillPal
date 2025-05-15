@@ -5,6 +5,9 @@
     <!-- Permissions: Add any permissions required by your app -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
 
     <application
         android:name=".MedicationReminderApplication"
@@ -32,12 +35,31 @@
             </intent-filter>
         </activity>
 
-        <!-- Add Hilt's default worker to handle background tasks (if needed) -->
-        <receiver
-            android:name="androidx.work.impl.background.systemjob.SystemJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            tools:ignore="ExportedReceiver,Instantiatable" />
 
+        <receiver
+            android:name=".receivers.ReminderBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false"> <intent-filter>
+            <action android:name="com.d4viddf.medicationreminder.ACTION_SHOW_REMINDER" />
+            <action android:name="com.d4viddf.medicationreminder.ACTION_MARK_AS_TAKEN" />
+            <action android:name="com.d4viddf.medicationreminder.ACTION_SNOOZE_REMINDER"/>
+        </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receivers.BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="true"> <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+            <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+        </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="remove" />
         <!-- Add Firebase services if used -->
         <!--
         <service android:name=".services.FirebaseService" />

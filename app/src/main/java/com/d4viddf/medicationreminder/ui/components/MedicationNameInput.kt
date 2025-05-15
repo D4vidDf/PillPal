@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
@@ -40,6 +39,13 @@ fun MedicationNameInput(
     val focusManager = LocalFocusManager.current
 
     Column(modifier = modifier.padding(16.dp)) {
+        Text(
+            text = "Enter medication name", // Title above the text input
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
         // OutlinedTextField for medication name
         OutlinedTextField(
             value = medicationName,
@@ -61,20 +67,20 @@ fun MedicationNameInput(
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
             textStyle = TextStyle(
-                fontSize = 20.sp, // Make the text larger
-                fontWeight = FontWeight.Bold // Make the text bold
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             ),
             singleLine = true,
             placeholder = {
                 Text(
                     text = "Medication Name",
-                    fontSize = 20.sp, // Make the placeholder text larger
-                    fontWeight = FontWeight.Bold, // Make the placeholder text bold
-                    color = Color.LightGray // Set the placeholder text color
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.LightGray
                 )
             },
             trailingIcon = {
-                IconButton(onClick = { onMedicationNameChange("") }) { // Clear the search when the icon is clicked
+                IconButton(onClick = { onMedicationNameChange("") }) {
                     Icon(Icons.Default.Close, contentDescription = "Clear search")
                 }
             },
@@ -86,13 +92,14 @@ fun MedicationNameInput(
                     focusManager.clearFocus()
                 }
             ),
-            isError = !isInputValid
+            isError =!isInputValid
         )
 
         // Scrollable list of search results
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().heightIn(max = 200.dp)
+
         ) {
             items(searchResults) { result ->
                 Text(
@@ -100,6 +107,8 @@ fun MedicationNameInput(
                     modifier = Modifier
                         .clickable {
                             onMedicationSelected(result)
+                            viewModel.clearSearchResults()
+                            focusManager.clearFocus() // Hide the keyboard when an option is selected
                         }
                         .padding(4.dp)
                 )

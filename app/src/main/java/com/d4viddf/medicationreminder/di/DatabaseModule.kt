@@ -8,13 +8,12 @@ import com.d4viddf.medicationreminder.data.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Singleton
-import androidx.room.migration.Migration
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -34,34 +33,17 @@ object DatabaseModule {
                     super.onCreate(db)
                     // Llamar a un método que inserte los tipos de medicamentos predeterminados
                     val defaultTypes = listOf(
-                        MedicationType(name = "Cápsula", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Pastilla", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Líquido", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Tópico", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Aerosol", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Crema", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Dispositivo", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Espuma", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Gel", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Gotas", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Inhalador", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Inyección", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Loción", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Parche", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Polvo", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Pomada", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Supositorio", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Compresa", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Tableta", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Gránulos", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Bucal/Sublingual", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Oftálmico", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Ótico", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Nasal", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Vaginal", imageUrl = "https://example.com/placeholder.png"),
-                        MedicationType(name = "Incontinencia", imageUrl = "https://example.com/placeholder.png"),
+                        MedicationType(name = "Tablet", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Pill", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Powder", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Syringe", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Creme", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Spray", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Liquid", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Suppositoriun", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(name = "Patch", imageUrl = "https://placehold.co/600x400.png"),
                     )
-                    // Iniciar una coroutine para insertar los datos predeterminados
+                    // Iniciar una coroutine para insertar los datos predeterminados'
                     CoroutineScope(Dispatchers.IO).launch {
                         db.execSQL(
                             "INSERT INTO medication_types (name, imageUrl) VALUES " +

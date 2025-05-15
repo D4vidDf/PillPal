@@ -11,11 +11,13 @@ import androidx.room.PrimaryKey
 data class MedicationSchedule(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val medicationId: Int,
-    val scheduleType: ScheduleType,        // ENUM or String - e.g., "Daily", "Weekly", "As Needed"
-    val intervalHours: Int?,               // Interval in hours for countdown schedules
+    val scheduleType: ScheduleType,
+    val intervalHours: Int?,
     val intervalMinutes: Int?,
-    val daysOfWeek: String?,               // JSON array or comma-separated values for days of week, e.g., ["Monday", "Wednesday"]
-    val specificTimes: String?             // JSON array for specific alarm times, e.g., ["08:00", "14:00"]
+    val daysOfWeek: String?,      // Comma-separated Ints (1-7 for Mon-Sun) for "Once a day" / "Weekly"
+    val specificTimes: String?,   // Comma-separated LocalTime strings for "Once a day" (single) or "Multiple times a day" (list)
+    val intervalStartTime: String?, // ISO LocalTime string for "Interval"
+    val intervalEndTime: String?    // ISO LocalTime string for "Interval"
 )
 
 enum class ScheduleType {
