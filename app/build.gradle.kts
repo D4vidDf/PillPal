@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "com.d4viddf.medicationreminder"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.d4viddf.medicationreminder"
-        minSdk = 24
-        targetSdk = 35
-        versionCode = 5
-        versionName = "0.0.3"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 6
+        versionName = "0.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -114,4 +114,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Hilt for Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.56.2") // Or your current Hilt version
+
+// Hilt Extension for WorkManager
+    implementation("androidx.hilt:hilt-work:1.2.0") // Or latest stable version
 }

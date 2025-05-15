@@ -98,7 +98,8 @@ fun MedicationNameInput(
         // Scrollable list of search results
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().heightIn(max = 200.dp)
+
         ) {
             items(searchResults) { result ->
                 Text(

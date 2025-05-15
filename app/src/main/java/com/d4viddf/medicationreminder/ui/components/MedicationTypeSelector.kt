@@ -2,7 +2,7 @@ package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.* // Ensure Box, Column, etc. are imported
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -27,21 +28,21 @@ fun MedicationTypeSelector(
     onTypeSelected: (Int) -> Unit,
     viewModel: MedicationTypeViewModel = hiltViewModel(),
     selectedColor: MedicationColor,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier // This modifier comes from AddMedicationScreen (e.g., .fillMaxWidth().height(400.dp))
 ) {
     val medicationTypes by viewModel.medicationTypes.collectAsState(initial = emptyList())
 
     if (medicationTypes.isEmpty()) {
-        // Display loading indicator
         Box(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(), // Use fillMaxSize within the bounds of the passed modifier
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
         }
     } else {
+        // The incoming modifier (which includes .height(400.dp)) is applied to this Column.
         Column(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier, // This Column now has the fixed height (e.g., 400dp)
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -54,45 +55,28 @@ fun MedicationTypeSelector(
                     .fillMaxWidth()
             )
 
-            // Make the LazyVerticalGrid fill the available space
+            // LazyVerticalGrid should fill the available space within THIS Column.
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3), // 3 columns
+                columns = GridCells.Fixed(3),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f) // Fill available space
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp) // Add some padding
             ) {
-                items(medicationTypes.size) { type ->
-                    val cornerShape = when (type) {
-                        0 -> RoundedCornerShape(
-                            topStart = 16.dp,
-                            bottomStart = 8.dp,
-                            topEnd = 8.dp,
-                            bottomEnd = 8.dp
-                        )
-                        2 -> RoundedCornerShape(
-                            topStart = 8.dp,
-                            bottomStart = 8.dp,
-                            topEnd = 16.dp,
-                            bottomEnd = 8.dp
-                        )
-                        6 -> RoundedCornerShape(
-                            topStart = 8.dp,
-                            bottomStart = 16.dp,
-                            topEnd = 8.dp,
-                            bottomEnd = 8.dp
-                        )
-                        8 -> RoundedCornerShape(
-                            topStart = 8.dp,
-                            bottomStart = 8.dp,
-                            topEnd = 8.dp,
-                            bottomEnd = 16.dp
-                        )
+                items(medicationTypes.size) { index -> // Changed from type to index for clarity
+                    val type = medicationTypes[index]
+                    // Logic for cornerShape can remain, but ensure it doesn't depend on 'type' as index if list changes
+                    val cornerShape = when (index) { // Assuming medicationTypes list order is stable for this
+                        0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                        2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
+                        // Adjust these indices based on a 3-column grid if they refer to specific visual positions
+                        medicationTypes.size - 3 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 8.dp) // Example for bottom-left-ish
+                        medicationTypes.size - 1 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp) // Example for bottom-right
                         else -> RoundedCornerShape(8.dp)
                     }
                     MedicationTypeItem(
-                        type = medicationTypes[type],
-                        isSelected = medicationTypes[type].id == selectedTypeId,
-                        onClick = { onTypeSelected(medicationTypes[type].id) },
+                        type = type,
+                        isSelected = type.id == selectedTypeId,
+                        onClick = { onTypeSelected(type.id) },
                         selectedColor = selectedColor,
                         cornerRadius = cornerShape
                     )
@@ -112,26 +96,33 @@ fun MedicationTypeItem(
 ) {
     Column(
         modifier = Modifier
-            .padding(4.dp)
-            .clickable(onClick = onClick)
+            .padding(4.dp) // Outer padding for spacing between items
+            .fillMaxWidth() // Item takes full width of its grid cell
+            .aspectRatio(1f) // Make item square or desired aspect ratio
             .background(
-                color = if (isSelected) selectedColor.backgroundColor else MaterialTheme.colorScheme.background,
+                color = if (isSelected) selectedColor.backgroundColor else MaterialTheme.colorScheme.surfaceVariant, // Use surfaceVariant for non-selected
                 shape = cornerRadius
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally
+            )
+            .clickable(onClick = onClick)
+            .padding(8.dp), // Inner padding for content
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center // Center content vertically
     ) {
         AsyncImage(
             model = type.imageUrl,
             contentDescription = type.name,
             modifier = Modifier
-                .size(120.dp)
+                .fillMaxSize(0.6f) // Image takes a portion of the item size
                 .aspectRatio(1f),
-            contentScale = ContentScale.Fit // Adjust how the image is scaled to fit the box
+            contentScale = ContentScale.Fit
         )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = type.name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (isSelected) selectedColor.textColor else MaterialTheme.colorScheme.onBackground
+            style = MaterialTheme.typography.bodySmall, // Adjusted for potentially smaller space
+            color = if (isSelected) selectedColor.textColor else MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 1
         )
     }
 }
