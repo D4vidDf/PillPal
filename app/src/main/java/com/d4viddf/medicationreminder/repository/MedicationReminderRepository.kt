@@ -13,11 +13,12 @@ class MedicationReminderRepository @Inject constructor(
     fun getRemindersForMedication(medicationId: Int): Flow<List<MedicationReminder>> =
         medicationReminderDao.getRemindersForMedication(medicationId)
 
-    suspend fun insertReminder(reminder: MedicationReminder) {
-        medicationReminderDao.insertReminder(reminder)
+    suspend fun insertReminder(reminder: MedicationReminder): Long {
+        val newId = medicationReminderDao.insertReminder(reminder)
         firebaseSyncDao.insertSyncRecord(
-            FirebaseSync(entityName = "MedicationReminder", entityId = reminder.id, syncStatus = SyncStatus.PENDING)
+            FirebaseSync(entityName = "MedicationReminder", entityId = newId.toInt(), syncStatus = SyncStatus.PENDING)
         )
+        return newId // RETURN THE ID
     }
 
     suspend fun updateReminder(reminder: MedicationReminder) {

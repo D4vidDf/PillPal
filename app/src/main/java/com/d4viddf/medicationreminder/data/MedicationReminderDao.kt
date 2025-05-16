@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MedicationReminderDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertReminder(reminder: MedicationReminder)
+    suspend fun insertReminder(reminder: MedicationReminder): Long
 
     @Update
     suspend fun updateReminder(reminder: MedicationReminder)

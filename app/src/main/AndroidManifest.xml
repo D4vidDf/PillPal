@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-
     <application
         android:name=".MedicationReminderApplication"
         android:allowBackup="true"
@@ -60,6 +59,7 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="remove" />
+
         <!-- Add Firebase services if used -->
         <!--
         <service android:name=".services.FirebaseService" />

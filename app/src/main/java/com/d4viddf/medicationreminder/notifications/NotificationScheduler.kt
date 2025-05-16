@@ -62,6 +62,8 @@ class NotificationScheduler @Inject constructor() {
             // putExtra(ReminderBroadcastReceiver.EXTRA_NEXT_DOSE_TIME_MILLIS, calculateNextDose(reminderDateTime, schedule))
         }
 
+        Log.d(TAG, "Scheduling notification for reminder with DB ID: ${reminder.id}, Name: $medicationName") // Add log for ID
+
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             reminder.id,

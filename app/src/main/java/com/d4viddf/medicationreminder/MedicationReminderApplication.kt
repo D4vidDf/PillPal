@@ -3,8 +3,7 @@ package com.d4viddf.medicationreminder
 import android.app.Application
 import android.os.Build
 import android.util.Log
-import androidx.hilt.work.HiltWorkerFactory // Correct import
-import androidx.work.Configuration // Correct import
+import androidx.work.Configuration
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -19,14 +18,18 @@ import javax.inject.Inject
 @HiltAndroidApp
 class MedicationReminderApplication : Application(), Configuration.Provider {
 
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
+    @Inject // Hilt inyectará una instancia de CustomWorkerFasctory (si su constructor es @Inject o tiene un @Provides)
+    lateinit var customWorkerFactory: CustomWorkerFasctory
 
     override val workManagerConfiguration: Configuration
         get() {
-            Log.d("MedicationReminderApp", "Providing WorkManager Configuration via property getter with HiltWorkerFactory")
+            Log.i("MedicationReminderApp", "WorkManager CONFIGURATION GETTER CALLED. Using CustomWorkerFasctory: $customWorkerFactory")
+            if (!::customWorkerFactory.isInitialized) {
+                Log.e("MedicationReminderApp", "CRITICAL: CustomWorkerFasctory NOT INITIALIZED when workManagerConfiguration was called!")
+            }
+            Log.d("MedicationReminderApp", "Providing WorkManager Configuration via property getter with CustomWorkerFasctory")
             return Configuration.Builder()
-                .setWorkerFactory(workerFactory)
+                .setWorkerFactory(customWorkerFactory)
                 .setMinimumLoggingLevel(android.util.Log.INFO)
                 .build()
         }
@@ -35,13 +38,17 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
         super.onCreate()
         Log.d("MedicationReminderApp", "Application onCreate called.")
 
-        // 1. Create Notification Channels (API 26+)
+        // Hilt inyecta customWorkerFactory aquí
+        if (::customWorkerFactory.isInitialized) {
+            Log.d("MedicationReminderApp", "CustomWorkerFasctory is initialized in onCreate.")
+        } else {
+            Log.e("MedicationReminderApp", "CustomWorkerFasctory IS NOT initialized in onCreate!")
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationHelper.createNotificationChannels(this)
             Log.d("MedicationReminderApp", "Notification channels created.")
         }
-
-        // 2. Setup Daily Reminder Refresh Worker
         setupDailyReminderRefreshWorker()
     }
 
@@ -52,23 +59,16 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
             .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)
             .build()
 
-        // Calculate delay until approximately 00:01 AM next day
         val currentTimeMillis = System.currentTimeMillis()
         val calendar = Calendar.getInstance().apply {
             timeInMillis = currentTimeMillis
-            add(Calendar.DAY_OF_YEAR, 1) // Move to tomorrow
-            set(Calendar.HOUR_OF_DAY, 0) // Midnight
-            set(Calendar.MINUTE, 1)      // 1 minute past midnight
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 1)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        var delayUntilNextRun = calendar.timeInMillis - currentTimeMillis
-        // If it's already past 00:01 for today but before next day's 00:01,
-        // this delay will be positive. If somehow current time is already past
-        // today's 00:01 in a way that calendar is set to "tomorrow 00:01" but that's
-        // less than 24h away (e.g. current time is 00:00:30), this works.
-        // If the calculated time for tomorrow 00:01 somehow ends up in the past (shouldn't happen with add(DAY_OF_YEAR,1)),
-        // this would make it run immediately, which is fine for a periodic worker's first run if miscalculated.
+        val delayUntilNextRun = calendar.timeInMillis - currentTimeMillis
 
         val dailyRefreshWorkRequest = PeriodicWorkRequestBuilder<ReminderSchedulingWorker>(
             1, TimeUnit.DAYS
@@ -80,13 +80,11 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
 
         workManager.enqueueUniquePeriodicWork(
             "DailyReminderRefreshWorker",
-            ExistingPeriodicWorkPolicy.KEEP, // Or REPLACE if you want to always use the latest work request config
+            ExistingPeriodicWorkPolicy.KEEP,
             dailyRefreshWorkRequest
         )
         val hoursUntilRun = TimeUnit.MILLISECONDS.toHours(delayUntilNextRun)
         val minutesUntilRun = TimeUnit.MILLISECONDS.toMinutes(delayUntilNextRun) % 60
-        Log.i("MedicationReminderApp", "Enqueued DailyReminderRefreshWorker to run in approx ${hoursUntilRun}h ${minutesUntilRun}m.")
+        Log.i("MedicationReminderApp", "Enqueued DailyReminderRefreshWorker to run in approx ${hoursUntilRun}h ${minutesUntilRun}m (using CustomFactory).")
     }
-
-
 }
