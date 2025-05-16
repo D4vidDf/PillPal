@@ -14,9 +14,15 @@ interface MedicationReminderDao {
     @Delete
     suspend fun deleteReminder(reminder: MedicationReminder)
 
+    @Query("SELECT * FROM medication_reminder WHERE id = :id")
+    suspend fun getReminderById(id: Int): MedicationReminder?
+
     @Query("SELECT * FROM medication_reminder WHERE medicationId = :medicationId")
     fun getRemindersForMedication(medicationId: Int): Flow<List<MedicationReminder>>
 
     @Query("SELECT * FROM medication_reminder WHERE isTaken = :isTaken")
     fun getRemindersByStatus(isTaken: Boolean): Flow<List<MedicationReminder>>
+
+    @Query("SELECT * FROM medication_reminder WHERE medicationId = :medicationId AND reminderTime > :currentTimeIso AND isTaken = 0")
+    fun getFutureRemindersForMedication(medicationId: Int, currentTimeIso: String): Flow<List<MedicationReminder>>
 }
