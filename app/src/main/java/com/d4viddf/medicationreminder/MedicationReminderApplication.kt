@@ -45,10 +45,10 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
             Log.e("MedicationReminderApp", "CustomWorkerFasctory IS NOT initialized in onCreate!")
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
             NotificationHelper.createNotificationChannels(this)
             Log.d("MedicationReminderApp", "Notification channels created.")
-        }
+
         setupDailyReminderRefreshWorker()
     }
 
