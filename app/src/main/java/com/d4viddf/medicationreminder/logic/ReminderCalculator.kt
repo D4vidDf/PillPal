@@ -1,11 +1,12 @@
-package com.d4viddf.medicationreminder.logic // Or any other appropriate package
+package com.d4viddf.medicationreminder.logic
 
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
-import java.time.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 object ReminderCalculator {
 
@@ -95,7 +96,6 @@ object ReminderCalculator {
         return reminders.sorted()
     }
 
-    // Generates reminders for a period, e.g., from medication start date to end date, or for next N days
     fun generateRemindersForPeriod(
         medication: Medication,
         schedule: MedicationSchedule,

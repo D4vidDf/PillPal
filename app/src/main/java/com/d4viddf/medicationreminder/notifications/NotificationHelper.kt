@@ -1,14 +1,13 @@
 package com.d4viddf.medicationreminder.notifications
 
 import android.Manifest
-import android.app.Notification // Para el builder de plataforma
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon // Para el builder de plataforma
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -36,9 +35,9 @@ object NotificationHelper {
             ).apply {
                 description = REMINDER_CHANNEL_DESCRIPTION
                 enableLights(true)
-                lightColor = android.graphics.Color.CYAN // Considera usar un color de tu tema
+                lightColor = android.graphics.Color.CYAN
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0, 500, 250, 500) // Patrón de vibración
+                vibrationPattern = longArrayOf(0, 500, 250, 500)
             }
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -53,8 +52,8 @@ object NotificationHelper {
         medicationName: String,
         medicationDosage: String,
         isIntervalType: Boolean,
-        nextDoseTimeMillisForHelper: Long?, // Para intervalos: inicio de la siguiente dosis (fin de la ventana actual)
-        actualReminderTimeMillis: Long      // Para todos: hora de esta dosis / inicio de la ventana actual
+        nextDoseTimeMillisForHelper: Long?,
+        actualReminderTimeMillis: Long
     ) {
         Log.i(
             TAG,
@@ -79,7 +78,7 @@ object NotificationHelper {
             putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderDbId)
         }
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(
-            context, reminderDbId + 1000, markAsActionIntent, contentPendingIntentFlags // requestCode único
+            context, reminderDbId + 1000, markAsActionIntent, contentPendingIntentFlags
         )
 
         val notificationTitle = "Time for your $medicationName!"

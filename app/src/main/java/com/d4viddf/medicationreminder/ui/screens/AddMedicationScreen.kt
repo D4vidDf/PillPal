@@ -197,7 +197,12 @@ fun AddMedicationScreen(
                                     daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.joinToString(",") else null,
                                     specificTimes = when (scheduleType) {
                                         ScheduleType.DAILY -> onceADayTime?.format(timeFormatter)?.let { listOf(it) }?.joinToString(",")
-                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes.map { it.format(timeFormatter) }.joinToString(",")
+                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes.joinToString(",") {
+                                            it.format(
+                                                timeFormatter
+                                            )
+                                        }
+
                                         else -> null
                                     },
                                     // Assuming you add these to MedicationSchedule data class and DB

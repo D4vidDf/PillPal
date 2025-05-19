@@ -101,11 +101,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                         putExtra(PreReminderForegroundService.EXTRA_SERVICE_MEDICATION_NAME, medicationName)
                         // ... pasar más datos si es necesario para la notificación del servicio ...
                     }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context.startForegroundService(serviceIntent)
-                    } else {
-                        context.startService(serviceIntent)
-                    }
+                    context.startForegroundService(serviceIntent)
                     Log.d(TAG, "Started PreReminderForegroundService for reminderId: $reminderId")
                 } else {
                     Log.e(TAG, "Invalid data for starting PreReminderForegroundService. ReminderId: $reminderId, ScheduledTime: $actualScheduledTimeMillis")
@@ -138,7 +134,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             }
 
-                            medicationIdToReschedule?.let { medId ->
+                            medicationIdToReschedule.let { medId ->
                                 Log.d(TAG, "Scheduling next reminder for medication ID: $medId after taken action.")
                                 val workManager = WorkManager.getInstance(context.applicationContext)
                                 val data = Data.Builder()
@@ -155,7 +151,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                                     scheduleNextWorkRequest
                                 )
                                 Log.i(TAG, "Enqueued ReminderSchedulingWorker for med ID $medId to schedule next reminder.")
-                            } ?: Log.e(TAG, "Could not reschedule next reminder: medicationIdToReschedule is null for reminderId $reminderId")
+                            }
 
                         } catch (e: Exception) {
                             Log.e(TAG, "Error in ACTION_MARK_AS_TAKEN for reminder $reminderId", e)

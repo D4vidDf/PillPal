@@ -1,4 +1,3 @@
-// (e.g., in com.d4viddf.medicationreminder.receivers)
 package com.d4viddf.medicationreminder.receivers
 
 import android.content.BroadcastReceiver
@@ -10,7 +9,6 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
-import dagger.hilt.android.AndroidEntryPoint
 
 // Hilt cannot directly inject into BroadcastReceivers declared in the Manifest
 // unless they are for specific Hilt extensions (like HiltWorker).

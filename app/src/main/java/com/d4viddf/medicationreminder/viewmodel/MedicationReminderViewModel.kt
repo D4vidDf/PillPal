@@ -1,8 +1,7 @@
-// En app/src/main/java/com/d4viddf/medicationreminder/viewmodel/MedicationReminderViewModel.kt
 package com.d4viddf.medicationreminder.viewmodel
 
-import android.content.Context // Necesario para @ApplicationContext
-import android.util.Log        // Para Log.d y Log.i
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Data
@@ -11,16 +10,16 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Importa tu Worker
+import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext // Para inyectar el contexto
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate // Necesario para filtrar los de hoy
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -28,7 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MedicationReminderViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
-    @ApplicationContext private val appContext: Context // Inyecta el ApplicationContext
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _allRemindersForSelectedMedication = MutableStateFlow<List<MedicationReminder>>(emptyList())
@@ -37,8 +36,7 @@ class MedicationReminderViewModel @Inject constructor(
     private val _todaysRemindersForSelectedMedication = MutableStateFlow<List<MedicationReminder>>(emptyList())
     val todaysRemindersForSelectedMedication: StateFlow<List<MedicationReminder>> = _todaysRemindersForSelectedMedication
 
-    // Formateador consistente para parsear las fechas/horas de la BD
-    // Si lo tienes en ReminderCalculator, puedes usar ese. Si no, defínelo aquí o en un companion object.
+
     private val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
 
@@ -56,7 +54,7 @@ class MedicationReminderViewModel @Inject constructor(
                         Log.e("MedReminderVM", "Error parsing reminderTime: ${it.reminderTime}", e)
                         false
                     }
-                } // Ya están ordenados por `sortedAllReminders`
+                }
                 Log.d("MedReminderVM", "Loaded ${allRemindersList.size} total reminders, ${todaysRemindersForSelectedMedication.value.size} for today (medId: $medicationId).")
             }
         }
