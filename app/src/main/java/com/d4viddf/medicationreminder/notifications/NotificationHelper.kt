@@ -1,22 +1,23 @@
 package com.d4viddf.medicationreminder.notifications
 
 import android.Manifest
-import android.app.Application // For application context
+import android.app.Notification // Para el builder de plataforma
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Icon // Para el builder de plataforma
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.d4viddf.medicationreminder.MainActivity // Assuming this is your main entry point
-import com.d4viddf.medicationreminder.R // For app icon
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // For notification actions
+import com.d4viddf.medicationreminder.MainActivity
+import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
+import java.util.concurrent.TimeUnit
 
 object NotificationHelper {
 
@@ -24,31 +25,25 @@ object NotificationHelper {
     const val REMINDER_CHANNEL_NAME = "Medication Reminders"
     const val REMINDER_CHANNEL_DESCRIPTION = "Notifications for medication intake reminders"
     const val ACTION_MARK_AS_TAKEN = "com.d4viddf.medicationreminder.ACTION_MARK_AS_TAKEN"
-    const val ACTION_SNOOZE_REMINDER = "com.d4viddf.medicationreminder.ACTION_SNOOZE_REMINDER" // Example
-
+    private const val TAG = "NotificationHelper"
 
     fun createNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Reminder Channel
             val reminderChannel = NotificationChannel(
                 REMINDER_CHANNEL_ID,
                 REMINDER_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH // Use HIGH for reminders to make them pop up
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = REMINDER_CHANNEL_DESCRIPTION
-                // Optionally configure lights, vibration, sound etc.
                 enableLights(true)
-                lightColor = android.graphics.Color.CYAN
+                lightColor = android.graphics.Color.CYAN // Considera usar un color de tu tema
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0, 500, 250, 500) // Vibrate pattern
-                // setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttributes)
+                vibrationPattern = longArrayOf(0, 500, 250, 500) // Patrón de vibración
             }
-
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(reminderChannel)
-
-            // You can create other channels here if needed (e.g., for lower priority info)
+            Log.d(TAG, "Notification channel $REMINDER_CHANNEL_ID created.")
         }
     }
 
@@ -57,109 +52,117 @@ object NotificationHelper {
         reminderDbId: Int,
         medicationName: String,
         medicationDosage: String,
-        isIntervalType: Boolean = false,
-        nextDoseTimeMillis: Long? = null,
-        actualReminderTime: Long // The exact time this reminder is for (in millis)
+        isIntervalType: Boolean,
+        nextDoseTimeMillisForHelper: Long?, // Para intervalos: inicio de la siguiente dosis (fin de la ventana actual)
+        actualReminderTimeMillis: Long      // Para todos: hora de esta dosis / inicio de la ventana actual
     ) {
-        // Intent to open MainActivity when notification is tapped
-        val contentIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("notification_tap_reminder_id", reminderDbId) // Identify which reminder was tapped
-        }
-        val contentPendingIntent = PendingIntent.getActivity(
-            context,
-            reminderDbId, // Unique request code for content tap
-            contentIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        Log.i(
+            TAG,
+            "showReminderNotification called for ID: $reminderDbId, Name: $medicationName, Interval: $isIntervalType, NextDoseHelper: $nextDoseTimeMillisForHelper, ActualTime: $actualReminderTimeMillis"
         )
 
-        // "Mark as Taken" action
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("notification_tap_reminder_id", reminderDbId)
+        }
+        val contentPendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            context, reminderDbId, contentIntent, contentPendingIntentFlags
+        )
+
         val markAsActionIntent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
             action = ACTION_MARK_AS_TAKEN
             putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderDbId)
         }
-        // Use a unique request code for each action on each reminder
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(
-            context,
-            reminderDbId + 1, // Offset for uniqueness
-            markAsActionIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Example "Snooze" action
-        val snoozeActionIntent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ACTION_SNOOZE_REMINDER
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderDbId)
-        }
-        val snoozePendingIntent = PendingIntent.getBroadcast(
-            context,
-            reminderDbId + 2, // Further offset for uniqueness
-            snoozeActionIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context, reminderDbId + 1000, markAsActionIntent, contentPendingIntentFlags // requestCode único
         )
 
         val notificationTitle = "Time for your $medicationName!"
-        val notificationText = "Take $medicationDosage."
+        var notificationText = "Take $medicationDosage."
 
-        val notificationBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // **IMPORTANT: Use a proper small icon**
+        // Usamos NotificationCompat.Builder para la mayor parte de la compatibilidad
+        val notificationCompatBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(notificationTitle)
-            .setContentText(notificationText)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Show on lock screen (respects user settings)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(contentPendingIntent)
-            .setAutoCancel(true) // Dismiss notification when tapped
-            .setWhen(actualReminderTime) // Show the actual time of the event
+            .setAutoCancel(true)
+            .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)
-            .addAction(R.drawable.ic_check_circle, "Mark as Taken", markAsTakenPendingIntent) // Ensure ic_check_circle exists
-            // .addAction(R.drawable.ic_snooze, "Snooze 10 min", snoozePendingIntent) // Ensure ic_snooze exists
-            .setCategory(NotificationCompat.CATEGORY_REMINDER) // Helps system prioritize
-            .setDefaults(NotificationCompat.DEFAULT_ALL) // Use default sound, vibrate, light unless channel overrides
+            .addAction(R.drawable.ic_check_circle, "Mark as Taken", markAsTakenPendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
 
-        // Android 16 (Baklava - API 36) Progress-Centric Notification
-        // The official Build.VERSION_CODES constant for Baklava will be 'VANILLA_ICE_CREAM'
-        // For now, we'll use a placeholder for API 36.
-        val ANDROID_16_BAKLAVA_API_LEVEL = 36 // Use Build.VERSION_CODES.VANILLA_ICE_CREAM when available
 
-        if (isIntervalType && nextDoseTimeMillis != null && nextDoseTimeMillis > System.currentTimeMillis() && Build.VERSION.SDK_INT >= ANDROID_16_BAKLAVA_API_LEVEL) {
-            // The API is: .setProgress(long endTimeMillis, long durationMillis, boolean indeterminate)
-            // endTimeMillis: The time at which the progress completes (next dose time).
-            // durationMillis: The total duration over which this progress occurs.
-            // This needs the *start time* of the current dose window to calculate duration correctly.
-            // For simplicity, let's assume 'actualReminderTime' is the start of this dose's effective period.
-            val durationOfThisDoseWindow = nextDoseTimeMillis - actualReminderTime
-            if (durationOfThisDoseWindow > 0) {
-                // This requires Notification.Builder, not NotificationCompat.Builder directly for setProgress with new API
-                // For now, we adapt. The actual implementation might need platform Notification.Builder
-                // Or NotificationCompat might update to support this.
-                // As of now, NotificationCompat.setProgress(max, progress, indeterminate) is the standard.
-                // We can simulate by setting a custom subtext.
-                val minutesRemaining = (nextDoseTimeMillis - System.currentTimeMillis()) / (1000 * 60)
-                notificationBuilder.setSubText("Next dose in $minutesRemaining min (approx)")
-                // TODO: Replace with actual setProgress(endTime, duration, false) when API is stable & supported by Compat
-                // builder.setProgress(max, progress, false) can be used to show current progress out of total duration.
-                // For example, if total interval is 60 mins, and 10 mins passed:
-                // builder.setProgress(60, 10, false);
+        // Lógica de progreso para intervalos, intentando la API de Android 16 (API 36) si es posible.
+        // La "actividad" que se está rastreando es la ventana de dosificación actual.
+        if (isIntervalType && nextDoseTimeMillisForHelper != null && nextDoseTimeMillisForHelper > actualReminderTimeMillis) {
+            val startTimeMillis = actualReminderTimeMillis // Inicio de la ventana de dosificación
+            val endTimeMillis = nextDoseTimeMillisForHelper  // Fin de la ventana de dosificación
+            val durationMillis = endTimeMillis - startTimeMillis
+
+            if (durationMillis > 0) {
+                notificationCompatBuilder.setOngoing(true) // Hacerla persistente durante el intervalo
+
+                // Si es Android 12 (API 31) o superior, podemos usar setProgress con cuenta atrás de forma más efectiva
+                // o la nueva API si estamos en Vanilla Ice Cream (API 36)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // API 31+
+                    // La API específica Notification.Builder.setProgress(endTime, duration, ongoing)
+                    // es para API 36 (Vanilla Ice Cream).
+                    // Por ahora, usaremos NotificationCompat.setProgress de forma estándar para
+                    // mostrar el progreso actual dentro de la ventana.
+                    val currentTimeMillis = System.currentTimeMillis()
+                    var elapsedTimeInIntervalMillis = currentTimeMillis - startTimeMillis
+                    if (elapsedTimeInIntervalMillis < 0) elapsedTimeInIntervalMillis = 0
+                    if (elapsedTimeInIntervalMillis > durationMillis) elapsedTimeInIntervalMillis = durationMillis
+
+                    notificationCompatBuilder.setProgress(durationMillis.toInt(), elapsedTimeInIntervalMillis.toInt(), false)
+                    Log.d(TAG, "Interval Progress (Compat): Max=${durationMillis.toInt()}, Progress=${elapsedTimeInIntervalMillis.toInt()}")
+
+                    val remainingTimeInIntervalMinutes = (endTimeMillis - currentTimeMillis) / TimeUnit.MINUTES.toMillis(1)
+                    if (remainingTimeInIntervalMinutes > 0) {
+                        notificationText += " This dose valid for approx. $remainingTimeInIntervalMinutes more min."
+                    } else if (currentTimeMillis < endTimeMillis) {
+                        notificationText += " This dose window ending soon."
+                    }
+                } else {
+                    // Para versiones anteriores a S, el setProgress podría no ser tan visual para duraciones.
+                    // Podemos simplemente añadir el texto.
+                    val timeUntilNextDoseMinutes = (endTimeMillis - System.currentTimeMillis()) / TimeUnit.MINUTES.toMillis(1)
+                    if (timeUntilNextDoseMinutes > 0) {
+                        notificationText += " Next dose in approx. $timeUntilNextDoseMinutes min."
+                    }
+                }
             }
         }
 
+        notificationCompatBuilder.setContentText(notificationText)
+        notificationCompatBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(notificationText))
 
+        // Mostrar la notificación
+        showNotificationInternal(context, reminderDbId, notificationCompatBuilder.build())
+    }
+
+    private fun showNotificationInternal(context: Context, id: Int, notification: Notification) {
         with(NotificationManagerCompat.from(context)) {
-            // Permission check for Android 13 (API 33) and above
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                    // Log, or ideally, the app should have already requested this permission.
-                    // For a background service/receiver, you can't request permission here.
-                    // The user must grant it beforehand.
-                    Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Notification for $reminderDbId not shown.")
+                    Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Notification for $id not shown.")
                     return
                 }
             }
             try {
-                notify(reminderDbId, notificationBuilder.build())
-                Log.d(TAG, "Notification shown for reminder ID: $reminderDbId")
+                Log.i(TAG, "Showing final notification for ID: $id")
+                notify(id, notification)
             } catch (e: SecurityException) {
-                Log.e(TAG, "SecurityException showing notification for $reminderDbId: ${e.message}")
+                Log.e(TAG, "SecurityException showing notification for $id: ${e.message}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Generic Exception showing notification for $id: ${e.message}", e)
             }
         }
     }

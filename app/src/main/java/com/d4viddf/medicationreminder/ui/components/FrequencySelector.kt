@@ -66,7 +66,7 @@ fun FrequencySelector(
             Text("Frequency", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
             DropdownMenuFrequencies(selectedFrequency, frequencies, onFrequencySelected)
         }
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         when (selectedFrequency) {
             "Once a day" -> {
