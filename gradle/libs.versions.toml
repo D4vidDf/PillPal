@@ -1,28 +1,30 @@
 [versions]
 accompanistPager = "<latest_version>"
-agp = "8.8.0"
+agp = "8.8.2"
 coilCompose = "2.1.0"
 coilComposeVersion = "2.4.0"
+hilt = "2.56.2" # Or your desired stable version, e.g., 2.56.2 if it's stable & tested
 hiltNavigationCompose = "1.2.0"
-kotlin = "2.0.20"
-coreKtx = "1.15.0"
+kotlin = "2.1.21"
+coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 kotlinxCoroutinesCore = "1.7.3"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
+activityCompose = "1.10.1"
 composeBom = "2024.10.01"
 okhttp = "4.9.3"
-room = "2.6.1"
-hilt = "2.56.2"
+room = "2.7.1"
+hiltExt = "1.3.0-alpha01" # For hilt-work, hilt-navigation-compose etc.
+workmanager = "2.10.1" # Or your desired stable version
 navigationCompose = "2.8.3"
 snapper = "0.3.0"
-workmanager = "2.10.0"
-ksp = "2.0.20-1.0.25"
+ksp = "2.1.21-2.0.1"
 material = "1.12.0"
+material3 = "1.4.0-alpha14"
 json = "20240303"
-uiTextGoogleFonts = "1.7.6" # Add version for KSP
+uiTextGoogleFonts = "1.8.1" # Add version for KSP
 
 [libraries]
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version = "0.36.0" }
@@ -43,7 +45,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3"}
 
 # Room Database
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
@@ -54,18 +56,19 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 # Hilt Dependency Injection
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 
 # Navigation for Compose
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
 # WorkManager for Scheduling
 snapper = { module = "dev.chrisbanes.snapper:snapper", version.ref = "snapper" }
-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
-hilt-work = { group = "androidx.hilt", name = "hilt-work", version = "1.2.0" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 json = { group = "org.json", name = "json", version.ref = "json" }
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

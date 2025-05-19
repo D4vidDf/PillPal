@@ -2,11 +2,13 @@ package com.d4viddf.medicationreminder.data
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "medication_schedule",
-    foreignKeys = [ForeignKey(entity = Medication::class, parentColumns = ["id"], childColumns = ["medicationId"], onDelete = ForeignKey.CASCADE)]
+    foreignKeys = [ForeignKey(entity = Medication::class, parentColumns = ["id"], childColumns = ["medicationId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index(value = ["medicationId"])]
 )
 data class MedicationSchedule(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

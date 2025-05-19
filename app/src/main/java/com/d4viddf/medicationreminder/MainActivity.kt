@@ -1,9 +1,13 @@
 package com.d4viddf.medicationreminder
 
 import android.Manifest // Import Manifest
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager // Import PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,12 +15,14 @@ import androidx.activity.result.contract.ActivityResultContracts // Import Activ
 import androidx.core.content.ContextCompat // Import ContextCompat
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import com.d4viddf.medicationreminder.ui.MedicationReminderApp
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import com.d4viddf.medicationreminder.workers.TestSimpleWorker
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -48,7 +54,12 @@ class MainActivity : ComponentActivity() {
         }
 
         // 2. Request Notification Permission (API 33+)
-        requestNotificationPermission()
+        requestPostNotificationPermission()
+        checkAndRequestExactAlarmPermission()
+
+        val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build()
+        WorkManager.getInstance(applicationContext).enqueue(testWorkRequest)
+        Log.d("MainActivity", "Enqueued TestSimpleWorker")
 
         // 3. Set up UI
         setContent {
@@ -57,7 +68,7 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    private fun requestNotificationPermission() {
+    private fun requestPostNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // TIRAMISU is API 33
             when {
                 ContextCompat.checkSelfPermission(
@@ -85,5 +96,30 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    // calculateDelayUntilMidnight() is no longer needed here if logic is inline in setupDaily...
+    private fun checkAndRequestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // A partir de Android 12 (API 31)
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Log.w("MainActivity", "SCHEDULE_EXACT_ALARM permission not granted. Requesting...")
+                // Opcional: Muestra un diálogo al usuario explicando por qué necesitas este permiso.
+                Intent().apply {
+                    action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                    // Opcional: puedes añadir tu URI de paquete para que el usuario sea llevado
+                    // directamente a la configuración de tu app si es posible.
+                    // data = Uri.parse("package:$packageName")
+                }.also {
+                    try {
+                        startActivity(it)
+                        // No hay un callback directo para este intent, el usuario debe concederlo manualmente.
+                        // Podrías verificar de nuevo en onResume() de la actividad.
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "Could not open ACTION_REQUEST_SCHEDULE_EXACT_ALARM settings", e)
+                        // Informar al usuario que las alarmas podrían no ser precisas.
+                    }
+                }
+            } else {
+                Log.d("MainActivity", "SCHEDULE_EXACT_ALARM permission already granted.")
+            }
+        }
+    }
 }

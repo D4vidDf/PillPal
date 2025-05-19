@@ -32,18 +32,17 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
@@ -82,20 +81,18 @@ dependencies {
 
     // Hilt for Dependency Injection
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
-    // Navigation Compose
-    implementation(libs.navigation.compose)
+    ksp(libs.hilt.compiler)      // KSP for Hilt (covers hilt-android-compiler)
+    implementation(libs.hilt.work) // Hilt WorkManager Integration (no separate KSP needed for this lib usually)
 
     // WorkManager
     implementation(libs.work.runtime.ktx)
 
-    // Hilt Extension for WorkManager
-    implementation(libs.hilt.work)
-    ksp(libs.hilt.compiler)
-
     // Hilt Navigation Compose
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // Navigation Compose
+    implementation(libs.navigation.compose)
+
 
     // Accompanist Pager
     implementation(libs.accompanist.pager)
@@ -116,8 +113,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Hilt for Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.56.2") // Or your current Hilt version
+    implementation(libs.hilt.android) // Or your current Hilt version
 
 // Hilt Extension for WorkManager
-    implementation("androidx.hilt:hilt-work:1.2.0") // Or latest stable version
+    implementation(libs.hilt.work) // Or latest stable version
 }

@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.data
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -9,6 +10,10 @@ import androidx.room.PrimaryKey
     foreignKeys = [
         ForeignKey(entity = Medication::class, parentColumns = ["id"], childColumns = ["medicationId"], onDelete = ForeignKey.CASCADE),
         ForeignKey(entity = MedicationSchedule::class, parentColumns = ["id"], childColumns = ["medicationScheduleId"], onDelete = ForeignKey.CASCADE)
+    ],
+    indices = [
+        Index(value = ["medicationId"]),
+        Index(value = ["medicationScheduleId"])
     ]
 )
 data class MedicationReminder(

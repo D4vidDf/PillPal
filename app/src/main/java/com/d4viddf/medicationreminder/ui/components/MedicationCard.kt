@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,13 +24,13 @@ fun MedicationCard(
     medication: Medication,
     onClick: () -> Unit // Callback for navigation
 ) {
-    val color = if (medication.color is Int) {
-        // Assuming 'medication.color' is an Int representing a color resource ID
-        MedicationColor.LIGHT_ORANGE
-    } else {
-        // Assuming 'medication.color' is a String representing a MedicationColor enum name
+    val color = try {
         MedicationColor.valueOf(medication.color)
+    } catch (e: IllegalArgumentException) {
+        Log.w("MedicationCard", "Invalid color string: '${medication.color}' for medication '${medication.name}'. Defaulting.", e)
+        MedicationColor.LIGHT_ORANGE
     }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
