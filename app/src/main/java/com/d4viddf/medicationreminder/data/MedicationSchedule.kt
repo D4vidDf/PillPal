@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "medication_schedule",
     foreignKeys = [ForeignKey(entity = Medication::class, parentColumns = ["id"], childColumns = ["medicationId"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index(value = ["medicationId"])] // AÑADE ESTO
+    indices = [Index(value = ["medicationId"])]
 )
 data class MedicationSchedule(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

@@ -11,6 +11,8 @@ object ReminderCalculator {
 
      val timeStorableFormatter = DateTimeFormatter.ISO_LOCAL_TIME
      val dateStorableFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy") // Matches AddMedicationScreen
+    val storableDateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
 
     fun calculateReminderDateTimes(
         medication: Medication,

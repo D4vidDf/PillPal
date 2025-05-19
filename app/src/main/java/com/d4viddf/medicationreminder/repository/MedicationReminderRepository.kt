@@ -30,6 +30,11 @@ class MedicationReminderRepository @Inject constructor(
         )
     }
 
+    suspend fun deleteReminder(reminder: MedicationReminder) {
+        medicationReminderDao.deleteReminder(reminder)
+        firebaseSyncDao.insertSyncRecord(FirebaseSync(entityName = "MedicationReminder", entityId = reminder.id, syncStatus = SyncStatus.PENDING)) // O similar
+    }
+
     suspend fun markReminderAsTaken(reminderId: Int, takenAt: String) {
         val reminder = medicationReminderDao.getReminderById(reminderId)
         reminder?.let {
@@ -47,8 +52,13 @@ class MedicationReminderRepository @Inject constructor(
         return medicationReminderDao.getFutureRemindersForMedication(medicationId, currentTimeIso)
     }
 
-    suspend fun deleteReminder(reminder: MedicationReminder) { // Asegúrate de que este método existe
-        medicationReminderDao.deleteReminder(reminder)
-        // Considera si necesitas un firebaseSyncDao.insertSyncRecord para la eliminación
+    suspend fun deleteReminderById(reminderId: Int) { // NUEVO
+        medicationReminderDao.deleteReminderById(reminderId)
+
     }
+
+    fun getFutureUntakenRemindersForMedication(medicationId: Int, currentTimeIsoString: String): Flow<List<MedicationReminder>> { //NUEVO
+        return medicationReminderDao.getFutureUntakenRemindersForMedication(medicationId, currentTimeIsoString)
+    }
+
 }

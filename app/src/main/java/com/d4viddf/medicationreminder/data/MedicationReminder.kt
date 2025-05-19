@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
         ForeignKey(entity = Medication::class, parentColumns = ["id"], childColumns = ["medicationId"], onDelete = ForeignKey.CASCADE),
         ForeignKey(entity = MedicationSchedule::class, parentColumns = ["id"], childColumns = ["medicationScheduleId"], onDelete = ForeignKey.CASCADE)
     ],
-    indices = [ // AÑADE ESTO
+    indices = [
         Index(value = ["medicationId"]),
         Index(value = ["medicationScheduleId"])
     ]
