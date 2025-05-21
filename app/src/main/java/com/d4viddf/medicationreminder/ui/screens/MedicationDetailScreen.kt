@@ -1,17 +1,36 @@
 package com.d4viddf.medicationreminder.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowLeft
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,9 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
+import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
+import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,195 +51,148 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
-    viewModel: MedicationViewModel = hiltViewModel()
+    viewModel: MedicationViewModel = hiltViewModel(),
+    scheduleViewModel: MedicationScheduleViewModel = hiltViewModel()
 ) {
-    var medication by remember { mutableStateOf<Medication?>(null) }
-    var currentProgress by remember { mutableStateOf(0.33f) }
+    var medicationState by remember { mutableStateOf<Medication?>(null) }
+    var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) } // Necesario para MedicationDetailCounters
 
-    // Fetch the medication details using LaunchedEffect
+    val progressDetails by viewModel.medicationProgressDetails.collectAsState()
+
     LaunchedEffect(key1 = medicationId) {
-        medication = viewModel.getMedicationById(medicationId)
+        val med = viewModel.getMedicationById(medicationId)
+        medicationState = med
+        if (med != null) { // Solo continuar si la medicación se cargó
+            scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
+            viewModel.calculateAndSetProgressDetails(med) // Calcular progreso
+        } else {
+            viewModel.calculateAndSetProgressDetails(null) // Limpiar progreso si no hay medicación
+        }
     }
 
-    val color = MedicationColor.valueOf((medication?.color ?: MedicationColor.LIGHT_ORANGE).toString())
+    val color = remember(medicationState?.color) {
+        try {
+            MedicationColor.valueOf(medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name)
+        } catch (e: IllegalArgumentException) {
+            MedicationColor.LIGHT_ORANGE
+        }
+    }
 
-    // 2. Main Content
-    LazyColumn {
-        // First Row with Background Color and Rounded Corners
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = color.backgroundColor,
-                        shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
-                    )
-                    .padding(16.dp)
-            ) {
-                Row(
+    if (medicationState == null && progressDetails == null) { // Ajustar condición de carga
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyColumn {
+            item {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(
+                            color = color.backgroundColor,
+                            shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+                        )
+                        .padding(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 16.dp)
                 ) {
-                    // Back Button with Fully Rounded Corners and Larger Icon
-                    Box(
+                    // ... (Header: Back, Edit, Nombre, Dosis) ...
+                    Row(
                         modifier = Modifier
-                            .size(40.dp) // Slightly smaller size for the box
-                            .background(
-                                color = Color.Black.copy(alpha = 0.4f),
-                                shape = CircleShape // Fully rounded corners for the back button
-                            )
-                            .clickable { onNavigateBack() }, // Make it clickable
-                        contentAlignment = Alignment.Center // Center the icon
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Rounded.KeyboardArrowLeft,
-                            contentDescription = "Back",
-                            modifier = Modifier.size(28.dp), // Slightly larger icon
-                            tint = Color.White
-                        )
-                    }
-
-                    // Edit Text with Rounded Corners and Smaller Size
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                color = Color.Black.copy(alpha = 0.4f),
-                                shape = RoundedCornerShape(8.dp) // Rounded corners for the text box
-                            )
-                            .padding(horizontal = 12.dp, vertical = 6.dp) // Adjust padding for smaller size
-                            .clickable { /* Handle edit action */ },
-                        contentAlignment = Alignment.Center // Center the text
-                    ) {
-                        Text(
-                            text = "Edit",
-                            fontSize = 14.sp, // Slightly smaller text
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-
-
-                Spacer(modifier = Modifier.height(      16.dp))
-                // 2.1 Medication Name and Dosage
-                Row {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = medication?.name ?: "",
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.Bold,
-                            color= color.textColor,
-                                    lineHeight = (36.sp * 1.2)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = medication?.dosage ?: "", fontSize = 20.sp, color= color.textColor)
-                    }
-                    // 2.2 Pill Image
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Image(
-                        painter = rememberAsyncImagePainter("pill_image_url"),
-                        contentDescription = "Pill Image",
-                        modifier = Modifier.size(64.dp)
-                    )
-                }
-
-                // 3. Progress
-                // Use a library like CircularProgressIndicator to create this
-                Row {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth().height(220.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Column( // Wrap the progress bar and text in another Column
-                            modifier = Modifier.height(140.dp), // Adjust height as needed
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                .clickable { onNavigateBack() },
+                            contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.width(200.dp),
-                                progress = { currentProgress },
-                                trackColor = color.progressBackColor,
-                                color = color.progressBarColor,
-                                strokeWidth = 10.dp,
+                            Icon(
+                                Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                contentDescription = "Back",
+                                modifier = Modifier.size(28.dp), tint = Color.White
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(text = "Progress", fontSize = 18.sp,color= color.textColor)
-                            Text(text = "8/30", fontWeight = FontWeight.Bold, fontSize = 58.sp,color= color.textColor)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .clickable { /* TODO: Handle edit action */ },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Edit", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
-                }
 
-                // 4. Counters
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .padding(start = 20.dp, end = 20.dp)
-                    .background(
-                        color = color.cardColor,
-                        shape = RoundedCornerShape(14.dp)
-                    ),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    CounterItem(value = "1", label = "table",color = color.onBackgroundColor)
-                    CounterItem(value = "3x", label = "times a day",color = color.onBackgroundColor)
-                    CounterItem(value = "10", label = "days",color = color.onBackgroundColor)
-                }
+                    Spacer(modifier = Modifier.height(24.dp))
 
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = medicationState?.name ?: "Cargando nombre...",
+                                fontSize = 36.sp, fontWeight = FontWeight.Bold,
+                                color = color.textColor, lineHeight = 40.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = medicationState?.dosage?.takeIf { it.isNotBlank() } ?: "Sin dosificación",
+                                fontSize = 20.sp, color = color.textColor
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        // Image(...)
+                    }
+
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    MedicationProgressDisplay(
+                        progressDetails = progressDetails,
+                        colorScheme = color
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    MedicationDetailCounters(
+                        colorScheme = color,
+                        medication = medicationState,
+                        schedule = scheduleState,
+                        modifier = Modifier.padding(horizontal = 12.dp) // Para que no toque los bordes si es largo
+
+                    )
+                }
             }
-        }
 
-        // Second Row for Counters and Schedule
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-
-
-                // 5. Schedule
-
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Spacer(modifier = Modifier.height(34.dp))
-                    Text(text = "Today", fontSize = 36.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(34.dp))
+            // ... (item para la lista de "Today's Schedule") ...
+            item {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Today", fontSize = 36.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(16.dp))
                     ScheduleItem(time = "9:00", label = "After waking up", enabled = true)
                     ScheduleItem(time = "15:00", label = "With lunch", enabled = false)
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
 }
 
-
-// Helper composables for CounterItem and ScheduleItem
-@Composable
-fun CounterItem(value: String, label: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, fontSize = 28.sp, fontWeight = FontWeight.Bold,color = color)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, fontSize = 14.sp,color= Color.White)
-    }
-}
-
+// ScheduleItem Composable (sin cambios)
 @Composable
 fun ScheduleItem(time: String, label: String, enabled: Boolean) {
+    // ... (implementación de ScheduleItem)
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(text = label)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = time, fontWeight = FontWeight.Bold)
+            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(text = time, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Switch(checked = enabled, onCheckedChange = { /* Handle toggle */ })
     }

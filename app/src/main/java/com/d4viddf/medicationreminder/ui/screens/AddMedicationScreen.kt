@@ -3,49 +3,22 @@ package com.d4viddf.medicationreminder.ui.screens
 import MedicationSearchResult
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.rounded.KeyboardArrowLeft
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+// import androidx.compose.ui.platform.LocalContext // Only if child components truly need it
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,14 +28,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationInfo
-import com.d4viddf.medicationreminder.data.MedicationSchedule
+import com.d4viddf.medicationreminder.data.MedicationSchedule // Ensure this is your updated class
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ColorSelector
-import com.d4viddf.medicationreminder.ui.components.FrequencySelector
-import com.d4viddf.medicationreminder.ui.components.MedicationDosagePackageDateInput
-import com.d4viddf.medicationreminder.ui.components.MedicationNameInput
-import com.d4viddf.medicationreminder.ui.components.MedicationTypeSelector
+import com.d4viddf.medicationreminder.ui.components.*
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -70,6 +39,7 @@ import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,7 +118,7 @@ fun AddMedicationScreen(
                                 currentStep--
                                 progress = (currentStep + 1) / 5f
                             }) {
-                                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, contentDescription = "Back")
+                                Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = "Back")
                             }
                         } else {
                             Spacer(Modifier.width(48.dp))
@@ -197,12 +167,7 @@ fun AddMedicationScreen(
                                     daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.joinToString(",") else null,
                                     specificTimes = when (scheduleType) {
                                         ScheduleType.DAILY -> onceADayTime?.format(timeFormatter)?.let { listOf(it) }?.joinToString(",")
-                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes.joinToString(",") {
-                                            it.format(
-                                                timeFormatter
-                                            )
-                                        }
-
+                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes.map { it.format(timeFormatter) }.joinToString(",")
                                         else -> null
                                     },
                                     // Assuming you add these to MedicationSchedule data class and DB
@@ -397,7 +362,7 @@ fun MedicationSummary(
             Spacer(Modifier.width(8.dp))
             Box(Modifier.size(24.dp).background(color, CircleShape))
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        Divider(Modifier.padding(vertical = 8.dp))
         Text("Reminder Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
         InfoRow("Frequency:", frequency)
 
