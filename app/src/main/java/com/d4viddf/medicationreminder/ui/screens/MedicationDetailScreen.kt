@@ -40,10 +40,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
+import com.d4viddf.medicationreminder.data.MedicationType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
+import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
+import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,21 +55,38 @@ fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
     viewModel: MedicationViewModel = hiltViewModel(),
-    scheduleViewModel: MedicationScheduleViewModel = hiltViewModel()
+    scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
+    medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel() // Añadir ViewModel de tipo
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
-    var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) } // Necesario para MedicationDetailCounters
+    var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
+    var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) } // Estado para el tipo
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
 
     LaunchedEffect(key1 = medicationId) {
         val med = viewModel.getMedicationById(medicationId)
         medicationState = med
-        if (med != null) { // Solo continuar si la medicación se cargó
+        if (med != null) {
+            // scheduleState se necesita para MedicationDetailCounters
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
-            viewModel.calculateAndSetProgressDetails(med) // Calcular progreso
+
+            // Iniciar la observación para el progreso DIARIO
+            viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
+
+            med.typeId?.let { typeId ->
+                medicationTypeViewModel.medicationTypes.collect { types ->
+                    medicationTypeState = types.find { it.id == typeId }
+                }
+            }
         } else {
-            viewModel.calculateAndSetProgressDetails(null) // Limpiar progreso si no hay medicación
+            // Limpiar los detalles del progreso si no hay medicación
+            // La función calculateAndSetDailyProgressDetails ya maneja el caso de medication == null
+            // pero llamar a la de observación con un ID inválido no tendría sentido.
+            // Es mejor que el ViewModel ponga progressDetails a null si med es null.
+            // O, si quieres explícitamente limpiar, podrías tener una función viewModel.clearProgressDetails()
+            // Por ahora, el calculateAndSetDailyProgressDetails pondrá null si med es null.
+            // La lógica actual en el viewModel ya lo hace.
         }
     }
 
@@ -78,7 +98,7 @@ fun MedicationDetailsScreen(
         }
     }
 
-    if (medicationState == null && progressDetails == null) { // Ajustar condición de carga
+    if (medicationState == null && progressDetails == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -94,7 +114,7 @@ fun MedicationDetailsScreen(
                         )
                         .padding(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 16.dp)
                 ) {
-                    // ... (Header: Back, Edit, Nombre, Dosis) ...
+                    // Row para Back y Edit (sin cambios)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -128,39 +148,29 @@ fun MedicationDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = medicationState?.name ?: "Cargando nombre...",
-                                fontSize = 36.sp, fontWeight = FontWeight.Bold,
-                                color = color.textColor, lineHeight = 40.sp
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = medicationState?.dosage?.takeIf { it.isNotBlank() } ?: "Sin dosificación",
-                                fontSize = 20.sp, color = color.textColor
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        // Image(...)
-                    }
+                    // Usar el nuevo componente MedicationDetailHeader
+                    MedicationDetailHeader(
+                        medicationName = medicationState?.name,
+                        medicationDosage = medicationState?.dosage,
+                        medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
+                        colorScheme = color
+                        // El modifier por defecto del componente ya tiene fillMaxWidth
+                    )
 
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp)) // Ajustado el espacio después del header
 
                     MedicationProgressDisplay(
                         progressDetails = progressDetails,
                         colorScheme = color
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
 
                     MedicationDetailCounters(
                         colorScheme = color,
                         medication = medicationState,
                         schedule = scheduleState,
-                        modifier = Modifier.padding(horizontal = 12.dp) // Para que no toque los bordes si es largo
-
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
             }
@@ -183,7 +193,6 @@ fun MedicationDetailsScreen(
 // ScheduleItem Composable (sin cambios)
 @Composable
 fun ScheduleItem(time: String, label: String, enabled: Boolean) {
-    // ... (implementación de ScheduleItem)
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -194,6 +203,6 @@ fun ScheduleItem(time: String, label: String, enabled: Boolean) {
             Spacer(modifier = Modifier.height(2.dp))
             Text(text = time, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
-        Switch(checked = enabled, onCheckedChange = { /* Handle toggle */ })
+        Switch(checked = enabled, onCheckedChange = { /* TODO: Handle toggle */ })
     }
 }

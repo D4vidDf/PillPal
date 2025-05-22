@@ -48,9 +48,9 @@ fun MedicationProgressDisplay(
     }
 
     val density = LocalDensity.current
-    val desiredStrokeWidth = 16.dp
+    val desiredStrokeWidth = 12.dp
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
-    val indicatorSize = 200.dp
+    val indicatorSize = 220.dp
 
     val accessibilityDescription = if (progressDetails != null && progressDetails.totalFromPackage > 0) {
         "Progreso de la medicación: ${progressDetails.taken} dosis tomadas de ${progressDetails.totalFromPackage}. Quedan ${progressDetails.remaining} dosis."
@@ -82,6 +82,9 @@ fun MedicationProgressDisplay(
                 trackColor = colorScheme.progressBackColor,
                 stroke = Stroke(width = desiredStrokeWidthPx),
                 trackStroke = Stroke(width = desiredStrokeWidthPx),
+                wavelength = 52.dp,
+                waveSpeed = 4.dp,
+                gapSize = 0.dp
             )
 
             // Column para agrupar "Progreso" y los números, y centrar esta Column dentro del Box
@@ -92,15 +95,15 @@ fun MedicationProgressDisplay(
                 ) {
                     Text(
                         text = "Progreso",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
                         color = colorScheme.textColor,
                         // No necesita padding inferior aquí si el Spacer lo maneja
                     )
-                    Spacer(modifier = Modifier.height(4.dp)) // Espacio entre "Progreso" y los números
+                    Spacer(modifier = Modifier.height(8.dp)) // Espacio entre "Progreso" y los números
                     Text(
                         text = progressDetails.displayText,
-                        fontSize = if (progressDetails.displayText == "N/A") 32.sp else 32.sp,
+                        fontSize = if (progressDetails.displayText == "N/A") 48.sp else 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.textColor,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
