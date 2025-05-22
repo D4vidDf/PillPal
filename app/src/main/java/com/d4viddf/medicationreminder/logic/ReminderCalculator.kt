@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.logic
 
+import android.util.Log // Added for logging
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
@@ -66,22 +67,41 @@ object ReminderCalculator {
                 val intervalMinutes = schedule.intervalMinutes ?: 0
                 val totalIntervalMinutes = (intervalHours * 60) + intervalMinutes
 
-                if (totalIntervalMinutes > 0) {
-                    val dailyStartTimeStr = schedule.intervalStartTime
-                    val dailyEndTimeStr = schedule.intervalEndTime
+                // Stricter check for totalIntervalMinutes
+                if (totalIntervalMinutes <= 0) {
+                    Log.e("ReminderCalculator", "Invalid totalIntervalMinutes (<=0) for medication ID: ${medication.id}, schedule ID: ${schedule.id}. Interval: $intervalHours hrs, $intervalMinutes mins.")
+                    return emptyList() // Return empty list if interval is non-positive
+                }
+
+                // The original 'if (totalIntervalMinutes > 0)' is now effectively an 'else' to the check above.
+                // No need to re-wrap the following logic in an 'if (totalIntervalMinutes > 0)' block.
+                val dailyStartTimeStr = schedule.intervalStartTime
+                val dailyEndTimeStr = schedule.intervalEndTime
 
                     val actualDailyStart = dailyStartTimeStr?.let { LocalTime.parse(it, timeStorableFormatter) } ?: LocalTime.MIN
                     val actualDailyEnd = dailyEndTimeStr?.let { LocalTime.parse(it, timeStorableFormatter) } ?: LocalTime.MAX
 
                     var currentTime = actualDailyStart
+                    var iterations = 0
+                    // Max iterations: Max minutes in a day (for 1-min interval) + a small buffer.
+                    val MAX_ITERATIONS = (24 * 60) + 5 
+
                     while (!currentTime.isAfter(actualDailyEnd)) {
+                        if (iterations++ > MAX_ITERATIONS) {
+                            Log.e("ReminderCalculator", "Max iterations ($MAX_ITERATIONS) reached for interval calculation. Medication ID: ${medication.id}, Schedule ID: ${schedule.id}. Interval: $totalIntervalMinutes mins. Last currentTime: $currentTime")
+                            break // Exit loop to prevent OOM or excessive processing
+                        }
                         reminders.add(LocalDateTime.of(targetDate, currentTime))
                         currentTime = currentTime.plusMinutes(totalIntervalMinutes.toLong())
-                        if (currentTime == LocalTime.MIDNIGHT && totalIntervalMinutes > 0) { // Avoid infinite loop if interval is 0 and time is midnight
-                            break // Handled edge case where interval might perfectly align to make it loop midnight to midnight
-                        }
+                        
+                        // The original check `if (currentTime == LocalTime.MIDNIGHT && totalIntervalMinutes > 0)`
+                        // was to prevent infinite loops if interval was 0. This is now covered by the
+                        // `totalIntervalMinutes <= 0` check at the beginning.
+                        // If currentTime becomes LocalTime.MIDNIGHT, and it's not after actualDailyEnd,
+                        // it's a valid reminder time (e.g. if actualDailyEnd is 00:00 of next day, effectively).
+                        // The loop condition `!currentTime.isAfter(actualDailyEnd)` correctly handles this.
                     }
-                }
+                // No need for the closing brace of 'if (totalIntervalMinutes > 0)' as it's handled by early return.
             }
             ScheduleType.WEEKLY -> {
                 // TODO: Implement if re-add "Weekly" frequency.

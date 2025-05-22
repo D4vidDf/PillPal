@@ -105,10 +105,6 @@ dependencies {
 
     // Unit Tests
     testImplementation(libs.junit)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.inline)
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.kotlinx.coroutines.test)
 
     // Android Instrumented Tests
     androidTestImplementation(libs.androidx.junit)
