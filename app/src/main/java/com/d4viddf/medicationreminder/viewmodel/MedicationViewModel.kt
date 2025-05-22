@@ -83,13 +83,16 @@ class MedicationViewModel @Inject constructor(
         val today = LocalDate.now()
 
         // 1. Calcular dosis totales programadas para HOY
-        val scheduledTimesToday = ReminderCalculator.calculateReminderDateTimes(
+        // Replace calculateReminderDateTimes with generateRemindersForPeriod
+        val remindersMapForToday = ReminderCalculator.generateRemindersForPeriod(
             medication = medication,
             schedule = schedule,
-            targetDate = today // Calcular solo para hoy
+            periodStartDate = today,
+            periodEndDate = today
         )
-        val totalDosesScheduledToday = scheduledTimesToday.size
-        Log.d("ProgressCalc", "Med: ${medication.name}, Schedule: ${schedule.scheduleType}, Scheduled for $today: $totalDosesScheduledToday doses.")
+        val scheduledTimesTodayList = remindersMapForToday[today] ?: emptyList()
+        val totalDosesScheduledToday = scheduledTimesTodayList.size
+        Log.d("ProgressCalc", "Med: ${medication.name}, Schedule: ${schedule.scheduleType}, Scheduled for $today: $totalDosesScheduledToday doses (using generateRemindersForPeriod). Times: $scheduledTimesTodayList")
 
 
         // 2. Calcular dosis tomadas HOY

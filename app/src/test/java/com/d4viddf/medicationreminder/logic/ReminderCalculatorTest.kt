@@ -105,15 +105,15 @@ class ReminderCalculatorTest {
         )
         val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule1MinInterval, testDate)
 
-        // MAX_ITERATIONS in ReminderCalculator is (24 * 60) + 5 = 1445
-        // The loop runs for iterations = 0 up to MAX_ITERATIONS. So it can run MAX_ITERATIONS + 1 times.
-        // If iterations++ > MAX_ITERATIONS, it breaks.
-        // So, if iterations reaches MAX_ITERATIONS + 1 (i.e., 1446th potential reminder), it breaks.
-        // This means it should produce MAX_ITERATIONS + 1 reminders if not for actualDailyEnd.
-        // Since actualDailyEnd is LocalTime.MAX, it will produce 24 * 60 = 1440 reminders.
-        // The safeguard is to prevent more than 1445.
-        val expectedMaxReminders = 24 * 60 // 1440
-        assertEquals("Number of reminders for 1-minute interval should be $expectedMaxReminders", expectedMaxReminders, reminders.size)
+        // MAX_ITERATIONS in ReminderCalculator is (24 * 60) + 5 = 1445.
+        // The loop condition is `if (iterations >= MAX_ITERATIONS) break;`.
+        // `iterations` is incremented at the end. `reminders.add` happens before this check.
+        // So, the loop can run for `iterations` = 0, 1, ..., MAX_ITERATIONS - 1.
+        // This means a maximum of MAX_ITERATIONS (1445) reminders can be added.
+        // For a 1-minute interval from 00:00 to 23:59 (inclusive for start of minute),
+        // there are 24 * 60 = 1440 reminders. This is less than 1445, so the safeguard is not hit.
+        val expectedReminders = 24 * 60 // 1440
+        assertEquals("Number of reminders for 1-minute interval should be $expectedReminders", expectedReminders, reminders.size)
 
         // Verify times are correct (first, last, and one in middle)
         assertTrue("First reminder should be at 00:00", reminders.contains(testDate.atTime(0, 0)))
@@ -252,4 +252,200 @@ class ReminderCalculatorTest {
         assertTrue(reminders.contains(testDate.atTime(12,0)))
         assertTrue(reminders.contains(testDate.atTime(18,0)))
     }
+
+    // New Tests for Subtask: "Add new unit tests to verify corrected interval calculation logic"
+
+    @Test
+    fun `calculateReminderDateTimes with 4 hour interval full day from midnight`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalHours = 4,
+            intervalMinutes = 0,
+            intervalStartTime = LocalTime.MIN, // 00:00
+            intervalEndTime = LocalTime.MAX
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
+        assertEquals("Expected 6 reminders for 4-hour interval over full day", 6, reminders.size)
+        val expectedTimes = listOf(
+            testDate.atTime(0, 0), testDate.atTime(4, 0), testDate.atTime(8, 0),
+            testDate.atTime(12, 0), testDate.atTime(16, 0), testDate.atTime(20, 0)
+        )
+        expectedTimes.forEach { expectedTime ->
+            assertTrue("Should contain reminder at $expectedTime", reminders.contains(expectedTime))
+        }
+    }
+
+    @Test
+    fun `calculateReminderDateTimes with 4 hour interval from 0600 to MAX`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalHours = 4,
+            intervalMinutes = 0,
+            intervalStartTime = LocalTime.of(6, 0),
+            intervalEndTime = LocalTime.MAX
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 06:00, 10:00, 14:00, 18:00, 22:00
+        assertEquals("Expected 5 reminders", 5, reminders.size)
+        val expectedTimes = listOf(
+            testDate.atTime(6, 0), testDate.atTime(10, 0), testDate.atTime(14, 0),
+            testDate.atTime(18, 0), testDate.atTime(22, 0)
+        )
+        expectedTimes.forEach { expectedTime ->
+            assertTrue("Should contain reminder at $expectedTime", reminders.contains(expectedTime))
+        }
+    }
+
+    @Test
+    fun `calculateReminderDateTimes with 3 hour interval specific start and end`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalHours = 3,
+            intervalMinutes = 0,
+            intervalStartTime = LocalTime.of(8, 0),
+            intervalEndTime = LocalTime.of(16, 0) // up to and including 16:00
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 08:00, 11:00, 14:00. Next would be 17:00, which is after 16:00.
+        assertEquals("Expected 3 reminders", 3, reminders.size)
+        val expectedTimes = listOf(
+            testDate.atTime(8, 0), testDate.atTime(11, 0), testDate.atTime(14, 0)
+        )
+        expectedTimes.forEach { expectedTime ->
+            assertTrue("Should contain reminder at $expectedTime", reminders.contains(expectedTime))
+        }
+    }
+
+    // --- Tests for generateRemindersForPeriod ---
+
+    // A. Continuous Interval (Type B - schedule.intervalStartTime is null)
+    @Test
+    fun `generateRemindersForPeriod - Continuous Basic Rollover - 7hr interval over 3 days`() {
+        val medStartDate = LocalDate.of(2024, 3, 10) // D1
+        val medication = createMedication(startDate = medStartDate, endDate = null) // No end date
+        // Continuous interval (intervalStartTime = null), 7 hours
+        val schedule = createIntervalSchedule(intervalHours = 7, intervalMinutes = 0, intervalStartTime = null)
+
+        val periodStartDate = medStartDate // D1
+        val periodEndDate = medStartDate.plusDays(2) // D3
+
+        val result = ReminderCalculator.generateRemindersForPeriod(medication, schedule, periodStartDate, periodEndDate)
+
+        // Expected for D1 (2024-03-10): 00:00, 07:00, 14:00, 21:00
+        val d1Times = result[medStartDate]
+        assertEquals(listOf(LocalTime.of(0,0), LocalTime.of(7,0), LocalTime.of(14,0), LocalTime.of(21,0)), d1Times)
+
+        // Expected for D2 (2024-03-11): 04:00 (21+7-24), 11:00, 18:00
+        val d2 = medStartDate.plusDays(1)
+        val d2Times = result[d2]
+        assertEquals(listOf(LocalTime.of(4,0), LocalTime.of(11,0), LocalTime.of(18,0)), d2Times)
+
+        // Expected for D3 (2024-03-12): 01:00 (18+7-24), 08:00, 15:00, 22:00
+        val d3 = medStartDate.plusDays(2)
+        val d3Times = result[d3]
+        assertEquals(listOf(LocalTime.of(1,0), LocalTime.of(8,0), LocalTime.of(15,0), LocalTime.of(22,0)), d3Times)
+
+        assertEquals("Should only contain results for D1, D2, D3", 3, result.keys.size)
+    }
+
+    @Test
+    fun `generateRemindersForPeriod - Continuous with Medication EndDate - 8hr interval`() {
+        val medStartDate = LocalDate.of(2024, 3, 10) // D1
+        val medEndDate = LocalDate.of(2024, 3, 11)   // D2
+        val medication = createMedication(startDate = medStartDate, endDate = medEndDate)
+        val schedule = createIntervalSchedule(intervalHours = 8, intervalMinutes = 0, intervalStartTime = null)
+
+        val periodStartDate = medStartDate // D1
+        val periodEndDate = medStartDate.plusDays(2) // D3 (request period beyond med end date)
+
+        val result = ReminderCalculator.generateRemindersForPeriod(medication, schedule, periodStartDate, periodEndDate)
+
+        // Expected for D1 (2024-03-10): 00:00, 08:00, 16:00
+        val d1Times = result[medStartDate]
+        assertEquals(listOf(LocalTime.of(0,0), LocalTime.of(8,0), LocalTime.of(16,0)), d1Times)
+
+        // Expected for D2 (2024-03-11): 00:00 (16+8-24), 08:00, 16:00
+        // All these are on or before medEndDate (D2)
+        val d2 = medStartDate.plusDays(1)
+        val d2Times = result[d2]
+        assertEquals(listOf(LocalTime.of(0,0), LocalTime.of(8,0), LocalTime.of(16,0)), d2Times)
+
+        // Expected for D3 (2024-03-12): No reminders, as it's after medEndDate
+        val d3 = medStartDate.plusDays(2)
+        assertTrue("No reminders expected on D3 as it's after medication end date", result[d3].isNullOrEmpty())
+        // Check if D3 is even a key, if it is, its list must be empty.
+        // The current implementation of generateRemindersForPeriod might not add the key if no valid times.
+        if (result.containsKey(d3)) {
+            assertTrue("If D3 key exists, its list of times must be empty", result[d3]?.isEmpty() ?: true)
+        }
+
+        assertEquals("Should contain results only for D1, D2 (or D3 as empty)", 2, result.filterValues { it.isNotEmpty() }.size)
+    }
+
+    @Test
+    fun `generateRemindersForPeriod - Continuous with Short Period - 6hr interval, 1 day period`() {
+        val medStartDate = LocalDate.of(2024, 3, 10) // D1
+        val medication = createMedication(startDate = medStartDate, endDate = null)
+        val schedule = createIntervalSchedule(intervalHours = 6, intervalMinutes = 0, intervalStartTime = null)
+
+        val periodStartDate = medStartDate // D1
+        val periodEndDate = medStartDate   // D1 (period is only for one day)
+
+        val result = ReminderCalculator.generateRemindersForPeriod(medication, schedule, periodStartDate, periodEndDate)
+
+        // Expected for D1 (2024-03-10): 00:00, 06:00, 12:00, 18:00
+        val d1Times = result[medStartDate]
+        assertEquals(listOf(LocalTime.of(0,0), LocalTime.of(6,0), LocalTime.of(12,0), LocalTime.of(18,0)), d1Times)
+
+        assertEquals("Should only contain results for D1", 1, result.keys.size)
+    }
+
+    @Test
+    fun `generateRemindersForPeriod - Continuous with zero interval returns empty map`() {
+        val medication = createMedication(startDate = testDate)
+        val schedule = createIntervalSchedule(intervalHours = 0, intervalMinutes = 0, intervalStartTime = null)
+        val result = ReminderCalculator.generateRemindersForPeriod(medication, schedule, testDate, testDate.plusDays(1))
+        assertTrue("Expected empty map for zero interval", result.isEmpty())
+    }
+
+    @Test
+    fun `generateRemindersForPeriod - Continuous with null medication start date returns empty map`() {
+        // Create medication with a null start date string
+        val medicationWithNullStartDate = Medication(id = 1, name = "TestMed", startDate = null, endDate = null, dosage = "1")
+        val schedule = createIntervalSchedule(intervalHours = 6, intervalMinutes = 0, intervalStartTime = null)
+        val result = ReminderCalculator.generateRemindersForPeriod(medicationWithNullStartDate, schedule, testDate, testDate.plusDays(1))
+        assertTrue("Expected empty map when medication start date is null", result.isEmpty())
+    }
+
+
+    // B. Daily Repeating Interval (Type A - schedule.intervalStartTime is set)
+    @Test
+    fun `generateRemindersForPeriod - Daily Repeating Interval - Delegation Check`() {
+        val medStartDate = LocalDate.of(2024, 3, 10) // D1
+        val medication = createMedication(startDate = medStartDate, endDate = null)
+        // Daily repeating interval (Type A)
+        val schedule = createIntervalSchedule(
+            intervalHours = 4,
+            intervalMinutes = 0,
+            intervalStartTime = LocalTime.of(8, 0) // "08:00"
+        )
+
+        val periodStartDate = medStartDate // D1
+        val periodEndDate = medStartDate.plusDays(1) // D2
+
+        val result = ReminderCalculator.generateRemindersForPeriod(medication, schedule, periodStartDate, periodEndDate)
+
+        // Expected for D1 (2024-03-10): 08:00, 12:00, 16:00, 20:00
+        val d1Times = result[medStartDate]
+        assertEquals(listOf(LocalTime.of(8,0), LocalTime.of(12,0), LocalTime.of(16,0), LocalTime.of(20,0)), d1Times)
+
+        // Expected for D2 (2024-03-11): 08:00, 12:00, 16:00, 20:00
+        val d2 = medStartDate.plusDays(1)
+        val d2Times = result[d2]
+        assertEquals(listOf(LocalTime.of(8,0), LocalTime.of(12,0), LocalTime.of(16,0), LocalTime.of(20,0)), d2Times)
+
+        assertEquals("Should contain results for D1 and D2", 2, result.keys.size)
+    }
+
 }
