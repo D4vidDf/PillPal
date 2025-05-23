@@ -38,9 +38,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
-    private var initialLocaleTag: String? = null
+    // initialLocaleTag se inicializará en onCreate después de la inyección
+    // private var initialLocaleTag: String? = null // Puedes quitarlo si lo lees y aplicas en el mismo flujo
 
-    // ActivityResultLauncher for the permission request
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
@@ -51,14 +51,17 @@ class MainActivity : ComponentActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        initialLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() }
-        if (!initialLocaleTag.isNullOrEmpty()) {
-            val localeList = LocaleListCompat.forLanguageTags(initialLocaleTag)
-            AppCompatDelegate.setApplicationLocales(localeList)
-            Log.d("MainActivity", "Applied initial locale: $initialLocaleTag")
+        super.onCreate(savedInstanceState) // La inyección de Hilt para userPreferencesRepository ocurre aquí.
+        // Mover la lógica de configuración de idioma ANTES de super.onCreate()
+        // para que la UI se infle con el idioma correcto desde el inicio.
+        // runBlocking aquí es para la configuración inicial del tema/idioma antes de que la UI se cree.
+        // Considera alternativas si esto causa algún ANR en el arranque (aunque para DataStore suele ser rápido).
+        val initialLocale = runBlocking { userPreferencesRepository.languageTagFlow.first() }
+        if (initialLocale.isNotEmpty()) {
+            val appLocale = LocaleListCompat.forLanguageTags(initialLocale)
+            AppCompatDelegate.setApplicationLocales(appLocale)
+            Log.d("MainActivity", "Initial locale set to: $initialLocale BEFORE super.onCreate")
         }
-
-        super.onCreate(savedInstanceState)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationHelper.createNotificationChannels(this)
@@ -73,27 +76,27 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "Enqueued TestSimpleWorker")
 
         setContent {
-            val currentTagInPrefs by userPreferencesRepository.languageTagFlow.collectAsState(
-                initial = initialLocaleTag ?: Locale.getDefault().toLanguageTag()
-            )
+            // Leer el estado actual del idioma y tema desde el repositorio de preferencias
+            val currentLanguageTag by userPreferencesRepository.languageTagFlow.collectAsState(initial = initialLocale)
             val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
 
-            LaunchedEffect(currentTagInPrefs) {
-                val actualAppliedTag = AppCompatDelegate.getApplicationLocales().toLanguageTags().ifEmpty { Locale.getDefault().toLanguageTag() }
-                Log.d("MainActivity", "currentTagInPrefs: $currentTagInPrefs, actualAppliedTag: $actualAppliedTag")
-                if (currentTagInPrefs.isNotEmpty() && currentTagInPrefs != actualAppliedTag) {
-                    Log.d("MainActivity", "Locale changed. Recreating activity.")
-                    recreate() // This will also re-apply the theme if themePreference has changed
+            // Este LaunchedEffect es para recrear la actividad si el idioma cambia MIENTRAS la app está corriendo.
+            // La configuración inicial del idioma ya se hizo antes de setContent.
+            LaunchedEffect(currentLanguageTag) {
+                val appLocales = AppCompatDelegate.getApplicationLocales()
+                if (!appLocales.isEmpty && appLocales.toLanguageTags() != currentLanguageTag && currentLanguageTag.isNotEmpty()) {
+                    Log.d("MainActivity", "Locale in prefs ($currentLanguageTag) differs from app's (${appLocales.toLanguageTags()}). Recreating.")
+                    recreate()
                 }
             }
-            AppTheme(themePreference = themePreference) {
-                MedicationReminderApp()
-            }
+
+            // AppTheme ahora se aplica dentro de MedicationReminderApp
+            MedicationReminderApp(themePreference = themePreference)
         }
     }
 
     private fun requestPostNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // TIRAMISU is API 33
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
                 ContextCompat.checkSelfPermission(
                     this,
@@ -102,43 +105,29 @@ class MainActivity : ComponentActivity() {
                     Log.i("MainActivity", "POST_NOTIFICATIONS permission already granted.")
                 }
                 shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
-                    // This block is important if the user denied the permission previously.
-                    // You should show a UI explaining why you need the permission
-                    // and then invoke the launcher again.
                     Log.i("MainActivity", "Showing rationale for POST_NOTIFICATIONS permission.")
-                    // Example: Show a dialog explaining the need for notifications for reminders.
-                    // After the user interacts with the dialog, you might call:
-                    // requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    // For simplicity now, just re-requesting, but a rationale UI is better UX.
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
                 else -> {
-                    // Directly request the permission for the first time or if no rationale needed.
                     Log.i("MainActivity", "Requesting POST_NOTIFICATIONS permission.")
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
         }
     }
+
     private fun checkAndRequestExactAlarmPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // A partir de Android 12 (API 31)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
                 Log.w("MainActivity", "SCHEDULE_EXACT_ALARM permission not granted. Requesting...")
-                // Opcional: Muestra un diálogo al usuario explicando por qué necesitas este permiso.
                 Intent().apply {
                     action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                    // Opcional: puedes añadir tu URI de paquete para que el usuario sea llevado
-                    // directamente a la configuración de tu app si es posible.
-                    // data = Uri.parse("package:$packageName")
                 }.also {
                     try {
                         startActivity(it)
-                        // No hay un callback directo para este intent, el usuario debe concederlo manualmente.
-                        // Podrías verificar de nuevo en onResume() de la actividad.
                     } catch (e: Exception) {
                         Log.e("MainActivity", "Could not open ACTION_REQUEST_SCHEDULE_EXACT_ALARM settings", e)
-                        // Informar al usuario que las alarmas podrían no ser precisas.
                     }
                 }
             } else {

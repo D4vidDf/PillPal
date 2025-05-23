@@ -1,6 +1,6 @@
 <resources>
     <!-- General & Navigation -->
-    <string name="app_name">Recordatorio de Medicación</string>
+    <string name="app_name">PillPal</string>
     <string name="home">Inicio</string>
     <string name="settings">Axustes</string>
     <string name="add">Engadir</string>

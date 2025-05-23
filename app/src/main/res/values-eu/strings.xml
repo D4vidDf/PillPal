@@ -1,6 +1,6 @@
 <resources>
     <!-- General & Navigation -->
-    <string name="app_name">Medikazio Oroigarria</string>
+    <string name="app_name">PillPal</string>
     <string name="home">Hasiera</string>
     <string name="settings">Ezarpenak</string>
     <string name="add">Gehitu</string>

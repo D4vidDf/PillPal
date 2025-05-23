@@ -1,6 +1,6 @@
 <resources>
     <!-- General & Navigation -->
-    <string name="app_name">Recordatori de Medicació</string>
+    <string name="app_name">PillPal</string>
     <string name="home">Inici</string>
     <string name="settings">Configuració</string>
     <string name="add">Afegir</string>
