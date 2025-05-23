@@ -153,4 +153,9 @@
     <string name="settings_theme_light_option">Clar</string>
     <string name="settings_theme_dark_option">Fosc</string>
     <string name="settings_theme_system_option">Predeterminat del sistema</string>
+
+    <!-- FrequencyType Strings -->
+    <string name="frequency_once_a_day">Un cop al dia</string>
+    <string name="frequency_multiple_times_a_day">Diverses vegades al dia</string>
+    <string name="frequency_interval">Interval</string>
 </resources>

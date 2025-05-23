@@ -380,11 +380,23 @@ fun IntervalDurationSelector(
     ) {
         Text(stringResource(id = com.d4viddf.medicationreminder.R.string.freq_every_label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(end = 8.dp))
         Box(Modifier.width(70.dp)) {
-            IOSWheelPicker((0..23).toList(), hours, onHoursChanged, Modifier.height(120.dp))
+            IOSWheelPicker(
+                items = (0..23).toList(),
+                selectedItem = hours,
+                onItemSelected = onHoursChanged,
+                modifier = Modifier.height(120.dp),
+                displayTransform = { it.toString().padStart(2, '0') }
+            )
         }
         Text(stringResource(id = com.d4viddf.medicationreminder.R.string.freq_hours_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 8.dp))
         Box(Modifier.width(70.dp)) {
-            IOSWheelPicker((0..55 step 5).toList(), minutes, onMinutesChanged, Modifier.height(120.dp))
+            IOSWheelPicker(
+                items = (0..55 step 5).toList(),
+                selectedItem = minutes,
+                onItemSelected = onMinutesChanged,
+                modifier = Modifier.height(120.dp),
+                displayTransform = { it.toString().padStart(2, '0') }
+            )
         }
         Text(stringResource(id = com.d4viddf.medicationreminder.R.string.freq_minutes_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 8.dp))
     }

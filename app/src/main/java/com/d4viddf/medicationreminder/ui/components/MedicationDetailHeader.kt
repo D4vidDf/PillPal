@@ -23,12 +23,16 @@ fun MedicationDetailHeader(
     colorScheme: MedicationColor,
     modifier: Modifier = Modifier
 ) {
-    val displayName = remember(medicationName) {
+    val loadingText = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_loading)
+    val noDosageText = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_no_dosage)
+    val imageAccText = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_image_acc)
+
+    val displayName = remember(medicationName, loadingText) {
         val words = medicationName?.split(" ")
         if (words != null && words.size > 3) {
             words.take(3).joinToString(" ")
         } else {
-            medicationName ?: stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_loading)
+            medicationName ?: loadingText
         }
     }
 
@@ -48,7 +52,7 @@ fun MedicationDetailHeader(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = medicationDosage?.takeIf { it.isNotBlank() } ?: stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_no_dosage),
+                text = medicationDosage?.takeIf { it.isNotBlank() } ?: noDosageText,
                 fontSize = 20.sp,
                 color = colorScheme.textColor
             )
@@ -56,7 +60,7 @@ fun MedicationDetailHeader(
         Spacer(modifier = Modifier.width(16.dp))
         Image(
             painter = rememberAsyncImagePainter(model = medicationImageUrl ?: "https://placehold.co/100x100.png"),
-            contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_image_acc),
+            contentDescription = imageAccText,
             modifier = Modifier.size(64.dp)
         )
     }

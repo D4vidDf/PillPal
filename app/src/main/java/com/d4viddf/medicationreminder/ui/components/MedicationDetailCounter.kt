@@ -59,32 +59,47 @@ fun MedicationDetailCounters(
     val doseValue = dosePair.first
     val doseUnit = dosePair.second // This might need mapping to a string resource if it's a translatable unit name.
 
-    val frequencyPair: Pair<String?, String?> = remember(schedule) {
+    // Resolve strings in the Composable context
+    val strDoseUnitSingle = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_dose_unit_single)
+    val strDoseUnitPlural = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_dose_unit_plural)
+    val strFreqOnceDaily = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_once_daily)
+    val strFreqMultipleDaily = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_multiple_daily)
+    val strFreqInterval = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_interval)
+    val strFreqAsNeeded = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_as_needed)
+    val strDurationTotalDays = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_duration_total_days)
+    val strDurationRemainingDays = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_duration_remaining_days)
+    val strSelectStartDatePlaceholder = stringResource(id = com.d4viddf.medicationreminder.R.string.select_start_date_placeholder)
+    val strSelectEndDatePlaceholder = stringResource(id = com.d4viddf.medicationreminder.R.string.select_end_date_placeholder)
+    val strDaysAll = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_all)
+    val strDaysSingle = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_single)
+    val strDaysMultipleWeekly = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_multiple_weekly)
+
+
+    val frequencyPair: Pair<String?, String?> = remember(schedule, strDoseUnitSingle, strDoseUnitPlural, strFreqOnceDaily, strFreqMultipleDaily, strFreqInterval, strFreqAsNeeded) {
         schedule?.let { sched ->
             val timesCount = sched.specificTimes?.split(',')?.count { it.isNotBlank() } ?: 0
             when (sched.scheduleType) {
-                ScheduleType.DAILY, ScheduleType.WEEKLY -> { // Combined logic for daily/weekly
-                    if (!sched.daysOfWeek.isNullOrBlank()) { // If specific days are set
-                        if (timesCount == 1) "1" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_dose_unit_single)
-                        else if (timesCount > 1) "$timesCount" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_dose_unit_plural)
-                        else null // No specific times set for these days
-                    } else { // No specific days, implies all days for DAILY
-                        if (timesCount == 1) "1" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_once_daily)
-                        else if (timesCount > 1) "$timesCount" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_multiple_daily)
+                ScheduleType.DAILY, ScheduleType.WEEKLY -> {
+                    if (!sched.daysOfWeek.isNullOrBlank()) {
+                        if (timesCount == 1) "1" to strDoseUnitSingle
+                        else if (timesCount > 1) "$timesCount" to strDoseUnitPlural
+                        else null
+                    } else {
+                        if (timesCount == 1) "1" to strFreqOnceDaily
+                        else if (timesCount > 1) "$timesCount" to strFreqMultipleDaily
                         else null
                     }
                 }
                 ScheduleType.CUSTOM_ALARMS -> {
-                    if (timesCount > 0) "$timesCount" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_multiple_daily) else null
+                    if (timesCount > 0) "$timesCount" to strFreqMultipleDaily else null
                 }
                 ScheduleType.INTERVAL -> {
                     val h = sched.intervalHours ?: 0; val m = sched.intervalMinutes ?: 0
                     val vp = mutableListOf<String>()
                     if (h > 0) vp.add("${h}h"); if (m > 0) vp.add("${m}m")
-                    // "Cada %1$s" would need a placeholder if "Cada" is part of the string resource
-                    if (vp.isNotEmpty()) "Cada ${vp.joinToString(" ")}" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_interval) else null
+                    if (vp.isNotEmpty()) "Cada ${vp.joinToString(" ")}" to strFreqInterval else null
                 }
-                ScheduleType.AS_NEEDED -> "S/N" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_as_needed)
+                ScheduleType.AS_NEEDED -> "S/N" to strFreqAsNeeded
                 else -> null
             }
         }?.let { if (it.first == null && it.second == null) null else it }
@@ -93,28 +108,28 @@ fun MedicationDetailCounters(
     val frequencyValue = frequencyPair.first
     val frequencyUnit = frequencyPair.second
 
-    val durationPair: Pair<String?, String?> = remember(medication) {
+    val durationPair: Pair<String?, String?> = remember(medication, strDurationTotalDays, strDurationRemainingDays, strSelectStartDatePlaceholder, strSelectEndDatePlaceholder) {
         medication?.let { med ->
             val today = LocalDate.now()
             var pStartDate: LocalDate? = null
-            if (!med.startDate.isNullOrBlank() && med.startDate != stringResource(id = com.d4viddf.medicationreminder.R.string.select_start_date_placeholder)) {
+            if (!med.startDate.isNullOrBlank() && med.startDate != strSelectStartDatePlaceholder) {
                 try { pStartDate = LocalDate.parse(med.startDate, ReminderCalculator.dateStorableFormatter) } catch (e: DateTimeParseException) {}
             }
             var pEndDate: LocalDate? = null
-            if (!med.endDate.isNullOrBlank() && med.endDate != stringResource(id = com.d4viddf.medicationreminder.R.string.select_end_date_placeholder)) {
+            if (!med.endDate.isNullOrBlank() && med.endDate != strSelectEndDatePlaceholder) {
                 try { pEndDate = LocalDate.parse(med.endDate, ReminderCalculator.dateStorableFormatter) } catch (e: DateTimeParseException) {}
             }
             when {
                 pStartDate != null && pEndDate != null -> {
                     if (pEndDate.isBefore(pStartDate)) return@remember null to null
                     val total = ChronoUnit.DAYS.between(pStartDate, pEndDate) + 1
-                    if (total >= 0) "$total" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_duration_total_days) else null
+                    if (total >= 0) "$total" to strDurationTotalDays else null
                 }
                 pEndDate != null && !pEndDate.isBefore(today) -> {
                     val ref = if (pStartDate != null && pStartDate.isAfter(today)) pStartDate else today
                     if (pEndDate.isBefore(ref)) return@remember null to null
                     val remaining = ChronoUnit.DAYS.between(ref, pEndDate) + 1
-                    if (remaining >= 0) "$remaining" to stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_duration_remaining_days) else null
+                    if (remaining >= 0) "$remaining" to strDurationRemainingDays else null
                 }
                 else -> null
             }
@@ -129,25 +144,18 @@ fun MedicationDetailCounters(
             ?.daysOfWeek?.split(',')?.mapNotNull { it.trim().toIntOrNull() }?.sorted()
     }
 
-    val daysSummaryPair: Pair<String?, String?> = remember(daysOfWeekInternal) {
+    val daysSummaryPair: Pair<String?, String?> = remember(daysOfWeekInternal, strDaysAll, strDaysSingle, strDaysMultipleWeekly) {
         daysOfWeekInternal?.let { days ->
             if (days.isNotEmpty()) {
                 val count = days.size
                 val label = when (count) {
-                    7 -> stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_all)
-                    1 -> stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_single)
-                    else -> stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_multiple_weekly) // string will need placeholder for count e.g. "%1$d días/semana"
+                    7 -> strDaysAll
+                    1 -> strDaysSingle
+                    else -> strDaysMultipleWeekly // This string resource should handle the count, e.g. "%1$d days/week"
                 }
-                // If label needs the count, it should be part of the string resource like "%1$d días/semana"
-                // For now, using count as value and label as unit.
-                if (label == stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_multiple_weekly)) {
-                    count.toString() to label // For "X días/semana"
-                } else {
-                    // For "todos los días" or "día", the count might be implicit or stylistic.
-                    // If "todos los días" should show "7", then: if (count == 7) "7" to label else count.toString() to label
-                    // Keeping it simple for now:
-                    count.toString() to label
-                }
+                // If strDaysMultipleWeekly is like "%1$d days/week", format it here or ensure it's formatted before display
+                // For now, assuming the string resource itself is sufficient or will be formatted later if needed
+                count.toString() to label // Value might be count, label is the string
             } else {
                 null to null
             }

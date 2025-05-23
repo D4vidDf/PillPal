@@ -153,4 +153,9 @@
     <string name="settings_theme_light_option">Argia</string>
     <string name="settings_theme_dark_option">Iluna</string>
     <string name="settings_theme_system_option">Sistemaren lehenetsia</string>
+
+    <!-- FrequencyType Strings -->
+    <string name="frequency_once_a_day">Egunean behin</string>
+    <string name="frequency_multiple_times_a_day">Egunean hainbat aldiz</string>
+    <string name="frequency_interval">Tartea</string>
 </resources>

@@ -312,10 +312,12 @@ fun AddMedicationScreen(
                     )
                 }
                 4 -> {
+                    val summaryStartDate = if (startDate.isBlank()) stringResource(id = R.string.select_start_date_placeholder) else startDate
+                    val summaryEndDate = if (endDate.isBlank()) stringResource(id = R.string.select_end_date_placeholder) else endDate
                     MedicationSummary(
                         typeId = selectedTypeId, medicationName = medicationName, color = selectedColor.backgroundColor,
                         dosage = dosage, packageSize = packageSize, frequency = frequency,
-                        startDate = startDate, endDate = endDate,
+                        startDate = summaryStartDate, endDate = summaryEndDate,
                         onceADayTime = onceADayTime,
                         selectedTimes = selectedTimes,
                         intervalHours = intervalHours,

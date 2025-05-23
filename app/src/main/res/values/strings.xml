@@ -153,4 +153,9 @@
     <string name="settings_theme_light_option">Light</string>
     <string name="settings_theme_dark_option">Dark</string>
     <string name="settings_theme_system_option">System Default</string>
+
+    <!-- FrequencyType Strings -->
+    <string name="frequency_once_a_day">Once a day</string>
+    <string name="frequency_multiple_times_a_day">Multiple times a day</string>
+    <string name="frequency_interval">Interval</string>
 </resources>

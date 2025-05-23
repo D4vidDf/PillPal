@@ -24,6 +24,7 @@ import com.d4viddf.medicationreminder.data.ThemeKeys
 import com.d4viddf.medicationreminder.data.UserPreferencesRepository
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.ui.MedicationReminderApp
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Import AppTheme
 import com.d4viddf.medicationreminder.workers.TestSimpleWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -85,8 +86,9 @@ class MainActivity : ComponentActivity() {
                     recreate() // This will also re-apply the theme if themePreference has changed
                 }
             }
-            // Pass themePreference to MedicationReminderApp
-            MedicationReminderApp(themePreference = themePreference)
+            AppTheme(themePreference = themePreference) {
+                MedicationReminderApp()
+            }
         }
     }
 
