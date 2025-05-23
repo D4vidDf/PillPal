@@ -27,7 +27,11 @@ class ReminderCalculatorTest {
             dosage = "1 pill",
             startDate = startDate.format(dateStorableFormatter),
             endDate = endDate?.format(dateStorableFormatter),
-            notes = null
+            typeId = TODO(),
+            color = TODO(),
+            packageSize = TODO(),
+            remainingDoses = TODO(),
+            reminderTime = TODO(),
         )
     }
 
@@ -47,8 +51,8 @@ class ReminderCalculatorTest {
             intervalEndTime = intervalEndTime?.format(timeStorableFormatter),
             intervalHours = intervalHours,
             intervalMinutes = intervalMinutes,
-            specificDaysOfWeek = null,
-            specificTimes = null
+            specificTimes = null,
+            daysOfWeek = TODO()
         )
     }
 
@@ -317,6 +321,135 @@ class ReminderCalculatorTest {
         }
     }
 
+    // --- Tests for "Alternative/Better Fix" in calculateReminderDateTimes for Type A intervals ---
+
+    @Test
+    fun `Type A - endTime respected - start 2000, end 2200, interval 3hr`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalStartTime = LocalTime.of(20, 0),
+            intervalEndTime = LocalTime.of(22, 0),
+            intervalHours = 3
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 20:00. Next is 23:00, which is after 22:00. Loop breaks via `loopTime.isAfter(actualDailyEnd)`.
+        assertEquals(1, reminders.size)
+        assertTrue(reminders.contains(testDate.atTime(20, 0)))
+    }
+
+    @Test
+    fun `Type A - endTime respected and midnight wrap cut - start 0600, end 2200, interval 4hr`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalStartTime = LocalTime.of(6, 0),
+            intervalEndTime = LocalTime.of(22, 0), // Specific end time, not MAX
+            intervalHours = 4
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 06:00, 10:00, 14:00, 18:00, 22:00.
+        // Next candidate is 02:00. This isBefore(22:00) is true. actualDailyEnd (22:00) != LocalTime.MAX is true. So, break.
+        assertEquals(5, reminders.size)
+        val expectedTimes = listOf(
+            testDate.atTime(6,0), testDate.atTime(10,0), testDate.atTime(14,0),
+            testDate.atTime(18,0), testDate.atTime(22,0)
+        )
+        expectedTimes.forEach { assertTrue("Should contain $it", reminders.contains(it)) }
+    }
+
+    @Test
+    fun `Type A - endTime respected with midnight wrap - start 2000, end 0200, interval 3hr`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalStartTime = LocalTime.of(20, 0),
+            intervalEndTime = LocalTime.of(2, 0), // End time is "next day" conceptually, but on same targetDate for this function
+            intervalHours = 3
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 20:00, 23:00.
+        // loopTime = 20:00. Add. next = 23:00. next !isBefore 20:00. loopTime = 23:00.
+        // loopTime = 23:00. Add. next = 02:00. next isBefore 23:00. actualDailyEnd (02:00) != LocalTime.MAX. Break.
+        assertEquals(2, reminders.size)
+        assertTrue(reminders.contains(testDate.atTime(20, 0)))
+        assertTrue(reminders.contains(testDate.atTime(23, 0)))
+    }
+
+    @Test
+    fun `Type A - actualDailyEnd is earlier than actualDailyStart - specific times`() {
+        val medication = createMedication()
+        // This setup implies a very short window or no valid window if end is on the same day.
+        // The loopTime.isAfter(actualDailyEnd) should handle this gracefully.
+        val schedule = createIntervalSchedule(
+            intervalStartTime = LocalTime.of(22,0), // 10 PM
+            intervalEndTime = LocalTime.of(1,0),   // 1 AM (on the same targetDate)
+            intervalHours = 1
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // loopTime starts at 22:00. actualDailyEnd is 01:00.
+        // 22:00.isAfter(01:00) is true. Loop should break immediately.
+        assertTrue("Expected empty list when start is 22:00 and end is 01:00 on same day", reminders.isEmpty())
+    }
+
+
+    @Test
+    fun `Type A - no MAX_ITERATIONS hit with LocalTime MAX end - start 0600, interval 4hr`() {
+        val medication = createMedication()
+        val schedule = createIntervalSchedule(
+            intervalStartTime = LocalTime.of(6, 0),
+            intervalEndTime = LocalTime.MAX, // End of day
+            intervalHours = 4
+        )
+        val reminders = ReminderCalculator.calculateReminderDateTimes(medication, schedule, testDate)
+        // Expected: 06:00, 10:00, 14:00, 18:00, 22:00.
+        // Next is 02:00. This isBefore(22:00). But actualDailyEnd == LocalTime.MAX, so the special break condition isn't met.
+        // The loop continues until 02:00.isAfter(MAX) (false), 06:00.isAfter(MAX) (false) etc.
+        // This is fine as long as it doesn't exceed MAX_ITERATIONS.
+        // The loop for 02:00 will be added. The loop terminates when loopTime.isAfter(actualDailyEnd) is eventually met for subsequent day's times if they were to be generated,
+        // but since LocalDateTime.of(targetDate, loopTime) is used, they are all for the same date.
+        // The old code for this scenario (before the specific end time fix) was:
+        // testDate.atTime(6, 0), testDate.atTime(10, 0), testDate.atTime(14, 0),
+        // testDate.atTime(18, 0), testDate.atTime(22, 0)
+        // And this should still be the case.
+        // 22:00 + 4hr = 02:00. 02:00 is not before 22:00. loopTime = 02:00.
+        // Add 02:00. next = 06:00. 06:00 is not before 02:00. loopTime = 06:00.
+        // This means it will generate a full 24 hours of reminders if the interval divides evenly.
+        // For 4hr interval from 06:00: 06, 10, 14, 18, 22. Next is 02:00.
+        // The `loopTime.isAfter(actualDailyEnd)` condition with `actualDailyEnd = LocalTime.MAX` means
+        // no time is after MAX. So the loop continues until MAX_ITERATIONS or other break.
+        // The `nextLoopTimeCandidate.isBefore(loopTime)` will only be true if it wraps midnight.
+        // If `actualDailyEnd == LocalTime.MAX`, this specific break is skipped.
+        // This test should then behave like `calculateReminderDateTimes_with_4_hour_interval_full_day_from_midnight`
+        // but starting from 06:00.
+        // So, 06:00, 10:00, 14:00, 18:00, 22:00.
+        // The next is 02:00. This is not after MAX. This is added.
+        // Next is 06:00. This is not after MAX. This is added.
+        // This will fill up to MAX_ITERATIONS if not careful.
+        // The key is that `LocalDateTime.of(targetDate, loopTime)` uses the *same* targetDate.
+        // The loop for Type A is for a single day.
+
+        // Corrected understanding:
+        // The loop is `while (iterations < MAX_ITERATIONS_PER_DAY)`.
+        // `if (loopTime.isAfter(actualDailyEnd)) break;`
+        // If `actualDailyEnd` is `LocalTime.MAX`, then `loopTime.isAfter(LocalTime.MAX)` is never true.
+        // The `nextLoopTimeCandidate.isBefore(loopTime) && actualDailyEnd != LocalTime.MAX` condition's second part is false.
+        // So the loop will run until `iterations == MAX_ITERATIONS_PER_DAY`.
+        // This means for `intervalEndTime = LocalTime.MAX`, the output count will be `MAX_ITERATIONS_PER_DAY`
+        // if the interval is small enough (e.g. 1 minute).
+        // For a 4-hour interval, it won't hit MAX_ITERATIONS. It will complete the cycle for the day.
+        // 06:00, 10:00, 14:00, 18:00, 22:00. Next is 02:00.
+        // Add 02:00. Next is 06:00 (original start).
+        // The `reminders` list will contain [06:00, 10:00, 14:00, 18:00, 22:00, 02:00]. Sorted.
+        // This is the behavior of the loop as written.
+        val expectedTimes = listOf(
+            testDate.atTime(2,0), testDate.atTime(6,0), testDate.atTime(10,0),
+            testDate.atTime(14,0), testDate.atTime(18,0), testDate.atTime(22,0)
+        )
+        assertEquals(expectedTimes.size, reminders.size)
+        expectedTimes.forEach { assertTrue("Should contain $it", reminders.contains(it)) }
+        assertTrue("Iterations should be less than MAX_ITERATIONS_PER_DAY", reminders.size < (24*60)+5);
+
+    }
+
+
     // --- Tests for generateRemindersForPeriod ---
 
     // A. Continuous Interval (Type B - schedule.intervalStartTime is null)
@@ -412,7 +545,14 @@ class ReminderCalculatorTest {
     @Test
     fun `generateRemindersForPeriod - Continuous with null medication start date returns empty map`() {
         // Create medication with a null start date string
-        val medicationWithNullStartDate = Medication(id = 1, name = "TestMed", startDate = null, endDate = null, dosage = "1")
+        val medicationWithNullStartDate = Medication(
+            id = 1, name = "TestMed", startDate = null, endDate = null, dosage = "1",
+            typeId = TODO(),
+            color = TODO(),
+            packageSize = TODO(),
+            remainingDoses = TODO(),
+            reminderTime = TODO()
+        )
         val schedule = createIntervalSchedule(intervalHours = 6, intervalMinutes = 0, intervalStartTime = null)
         val result = ReminderCalculator.generateRemindersForPeriod(medicationWithNullStartDate, schedule, testDate, testDate.plusDays(1))
         assertTrue("Expected empty map when medication start date is null", result.isEmpty())

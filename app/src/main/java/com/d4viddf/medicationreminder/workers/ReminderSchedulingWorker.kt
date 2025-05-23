@@ -124,16 +124,16 @@ class ReminderSchedulingWorker constructor(
         }
         // Ensure calculation window doesn't start after it ends, especially if medicationEndDate is today or in past relative to effectiveSearchStartDateTime's date part
         if (calculationWindowEndDate.isBefore(effectiveSearchStartDateTime.toLocalDate())) {
-             Log.i(TAG, "Calculation window end ($calculationWindowEndDate) is before effective start (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule for ${medication.name}.")
-             // Still need to cleanup any existing future reminders if the medication period might have changed.
-             val existingFutureRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
+            Log.i(TAG, "Calculation window end ($calculationWindowEndDate) is before effective start (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule for ${medication.name}.")
+            // Still need to cleanup any existing future reminders if the medication period might have changed.
+            val existingFutureRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
                 medication.id, now.format(storableDateTimeFormatter)
-             ).firstOrNull() ?: emptyList()
-             existingFutureRemindersDb.forEach { staleReminder ->
+            ).firstOrNull() ?: emptyList()
+            existingFutureRemindersDb.forEach { staleReminder ->
                 Log.d(TAG, "Medication period ended or invalid: Cleaning up stale reminder ID ${staleReminder.id} for ${medication.name}")
                 notificationScheduler.cancelAllAlarmsForReminder(applicationContext, staleReminder.id)
                 medicationReminderRepository.deleteReminderById(staleReminder.id)
-             }
+            }
             return
         }
 
@@ -215,7 +215,7 @@ class ReminderSchedulingWorker constructor(
                     Log.e(TAG, "Generic error scheduling alarm for reminder ID ${reminderWithActualId.id}", e)
                 }
             } else {
-                 Log.d(TAG, "Ideal reminder at $idealDateTime for ${medication.name} already exists. Skipping scheduling.")
+                Log.d(TAG, "Ideal reminder at $idealDateTime for ${medication.name} already exists. Skipping scheduling.")
             }
         }
 

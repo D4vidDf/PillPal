@@ -3,7 +3,6 @@ package com.d4viddf.medicationreminder.viewmodel
 import app.cash.turbine.test
 import com.d4viddf.medicationreminder.data.*
 import com.d4viddf.medicationreminder.logic.ReminderCalculator // Actual object, not mocked
-import com.d4viddf.medicationreminder.rules.TestCoroutineRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -190,7 +189,7 @@ class MedicationViewModelTest {
         }
     }
 
-     @Test
+    @Test
     fun `calculateAndSetDailyProgressDetails - DAILY type - Correct TotalDoses`() = runTest {
         val today = LocalDate.now()
         val medicationStartDate = today.minusDays(1)
@@ -237,7 +236,7 @@ class MedicationViewModelTest {
 
         viewModel.medicationProgressDetails.test {
             viewModel.observeMedicationAndRemindersForDailyProgress(testMedId)
-            
+
             val progressItem = awaitItem()
             val updatedProgress = awaitItem()
 

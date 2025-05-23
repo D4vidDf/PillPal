@@ -11,8 +11,8 @@ import java.time.format.DateTimeFormatter
 
 object ReminderCalculator {
 
-     val timeStorableFormatter = DateTimeFormatter.ISO_LOCAL_TIME
-     val dateStorableFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy") // Matches AddMedicationScreen
+    val timeStorableFormatter = DateTimeFormatter.ISO_LOCAL_TIME
+    val dateStorableFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy") // Matches AddMedicationScreen
     val storableDateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
 
@@ -78,38 +78,59 @@ object ReminderCalculator {
                 val dailyStartTimeStr = schedule.intervalStartTime
                 val dailyEndTimeStr = schedule.intervalEndTime
 
-                    val actualDailyStart = dailyStartTimeStr?.let { LocalTime.parse(it, timeStorableFormatter) } ?: LocalTime.MIN
-                    val actualDailyEnd = dailyEndTimeStr?.let { LocalTime.parse(it, timeStorableFormatter) } ?: LocalTime.MAX
+                // This function (calculateReminderDateTimes) is for Type A (daily repeating) intervals,
+                // so schedule.intervalStartTime should ideally be present.
+                val parsedDailyStartTimeStr = schedule.intervalStartTime
+                val parsedDailyEndTimeStr = schedule.intervalEndTime
 
-                    var currentTime = actualDailyStart
-                    var iterations = 0
-                    // Max iterations: Max minutes in a day (for 1-min interval) + a small buffer.
-                    val MAX_ITERATIONS = (24 * 60) + 5
-
-                    while (!currentTime.isAfter(actualDailyEnd)) {
-                        if (iterations >= MAX_ITERATIONS) { // Corrected condition
-                            Log.e("ReminderCalculator", "Max iterations ($MAX_ITERATIONS) reached for interval calculation. Medication ID: ${medication.id}, Schedule ID: ${schedule.id}. Interval: $totalIntervalMinutes mins. Last currentTime: $currentTime")
-                            break 
-                        }
-                        
-                        reminders.add(LocalDateTime.of(targetDate, currentTime))
-                        
-                        // Explicitly update currentTime
-                        val oldTime = currentTime // For logging clarity if needed, or use currentTime directly in log
-                        currentTime = currentTime.plusMinutes(totalIntervalMinutes.toLong())
-                        // Log the change
-                        Log.d("ReminderCalculatorLoop", "Iter ${iterations}: current: $oldTime, intervalMins: $totalIntervalMinutes, next: $currentTime, scheduleId: ${schedule.id}")
-                        
-                        iterations++ // Increment iterations
-
-                        // The original check `if (currentTime == LocalTime.MIDNIGHT && totalIntervalMinutes > 0)`
-                        // was to prevent infinite loops if interval was 0. This is now covered by the
-                        // `totalIntervalMinutes <= 0` check at the beginning.
-                        // If currentTime becomes LocalTime.MIDNIGHT, and it's not after actualDailyEnd,
-                        // it's a valid reminder time (e.g. if actualDailyEnd is 00:00 of next day, effectively).
-                        // The loop condition `!currentTime.isAfter(actualDailyEnd)` correctly handles this.
+                // If intervalStartTime is missing for a Type A, default to MIN, but this might indicate a data setup issue.
+                val actualDailyStart = parsedDailyStartTimeStr?.takeIf { it.isNotBlank() }?.let {
+                    try { LocalTime.parse(it, timeStorableFormatter) } catch (e: Exception) {
+                        Log.e("ReminderCalculator", "Error parsing actualDailyStart: $it for Type A. Defaulting to MIN. Med ID: ${medication.id}", e)
+                        LocalTime.MIN
                     }
-                // No need for the closing brace of 'if (totalIntervalMinutes > 0)' as it's handled by early return.
+                } ?: LocalTime.MIN
+
+                val actualDailyEnd = parsedDailyEndTimeStr?.takeIf { it.isNotBlank() }?.let {
+                    try { LocalTime.parse(it, timeStorableFormatter) } catch (e: Exception) {
+                        Log.e("ReminderCalculator", "Error parsing actualDailyEnd: $it for Type A. Defaulting to MAX. Med ID: ${medication.id}", e)
+                        LocalTime.MAX
+                    }
+                } ?: LocalTime.MAX
+
+                Log.d("ReminderCalculator", "Calculating Type A for $targetDate, start: $actualDailyStart, end: $actualDailyEnd, interval: $totalIntervalMinutes min, scheduleId: ${schedule.id}")
+
+                var loopTime = actualDailyStart
+                var iterations = 0
+                // Using the static MAX_ITERATIONS as defined in previous versions for consistency of this safeguard's behavior.
+                // A dynamic one like `(24 * 60 / totalIntervalMinutes.coerceAtLeast(1)) + 5` could also be used
+                // if very fine-grained control per interval length is desired for the safeguard.
+                val MAX_ITERATIONS_PER_DAY = (24 * 60) + 5
+
+                while (iterations < MAX_ITERATIONS_PER_DAY) {
+                    // Primary condition: if loopTime has passed actualDailyEnd, stop.
+                    // This is especially important if actualDailyEnd is not LocalTime.MAX.
+                    if (loopTime.isAfter(actualDailyEnd)) {
+                        Log.d("ReminderCalculatorLoop", "Iter ${iterations}: loopTime $loopTime is after actualDailyEnd $actualDailyEnd. Breaking. ScheduleId: ${schedule.id}")
+                        break
+                    }
+
+                    reminders.add(LocalDateTime.of(targetDate, loopTime))
+                    Log.d("ReminderCalculatorLoop", "Iter ${iterations}: Added: ${LocalDateTime.of(targetDate, loopTime)}, scheduleId: ${schedule.id}")
+
+                    val nextLoopTimeCandidate = loopTime.plusMinutes(totalIntervalMinutes.toLong())
+
+                    // If next candidate time wraps around midnight (i.e., it's earlier than current loopTime)
+                    // AND actualDailyEnd was not LocalTime.MAX (meaning a specific end time was set for the day), then stop.
+                    // This prevents reminders from spilling into the next conceptual day if a specific end time was set.
+                    if (nextLoopTimeCandidate.isBefore(loopTime) && actualDailyEnd != LocalTime.MAX) {
+                        Log.d("ReminderCalculatorLoop", "Iter ${iterations}: nextLoopTimeCandidate $nextLoopTimeCandidate is before loopTime $loopTime, and actualDailyEnd $actualDailyEnd is not MAX. Breaking. ScheduleId: ${schedule.id}")
+                        break
+                    }
+
+                    loopTime = nextLoopTimeCandidate
+                    iterations++
+                }
             }
             ScheduleType.WEEKLY -> {
                 // TODO: Implement if re-add "Weekly" frequency.
