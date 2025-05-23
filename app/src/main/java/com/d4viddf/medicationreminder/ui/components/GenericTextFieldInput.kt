@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
@@ -45,7 +46,7 @@ fun GenericTextFieldInput(
             textStyle = MaterialTheme.typography.bodyLarge,
             singleLine = true,
             trailingIcon = {
-                Icon(Icons.Default.Edit, contentDescription = "Edit")
+                Icon(Icons.Default.Edit, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.generic_textfield_edit_acc))
             },
             keyboardOptions = keyboardOptions,
             isError = isError,
@@ -63,7 +64,7 @@ fun GenericTextFieldInput(
 
         if (isError) {
             Text(
-                text = "This field is required or contains an error",
+                text = stringResource(id = com.d4viddf.medicationreminder.R.string.error_required_field),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
             )

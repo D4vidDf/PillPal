@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,7 @@ fun MedicationTypeSelector(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Select type of medication",
+                text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_type_selector_title),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -55,7 +56,6 @@ fun MedicationTypeSelector(
                     .fillMaxWidth()
             )
 
-            // LazyVerticalGrid should fill the available space within THIS Column.
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 modifier = Modifier

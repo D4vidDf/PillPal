@@ -11,8 +11,8 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.DarkGreen
 
 @Composable
-fun MedicationReminderApp() {
-    AppTheme {
+fun MedicationReminderApp(themePreference: String) {
+    AppTheme(themePreference = themePreference) {
         // A surface container using the 'surface' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),

@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.2"
+agp = "8.10.0"
 coilCompose = "2.4.0"
 hilt = "2.56.2" # Or your desired stable version, e.g., 2.56.2 if it's stable & tested
 hiltNavigationCompose = "1.2.0"
@@ -23,7 +23,13 @@ material = "1.14.0-alpha01"
 material3 = "1.4.0-alpha14"
 json = "20240303"
 uiTextGoogleFonts = "1.8.1"
-materialVersion = "1.9.0-alpha02" # Add version for KSP
+materialVersion = "1.9.0-alpha02"
+runtime = "1.9.0-alpha03"
+foundation = "1.9.0-alpha03"
+material3Version = "1.4.0-alpha15"
+materialIconsExtended = "1.7.8"
+datastorePreferencesCore = "1.2.0-alpha02"
+datastorePreferences = "1.2.0-alpha02" # Add version for KSP
 
 [libraries]
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version = "0.36.0" }
@@ -43,7 +49,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.4.0-alpha15" }
 
 # Room Database
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
@@ -67,6 +73,12 @@ material = { group = "com.google.android.material", name = "material", version.r
 json = { group = "org.json", name = "json", version.ref = "json" }
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-material = { group = "androidx.compose.material", name = "material", version.ref = "materialVersion" }
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
+androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version = "1.1.7" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 
 
 [plugins]
