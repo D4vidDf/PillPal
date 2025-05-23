@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -40,7 +41,7 @@ fun MedicationNameInput(
 
     Column(modifier = modifier.padding(16.dp)) {
         Text(
-            text = "Enter medication name", // Title above the text input
+            text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_input_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -73,7 +74,7 @@ fun MedicationNameInput(
             singleLine = true,
             placeholder = {
                 Text(
-                    text = "Medication Name",
+                    text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_placeholder),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.LightGray
@@ -81,7 +82,7 @@ fun MedicationNameInput(
             },
             trailingIcon = {
                 IconButton(onClick = { onMedicationNameChange("") }) {
-                    Icon(Icons.Default.Close, contentDescription = "Clear search")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_clear_search_acc))
                 }
             },
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -117,7 +118,7 @@ fun MedicationNameInput(
 
         if (!isInputValid) {
             Text(
-                text = "Please enter a valid medication name",
+                text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_error),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium
             )

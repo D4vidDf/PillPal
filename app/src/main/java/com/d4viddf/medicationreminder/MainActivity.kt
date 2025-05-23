@@ -11,49 +11,59 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts // Import ActivityResultContracts
-import androidx.core.content.ContextCompat // Import ContextCompat
-import androidx.work.Data
-import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.d4viddf.medicationreminder.data.ThemeKeys
+import com.d4viddf.medicationreminder.data.UserPreferencesRepository
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import dagger.hilt.android.AndroidEntryPoint
 import com.d4viddf.medicationreminder.ui.MedicationReminderApp
-import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import com.d4viddf.medicationreminder.workers.TestSimpleWorker
-import java.util.Calendar
-import java.util.concurrent.TimeUnit
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.util.Locale
+import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+    private var initialLocaleTag: String? = null
 
     // ActivityResultLauncher for the permission request
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 Log.i("MainActivity", "POST_NOTIFICATIONS permission granted.")
-                // You can now proceed with operations that require this permission
-                // (e.g., if you deferred some notification scheduling)
             } else {
                 Log.w("MainActivity", "POST_NOTIFICATIONS permission denied.")
-                // Explain to the user why the permission is important for reminders.
-                // Optionally, guide them to app settings if they deny permanently.
-                // You could show a Snackbar or Dialog here.
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        initialLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() }
+        if (!initialLocaleTag.isNullOrEmpty()) {
+            val localeList = LocaleListCompat.forLanguageTags(initialLocaleTag)
+            AppCompatDelegate.setApplicationLocales(localeList)
+            Log.d("MainActivity", "Applied initial locale: $initialLocaleTag")
+        }
+
         super.onCreate(savedInstanceState)
 
-        // 1. Create Notification Channels (moved before setContent for early setup)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationHelper.createNotificationChannels(this)
             Log.d("MainActivity", "Notification channels created.")
         }
 
-        // 2. Request Notification Permission (API 33+)
         requestPostNotificationPermission()
         checkAndRequestExactAlarmPermission()
 
@@ -61,11 +71,23 @@ class MainActivity : ComponentActivity() {
         WorkManager.getInstance(applicationContext).enqueue(testWorkRequest)
         Log.d("MainActivity", "Enqueued TestSimpleWorker")
 
-        // 3. Set up UI
         setContent {
-            MedicationReminderApp()
-        }
+            val currentTagInPrefs by userPreferencesRepository.languageTagFlow.collectAsState(
+                initial = initialLocaleTag ?: Locale.getDefault().toLanguageTag()
+            )
+            val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
 
+            LaunchedEffect(currentTagInPrefs) {
+                val actualAppliedTag = AppCompatDelegate.getApplicationLocales().toLanguageTags().ifEmpty { Locale.getDefault().toLanguageTag() }
+                Log.d("MainActivity", "currentTagInPrefs: $currentTagInPrefs, actualAppliedTag: $actualAppliedTag")
+                if (currentTagInPrefs.isNotEmpty() && currentTagInPrefs != actualAppliedTag) {
+                    Log.d("MainActivity", "Locale changed. Recreating activity.")
+                    recreate() // This will also re-apply the theme if themePreference has changed
+                }
+            }
+            // Pass themePreference to MedicationReminderApp
+            MedicationReminderApp(themePreference = themePreference)
+        }
     }
 
     private fun requestPostNotificationPermission() {

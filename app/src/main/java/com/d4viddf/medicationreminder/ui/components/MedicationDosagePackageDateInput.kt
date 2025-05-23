@@ -16,7 +16,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration // To get screen height
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -55,7 +56,7 @@ fun MedicationDosagePackageDateInput(
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp) // Ensure consistent padding
     ) {
         Text(
-            "Dosage, Package & Dates",
+            stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_package_dates_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 24.dp)
@@ -73,18 +74,18 @@ fun MedicationDosagePackageDateInput(
                 if (medicationSearchResult?.dosage != null) medicationSearchResult.dosage
                 else {
                     when (medicationType?.name) {
-                        "Tablet", "Pill" -> "1${PillFraction.WHOLE.displayValue}"
-                        "Cream", "Creme" -> "10 ${CreamUnit.MG.displayValue}"
-                        "Liquid" -> "10 ${LiquidUnit.ML.displayValue}"
-                        "Powder" -> "100 ${PowderUnit.MG.displayValue}"
-                        "Syringe" -> "1 ${SyringeUnit.ML.displayValue}"
-                        "Spray" -> "1 sprays"
-                        "Suppository", "Suppositorium" -> "1 suppositories"
-                        "Patch" -> "1 patches"
-                        else -> "Tap to set dosage"
+                        "Tablet", "Pill" -> stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_whole_pill) // Placeholder, actual value set by picker
+                        "Cream", "Creme" -> "10 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_mg)}" // Placeholder
+                        "Liquid" -> "10 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_ml)}" // Placeholder
+                        "Powder" -> "100 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_mg)}" // Placeholder
+                        "Syringe" -> "1 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_ml)}" // Placeholder
+                        "Spray" -> "1 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_sprays)}"
+                        "Suppository", "Suppositorium" -> "1 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_suppositories)}"
+                        "Patch" -> "1 ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_patches)}"
+                        else -> stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_tap_to_set)
                     }
                 }
-            } ?: "Tap to set dosage"
+            } ?: stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_tap_to_set)
 
             Column(
                 modifier = Modifier
@@ -93,12 +94,12 @@ fun MedicationDosagePackageDateInput(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Dosage", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_label), style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = displayDosage, style = MaterialTheme.typography.headlineMedium)
                 if (medicationSearchResult?.dosage != null) {
                     Text(
-                        text = "(Pre-filled from CIMA, tap to edit)",
+                        text = stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_prefilled_info),
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 4.dp)
                     )
@@ -121,12 +122,12 @@ fun MedicationDosagePackageDateInput(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Package Size", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(id = com.d4viddf.medicationreminder.R.string.package_size_label), style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = packageSize,
                     onValueChange = onPackageSizeChange,
-                    label = { Text("Units") },
+                    label = { Text(stringResource(id = com.d4viddf.medicationreminder.R.string.package_units_label)) },
                     textStyle = MaterialTheme.typography.headlineMedium.copy(textAlign = TextAlign.Center),
                     modifier = Modifier.width(120.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
@@ -143,62 +144,55 @@ fun MedicationDosagePackageDateInput(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             M3StyledDatePickerButton(
-                label = "Start Date",
+                label = stringResource(id = com.d4viddf.medicationreminder.R.string.start_date_label),
                 dateString = startDate,
                 onDateSelected = onStartDateSelected,
                 modifier = Modifier.weight(1f),
-                placeholder = "Select Start Date"
+                placeholder = stringResource(id = com.d4viddf.medicationreminder.R.string.select_start_date_placeholder)
             )
             M3StyledDatePickerButton(
-                label = "End Date",
+                label = stringResource(id = com.d4viddf.medicationreminder.R.string.end_date_label),
                 dateString = endDate,
                 onDateSelected = onEndDateSelected,
                 modifier = Modifier.weight(1f),
-                placeholder = "Select End Date",
-                minSelectableDateMillis = if (startDate.isNotEmpty() && startDate != "Select Start Date") {
+                placeholder = stringResource(id = com.d4viddf.medicationreminder.R.string.select_end_date_placeholder),
+                minSelectableDateMillis = if (startDate.isNotEmpty() && startDate != stringResource(id = com.d4viddf.medicationreminder.R.string.select_start_date_placeholder)) {
                     try {
                         SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(startDate)?.time
                     } catch (e: Exception) { null }
                 } else null
             )
         }
-        Spacer(modifier = Modifier.height(16.dp)) // Space at the bottom of Step 2 content
+        Spacer(modifier = Modifier.height(16.dp))
     }
 
     if (showDosageModal) {
         val configuration = LocalConfiguration.current
-        val screenHeight = configuration.screenHeightDp.dp
-        val sheetScrollState = rememberScrollState()
-
         ModalBottomSheet(
             onDismissRequest = { showDosageModal = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false), // Typically better to force full expansion or handle skip carefully
-            // dragHandle = null, // To remove the default drag handle if you want a cleaner look
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .padding(16.dp)
-                // No verticalScroll or heightIn here; let sheet wrap content or provide its own scroll if content is too tall.
-                // The fixed height of the Row of pickers is key.
             ) {
                 Text(
-                    "Select Dosage",
+                    stringResource(id = com.d4viddf.medicationreminder.R.string.select_dosage_dialog_title),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
                 )
-
-                // This Row contains pickers. Its height is determined by the pickers (150.dp).
+                // Picker Row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp) // Fixed height for the picker area (e.g. 150dp for picker + 30dp padding)
+                        .height(180.dp)
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    when (medicationType?.name) {
+                    when (medicationType?.name) { // medicationType.name is English, used for logic
                         "Tablet", "Pill" -> {
                             var numPills by remember(dosage) { mutableStateOf(dosage.substringBefore(".").toIntOrNull() ?: dosage.substringBefore(",").toIntOrNull() ?: dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
                             var pillFraction by remember(dosage) {
@@ -210,20 +204,19 @@ fun MedicationDosagePackageDateInput(
                                     }
                                 )
                             }
-                            LaunchedEffect(numPills, pillFraction) { onDosageChange("${numPills}${pillFraction.displayValue}") }
+                            // Update dosage string based on selection. displayValue in PillFraction needs to be i18n if it's part of the final dosage string.
+                            // For now, assuming displayValue is for internal logic or simple display like "½".
+                            LaunchedEffect(numPills, pillFraction) { onDosageChange("${numPills}${pillFraction.displayValue(pillFraction)}") }
+
 
                             IOSWheelPicker(
-                                items = (0..10).toList(),
-                                selectedItem = numPills,
-                                onItemSelected = { numPills = it },
+                                items = (0..10).toList(), selectedItem = numPills, onItemSelected = { numPills = it },
                                 modifier = Modifier.width(80.dp).height(150.dp)
                             )
                             IOSWheelPicker(
-                                items = PillFraction.values().toList(),
-                                selectedItem = pillFraction,
-                                onItemSelected = { pillFraction = it },
+                                items = PillFraction.values().toList(), selectedItem = pillFraction, onItemSelected = { pillFraction = it },
                                 modifier = Modifier.padding(start = 16.dp).width(120.dp).height(150.dp),
-                                displayTransform = { it.name.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } }
+                                displayTransform = { PillFraction.displayValue(it) } // Use stringResource from enum
                             )
                         }
                         "Cream", "Creme" -> {
@@ -231,108 +224,55 @@ fun MedicationDosagePackageDateInput(
                             var creamUnit by remember(dosage) { mutableStateOf(CreamUnit.values().find { dosage.endsWith(it.displayValue) } ?: CreamUnit.MG) }
                             LaunchedEffect(creamAmount, creamUnit) { onDosageChange("${creamAmount} ${creamUnit.displayValue}") }
 
-                            IOSWheelPicker(
-                                items = (0..100 step 5).map { it.toString() },
-                                selectedItem = creamAmount,
-                                onItemSelected = { creamAmount = it },
-                                modifier = Modifier.width(100.dp).height(150.dp)
-                            )
-                            IOSWheelPicker(
-                                items = CreamUnit.values().toList(),
-                                selectedItem = creamUnit,
-                                onItemSelected = { creamUnit = it },
-                                modifier = Modifier.padding(start = 16.dp).width(100.dp).height(150.dp),
-                                displayTransform = { it.displayValue }
-                            )
+                            IOSWheelPicker(items = (0..100 step 5).map { it.toString() }, selectedItem = creamAmount, onItemSelected = { creamAmount = it }, modifier = Modifier.width(100.dp).height(150.dp))
+                            IOSWheelPicker(items = CreamUnit.values().toList(), selectedItem = creamUnit, onItemSelected = { creamUnit = it }, modifier = Modifier.padding(start = 16.dp).width(100.dp).height(150.dp), displayTransform = { it.displayValue })
                         }
                         "Liquid" -> {
                             var liquidAmount by remember(dosage) { mutableStateOf(dosage.substringBefore(" ") ?: "10") }
                             var liquidUnit by remember(dosage) { mutableStateOf(LiquidUnit.values().find { dosage.endsWith(it.displayValue) } ?: LiquidUnit.ML) }
                             LaunchedEffect(liquidAmount, liquidUnit) { onDosageChange("${liquidAmount} ${liquidUnit.displayValue}") }
 
-                            IOSWheelPicker(
-                                items = (0..1000 step 10).map { it.toString() },
-                                selectedItem = liquidAmount,
-                                onItemSelected = { liquidAmount = it },
-                                modifier = Modifier.width(100.dp).height(150.dp)
-                            )
-                            IOSWheelPicker(
-                                items = LiquidUnit.values().toList(),
-                                selectedItem = liquidUnit,
-                                onItemSelected = { liquidUnit = it },
-                                modifier = Modifier.padding(start = 16.dp).width(100.dp).height(150.dp),
-                                displayTransform = { it.displayValue }
-                            )
+                            IOSWheelPicker(items = (0..1000 step 10).map { it.toString() }, selectedItem = liquidAmount, onItemSelected = { liquidAmount = it }, modifier = Modifier.width(100.dp).height(150.dp))
+                            IOSWheelPicker(items = LiquidUnit.values().toList(), selectedItem = liquidUnit, onItemSelected = { liquidUnit = it }, modifier = Modifier.padding(start = 16.dp).width(100.dp).height(150.dp), displayTransform = { it.displayValue })
                         }
                         "Powder" -> {
                             var powderAmount by remember(dosage) { mutableStateOf(dosage.substringBefore(" ") ?: "100") }
                             var powderUnit by remember(dosage) { mutableStateOf(PowderUnit.values().find { dosage.endsWith(it.displayValue) } ?: PowderUnit.MG) }
                             LaunchedEffect(powderAmount, powderUnit) { onDosageChange("${powderAmount} ${powderUnit.displayValue}") }
 
-                            IOSWheelPicker(
-                                items = (0..1000 step 10).map { it.toString() },
-                                selectedItem = powderAmount,
-                                onItemSelected = { powderAmount = it },
-                                modifier = Modifier.width(100.dp).height(150.dp)
-                            )
-                            IOSWheelPicker(
-                                items = PowderUnit.values().toList(),
-                                selectedItem = powderUnit,
-                                onItemSelected = { powderUnit = it },
-                                modifier = Modifier.padding(start = 16.dp).width(100.dp).height(150.dp),
-                                displayTransform = { it.displayValue }
-                            )
+                            IOSWheelPicker(items = (0..1000 step 10).map { it.toString() }, selectedItem = powderAmount, onItemSelected = { powderAmount = it }, modifier = Modifier.width(100.dp).height(150.dp))
+                            IOSWheelPicker(items = PowderUnit.values().toList(), selectedItem = powderUnit, onItemSelected = { powderUnit = it }, modifier = Modifier.padding(start = 16.dp).width(100.dp).height(150.dp), displayTransform = { it.displayValue })
                         }
                         "Syringe" -> {
                             var syringeAmount by remember(dosage) { mutableStateOf(dosage.substringBefore(" ") ?: "1") }
-                            LaunchedEffect(syringeAmount) { onDosageChange("${syringeAmount} ${SyringeUnit.ML.displayValue}") }
+                            LaunchedEffect(syringeAmount) { onDosageChange("${syringeAmount} ${SyringeUnit.ML.displayValue}") } // displayValue is "ml"
 
-                            IOSWheelPicker(
-                                items = (0..100 step 1).map { it.toString() },
-                                selectedItem = syringeAmount,
-                                onItemSelected = { syringeAmount = it },
-                                modifier = Modifier.width(80.dp).height(150.dp)
-                            )
-                            Text(SyringeUnit.ML.displayValue, modifier = Modifier.padding(start = 16.dp))
+                            IOSWheelPicker(items = (0..100 step 1).map { it.toString() }, selectedItem = syringeAmount, onItemSelected = { syringeAmount = it }, modifier = Modifier.width(80.dp).height(150.dp))
+                            Text(SyringeUnit.ML.displayValue, modifier = Modifier.padding(start = 16.dp)) // "ml"
                         }
                         "Spray" -> {
                             var numSprays by remember(dosage) { mutableStateOf(dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
-                            LaunchedEffect(numSprays) { onDosageChange("$numSprays sprays") }
+                            LaunchedEffect(numSprays) { onDosageChange("$numSprays ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_sprays)}") }
 
-                            IOSWheelPicker(
-                                items = (1..10).toList(),
-                                selectedItem = numSprays,
-                                onItemSelected = { numSprays = it },
-                                modifier = Modifier.width(80.dp).height(150.dp)
-                            )
-                            Text("sprays", modifier = Modifier.padding(start = 16.dp))
+                            IOSWheelPicker(items = (1..10).toList(), selectedItem = numSprays, onItemSelected = { numSprays = it }, modifier = Modifier.width(80.dp).height(150.dp))
+                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_sprays), modifier = Modifier.padding(start = 16.dp))
                         }
                         "Suppository", "Suppositorium" -> {
                             var numSuppositories by remember(dosage) { mutableStateOf(dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
-                            LaunchedEffect(numSuppositories) { onDosageChange("$numSuppositories suppositories") }
+                            LaunchedEffect(numSuppositories) { onDosageChange("$numSuppositories ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_suppositories)}") }
 
-                            IOSWheelPicker(
-                                items = (1..10).toList(),
-                                selectedItem = numSuppositories,
-                                onItemSelected = { numSuppositories = it },
-                                modifier = Modifier.width(80.dp).height(150.dp)
-                            )
-                            Text("suppositories", modifier = Modifier.padding(start = 16.dp))
+                            IOSWheelPicker(items = (1..10).toList(), selectedItem = numSuppositories, onItemSelected = { numSuppositories = it }, modifier = Modifier.width(80.dp).height(150.dp))
+                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_suppositories), modifier = Modifier.padding(start = 16.dp))
                         }
                         "Patch" -> {
                             var numPatches by remember(dosage) { mutableStateOf(dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
-                            LaunchedEffect(numPatches) { onDosageChange("$numPatches patches") }
+                            LaunchedEffect(numPatches) { onDosageChange("$numPatches ${stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_patches)}") }
 
-                            IOSWheelPicker(
-                                items = (1..10).toList(),
-                                selectedItem = numPatches,
-                                onItemSelected = { numPatches = it },
-                                modifier = Modifier.width(80.dp).height(150.dp)
-                            )
-                            Text("patches", modifier = Modifier.padding(start = 16.dp))
+                            IOSWheelPicker(items = (1..10).toList(), selectedItem = numPatches, onItemSelected = { numPatches = it }, modifier = Modifier.width(80.dp).height(150.dp))
+                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_patches), modifier = Modifier.padding(start = 16.dp))
                         }
-                        else -> { // Fallback for other types
-                            Text("Dosage selection for this type is not available via wheel picker. Please enter manually if needed.",
+                        else -> {
+                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dosage_wheel_picker_not_available),
                                 modifier = Modifier.padding(16.dp).fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
@@ -340,13 +280,12 @@ fun MedicationDosagePackageDateInput(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp)) // More space before the button
-
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = { showDosageModal = false },
-                    modifier = Modifier.fillMaxWidth() // Button takes full width
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Done")
+                    Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dialog_done_button))
                 }
             }
         }
@@ -356,9 +295,9 @@ fun MedicationDosagePackageDateInput(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun M3StyledDatePickerButton(
-    label: String,
+    label: String, // stringResource
     dateString: String,
-    placeholder: String,
+    placeholder: String, // stringResource
     onDateSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     minSelectableDateMillis: Long? = null
@@ -381,13 +320,13 @@ private fun M3StyledDatePickerButton(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = label,
+                text = label, // Already a stringResource
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = currentDisplayDate,
+                text = currentDisplayDate, // Placeholder is a stringResource
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (currentDisplayDate != placeholder) FontWeight.Medium else FontWeight.Normal,
                 color = if (currentDisplayDate != placeholder) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -397,7 +336,7 @@ private fun M3StyledDatePickerButton(
 
     if (showDatePicker) {
         val calendar = Calendar.getInstance()
-        if (currentDisplayDate != placeholder) {
+        if (currentDisplayDate != placeholder) { // placeholder is stringResource
             try {
                 calendar.time = dateFormatter.parse(currentDisplayDate) ?: Date()
             } catch (_: Exception) { /* Default to today if parse fails */ }
@@ -428,16 +367,16 @@ private fun M3StyledDatePickerButton(
                     },
                     enabled = datePickerState.selectedDateMillis != null &&
                             (minSelectableDateMillis == null || datePickerState.selectedDateMillis!! >= minSelectableDateMillis)
-                ) { Text("OK") }
+                ) { Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dialog_ok_button)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(id = com.d4viddf.medicationreminder.R.string.dialog_cancel_button)) }
             }
         ) {
             DatePicker(
                 state = datePickerState,
-                title = null,
-                headline = null,
+                title = null, // Title can be set here if needed, using stringResource
+                headline = null, // Headline can be set here if needed, using stringResource
                 showModeToggle = true
             )
         }
@@ -466,12 +405,12 @@ private class MinDateSelectable(private val minUtcTimeMillis: Long) : Selectable
 }
 
 @Composable
-fun <T> IOSWheelPicker( // Ensure this is the version you are using
+fun <T> IOSWheelPicker(
     items: List<T>,
     selectedItem: T,
     onItemSelected: (T) -> Unit,
-    modifier: Modifier = Modifier, // This will be .width(X.dp).height(150.dp)
-    displayTransform: (T) -> String = { it.toString() }
+    modifier: Modifier = Modifier,
+    displayTransform: @Composable (T) -> String // Changed to @Composable for stringResource usage
 ) {
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = items.indexOf(selectedItem).coerceIn(0, items.size.coerceAtLeast(1) -1)
@@ -500,12 +439,10 @@ fun <T> IOSWheelPicker( // Ensure this is the version you are using
         }
     }
 
-    // CRITICAL: The Box takes the explicit size from the modifier passed to IOSWheelPicker.
-    // The LazyColumn fills this constrained Box.
     Box(modifier = modifier) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize(), // LazyColumn fills the sized Box
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -514,7 +451,7 @@ fun <T> IOSWheelPicker( // Ensure this is the version you are using
                 val isActuallySelected = item == selectedItem
 
                 Text(
-                    text = displayTransform(item),
+                    text = displayTransform(item), // displayTransform is now @Composable
                     style = if (isActuallySelected) {
                         MaterialTheme.typography.headlineSmall
                     } else {
@@ -531,29 +468,43 @@ fun <T> IOSWheelPicker( // Ensure this is the version you are using
     }
 }
 
-enum class PillFraction(val displayValue: String) {
-    WHOLE(""), HALF(".5"), QUARTER(".25");
-    override fun toString(): String {
-        return when(this) {
-            WHOLE -> "Whole"
-            HALF -> "½"
-            QUARTER -> "¼"
+
+enum class PillFraction(val stringRes: Int) { // Changed to hold string resource ID
+    WHOLE(com.d4viddf.medicationreminder.R.string.dosage_whole_pill),
+    HALF(com.d4viddf.medicationreminder.R.string.dosage_half_pill),
+    QUARTER(com.d4viddf.medicationreminder.R.string.dosage_quarter_pill);
+
+    companion object {
+        @Composable
+        fun displayValue(fraction: PillFraction): String {
+            return stringResource(id = fraction.stringRes)
         }
     }
 }
-enum class CreamUnit(val displayValue: String) {
+
+// Assuming CreamUnit, LiquidUnit, PowderUnit, SyringeUnit enums have `displayValue`
+// that are either already non-translatable (like "ml", "mg") or their `toString`
+// / `displayTransform` in `IOSWheelPicker` would handle stringResource if they were for display.
+// For units like "sprays", "suppositories", "patches", these were directly handled with stringResource
+// in the `when` block for `medicationType?.name`.
+// If these enums were to be displayed directly via their `toString` or a `displayValue` property
+// in a generic way, those methods/properties would need to become @Composable or accept a Composable lambda
+// to use stringResource, similar to PillFraction.
+// For now, existing structure for these specific units seems to handle i18n where the text is generated.
+
+enum class CreamUnit(val displayValue: String) { // displayValue seems to be for units like "mg", "g" - these are often not translated
     MG("mg"), G("g"), ML("ml");
     override fun toString(): String = displayValue
 }
-enum class LiquidUnit(val displayValue: String) {
+enum class LiquidUnit(val displayValue: String) { // "ml", "l" - often not translated
     ML("ml"), L("l");
     override fun toString(): String = displayValue
 }
-enum class PowderUnit(val displayValue: String) {
+enum class PowderUnit(val displayValue: String) { // "mg", "g" - often not translated
     MG("mg"), G("g");
     override fun toString(): String = displayValue
 }
-enum class SyringeUnit(val displayValue: String) {
+enum class SyringeUnit(val displayValue: String) { // "ml" - often not translated
     ML("ml");
     override fun toString(): String = displayValue
 }

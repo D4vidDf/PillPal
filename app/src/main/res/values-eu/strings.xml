@@ -1,0 +1,156 @@
+<resources>
+    <!-- General & Navigation -->
+    <string name="app_name">Medikazio Oroigarria</string>
+    <string name="home">Hasiera</string>
+    <string name="settings">Ezarpenak</string>
+    <string name="add">Gehitu</string>
+    <string name="back">Atzera</string>
+    <string name="close">Itxi</string>
+    <string name="next">Hurrengoa</string>
+    <string name="confirm">Berretsi</string>
+    <string name="edit">Editatu</string>
+    <string name="loading">Kargatzen...</string>
+    <string name="not_set">Ezarri gabe</string>
+    <string name="none_set">Bat ere ez ezarrita</string>
+    <string name="error_required_field">Eremu hau derrigorrezkoa da edo errore bat dauka</string>
+    <string name="info_not_available">Informazioa ez dago eskuragarri</string>
+
+    <!-- HomeScreen -->
+    <string name="medications_title">Medikazioak</string>
+
+    <!-- AddMedicationScreen & Components -->
+    <string name="new_medication_toolbar_title">Medikazio berria</string>
+    <string name="medication_summary_title">Medikazioaren laburpena</string>
+    <string name="label_name">Izena:</string>
+    <string name="label_dosage">Dosia:</string>
+    <string name="label_package_size">Ontziaren tamaina:</string>
+    <string name="label_start_date">Hasiera data:</string>
+    <string name="label_end_date">Amaiera data:</string>
+    <string name="label_color">Kolorea:</string>
+    <string name="reminder_details_title">Oroigarriaren xehetasunak</string>
+    <string name="label_frequency">Maiztasuna:</string>
+    <string name="label_time">Ordua:</string>
+    <string name="label_days">Egunak:</string>
+    <string name="label_alarm_numbered">%1$d alarma:</string>
+    <string name="label_alarms">Alarmak:</string>
+    <string name="label_interval">Tartea:</string>
+    <string name="interval_details">%1$d ordu %2$d min behin</string>
+    <string name="label_daily_start_time">Eguneko hasiera:</string>
+    <string name="label_daily_end_time">Eguneko amaiera:</string>
+    <string name="color_selector_title">Kolorea</string>
+    <string name="color_selector_selected_color_acc">Hautatutako kolorea: %1$s</string>
+    <string name="color_selector_expand_acc">Zabaldu</string>
+    <string name="color_selector_selected_acc">Hautatuta</string>
+    <string name="frequency_selector_title">Maiztasuna</string>
+    <string name="freq_daily_reminder_time_days">Eguneko oroigarriaren ordua eta egunak</string>
+    <string name="freq_select_reminder_time_button">Hautatu oroigarriaren ordua</string>
+    <string name="freq_repeat_on_days_label">Errepikatu egunetan:</string>
+    <string name="freq_custom_alarm_times_title">Alarma ordu pertsonalizatuak</string>
+    <string name="freq_add_new_alarm_button">Gehitu alarma ordu berria</string>
+    <string name="freq_add_alarm_time_dialog_title">Gehitu alarma ordua</string>
+    <string name="freq_scheduled_times_label">Programatutako orduak:</string>
+    <string name="freq_delete_time_acc">Ezabatu %1$s ordua</string>
+    <string name="freq_repetition_interval_title">Errepikapen tartea</string>
+    <string name="freq_daily_active_range_label">Eguneko tarte aktiboa</string>
+    <string name="freq_start_time_button_label">Hasiera ordua</string>
+    <string name="freq_set_start_placeholder">Ezarri hasiera</string>
+    <string name="freq_end_time_button_label">Amaiera ordua</string>
+    <string name="freq_set_end_placeholder">Ezarri amaiera</string>
+    <string name="freq_every_label">Behin</string>
+    <string name="freq_hours_unit">ord</string>
+    <string name="freq_minutes_unit">min</string>
+    <string name="generic_textfield_edit_acc">Editatu</string>
+    <string name="dosage_package_dates_title">Dosia, Ontzia eta Datak</string>
+    <string name="dosage_label">Dosia</string>
+    <string name="dosage_tap_to_set">Sakatu dosia ezartzeko</string>
+    <string name="dosage_prefilled_info">(CIMA-tik aurrez beteta, sakatu editatzeko)</string>
+    <string name="package_size_label">Ontziaren tamaina</string>
+    <string name="package_units_label">Unitateak</string>
+    <string name="start_date_label">Hasiera data</string>
+    <string name="select_start_date_placeholder">Hautatu hasiera data</string>
+    <string name="end_date_label">Amaiera data</string>
+    <string name="select_end_date_placeholder">Hautatu amaiera data</string>
+    <string name="select_dosage_dialog_title">Hautatu dosia</string>
+    <string name="dosage_whole_pill">Osoa</string>
+    <string name="dosage_half_pill">½</string>
+    <string name="dosage_quarter_pill">¼</string>
+    <string name="dosage_sprays">lainoztagailu</string>
+    <string name="dosage_suppositories">supositorio</string>
+    <string name="dosage_patches">partxe</string>
+    <string name="dosage_wheel_picker_not_available">Mota honetako dosia hautatzea ez dago eskuragarri gurpil-hautatzailearen bidez. Mesedez, sartu eskuz behar izanez gero.</string>
+    <string name="dialog_done_button">Eginda</string>
+    <string name="dialog_ok_button">Ados</string>
+    <string name="dialog_cancel_button">Utzi</string>
+    <string name="medication_name_input_title">Sartu medikazioaren izena</string>
+    <string name="medication_name_placeholder">Medikazioaren izena</string>
+    <string name="medication_name_clear_search_acc">Garbitu bilaketa</string>
+    <string name="medication_name_error">Mesedez, sartu medikazioaren izen balioduna</string>
+    <string name="medication_type_selector_title">Hautatu medikazio mota</string>
+
+    <!-- MedicationDetailScreen & Components -->
+    <string name="medication_detail_today_title">Gaur</string>
+    <string name="medication_detail_after_waking_up">Esnatu ondoren</string>
+    <string name="medication_detail_with_lunch">Bazkariarekin</string>
+    <string name="medication_detail_header_loading">Kargatzen...</string>
+    <string name="medication_detail_header_no_dosage">Dosirik gabe</string>
+    <string name="medication_detail_header_image_acc">Medikazioaren irudia</string>
+    <string name="medication_detail_counter_dose_unit_single">hartualdi</string>
+    <string name="medication_detail_counter_dose_unit_plural">hartualdi</string>
+    <string name="medication_detail_counter_freq_once_daily">egunean behin</string>
+    <string name="medication_detail_counter_freq_multiple_daily">egunean aldiz</string>
+    <string name="medication_detail_counter_freq_interval">tartea</string>
+    <string name="medication_detail_counter_freq_as_needed">behar den neurrian</string>
+    <string name="medication_detail_counter_duration_total_days">egun guztira</string>
+    <string name="medication_detail_counter_duration_remaining_days">gainerako egunak</string>
+    <string name="medication_detail_counter_days_all">egunero</string>
+    <string name="medication_detail_counter_days_single">egun</string>
+    <string name="medication_detail_counter_days_multiple_weekly">egun/astean</string>
+    <string name="medication_detail_counter_no_details">Ez dago zenbaketa xehetasunik.</string>
+    <string name="medication_progress_display_acc">Medikazioaren aurrerapena: %1$d dosi hartuta %2$d-tik. %3$d dosi geratzen dira.</string>
+    <string name="medication_progress_display_not_package_based_acc">Medikazioa: %1$s geratzen da, %2$s hartuta. Aurrerapena ez dago ontzian oinarrituta.</string>
+    <string name="medication_progress_display_info_not_available_acc">Medikazioaren aurrerapena: Informazioa ez dago eskuragarri.</string>
+    <string name="medication_progress_display_title">Aurrerapena</string>
+
+    <!-- Settings Screen (New) -->
+    <string name="settings_screen_title">Ezarpenak</string>
+    <string name="settings_language_label">Hizkuntza</string>
+    <string name="settings_theme_label">Gaia</string>
+    <string name="settings_theme_dark">Iluna</string>
+    <string name="settings_theme_light">Argia</string>
+    <string name="settings_theme_system">Sistemaren lehenetsia</string>
+
+    <!-- Notification Related -->
+    <string name="notifications_toggle_label">Jakinarazpenak</string>
+
+    <!-- Day initialisms for medication summary -->
+    <string name="day_mon">Al.</string>
+    <string name="day_tue">Ar.</string>
+    <string name="day_wed">Az.</string>
+    <string name="day_thu">Og.</string>
+    <string name="day_fri">Ol.</string>
+    <string name="day_sat">Lr.</string>
+    <string name="day_sun">Ig.</string>
+
+    <!-- Day initialisms for frequency selector -->
+    <string name="day_mon_initial">Al.</string>
+    <string name="day_tue_initial">Ar.</string>
+    <string name="day_wed_initial">Az.</string>
+    <string name="day_thu_initial">Og.</string>
+    <string name="day_fri_initial">Ol.</string>
+    <string name="day_sat_initial">Lr.</string>
+    <string name="day_sun_initial">Ig.</string>
+
+    <string name="info_not_available_short">E/E</string> <!-- Ez Eskuragarri -->
+
+    <!-- Settings Screen: Language Names (in their own language) -->
+    <string name="language_english">English</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_galician">Galego</string>
+    <string name="language_euskera">Euskara</string>
+    <string name="language_catalan">Català</string>
+
+    <!-- Settings Screen: Theme Options (will be translated) -->
+    <string name="settings_theme_light_option">Argia</string>
+    <string name="settings_theme_dark_option">Iluna</string>
+    <string name="settings_theme_system_option">Sistemaren lehenetsia</string>
+</resources>

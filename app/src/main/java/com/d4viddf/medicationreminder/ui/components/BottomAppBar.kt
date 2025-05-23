@@ -18,6 +18,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.theme.DarkGreen
 import com.d4viddf.medicationreminder.ui.theme.OrangeAccent
@@ -37,7 +38,7 @@ fun BottomNavBar(
     ) {
         // Use NavigationBarItem for each item in the bar
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+            icon = { Icon(Icons.Filled.Home, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.home)) },
             selected = selectedIndex == 0, // Set selected state based on index
             onClick = onHomeClick,
         )
@@ -47,11 +48,11 @@ fun BottomNavBar(
             containerColor = DarkGreen,
             contentColor = White
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Add")
+            Icon(Icons.Filled.Add, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.add))
         }
 // Another NavigationBarItem for the Settings
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
+            icon = { Icon(Icons.Filled.Settings, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.settings)) },
             selected = selectedIndex == 1, // Set selected state based on index
             onClick = onSettingsClick,
         )
