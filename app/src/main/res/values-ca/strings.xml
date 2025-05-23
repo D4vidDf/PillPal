@@ -1,0 +1,165 @@
+<resources>
+    <!-- General & Navigation -->
+    <string name="app_name">PillPal</string>
+    <string name="home">Inici</string>
+    <string name="settings">Configuració</string>
+    <string name="add">Afegir</string>
+    <string name="back">Enrere</string>
+    <string name="close">Tancar</string>
+    <string name="next">Següent</string>
+    <string name="confirm">Confirmar</string>
+    <string name="edit">Editar</string>
+    <string name="loading">Carregant...</string>
+    <string name="not_set">No establert</string>
+    <string name="none_set">Cap establert</string>
+    <string name="error_required_field">Aquest camp és obligatori o conté un error</string>
+    <string name="info_not_available">Informació no disponible</string>
+
+    <!-- HomeScreen -->
+    <string name="medications_title">Medicaments</string>
+
+    <!-- AddMedicationScreen & Components -->
+    <string name="new_medication_toolbar_title">Nou medicament</string>
+    <string name="medication_summary_title">Resum de medicació</string>
+    <string name="label_name">Nom:</string>
+    <string name="label_dosage">Dosi:</string>
+    <string name="label_package_size">Mida de l\'envàs:</string>
+    <string name="label_start_date">Data d\'inici:</string>
+    <string name="label_end_date">Data de fi:</string>
+    <string name="label_color">Color:</string>
+    <string name="reminder_details_title">Detalls del recordatori</string>
+    <string name="label_frequency">Freqüència:</string>
+    <string name="label_time">Hora:</string>
+    <string name="label_days">Dies:</string>
+    <string name="label_alarm_numbered">Alarma %1$d:</string>
+    <string name="label_alarms">Alarmes:</string>
+    <string name="label_interval">Interval:</string>
+    <string name="interval_details">Cada %1$d h %2$d min</string>
+    <string name="label_daily_start_time">Inici diari:</string>
+    <string name="label_daily_end_time">Fi diari:</string>
+    <string name="color_selector_title">Color</string>
+    <string name="color_selector_selected_color_acc">Color seleccionat: %1$s</string>
+    <string name="color_selector_expand_acc">Expandir</string>
+    <string name="color_selector_selected_acc">Seleccionat</string>
+    <string name="frequency_selector_title">Freqüència</string>
+    <string name="freq_daily_reminder_time_days">Hora i dies del recordatori diari</string>
+    <string name="freq_select_reminder_time_button">Seleccionar hora del recordatori</string>
+    <string name="freq_repeat_on_days_label">Repetir els dies:</string>
+    <string name="freq_custom_alarm_times_title">Hores d\'alarma personalitzades</string>
+    <string name="freq_add_new_alarm_button">Afegir nova hora d\'alarma</string>
+    <string name="freq_add_alarm_time_dialog_title">Afegir hora d\'alarma</string>
+    <string name="freq_scheduled_times_label">Hores programades:</string>
+    <string name="freq_delete_time_acc">Eliminar hora %1$s</string>
+    <string name="freq_repetition_interval_title">Interval de repetició</string>
+    <string name="freq_daily_active_range_label">Rang actiu diari per a l\'interval</string>
+    <string name="freq_start_time_button_label">Hora d\'inici</string>
+    <string name="freq_set_start_placeholder">Establir inici</string>
+    <string name="freq_end_time_button_label">Hora de fi</string>
+    <string name="freq_set_end_placeholder">Establir fi</string>
+    <string name="freq_every_label">Cada</string>
+    <string name="freq_hours_unit">h</string>
+    <string name="freq_minutes_unit">min</string>
+    <string name="generic_textfield_edit_acc">Editar</string>
+    <string name="dosage_package_dates_title">Dosi, envàs i dates</string>
+    <string name="dosage_label">Dosi</string>
+    <string name="dosage_tap_to_set">Toca per establir la dosi</string>
+    <string name="dosage_prefilled_info">(Pre-emplenat des de CIMA, toca per editar)</string>
+    <string name="package_size_label">Mida de l\'envàs</string>
+    <string name="package_units_label">Unitats</string>
+    <string name="start_date_label">Data d\'inici</string>
+    <string name="select_start_date_placeholder">Seleccionar data d\'inici</string>
+    <string name="end_date_label">Data de fi</string>
+    <string name="select_end_date_placeholder">Seleccionar data de fi</string>
+    <string name="select_dosage_dialog_title">Seleccionar dosi</string>
+    <string name="dosage_whole_pill">Sencera</string>
+    <string name="dosage_half_pill">½</string>
+    <string name="dosage_quarter_pill">¼</string>
+    <string name="dosage_sprays">polvoritzacions</string>
+    <string name="dosage_suppositories">supositoris</string>
+    <string name="dosage_patches">pegats</string>
+    <string name="dosage_wheel_picker_not_available">La selecció de dosi per a aquest tipus no està disponible mitjançant el selector circular. Si us plau, introdueix manualment si és necessari.</string>
+    <string name="dialog_done_button">Fet</string>
+    <string name="dialog_ok_button">Acceptar</string>
+    <string name="dialog_cancel_button">Cancel·lar</string>
+    <string name="medication_name_input_title">Introdueix el nom del medicament</string>
+    <string name="medication_name_placeholder">Nom del medicament</string>
+    <string name="medication_name_clear_search_acc">Netejar cerca</string>
+    <string name="medication_name_error">Si us plau, introdueix un nom de medicament vàlid</string>
+    <string name="medication_type_selector_title">Selecciona el tipus de medicament</string>
+
+    <!-- MedicationDetailScreen & Components -->
+    <string name="medication_detail_today_title">Avui</string>
+    <string name="medication_detail_after_waking_up">Després de llevar-se</string>
+    <string name="medication_detail_with_lunch">Amb el dinar</string>
+    <string name="medication_detail_header_loading">Carregant...</string>
+    <string name="medication_detail_header_no_dosage">Sense dosificació</string>
+    <string name="medication_detail_header_image_acc">Imatge de la medicació</string>
+    <string name="medication_detail_counter_dose_unit_single">presa</string>
+    <string name="medication_detail_counter_dose_unit_plural">preses</string>
+    <string name="medication_detail_counter_freq_once_daily">cop al dia</string>
+    <string name="medication_detail_counter_freq_multiple_daily">cops al dia</string>
+    <string name="medication_detail_counter_freq_interval">interval</string>
+    <string name="medication_detail_counter_freq_as_needed">segons necessitat</string>
+    <string name="medication_detail_counter_duration_total_days">dies total</string>
+    <string name="medication_detail_counter_duration_remaining_days">dies rest.</string>
+    <string name="medication_detail_counter_days_all">cada dia</string>
+    <string name="medication_detail_counter_days_single">dia</string>
+    <string name="medication_detail_counter_days_multiple_weekly">dies/setmana</string>
+    <string name="medication_detail_counter_no_details">Sense detalls de recompte.</string>
+    <string name="medication_progress_display_acc">Progrés de la medicació: %1$d dosis preses de %2$d. %3$d dosis restants.</string>
+    <string name="medication_progress_display_not_package_based_acc">Medicació: %1$s restants, %2$s preses. Progrés no basat en l\'envàs.</string>
+    <string name="medication_progress_display_info_not_available_acc">Progrés de la medicació: Informació no disponible.</string>
+    <string name="medication_progress_display_title">Progrés</string>
+
+    <!-- Settings Screen (New) -->
+    <string name="settings_screen_title">Configuració</string>
+    <string name="settings_language_label">Idioma</string>
+    <string name="settings_theme_label">Tema</string>
+    <string name="settings_theme_dark">Fosc</string>
+    <string name="settings_theme_light">Clar</string>
+    <string name="settings_theme_system">Predeterminat del sistema</string>
+
+    <!-- Notification Related -->
+    <string name="notifications_toggle_label">Notificacions</string>
+
+    <!-- Day initialisms for medication summary -->
+    <string name="day_mon">Dl.</string>
+    <string name="day_tue">Dt.</string>
+    <string name="day_wed">Dc.</string>
+    <string name="day_thu">Dj.</string>
+    <string name="day_fri">Dv.</string>
+    <string name="day_sat">Ds.</string>
+    <string name="day_sun">Dg.</string>
+
+    <!-- Day initialisms for frequency selector -->
+    <string name="day_mon_initial">Dl.</string>
+    <string name="day_tue_initial">Dt.</string>
+    <string name="day_wed_initial">Dc.</string>
+    <string name="day_thu_initial">Dj.</string>
+    <string name="day_fri_initial">Dv.</string>
+    <string name="day_sat_initial">Ds.</string>
+    <string name="day_sun_initial">Dg.</string>
+
+    <string name="info_not_available_short">N/D</string> <!-- Assuming this was meant to be added here -->
+
+    <!-- Settings Screen: Language Names (in their own language) -->
+    <string name="language_english">English</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_galician">Galego</string>
+    <string name="language_euskera">Euskara</string>
+    <string name="language_catalan">Català</string>
+
+    <!-- Settings Screen: Theme Options (will be translated) -->
+    <string name="settings_theme_light_option">Clar</string>
+    <string name="settings_theme_dark_option">Fosc</string>
+    <string name="settings_theme_system_option">Predeterminat del sistema</string>
+
+    <!-- FrequencyType Strings -->
+    <string name="frequency_once_a_day">Un cop al dia</string>
+    <string name="frequency_multiple_times_a_day">Diverses vegades al dia</string>
+    <string name="frequency_interval">Interval</string>
+
+    <!-- Dosage Units -->
+    <string name="dosage_mg">mg</string>
+    <string name="dosage_ml">ml</string>
+</resources>

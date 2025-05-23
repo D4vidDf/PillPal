@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,10 @@ fun ColorSelector(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     // Color selection row
+    val selectedColorAccText = stringResource(id = com.d4viddf.medicationreminder.R.string.color_selector_selected_color_acc, selectedColor.colorName)
+    val expandAccText = stringResource(id = com.d4viddf.medicationreminder.R.string.color_selector_expand_acc)
+    val colorSelectorTitleText = stringResource(id = com.d4viddf.medicationreminder.R.string.color_selector_title)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -47,21 +52,20 @@ fun ColorSelector(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Color", modifier = Modifier.weight(1f))
+        Text(colorSelectorTitleText, modifier = Modifier.weight(1f))
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
             Box(
                 modifier = Modifier
                     .size(24.dp)
-                    .background(selectedColor.backgroundColor, CircleShape).semantics{
-                        // Add content description for accessibility
-                        contentDescription = "Selected color: ${selectedColor.colorName}"
-        }
-
+                    .background(selectedColor.backgroundColor, CircleShape)
+                    .semantics{
+                        contentDescription = selectedColorAccText
+                    }
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(selectedColor.colorName)
+            Text(selectedColor.colorName) // colorName itself is likely fine as it's a property of MedicationColor
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Expand")
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = expandAccText)
         }
     }
 
@@ -74,7 +78,7 @@ fun ColorSelector(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Color", style = MaterialTheme.typography.headlineSmall)
+                Text(colorSelectorTitleText, style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(16.dp))
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
@@ -83,6 +87,9 @@ fun ColorSelector(
                     items(medicationColors.size) { index ->
                         val color = medicationColors[index]
                         val isSelected = color == selectedColor
+                        val itemColorAccText = stringResource(id = com.d4viddf.medicationreminder.R.string.color_selector_selected_color_acc, color.colorName)
+                        val itemSelectedAccText = stringResource(id = com.d4viddf.medicationreminder.R.string.color_selector_selected_acc)
+
                         val cornerShape = when (index) {
                             0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
                             2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
@@ -100,8 +107,7 @@ fun ColorSelector(
                                     showBottomSheet = false
                                 }
                                 .semantics{
-                                    // Add content description for accessibility
-                                    contentDescription = "Color: ${color.colorName}"
+                                    contentDescription = itemColorAccText
                                 },
                             contentAlignment = Alignment.Center,
 
@@ -109,7 +115,7 @@ fun ColorSelector(
                             if (isSelected) {
                                 Icon(
                                     Icons.Default.Check,
-                                    contentDescription = "Selected",
+                                    contentDescription = itemSelectedAccText,
                                     modifier = Modifier
                                         .background(Color.White, CircleShape)
                                         .padding(4.dp)

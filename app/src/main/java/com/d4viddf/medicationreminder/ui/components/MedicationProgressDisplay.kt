@@ -10,8 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.drawscope.Stroke // Para definir el grosor del trazo
+import androidx.compose.ui.graphics.drawscope.Stroke 
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -53,15 +54,22 @@ fun MedicationProgressDisplay(
     val indicatorSize = 220.dp
 
     val accessibilityDescription = if (progressDetails != null && progressDetails.totalFromPackage > 0) {
-        "Progreso de la medicación: ${progressDetails.taken} dosis tomadas de ${progressDetails.totalFromPackage}. Quedan ${progressDetails.remaining} dosis."
-    } else if (progressDetails != null && progressDetails.displayText != "N/A") {
-        "Medicación: ${progressDetails.remaining} restantes, ${progressDetails.taken} tomadas. Progreso no basado en paquete."
+        stringResource(
+            id = com.d4viddf.medicationreminder.R.string.medication_progress_display_acc,
+            progressDetails.taken,
+            progressDetails.totalFromPackage,
+            progressDetails.remaining
+        )
+    } else if (progressDetails != null && progressDetails.displayText != stringResource(id = com.d4viddf.medicationreminder.R.string.info_not_available_short)) { // Assuming "N/A" corresponds to a general "not available"
+        stringResource(
+            id = com.d4viddf.medicationreminder.R.string.medication_progress_display_not_package_based_acc,
+            progressDetails.remaining, // This seems to be a count, ensure it's what's expected for %1$s
+            progressDetails.taken // This seems to be a count, ensure it's what's expected for %2$s
+        )
     } else {
-        "Progreso de la medicación: Información no disponible."
+        stringResource(id = com.d4viddf.medicationreminder.R.string.medication_progress_display_info_not_available_acc)
     }
 
-    // El Column exterior ahora solo envuelve el Box que contiene el indicador y el texto
-    // Se eliminó el Text("Progreso") que estaba fuera del Box.
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -91,19 +99,18 @@ fun MedicationProgressDisplay(
             if (progressDetails != null) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center // Centra los textos verticalmente dentro de esta Column
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Progreso",
+                        text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_progress_display_title),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.textColor,
-                        // No necesita padding inferior aquí si el Spacer lo maneja
                     )
-                    Spacer(modifier = Modifier.height(8.dp)) // Espacio entre "Progreso" y los números
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = progressDetails.displayText,
-                        fontSize = if (progressDetails.displayText == "N/A") 48.sp else 32.sp,
+                        fontSize = if (progressDetails.displayText == stringResource(id = com.d4viddf.medicationreminder.R.string.info_not_available_short)) 48.sp else 32.sp, // Compare with resource
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.textColor,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,

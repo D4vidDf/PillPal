@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -131,7 +132,7 @@ fun MedicationDetailsScreen(
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back),
                                 modifier = Modifier.size(28.dp), tint = Color.White
                             )
                         }
@@ -142,7 +143,7 @@ fun MedicationDetailsScreen(
                                 .clickable { /* TODO: Handle edit action */ },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Edit", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.edit), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
 
@@ -179,10 +180,14 @@ fun MedicationDetailsScreen(
             item {
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Today", fontSize = 36.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_today_title), fontSize = 36.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(16.dp))
-                    ScheduleItem(time = "9:00", label = "After waking up", enabled = true)
-                    ScheduleItem(time = "15:00", label = "With lunch", enabled = false)
+                    // TODO: The actual schedule items (time, label) will be dynamic.
+                    // For now, if these are examples, they can be left or also use placeholders if they represent a fixed concept.
+                    // Assuming "After waking up" and "With lunch" are conceptual examples for now.
+                    // If they were to be dynamic string keys, that would be a more complex setup.
+                    ScheduleItem(time = "9:00", label = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_after_waking_up) , enabled = true)
+                    ScheduleItem(time = "15:00", label = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_with_lunch), enabled = false)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -190,19 +195,19 @@ fun MedicationDetailsScreen(
     }
 }
 
-// ScheduleItem Composable (sin cambios)
+// ScheduleItem Composable
 @Composable
-fun ScheduleItem(time: String, label: String, enabled: Boolean) {
+fun ScheduleItem(time: String, label: String, enabled: Boolean) { // 'label' is now passed as a string resource
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            Text(text = label, style = MaterialTheme.typography.bodyLarge) // label is already a stringResource
             Spacer(modifier = Modifier.height(2.dp))
             Text(text = time, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
-        Switch(checked = enabled, onCheckedChange = { /* TODO: Handle toggle */ })
+        Switch(checked = enabled, onCheckedChange = { /* TODO: Handle toggle */ }) // contentDescription for Switch could be added if needed
     }
 }
