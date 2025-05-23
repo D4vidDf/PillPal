@@ -158,4 +158,8 @@
     <string name="frequency_once_a_day">Egunean behin</string>
     <string name="frequency_multiple_times_a_day">Egunean hainbat aldiz</string>
     <string name="frequency_interval">Tartea</string>
+
+    <!-- Dosage Units -->
+    <string name="dosage_mg">mg</string>
+    <string name="dosage_ml">ml</string>
 </resources>

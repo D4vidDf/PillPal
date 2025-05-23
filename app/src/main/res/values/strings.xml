@@ -158,4 +158,8 @@
     <string name="frequency_once_a_day">Once a day</string>
     <string name="frequency_multiple_times_a_day">Multiple times a day</string>
     <string name="frequency_interval">Interval</string>
+
+    <!-- Dosage Units -->
+    <string name="dosage_mg">mg</string>
+    <string name="dosage_ml">ml</string>
 </resources>

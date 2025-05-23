@@ -73,11 +73,10 @@ fun MedicationDosagePackageDateInput(
     val strDialogCancelButton = stringResource(id = com.d4viddf.medicationreminder.R.string.dialog_cancel_button)
 
     // Pre-resolve PillFraction display values
-    val pillFractionDisplayValues = remember {
-        PillFraction.values().associateWith { PillFraction.displayValue(it, context = null) } // Pass context = null as it's a @Composable
-    }
+    // The 'pillFractionDisplayValues' using context = null was part of an intermediate step and is not needed.
+    // 'resolvedPillFractionDisplayValues' is the correct one.
     val resolvedPillFractionDisplayValues = PillFraction.values().map {
-        it to stringResource(id = it.stringRes)
+        it to PillFraction.displayValue(it) // Call the composable function directly
     }.toMap()
 
 
@@ -505,15 +504,14 @@ fun <T> IOSWheelPicker(
 }
 
 
-enum class PillFraction(val stringRes: Int) { // Changed to hold string resource ID
-    WHOLE(com.d4viddf.medicationreminder.R.string.dosage_whole_pill, ""), // displayValue for WHOLE is empty string
-    HALF(com.d4viddf.medicationreminder.R.string.dosage_half_pill, " ½"),   // Actual string for UI display
-    QUARTER(com.d4viddf.medicationreminder.R.string.dosage_quarter_pill, " ¼"); // Actual string for UI display
+enum class PillFraction(val stringRes: Int) {
+    WHOLE(com.d4viddf.medicationreminder.R.string.dosage_whole_pill),
+    HALF(com.d4viddf.medicationreminder.R.string.dosage_half_pill),
+    QUARTER(com.d4viddf.medicationreminder.R.string.dosage_quarter_pill);
 
     companion object {
-        // This function is now @Composable because it uses stringResource
         @Composable
-        fun displayValue(fraction: PillFraction, context: Context?): String { // Context is not strictly needed if using stringResource directly
+        fun displayValue(fraction: PillFraction): String { // Removed unused context parameter
             return stringResource(id = fraction.stringRes)
         }
     }

@@ -56,8 +56,12 @@ fun AddMedicationScreen(
     var progress by rememberSaveable { mutableStateOf(0f) }
     var selectedTypeId by rememberSaveable { mutableStateOf(1) }
     var selectedColor by rememberSaveable { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
-    var startDate by rememberSaveable { mutableStateOf( "") } // Initialize with empty or from stringResource
+    var startDate by rememberSaveable { mutableStateOf("") }
     var endDate by rememberSaveable { mutableStateOf("") }
+
+    // Resolve placeholder strings once
+    val selectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
+    val selectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
 
     // Frequency related states
     var frequency by rememberSaveable { mutableStateOf(FrequencyType.ONCE_A_DAY) }
@@ -148,8 +152,8 @@ fun AddMedicationScreen(
                                     name = medicationName, typeId = selectedTypeId, color = selectedColor.toString(),
                                     dosage = dosage.ifEmpty { null }, packageSize = packageSize.toIntOrNull() ?: 0,
                                     remainingDoses = packageSize.toIntOrNull() ?: 0,
-                                    startDate = if (startDate != stringResource(id = com.d4viddf.medicationreminder.R.string.select_start_date_placeholder) && startDate.isNotBlank()) startDate else null,
-                                    endDate = if (endDate != stringResource(id = R.string.select_end_date_placeholder) && endDate.isNotBlank()) endDate else null,
+                                    startDate = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) startDate else null,
+                                    endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
                                     reminderTime = null
                                 )
                             )
@@ -269,9 +273,9 @@ fun AddMedicationScreen(
                         dosage = dosage, onDosageChange = { dosage = it },
                         packageSize = packageSize, onPackageSizeChange = { packageSize = it },
                         medicationSearchResult = medicationSearchResult,
-                        startDate = if (startDate.isBlank()) stringResource(id = R.string.select_start_date_placeholder) else startDate,
+                        startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                         onStartDateSelected = { startDate = it },
-                        endDate = if (endDate.isBlank()) stringResource(id = R.string.select_end_date_placeholder) else endDate,
+                        endDate = if (endDate.isBlank()) selectEndDatePlaceholder else endDate,
                         onEndDateSelected = { endDate = it }
                     )
                 }
@@ -312,8 +316,8 @@ fun AddMedicationScreen(
                     )
                 }
                 4 -> {
-                    val summaryStartDate = if (startDate.isBlank()) stringResource(id = R.string.select_start_date_placeholder) else startDate
-                    val summaryEndDate = if (endDate.isBlank()) stringResource(id = R.string.select_end_date_placeholder) else endDate
+                    val summaryStartDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate
+                    val summaryEndDate = if (endDate.isBlank()) selectEndDatePlaceholder else endDate
                     MedicationSummary(
                         typeId = selectedTypeId, medicationName = medicationName, color = selectedColor.backgroundColor,
                         dosage = dosage, packageSize = packageSize, frequency = frequency,
