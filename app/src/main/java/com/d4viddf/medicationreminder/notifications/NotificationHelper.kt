@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -21,30 +22,67 @@ import java.util.concurrent.TimeUnit
 object NotificationHelper {
 
     const val REMINDER_CHANNEL_ID = "medication_reminder_channel"
-    const val REMINDER_CHANNEL_NAME = "Medication Reminders"
-    const val REMINDER_CHANNEL_DESCRIPTION = "Notifications for medication intake reminders"
+    const val REMINDER_CHANNEL_NAME = "Medication Reminders" // Should be a string resource
+    const val REMINDER_CHANNEL_DESCRIPTION = "Notifications for medication intake reminders" // Should be a string resource
+
+    const val PRE_REMINDER_CHANNEL_ID = "pre_medication_reminder_channel"
+    const val PRE_REMINDER_CHANNEL_NAME = "Pre-Medication Reminders" // Should be a string resource
+    const val PRE_REMINDER_CHANNEL_DESCRIPTION = "Notifications that appear before medication is due." // Should be a string resource
+
     const val ACTION_MARK_AS_TAKEN = "com.d4viddf.medicationreminder.ACTION_MARK_AS_TAKEN"
     private const val TAG = "NotificationHelper"
 
     fun createNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val reminderChannel = NotificationChannel(
+            val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+            val reminderChannelHigh = NotificationChannel(
                 REMINDER_CHANNEL_ID,
-                REMINDER_CHANNEL_NAME,
+                context.getString(R.string.app_name), // Use app_name or a specific channel name resource
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = REMINDER_CHANNEL_DESCRIPTION
+                description = REMINDER_CHANNEL_DESCRIPTION // Use string resource
                 enableLights(true)
                 lightColor = android.graphics.Color.CYAN
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 250, 500)
+                setSound(defaultSoundUri, Notification.AUDIO_ATTRIBUTES_DEFAULT)
+
             }
+
+            val preReminderChannelDefault = NotificationChannel(
+                PRE_REMINDER_CHANNEL_ID,
+                PRE_REMINDER_CHANNEL_NAME, // Use string resource
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = PRE_REMINDER_CHANNEL_DESCRIPTION // Use string resource
+                enableLights(false) // Typically pre-reminders are less intrusive
+                enableVibration(false) // No vibration for pre-reminders or very subtle
+                // setSound(null, null) // Explicitly no sound for pre-reminders by default
+            }
+
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(reminderChannel)
-            Log.d(TAG, "Notification channel $REMINDER_CHANNEL_ID created.")
+            notificationManager.createNotificationChannel(reminderChannelHigh)
+            Log.d(TAG, "Notification channel $REMINDER_CHANNEL_ID created with HIGH importance and sound.")
+            notificationManager.createNotificationChannel(preReminderChannelDefault)
+            Log.d(TAG, "Notification channel $PRE_REMINDER_CHANNEL_ID created with DEFAULT importance.")
         }
     }
+
+    private fun formatTimeRemaining(context: Context, millis: Long): String {
+        if (millis <= 0) return "" // Or "now" or "ended"
+        val totalMinutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        val parts = mutableListOf<String>()
+        if (hours > 0) parts.add("$hours hr") // Consider R.string.hours_abbreviation
+        if (minutes > 0 || hours == 0L) parts.add("$minutes min") // Consider R.string.minutes_abbreviation
+
+        return if (parts.isEmpty()) context.getString(R.string.less_than_a_minute) else parts.joinToString(" ")
+    }
+
 
     fun showReminderNotification(
         context: Context,
@@ -77,73 +115,59 @@ object NotificationHelper {
             action = ACTION_MARK_AS_TAKEN
             putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderDbId)
         }
+        // Unique request code for this pending intent
+        val markAsTakenRequestCode = reminderDbId + 1000
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(
-            context, reminderDbId + 1000, markAsActionIntent, contentPendingIntentFlags
+            context, markAsTakenRequestCode, markAsActionIntent, contentPendingIntentFlags
         )
 
-        val notificationTitle = "Time for your $medicationName!"
-        var notificationText = "Take $medicationDosage."
+        val notificationTitle = context.getString(R.string.notification_title_time_for, medicationName)
+        var notificationText = context.getString(R.string.notification_text_take_dosage, medicationDosage)
 
-        // Usamos NotificationCompat.Builder para la mayor parte de la compatibilidad
+        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
         val notificationCompatBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(notificationTitle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(contentPendingIntent)
+            .setFullScreenIntent(contentPendingIntent, true)
             .setAutoCancel(true)
             .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)
-            .addAction(R.drawable.ic_check_circle, "Mark as Taken", markAsTakenPendingIntent)
+            .addAction(R.drawable.ic_check_circle, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setSound(defaultSoundUri) // Set sound for pre-Oreo and as default
 
-
-        // Lógica de progreso para intervalos, intentando la API de Android 16 (API 36) si es posible.
-        // La "actividad" que se está rastreando es la ventana de dosificación actual.
         if (isIntervalType && nextDoseTimeMillisForHelper != null && nextDoseTimeMillisForHelper > actualReminderTimeMillis) {
-            val startTimeMillis = actualReminderTimeMillis // Inicio de la ventana de dosificación
-            val endTimeMillis = nextDoseTimeMillisForHelper  // Fin de la ventana de dosificación
+            val startTimeMillis = actualReminderTimeMillis
+            val endTimeMillis = nextDoseTimeMillisForHelper
             val durationMillis = endTimeMillis - startTimeMillis
 
             if (durationMillis > 0) {
-                notificationCompatBuilder.setOngoing(true) // Hacerla persistente durante el intervalo
+                notificationCompatBuilder.setOngoing(true) // Make it persistent during the interval
 
-                // Si es Android 12 (API 31) o superior, podemos usar setProgress con cuenta atrás de forma más efectiva
-                // o la nueva API si estamos en Vanilla Ice Cream (API 36)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // API 31+
-                    // La API específica Notification.Builder.setProgress(endTime, duration, ongoing)
-                    // es para API 36 (Vanilla Ice Cream).
-                    // Por ahora, usaremos NotificationCompat.setProgress de forma estándar para
-                    // mostrar el progreso actual dentro de la ventana.
-                    val currentTimeMillis = System.currentTimeMillis()
-                    var elapsedTimeInIntervalMillis = currentTimeMillis - startTimeMillis
-                    if (elapsedTimeInIntervalMillis < 0) elapsedTimeInIntervalMillis = 0
-                    if (elapsedTimeInIntervalMillis > durationMillis) elapsedTimeInIntervalMillis = durationMillis
-
-                    notificationCompatBuilder.setProgress(durationMillis.toInt(), elapsedTimeInIntervalMillis.toInt(), false)
-                    Log.d(TAG, "Interval Progress (Compat): Max=${durationMillis.toInt()}, Progress=${elapsedTimeInIntervalMillis.toInt()}")
-
-                    val remainingTimeInIntervalMinutes = (endTimeMillis - currentTimeMillis) / TimeUnit.MINUTES.toMillis(1)
-                    if (remainingTimeInIntervalMinutes > 0) {
-                        notificationText += " This dose valid for approx. $remainingTimeInIntervalMinutes more min."
-                    } else if (currentTimeMillis < endTimeMillis) {
-                        notificationText += " This dose window ending soon."
-                    }
+                // For interval notifications, we usually show time *until next dose* or validity.
+                // Progress bar here might be confusing if the "progress" is just time passing until next.
+                // Let's focus on clear text.
+                val timeRemainingForDoseValidityMillis = endTimeMillis - System.currentTimeMillis()
+                if (timeRemainingForDoseValidityMillis > 0) {
+                    val formattedTimeRemaining = formatTimeRemaining(context, timeRemainingForDoseValidityMillis)
+                    notificationText = context.getString(R.string.notification_text_interval_dose_valid, medicationDosage, formattedTimeRemaining)
                 } else {
-                    // Para versiones anteriores a S, el setProgress podría no ser tan visual para duraciones.
-                    // Podemos simplemente añadir el texto.
-                    val timeUntilNextDoseMinutes = (endTimeMillis - System.currentTimeMillis()) / TimeUnit.MINUTES.toMillis(1)
-                    if (timeUntilNextDoseMinutes > 0) {
-                        notificationText += " Next dose in approx. $timeUntilNextDoseMinutes min."
-                    }
+                    notificationText = context.getString(R.string.notification_text_interval_dose_window_ended, medicationDosage)
                 }
             }
+        } else if (!isIntervalType) {
+            // For non-interval, ensure no progress bar is shown from previous states if builder was reused (though it's not here)
+            // notificationCompatBuilder.setProgress(0, 0, false) // Not strictly needed as it's only added for interval
         }
+
 
         notificationCompatBuilder.setContentText(notificationText)
         notificationCompatBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(notificationText))
 
-        // Mostrar la notificación
         showNotificationInternal(context, reminderDbId, notificationCompatBuilder.build())
     }
 

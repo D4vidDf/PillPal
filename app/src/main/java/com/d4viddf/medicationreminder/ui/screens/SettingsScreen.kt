@@ -23,16 +23,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+// Removed selectable and selectableGroup as they are not used with SegmentedButtons
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
+// Removed RadioButton import
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.BorderStroke // Added for Surface border
+import androidx.compose.material3.Surface // Added for grouping
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow // Added
+import androidx.compose.material3.SegmentedButton // Added
+import androidx.compose.material3.SegmentedButtonDefaults // Added
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -97,80 +101,79 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(16.dp) // Outer padding for the whole screen content
         ) {
-            // Language Selection
-            Text(
-                text = stringResource(id = R.string.settings_language_label),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            ExposedDropdownMenuBox(
-                expanded = expandedLanguageDropdown,
-                onExpandedChange = { expandedLanguageDropdown = !expandedLanguageDropdown },
-                modifier = Modifier.fillMaxWidth()
+            // Language Selection Group
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
-                OutlinedTextField(
-                    value = selectedLanguageDisplay, // Show the display name
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLanguageDropdown) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = expandedLanguageDropdown,
-                    onDismissRequest = { expandedLanguageDropdown = false }
-                ) {
-                    languages.forEach { languageOption ->
-                        DropdownMenuItem(
-                            text = { Text(languageOption.displayName) },
-                            onClick = {
-                                viewModel.updateLanguageTag(languageOption.tag)
-                                expandedLanguageDropdown = false
-                                // Activity recreation will be handled by MainActivity observing the flow
-                            }
+                Column(modifier = Modifier.padding(16.dp)) { // Inner padding for content
+                    Text(
+                        text = stringResource(id = R.string.settings_language_label),
+                        style = MaterialTheme.typography.titleMedium, // Expressive: titleMedium or titleSmall
+                        modifier = Modifier.padding(bottom = 12.dp) // Adjusted padding
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = expandedLanguageDropdown,
+                        onExpandedChange = { expandedLanguageDropdown = !expandedLanguageDropdown },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = selectedLanguageDisplay,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(id = R.string.settings_language_label)) }, // Added label for context
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLanguageDropdown) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.bodyLarge // Ensure text style
                         )
+                        ExposedDropdownMenu(
+                            expanded = expandedLanguageDropdown,
+                            onDismissRequest = { expandedLanguageDropdown = false }
+                        ) {
+                            languages.forEach { languageOption ->
+                                DropdownMenuItem(
+                                    text = { Text(languageOption.displayName, style = MaterialTheme.typography.bodyLarge) }, // Applied style
+                                    onClick = {
+                                        viewModel.updateLanguageTag(languageOption.tag)
+                                        expandedLanguageDropdown = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp)) // Spacer between sections
 
-            // Theme Selection
-            Text(
-                text = stringResource(id = R.string.settings_theme_label),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Column(Modifier.selectableGroup()) {
-                themeOptions.forEach { (themeDisplayName, themeKey) ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .selectable(
-                                selected = (currentThemeKey == themeKey), // Compare with the key from ViewModel
-                                onClick = {
-                                    viewModel.updateTheme(themeKey)
-                                    // No need to update selectedThemeName locally as it's derived from currentThemeKey
-                                },
-                                role = Role.RadioButton
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
+            // Theme Selection Group
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) { // Inner padding for content
+                    Text(
+                        text = stringResource(id = R.string.settings_theme_label),
+                        style = MaterialTheme.typography.titleMedium, // Expressive: titleMedium or titleSmall
+                        modifier = Modifier.padding(bottom = 12.dp) // Adjusted padding
+                    )
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        RadioButton(
-                            selected = (currentThemeKey == themeKey),
-                            onClick = null
-                        )
-                        Text(
-                            text = themeDisplayName, // This is already localized
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
-                        )
+                        themeOptions.forEachIndexed { index, (themeDisplayName, themeKey) ->
+                            SegmentedButton(
+                                selected = (currentThemeKey == themeKey),
+                                onClick = { viewModel.updateTheme(themeKey) },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = themeOptions.size),
+                                label = { Text(themeDisplayName, style = MaterialTheme.typography.labelLarge) }
+                            )
+                        }
                     }
                 }
             }

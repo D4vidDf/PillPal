@@ -162,4 +162,35 @@
     <!-- Dosage Units -->
     <string name="dosage_mg">mg</string>
     <string name="dosage_ml">ml</string>
+
+    <!-- Strings for Navigation Components (Task: Add Missing String Resources) -->
+    <string name="add_medication_title">Add Medication</string>
+    <string name="add_medication_short_action">Add</string>
+    <string name="home_screen_title">Home</string>
+    <string name="calendar_screen_title">Calendar</string>
+    <string name="profile_screen_title">Profile</string>
+    <string name="select_medication_placeholder">Select a medication to view details</string>
+    <string name="less_than_a_minute">menos de un minuto</string>
+
+    <string name="notification_title_time_for">Time for your %1$s!</string>
+    <string name="notification_text_take_dosage">Take %1$s.</string>
+    <string name="notification_action_mark_as_taken">Mark as Taken</string>
+    <string name="notification_text_interval_dose_valid">Take %1$s. Valid for approx. %2$s.</string>
+    <string name="notification_text_interval_dose_window_ended">Take %1$s. Dose window ending/ended.</string>
+
+    <string name="prereminder_title_medication">%1$s</string>
+    <string name="prereminder_text_in_about_hour">Reminder in about an hour</string>
+    <string name="prereminder_text_in_approx_minutes_plural">Reminder in ~%1$d minutes</string> <string name="prereminder_text_in_approx_minutes_singular">Reminder in ~%1$d minute</string>
+    <string name="prereminder_text_approx_minutes_left_plural">Approx. %1$d minutes left</string>
+    <string name="prereminder_text_approx_minutes_left_singular">Approx. %1$d minute left</string>
+    <string name="prereminder_text_coming_up_plural">Coming up: %1$d min!</string>
+    <string name="prereminder_text_coming_up_singular">Coming up: %1$d min!</string>
+    <string name="prereminder_text_very_soon_plural">Very soon: %1$d min!</string>
+    <string name="prereminder_text_very_soon_singular">Very soon: %1$d min!</string>
+    <string name="prereminder_text_about_time">It\'s about time!</string>
+    <string name="prereminder_action_taken">Taken</string>
+
+    <string name="time_hr_min">%1$d hr %2$d min</string>
+    <string name="time_hr">%1$d hr</string>
+    <string name="time_min">%1$d min</string>
 </resources>
