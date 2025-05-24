@@ -23,12 +23,18 @@ object NotificationHelper {
     const val REMINDER_CHANNEL_ID = "medication_reminder_channel"
     const val REMINDER_CHANNEL_NAME = "Medication Reminders"
     const val REMINDER_CHANNEL_DESCRIPTION = "Notifications for medication intake reminders"
+
+    // Renamed from LIVE_REMINDER_CHANNEL_ID
+    const val PRE_REMINDER_CHANNEL_ID = "pre_medication_reminder_channel" // Renamed ID
+    const val PRE_REMINDER_CHANNEL_NAME = "Pre-Medication Reminders" // Renamed Name
+    const val PRE_REMINDER_CHANNEL_DESCRIPTION = "Notifications that appear before medication is due, often with progress." // Updated Description
+
     const val ACTION_MARK_AS_TAKEN = "com.d4viddf.medicationreminder.ACTION_MARK_AS_TAKEN"
     private const val TAG = "NotificationHelper"
 
     fun createNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val reminderChannel = NotificationChannel(
+            val reminderChannelHigh = NotificationChannel(
                 REMINDER_CHANNEL_ID,
                 REMINDER_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
@@ -39,10 +45,26 @@ object NotificationHelper {
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 250, 500)
             }
+
+            // Renamed and using updated constants
+            val preReminderChannelDefault = NotificationChannel(
+                PRE_REMINDER_CHANNEL_ID,
+                PRE_REMINDER_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT // Retains DEFAULT importance
+            ).apply {
+                description = PRE_REMINDER_CHANNEL_DESCRIPTION
+                enableLights(true)
+                lightColor = android.graphics.Color.BLUE
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 250, 100, 250)
+            }
+
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(reminderChannel)
-            Log.d(TAG, "Notification channel $REMINDER_CHANNEL_ID created.")
+            notificationManager.createNotificationChannel(reminderChannelHigh)
+            Log.d(TAG, "Notification channel $REMINDER_CHANNEL_ID created with HIGH importance.")
+            notificationManager.createNotificationChannel(preReminderChannelDefault) // Create the renamed channel
+            Log.d(TAG, "Notification channel $PRE_REMINDER_CHANNEL_ID created with DEFAULT importance.")
         }
     }
 
@@ -85,12 +107,14 @@ object NotificationHelper {
         var notificationText = "Take $medicationDosage."
 
         // Usamos NotificationCompat.Builder para la mayor parte de la compatibilidad
+        // Reverted to use REMINDER_CHANNEL_ID and PRIORITY_HIGH
         val notificationCompatBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(notificationTitle)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // Reverted to HIGH priority
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(contentPendingIntent)
+            .setFullScreenIntent(contentPendingIntent, true) // Added for fullscreen intent
             .setAutoCancel(true)
             .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)

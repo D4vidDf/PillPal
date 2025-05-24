@@ -16,6 +16,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.work.OneTimeWorkRequestBuilder
@@ -24,7 +26,7 @@ import com.d4viddf.medicationreminder.data.ThemeKeys
 import com.d4viddf.medicationreminder.data.UserPreferencesRepository
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.ui.MedicationReminderApp
-import com.d4viddf.medicationreminder.ui.theme.AppTheme // Import AppTheme
+// import com.d4viddf.medicationreminder.ui.theme.AppTheme // AppTheme is now applied within MedicationReminderApp
 import com.d4viddf.medicationreminder.workers.TestSimpleWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -76,6 +78,7 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "Enqueued TestSimpleWorker")
 
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
             // Leer el estado actual del idioma y tema desde el repositorio de preferencias
             val currentLanguageTag by userPreferencesRepository.languageTagFlow.collectAsState(initial = initialLocale)
             val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
@@ -91,7 +94,10 @@ class MainActivity : ComponentActivity() {
             }
 
             // AppTheme ahora se aplica dentro de MedicationReminderApp
-            MedicationReminderApp(themePreference = themePreference)
+            MedicationReminderApp(
+                themePreference = themePreference,
+                widthSizeClass = windowSizeClass.widthSizeClass
+            )
         }
     }
 
