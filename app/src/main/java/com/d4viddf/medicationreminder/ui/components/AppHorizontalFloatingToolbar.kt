@@ -2,12 +2,12 @@ package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.expressive.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.expressive.HorizontalFloatingToolbar
-import androidx.compose.material3.expressive.FloatingToolbarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource

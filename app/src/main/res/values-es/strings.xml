@@ -1,6 +1,6 @@
 <resources>
     <!-- General & Navigation -->
-    <string name="app_name">Recordatorio de Medicación</string>
+    <string name="app_name">PillPal</string>
     <string name="home">Inicio</string>
     <string name="settings">Ajustes</string>
     <string name="add">Añadir</string>
@@ -162,4 +162,10 @@
     <!-- Dosage Units -->
     <string name="dosage_mg">mg</string>
     <string name="dosage_ml">ml</string>
+    <string name="add_medication_title">Add Medication</string>
+    <string name="add_medication_short_action">Add</string>
+    <string name="home_screen_title">Home</string>
+    <string name="calendar_screen_title">Calendar</string>
+    <string name="profile_screen_title">Profile</string>
+    <string name="select_medication_placeholder">Select a medication to view details</string>
 </resources>

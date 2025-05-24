@@ -29,7 +29,8 @@ foundation = "1.9.0-alpha03"
 material3Version = "1.4.0-alpha15"
 materialIconsExtended = "1.7.8"
 datastorePreferencesCore = "1.2.0-alpha02"
-datastorePreferences = "1.2.0-alpha02" # Add version for KSP
+datastorePreferences = "1.2.0-alpha02"
+material3WindowSizeClassAndroid = "1.3.2" # Add version for KSP
 
 [libraries]
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version = "0.36.0" }
@@ -79,6 +80,7 @@ material3 = { group = "androidx.compose.material3", name = "material3", version.
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version = "1.1.7" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+androidx-material3-window-size-class1-android = { group = "androidx.compose.material3", name = "material3-window-size-class-android", version.ref = "material3WindowSizeClassAndroid" }
 
 
 [plugins]

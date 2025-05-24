@@ -1,6 +1,10 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,10 +19,6 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 
 }
 

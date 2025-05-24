@@ -42,7 +42,8 @@ fun HomeScreen(
     onMedicationClick: (Int) -> Unit, // For compact navigation or detail view trigger
     widthSizeClass: WindowWidthSizeClass,
     viewModel: MedicationViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier // Added modifier to be used by NavHost
+    modifier: Modifier = Modifier // Added modifier to be used by NavHost,
+
 ) {
     val medications = viewModel.medications.collectAsState().value
     var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) }

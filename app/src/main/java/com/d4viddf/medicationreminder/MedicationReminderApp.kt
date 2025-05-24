@@ -46,7 +46,7 @@ fun MedicationReminderApp(
                 Row(modifier = Modifier.fillMaxSize()) {
                     AppNavigationRail(
                         onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
-                        onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
+                        onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route)  } },
                         onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
                         onSettingsClick = { navController.navigate(Screen.Settings.route) { popUpTo(Screen.Home.route) } },
                         onAddClick = { navController.navigate(Screen.AddMedication.route) { popUpTo(Screen.Home.route) } },
