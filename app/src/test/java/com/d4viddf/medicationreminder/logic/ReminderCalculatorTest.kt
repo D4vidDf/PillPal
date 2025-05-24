@@ -6,6 +6,8 @@ import com.d4viddf.medicationreminder.data.ScheduleType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.runners.Enclosed
+import org.junit.runner.RunWith
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.LocalDateTime
@@ -14,6 +16,7 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 
 
+@RunWith(Enclosed::class)
 class ReminderCalculatorTest {
 
     private val testDate: LocalDate = LocalDate.of(2024, 1, 1)
@@ -453,10 +456,6 @@ class ReminderCalculatorTest {
 
     }
 
-
-import org.mockito.MockedStatic
-import org.mockito.Mockito
-import java.time.LocalDateTime
 
 class ReminderCalculatorTest {
 

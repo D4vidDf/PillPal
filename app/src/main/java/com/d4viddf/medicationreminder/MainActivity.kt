@@ -3,15 +3,18 @@ package com.d4viddf.medicationreminder
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import androidx.activity.ComponentActivity // Using ComponentActivity is fine
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -49,9 +52,12 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-    // Variable to store the language tag that this MainActivity instance last attempted to apply.
-    // This helps LaunchedEffect determine if a DataStore emission is a "new" change
-    // or just a re-emission of the already applied value after recreation.
+    private lateinit var requestFullScreenIntentLauncher: ActivityResultLauncher<Intent>
+
+    companion object {
+        private const val TAG_MAIN_ACTIVITY = "MainActivity" // For logging
+    }
+    // Tracks the locale tag this Activity instance last successfully applied or attempted to apply.
     private var localeTagSetByThisInstance: String? = null
 
     @SuppressLint("FlowOperatorInvokedInComposition")
@@ -59,25 +65,45 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        requestFullScreenIntentLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            // After returning from settings, re-check the permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+ for canUseFullScreenIntent
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (notificationManager.canUseFullScreenIntent()) {
+                    Log.i(TAG_MAIN_ACTIVITY, "USE_FULL_SCREEN_INTENT permission is now granted after returning from settings.")
+                } else {
+                    Log.w(TAG_MAIN_ACTIVITY, "USE_FULL_SCREEN_INTENT permission is still NOT granted after returning from settings.")
+                }
+            }
+        }
         // Step 1: Fetch the stored language preference.
-        // Your UserPreferencesRepository.languageTagFlow already defaults to system locale if nothing is stored.
+        // Your UserPreferencesRepository defaults to system language if DataStore is empty/key not found.
         val storedLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() }
         Log.d("MainActivity", "onCreate: Initial locale tag from DataStore: '$storedLocaleTag'")
 
         // Step 2: Apply this locale using AppCompatDelegate.
         // This ensures the app attempts to set its preferred language early.
-        // AppCompatDelegate should handle if the locale is already the current one.
+        // If storedLocaleTag is empty (which it shouldn't be with your current repo default),
+        // forLanguageTags("") would result in an empty LocaleListCompat, effectively system default.
         val localeListToApply = LocaleListCompat.forLanguageTags(storedLocaleTag)
+
+        // Only call setApplicationLocales if it's actually different from what AppCompat currently has,
+        // OR if localeTagSetByThisInstance is null (first time after a full app kill, for example).
+        // This is an attempt to reduce redundant calls if the system already matches.
+        // However, given AppCompatDelegate.getApplicationLocales() returns '', this check might be tricky.
+        // The more direct approach is to always set it from our source of truth (DataStore)
+        // and rely on localeTagSetByThisInstance to break loops in LaunchedEffect.
         AppCompatDelegate.setApplicationLocales(localeListToApply)
         localeTagSetByThisInstance = storedLocaleTag // Track the tag we just instructed AppCompat to use.
         Log.d("MainActivity", "onCreate: Called AppCompatDelegate.setApplicationLocales with '${localeListToApply.toLanguageTags()}'. Tracking as '$localeTagSetByThisInstance'.")
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationHelper.createNotificationChannels(this)
         }
         requestPostNotificationPermission()
         checkAndRequestExactAlarmPermission()
+        checkAndRequestFullScreenIntentPermission() // Call the new check method
+
 
         val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build()
         WorkManager.getInstance(applicationContext).enqueue(testWorkRequest)
@@ -86,26 +112,24 @@ class MainActivity : ComponentActivity() {
             val windowSizeClass = calculateWindowSizeClass(this)
             val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
 
-            // Collect the language tag from DataStore.
-            // Use distinctUntilChanged() to only react to actual value changes from DataStore.
             val userPreferenceTagFromFlow by userPreferencesRepository.languageTagFlow
                 .distinctUntilChanged()
-                .collectAsState(initial = storedLocaleTag) // Initialize with the tag read in onCreate
+                .collectAsState(initial = storedLocaleTag)
 
             LaunchedEffect(userPreferenceTagFromFlow) {
                 Log.d("MainActivity", "LanguageEffect: DataStore emitted '$userPreferenceTagFromFlow'. Locale last set by this instance: '$localeTagSetByThisInstance'.")
 
-                // Only act if the new value from DataStore is different from what this instance last set.
-                // This is key to prevent loops after recreation if the flow re-emits the same value.
+                // Critical check: Only act if the preference from DataStore has genuinely changed
+                // from what this Activity instance last knew it set.
                 if (userPreferenceTagFromFlow != localeTagSetByThisInstance) {
-                    Log.i("MainActivity", "LanguageEffect: User preference changed in DataStore to '$userPreferenceTagFromFlow'. Last set was '$localeTagSetByThisInstance'. Applying and Recreating.")
+                    Log.i("MainActivity", "LanguageEffect: User preference changed in DataStore to '$userPreferenceTagFromFlow'. Last set by this instance was '$localeTagSetByThisInstance'. Applying and Recreating.")
 
                     val newLocaleList = LocaleListCompat.forLanguageTags(userPreferenceTagFromFlow)
                     AppCompatDelegate.setApplicationLocales(newLocaleList)
                     localeTagSetByThisInstance = userPreferenceTagFromFlow // Update tracker
-                    recreate() // Recreate to apply the new language setting throughout the UI
+                    recreate() // Recreate to apply the new language setting
                 } else {
-                    Log.d("MainActivity", "LanguageEffect: DataStore value '$userPreferenceTagFromFlow' is the same as what was last set by this instance ('$localeTagSetByThisInstance'). No action needed.")
+                    Log.d("MainActivity", "LanguageEffect: DataStore value '$userPreferenceTagFromFlow' matches what was last set by this instance ('$localeTagSetByThisInstance'). No action needed from LaunchedEffect.")
                 }
             }
 
@@ -115,8 +139,28 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
-
-    // Permission methods remain the same
+    private fun checkAndRequestFullScreenIntentPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // NotificationManager.canUseFullScreenIntent() is API 34
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (!notificationManager.canUseFullScreenIntent()) {
+                Log.w(TAG_MAIN_ACTIVITY, "App cannot use full-screen intents. Sending user to settings.")
+                val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+                try {
+                    requestFullScreenIntentLauncher.launch(intent)
+                } catch (e: Exception) {
+                    Log.e(TAG_MAIN_ACTIVITY, "Could not open ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT settings", e)
+                }
+            } else {
+                Log.i(TAG_MAIN_ACTIVITY, "App can use full-screen intents.")
+            }
+        } else {
+            // For API < 34, the USE_FULL_SCREEN_INTENT permission declared in manifest is usually sufficient,
+            // though behavior might vary by OEM. No special runtime check via NotificationManager.
+            Log.d(TAG_MAIN_ACTIVITY, "Full-screen intent permission check not applicable for API < 34 via NotificationManager.")
+        }
+    }
     private fun requestPostNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
