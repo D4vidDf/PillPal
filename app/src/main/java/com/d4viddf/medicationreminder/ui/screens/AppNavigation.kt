@@ -16,6 +16,9 @@ sealed class Screen(val route: String) {
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 
 }
 
@@ -23,19 +26,23 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    widthSizeClass: WindowWidthSizeClass
+    widthSizeClass: WindowWidthSizeClass,
+    paddingValues: PaddingValues = PaddingValues(), // Added parameter
+    isMainScaffold: Boolean // Added parameter
 ) {
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Home.route,
+        modifier = if (isMainScaffold) Modifier.padding(paddingValues) else Modifier // Apply padding conditionally
+    ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) },
-                onMedicationClick = { medicationId ->
+                onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) }, // Kept
+                onMedicationClick = { medicationId -> // Kept
                     navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
                 },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
-                onNavigateToCalendar = { navController.navigate(Screen.Calendar.route) },
-                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
-                widthSizeClass = widthSizeClass
+                // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
+                widthSizeClass = widthSizeClass // Kept
             )
         }
         composable(Screen.AddMedication.route) {

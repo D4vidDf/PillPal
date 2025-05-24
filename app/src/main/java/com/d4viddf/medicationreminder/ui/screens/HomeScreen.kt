@@ -18,93 +18,64 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.ui.components.MedicationList
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import com.d4viddf.medicationreminder.ui.components.AppHorizontalFloatingToolbar
-import com.d4viddf.medicationreminder.ui.components.AppNavigationRail
-import androidx.compose.material3.FabPosition
+// Removed AppHorizontalFloatingToolbar and AppNavigationRail imports
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import android.util.Log
+// Removed Log import as navigation lambdas are removed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
+// Removed width import as it's not used directly for fixed width here
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
+// Removed unit.dp import as it's not used directly for fixed width here
 import com.d4viddf.medicationreminder.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onAddMedicationClick: () -> Unit,
-    onMedicationClick: (Int) -> Unit, // This will be the navigation action for compact
-    onNavigateToSettings: () -> Unit,
-    onNavigateToCalendar: () -> Unit, // Added
-    onNavigateToProfile: () -> Unit,  // Added
+    // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
+    onAddMedicationClick: () -> Unit, // Kept from previous logic, though now handled by App level nav components
+    onMedicationClick: (Int) -> Unit, // For compact navigation or detail view trigger
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: MedicationViewModel = hiltViewModel()
+    viewModel: MedicationViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier // Added modifier to be used by NavHost
 ) {
     val medications = viewModel.medications.collectAsState().value
-    val currentRoute = "home" // Placeholder for actual route detection
     var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val medicationListClickHandler: (Int) -> Unit = { medicationId ->
         if (widthSizeClass == WindowWidthSizeClass.Compact) {
-            onMedicationClick(medicationId) // Navigate for compact
+            onMedicationClick(medicationId) // Navigate to full details screen
         } else {
-            selectedMedicationId = medicationId // Update state for larger screens
+            selectedMedicationId = medicationId // Show in detail pane
         }
     }
 
     if (widthSizeClass == WindowWidthSizeClass.Compact) {
-        Scaffold(
-            topBar = {
-                TopAppBar(title = { Text(stringResource(id = R.string.medications_title), fontWeight = FontWeight.Bold,style = MaterialTheme.typography.headlineLarge) })
-            },
-            floatingActionButton = {
-                AppHorizontalFloatingToolbar(
-                    onHomeClick = { Log.d("HomeScreen", "Home clicked") /* Already home */ },
-                    onCalendarClick = onNavigateToCalendar, // Updated
-                    onProfileClick = onNavigateToProfile,   // Updated
-                    onSettingsClick = onNavigateToSettings,
-                    onAddClick = onAddMedicationClick
-                )
-            },
-            floatingActionButtonPosition = FabPosition.Center
-        ) { innerPadding ->
-            MedicationList(
-                medications = medications,
-                onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                modifier = Modifier.padding(innerPadding)
-            )
-        }
-    } else { // Medium or Expanded
-        Row(Modifier.fillMaxSize()) {
-            AppNavigationRail(
-                onHomeClick = { Log.d("HomeScreen", "Home clicked via Rail") /* Already home */ },
-                onCalendarClick = onNavigateToCalendar, // Updated
-                onProfileClick = onNavigateToProfile,   // Updated
-                onSettingsClick = onNavigateToSettings,
-                onAddClick = onAddMedicationClick,
-                currentRoute = currentRoute
-            )
+        // For compact, just the list. The Scaffold with Toolbar is in MedicationReminderApp
+        // Apply the modifier which includes padding from the parent Scaffold
+        MedicationList(
+            medications = medications,
+            onItemClick = { medication -> medicationListClickHandler(medication.id) },
+            modifier = modifier.fillMaxSize() // Ensure it fills the space given by NavHost
+        )
+    } else { // Medium or Expanded - List/Detail View
+        // The Row itself will be the content of the NavHost's composable for HomeScreen.
+        // The parent padding (if any, though not expected here due to isMainScaffold=false)
+        // would be applied to the NavHost, so this Row should fill the NavHost's content area.
+        Row(modifier = modifier.fillMaxSize()) {
             // Medication List Pane
-            Box(modifier = Modifier.weight(1f)) { // Or Modifier.width(360.dp)
-                // The Scaffold for the list can be simpler or removed if TopAppBar is not needed here specifically
-                Scaffold(
-                    topBar = {
-                        TopAppBar(title = { Text(stringResource(id = R.string.medications_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineLarge) })
-                    }
-                ) { innerPadding ->
-                    MedicationList(
-                        medications = medications,
-                        onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                        modifier = Modifier.padding(innerPadding).fillMaxHeight()
-                    )
-                }
+            // No separate Scaffold or TopAppBar here, as they are handled by MedicationReminderApp or not shown for list part
+            Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                MedicationList(
+                    medications = medications,
+                    onItemClick = { medication -> medicationListClickHandler(medication.id) },
+                    modifier = Modifier.fillMaxSize() // Fill the Box
+                )
             }
 
             // Detail Pane
@@ -117,7 +88,6 @@ fun HomeScreen(
                     MedicationDetailsScreen(
                         medicationId = selectedMedicationId!!,
                         onNavigateBack = { selectedMedicationId = null } // Clear selection
-                        // Consider adding isEmbedded = true if TopAppBar needs to change
                     )
                 }
             }

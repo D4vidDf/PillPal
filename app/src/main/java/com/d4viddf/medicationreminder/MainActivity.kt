@@ -87,9 +87,20 @@ class MainActivity : ComponentActivity() {
             // La configuración inicial del idioma ya se hizo antes de setContent.
             LaunchedEffect(currentLanguageTag) {
                 val appLocales = AppCompatDelegate.getApplicationLocales()
-                if (!appLocales.isEmpty && appLocales.toLanguageTags() != currentLanguageTag && currentLanguageTag.isNotEmpty()) {
-                    Log.d("MainActivity", "Locale in prefs ($currentLanguageTag) differs from app's (${appLocales.toLanguageTags()}). Recreating.")
+                val currentAppLocaleTag = if (!appLocales.isEmpty) appLocales.toLanguageTags() else "null_or_empty"
+
+                Log.d("MainActivity", "LanguageEffect: currentLanguageTag from DataStore: '$currentLanguageTag', currentAppLocaleTag: '$currentAppLocaleTag'")
+
+                // Ensure currentLanguageTag from DataStore is not empty and actually different from current app locale
+                if (currentLanguageTag.isNotEmpty() && currentAppLocaleTag != currentLanguageTag) {
+                    Log.i("MainActivity", "Locale changed. Prefs: '$currentLanguageTag', App: '$currentAppLocaleTag'. Attempting to set and recreate.")
+                    // Explicitly set the application locales again before recreating.
+                    // This can sometimes help ensure the change is picked up consistently.
+                    val appLocale = LocaleListCompat.forLanguageTags(currentLanguageTag)
+                    AppCompatDelegate.setApplicationLocales(appLocale)
                     recreate()
+                } else {
+                    Log.d("MainActivity", "LanguageEffect: No change needed or currentLanguageTag is empty. Prefs: '$currentLanguageTag', App: '$currentAppLocaleTag'")
                 }
             }
 
