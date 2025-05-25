@@ -5,16 +5,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-// Removed PullRefreshIndicator import
-import androidx.compose.material.pullrefresh.pullRefresh // Kept for gesture
-import androidx.compose.material.pullrefresh.rememberPullRefreshState // Kept for gesture
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi // Added
-import androidx.compose.material3.expressive.LoadingIndicator // Added
+// Old Material imports removed:
+// import androidx.compose.material.pullrefresh.pullRefresh
+// import androidx.compose.material.pullrefresh.rememberPullRefreshState
+// Material3ExpressiveApi imports removed (were added in previous step):
+// import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+// import androidx.compose.material3.expressive.LoadingIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api // For new M3 pull-to-refresh
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox // Added
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults // Added
+import androidx.compose.material3.pulltorefresh.PullToRefreshState // Added
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState // Added
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.d4viddf.medicationreminder.data.Medication
 
+@OptIn(ExperimentalMaterial3Api::class) // Ensure this OptIn is present
 @Composable
 fun MedicationList(
     medications: List<Medication>,
@@ -23,9 +30,18 @@ fun MedicationList(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pullRefreshState = rememberPullRefreshState(refreshing = isLoading, onRefresh = onRefresh)
+    val state = rememberPullToRefreshState() // New M3 state
 
-    Box(modifier = modifier.pullRefresh(pullRefreshState)) {
+    PullToRefreshBox(
+        modifier = modifier, // Apply the main modifier here
+        state = state,
+        onRefresh = onRefresh,
+        isRefreshing = isLoading,
+        indicator = {
+            // Pass state and isRefreshing to the default indicator
+            PullToRefreshDefaults.Indicator(state = state, isRefreshing = isLoading) // Corrected to Indicator
+        }
+    ) { // Content of the PullToRefreshBox
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(medications) { medication ->
                 MedicationCard(
@@ -33,14 +49,6 @@ fun MedicationList(
                     onClick = { onItemClick(medication) }
                 )
             }
-        }
-
-        if (isLoading) {
-            LoadingIndicator(
-                modifier = Modifier.align(Alignment.TopCenter)
-                // No progress parameter for indeterminate
-                // Color can be specified if needed, e.g., color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }
