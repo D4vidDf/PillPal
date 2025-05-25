@@ -51,8 +51,8 @@ class SettingsViewModelTest {
         Mockito.`when`(mockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mockAudioManager)
 
         // Mock AudioManager behavior
-        Mockito.`when`(mockAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).thenReturn(15)
-        Mockito.`when`(mockAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).thenReturn(7)
+        Mockito.`when`(mockAudioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)).thenReturn(15) // Changed to STREAM_ALARM
+        Mockito.`when`(mockAudioManager.getStreamVolume(AudioManager.STREAM_ALARM)).thenReturn(7) // Changed to STREAM_ALARM
 
         // Initialize ViewModel
         viewModel = SettingsViewModel(mockUserPreferencesRepository, mockApplication)
@@ -97,7 +97,7 @@ class SettingsViewModelTest {
         assertEquals(newVolume, viewModel.currentVolume.value, "currentVolume StateFlow should be updated to newVolume")
 
         // Verify AudioManager interaction
-        Mockito.verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+        Mockito.verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_ALARM, newVolume, 0) // Changed to STREAM_ALARM
 
         // Using Turbine for more robust StateFlow testing
         viewModel.currentVolume.test {
@@ -125,7 +125,7 @@ class SettingsViewModelTest {
         assertEquals(newVolume, viewModel.currentVolume.value, "currentVolume StateFlow should be updated to 0")
 
         // Verify AudioManager interaction
-        Mockito.verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+        Mockito.verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_ALARM, newVolume, 0) // Changed to STREAM_ALARM
     }
 
     @Test
@@ -140,13 +140,13 @@ class SettingsViewModelTest {
         assertEquals(newVolume, viewModel.currentVolume.value, "currentVolume StateFlow should be updated to maxVolume")
 
         // Verify AudioManager interaction
-        Mockito.verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+        Mockito.verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_ALARM, newVolume, 0) // Changed to STREAM_ALARM
     }
     
     @Test
     fun `refreshCurrentVolume updates currentVolume from AudioManager`() = runTest {
         val expectedVolumeAfterExternalChange = 5
-        Mockito.`when`(mockAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).thenReturn(expectedVolumeAfterExternalChange)
+        Mockito.`when`(mockAudioManager.getStreamVolume(AudioManager.STREAM_ALARM)).thenReturn(expectedVolumeAfterExternalChange) // Changed to STREAM_ALARM
 
         viewModel.refreshCurrentVolume()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -158,7 +158,7 @@ class SettingsViewModelTest {
             assertEquals(7, awaitItem())
             
             // Simulate external change and refresh
-            Mockito.`when`(mockAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).thenReturn(expectedVolumeAfterExternalChange)
+            Mockito.`when`(mockAudioManager.getStreamVolume(AudioManager.STREAM_ALARM)).thenReturn(expectedVolumeAfterExternalChange) // Changed to STREAM_ALARM
             viewModel.refreshCurrentVolume()
             
             assertEquals(expectedVolumeAfterExternalChange, awaitItem())

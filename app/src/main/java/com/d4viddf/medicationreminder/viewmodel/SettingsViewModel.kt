@@ -2,7 +2,11 @@ package com.d4viddf.medicationreminder.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.database.ContentObserver
 import android.media.AudioManager
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.UserPreferencesRepository
@@ -18,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    application: Application // Inject Application to get context
+    private val application: Application // Inject Application and store to use contentResolver
 ) : ViewModel() {
 
     private val audioManager = application.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -30,20 +34,43 @@ class SettingsViewModel @Inject constructor(
     private val _maxVolume = MutableStateFlow(0)
     val maxVolume: StateFlow<Int> = _maxVolume.asStateFlow()
 
+    private val volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            val newVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+            if (_currentVolume.value != newVolume) { // Only update if different to avoid potential loops if setVolume also triggers onChange
+                _currentVolume.value = newVolume
+            }
+        }
+    }
+
     init {
-        _maxVolume.value = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        _maxVolume.value = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+        _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM) // Initial fetch
+
+        // Register observer
+        val alarmVolumeUri = Settings.System.getUriFor(Settings.System.VOLUME_ALARM)
+        application.contentResolver.registerContentObserver(alarmVolumeUri, false, volumeObserver)
     }
 
     fun setVolume(volume: Int) {
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
-        _currentVolume.value = volume // Update StateFlow after setting
+        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, volume, 0)
+        // Update StateFlow immediately for responsive UI.
+        // If observer triggers too, the check in onChange should prevent issues.
+        if (_currentVolume.value != volume) {
+            _currentVolume.value = volume
+        }
     }
 
-    // Function to refresh current volume if changed externally, though not strictly required by task
-    // but good for robustness if app stays open and volume changes outside.
+    // This function might become redundant if the observer works reliably,
+    // but can be kept for explicit UI-triggered refresh if desired.
     fun refreshCurrentVolume() {
-        _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        application.contentResolver.unregisterContentObserver(volumeObserver)
     }
 
     // Language Preference
