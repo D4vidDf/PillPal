@@ -49,7 +49,7 @@ class SettingsViewModel @Inject constructor(
         _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM) // Initial fetch
 
         // Register observer
-        val alarmVolumeUri = Settings.System.getUriFor(Settings.System.VOLUME_ALARM)
+        val alarmVolumeUri = Settings.System.getUriFor(Settings.System.ALARM_ALERT)
         application.contentResolver.registerContentObserver(alarmVolumeUri, false, volumeObserver)
     }
 

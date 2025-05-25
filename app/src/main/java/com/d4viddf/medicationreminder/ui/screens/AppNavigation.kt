@@ -1,6 +1,7 @@
 package com.d4viddf.medicationreminder.ui.screens
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -34,7 +35,7 @@ fun AppNavigation(
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
-        modifier = modifier.then(if (isMainScaffold) Modifier.padding(paddingValues) else Modifier) // Apply incoming modifier and then conditional padding
+        modifier = Modifier.fillMaxSize() // Apply incoming modifier and then conditional padding
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
