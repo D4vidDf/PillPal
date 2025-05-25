@@ -33,6 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 // Removed unit.dp import as it's not used directly for fixed width here
 import com.d4viddf.medicationreminder.R
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +49,7 @@ fun HomeScreen(
 
 ) {
     val medications = viewModel.medications.collectAsState().value
+    val isLoading by viewModel.isLoading.collectAsState() // Collect isLoading state
     var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val medicationListClickHandler: (Int) -> Unit = { medicationId ->
@@ -62,6 +66,8 @@ fun HomeScreen(
         MedicationList(
             medications = medications,
             onItemClick = { medication -> medicationListClickHandler(medication.id) },
+            isLoading = isLoading, // Pass isLoading
+            onRefresh = { viewModel.refreshMedications() }, // Pass refresh callback
             modifier = modifier.fillMaxSize() // Ensure it fills the space given by NavHost
         )
     } else { // Medium or Expanded - List/Detail View
@@ -75,6 +81,8 @@ fun HomeScreen(
                 MedicationList(
                     medications = medications,
                     onItemClick = { medication -> medicationListClickHandler(medication.id) },
+                    isLoading = isLoading, // Pass isLoading
+                    onRefresh = { viewModel.refreshMedications() }, // Pass refresh callback
                     modifier = Modifier.fillMaxSize() // Fill the Box
                 )
             }

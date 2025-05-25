@@ -29,6 +29,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 // Removed RadioButton import
+import androidx.compose.material3.Slider // Added for Volume Control
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +38,9 @@ import androidx.compose.material3.Surface // Added for grouping
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow // Added
 import androidx.compose.material3.SegmentedButton // Added
 import androidx.compose.material3.SegmentedButtonDefaults // Added
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.VolumeOff
+import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -56,6 +60,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
     val currentThemeKey by viewModel.currentTheme.collectAsState()
+    val currentVolume by viewModel.currentVolume.collectAsState()
+    val maxVolume by viewModel.maxVolume.collectAsState()
 
     val languages = remember {
         listOf(
@@ -174,6 +180,42 @@ fun SettingsScreen(
                                 label = { Text(themeDisplayName, style = MaterialTheme.typography.labelLarge) }
                             )
                         }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp)) // Spacer between sections
+
+            // Volume Control Group
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(id = R.string.settings_volume_label), // Ensure this string resource exists
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = if (currentVolume > 0) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            contentDescription = stringResource(id = if (currentVolume > 0) R.string.volume_up_content_description else R.string.volume_off_content_description) // Ensure these string resources exist
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Slider(
+                            value = currentVolume.toFloat(),
+                            onValueChange = { newVolume ->
+                                viewModel.setVolume(newVolume.roundToInt())
+                            },
+                            valueRange = 0f..(if (maxVolume > 0) maxVolume.toFloat() else 1f), // Avoid division by zero or empty range if maxVolume is 0
+                            steps = if (maxVolume > 1) maxVolume - 1 else 0, // Ensure steps are at least 0
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }

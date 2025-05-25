@@ -35,6 +35,9 @@ class MedicationViewModel @Inject constructor(
     private val _medications = MutableStateFlow<List<Medication>>(emptyList())
     val medications: StateFlow<List<Medication>> = _medications.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     private val _medicationProgressDetails = MutableStateFlow<ProgressDetails?>(null)
     val medicationProgressDetails: StateFlow<ProgressDetails?> = _medicationProgressDetails.asStateFlow()
 
@@ -44,10 +47,20 @@ class MedicationViewModel @Inject constructor(
 
     private fun getAllMedications() {
         viewModelScope.launch {
-            medicationRepository.getAllMedications().collect {
-                _medications.value = it
+            _isLoading.value = true // Start loading
+            try {
+                medicationRepository.getAllMedications().collect {
+                    _medications.value = it
+                }
+            } finally {
+                _isLoading.value = false // Stop loading
             }
         }
+    }
+
+    // Public function to trigger refresh
+    fun refreshMedications() {
+        getAllMedications() // Simply call the existing private function
     }
 
     fun observeMedicationAndRemindersForDailyProgress(medicationId: Int) {
