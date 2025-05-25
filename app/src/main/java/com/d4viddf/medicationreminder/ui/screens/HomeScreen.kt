@@ -33,9 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 // Removed unit.dp import as it's not used directly for fixed width here
 import com.d4viddf.medicationreminder.R
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+// Removed unused Material 1 pull-to-refresh imports:
+// import androidx.compose.material.pullrefresh.PullRefreshIndicator
+// import androidx.compose.material.pullrefresh.pullRefresh
+// import androidx.compose.material.pullrefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,14 +64,13 @@ fun HomeScreen(
     if (widthSizeClass == WindowWidthSizeClass.Compact) {
         // For compact, just the list. The Scaffold with Toolbar is in MedicationReminderApp
         // Apply the modifier which includes padding from the parent Scaffold
-            MedicationList(
-                medications = medications,
-                onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                isLoading = isLoading, // Pass isLoading
-                onRefresh = { viewModel.refreshMedications() }, // Pass refresh callback
-                modifier = modifier.fillMaxSize() // Ensure it fills the space given by NavHost
-            )
-
+        MedicationList(
+            medications = medications,
+            onItemClick = { medication -> medicationListClickHandler(medication.id) },
+            isLoading = isLoading, // Pass isLoading
+            onRefresh = { viewModel.refreshMedications() }, // Pass refresh callback
+            modifier = modifier.fillMaxSize() // Ensure it fills the space given by NavHost
+        )
     } else { // Medium or Expanded - List/Detail View
         // The Row itself will be the content of the NavHost's composable for HomeScreen.
         // The parent padding (if any, though not expected here due to isMainScaffold=false)
@@ -78,9 +78,7 @@ fun HomeScreen(
         Row(modifier = modifier.fillMaxSize()) {
             // Medication List Pane
             // No separate Scaffold or TopAppBar here, as they are handled by MedicationReminderApp or not shown for list part
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()) {
+            Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                 MedicationList(
                     medications = medications,
                     onItemClick = { medication -> medicationListClickHandler(medication.id) },
@@ -91,9 +89,7 @@ fun HomeScreen(
             }
 
             // Detail Pane
-            Box(modifier = Modifier
-                .weight(2f)
-                .fillMaxHeight()) {
+            Box(modifier = Modifier.weight(2f).fillMaxHeight()) {
                 if (selectedMedicationId == null) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(stringResource(id = R.string.select_medication_placeholder))

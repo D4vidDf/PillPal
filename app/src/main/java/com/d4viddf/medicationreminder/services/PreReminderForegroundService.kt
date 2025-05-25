@@ -50,7 +50,7 @@ class PreReminderForegroundService : Service() {
     private var actualTakeTimeMillis: Long = -1L
 
     private val updateNotificationRunnable = object : Runnable {
-        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+        // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -79,7 +79,7 @@ class PreReminderForegroundService : Service() {
         Log.d(TAG, "PreReminderForegroundService onCreate")
     }
 
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
         val reminderIdFromIntent = intent?.getIntExtra(EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
@@ -120,7 +120,7 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val notificationToShow = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val notificationToShow = if (Build.VERSION.SDK_INT == 35) { // Changed condition to == 35
             buildStyledNotification(initialTimeRemainingMillis)
         } else {
             buildCompatNotification(initialTimeRemainingMillis)
@@ -178,9 +178,10 @@ class PreReminderForegroundService : Service() {
             .setOnlyAlertOnce(true)
             .setColorized(true)
             .setShowWhen(true)
-            .setWhen(System.currentTimeMillis().plus(50 * 60* 100))
+            .setWhen(actualTakeTimeMillis) // Changed to use actualTakeTimeMillis
             .setCategory(Notification.CATEGORY_NAVIGATION)
-            .setProgress(TOTAL_PRE_REMINDER_DURATION_MINUTES.toInt(), elapsedMinutesInPrePeriod.toInt(), false)
+            // Progress bar for styled notification is handled differently below or not at all depending on final design
+            // .setProgress(TOTAL_PRE_REMINDER_DURATION_MINUTES.toInt(), elapsedMinutesInPrePeriod.toInt(), false) // Keep if styled uses it, remove if ProgressStyle handles it
 
         
 
@@ -253,7 +254,7 @@ class PreReminderForegroundService : Service() {
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(tapPendingIntent)
-            .setProgress(TOTAL_PRE_REMINDER_DURATION_MINUTES.toInt(), elapsedMinutesInPrePeriod.toInt(), false)
+            // Removed .setProgress from compat notification
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
 
 
@@ -270,10 +271,10 @@ class PreReminderForegroundService : Service() {
         return compatBuilder.build()
     }
 
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
-            val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            val notification = if (Build.VERSION.SDK_INT == 35) { // Changed condition to == 35
                 buildStyledNotification(timeRemainingMillis)
             } else {
                 buildCompatNotification(timeRemainingMillis)

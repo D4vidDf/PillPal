@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log // Added import
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.UserPreferencesRepository
@@ -37,9 +38,12 @@ class SettingsViewModel @Inject constructor(
     private val volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
             super.onChange(selfChange)
+            Log.d("SettingsViewModel", "Volume observer onChange triggered. selfChange: $selfChange")
             val newVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+            Log.d("SettingsViewModel", "New alarm volume read by observer: $newVolume")
             if (_currentVolume.value != newVolume) { // Only update if different to avoid potential loops if setVolume also triggers onChange
                 _currentVolume.value = newVolume
+                Log.d("SettingsViewModel", "_currentVolume updated to: $newVolume")
             }
         }
     }
@@ -49,8 +53,9 @@ class SettingsViewModel @Inject constructor(
         _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM) // Initial fetch
 
         // Register observer
-        val alarmVolumeUri = Settings.System.getUriFor(Settings.System.ALARM_ALERT)
+        val alarmVolumeUri = Settings.System.getUriFor(Settings.System.VOLUME_ALARM)
         application.contentResolver.registerContentObserver(alarmVolumeUri, false, volumeObserver)
+        Log.d("SettingsViewModel", "Volume observer registered for URI: $alarmVolumeUri")
     }
 
     fun setVolume(volume: Int) {

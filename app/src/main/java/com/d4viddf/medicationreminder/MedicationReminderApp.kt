@@ -84,23 +84,10 @@ fun MedicationReminderApp(
                 }
             } else {
                 // Compact screens OR screens where main navigation is hidden (but not all chrome)
+                // TopAppBar and associated scrollBehavior are removed from this Scaffold.
                 Scaffold(
-                    modifier = if (isMainScreen && widthSizeClass == WindowWidthSizeClass.Compact) Modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else Modifier,
-                    topBar = {
-                        if (isMainScreen && widthSizeClass == WindowWidthSizeClass.Compact) { // Only show TopAppBar on main compact screens
-                            TopAppBar(
-                                title = {
-                                    Text(text = when (currentRoute) {
-                                        Screen.Home.route -> stringResource(id = R.string.home_screen_title)
-                                        Screen.Calendar.route -> stringResource(id = R.string.calendar_screen_title)
-                                        Screen.Profile.route -> stringResource(id = R.string.profile_screen_title)
-                                        else -> ""
-                                    })
-                                },
-                                scrollBehavior = scrollBehavior
-                            )
-                        }
-                    },
+                    modifier = Modifier, // Removed nestedScroll as TopAppBar is removed
+                    topBar = {}, // TopAppBar removed
                     floatingActionButton = {
                         // Show FAB only on main screens in compact mode
                         if (isMainScreen && widthSizeClass == WindowWidthSizeClass.Compact) {
