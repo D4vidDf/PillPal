@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+// Removed PullRefreshIndicator import
+import androidx.compose.material.pullrefresh.pullRefresh // Kept for gesture
+import androidx.compose.material.pullrefresh.rememberPullRefreshState // Kept for gesture
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi // Added
+import androidx.compose.material3.expressive.LoadingIndicator // Added
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,10 +35,12 @@ fun MedicationList(
             }
         }
 
-        PullRefreshIndicator(
-            refreshing = isLoading,
-            state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
+        if (isLoading) {
+            LoadingIndicator(
+                modifier = Modifier.align(Alignment.TopCenter)
+                // No progress parameter for indeterminate
+                // Color can be specified if needed, e.g., color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }

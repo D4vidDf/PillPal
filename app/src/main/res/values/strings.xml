@@ -118,6 +118,9 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_system">System Default</string>
+    <string name="settings_volume_label">Volume Control</string>
+    <string name="volume_up_content_description">Volume Up</string>
+    <string name="volume_off_content_description">Volume Off</string>
 
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Notifications</string>

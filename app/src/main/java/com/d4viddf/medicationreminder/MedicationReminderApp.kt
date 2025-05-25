@@ -17,6 +17,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarState // Added import
 import androidx.compose.runtime.remember
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,11 +29,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R // Assuming R class is available for string resources
 
-@Composable
-fun MedicationReminderApp(
-    themePreference: String,
-    widthSizeClass: WindowWidthSizeClass
-) {
 @OptIn(ExperimentalMaterial3Api::class) // Required for TopAppBarDefaults scroll behaviors
 @Composable
 fun MedicationReminderApp(
@@ -57,7 +53,7 @@ fun MedicationReminderApp(
 
         Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome")
 
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(remember { TopAppBarState() })
 
 
         // Simplified logic for showing navigation elements
