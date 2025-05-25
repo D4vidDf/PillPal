@@ -28,12 +28,13 @@ fun AppNavigation(
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     paddingValues: PaddingValues = PaddingValues(), // Added parameter
-    isMainScaffold: Boolean // Added parameter
+    isMainScaffold: Boolean, // Added parameter
+    modifier: Modifier = Modifier // Add this line
 ) {
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
-        modifier = if (isMainScaffold) Modifier.padding(paddingValues) else Modifier // Apply padding conditionally
+        modifier = modifier.then(if (isMainScaffold) Modifier.padding(paddingValues) else Modifier) // Apply incoming modifier and then conditional padding
     ) {
         composable(Screen.Home.route) {
             HomeScreen(

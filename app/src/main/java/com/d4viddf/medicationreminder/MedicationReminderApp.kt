@@ -17,7 +17,8 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarState // Added import
+// import androidx.compose.material3.TopAppBarState // No longer directly needed if rememberTopAppBarState is used
+import androidx.compose.material3.rememberTopAppBarState // Added import
 import androidx.compose.runtime.remember
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -53,7 +54,7 @@ fun MedicationReminderApp(
 
         Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome")
 
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(remember { TopAppBarState() })
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
 
         // Simplified logic for showing navigation elements
