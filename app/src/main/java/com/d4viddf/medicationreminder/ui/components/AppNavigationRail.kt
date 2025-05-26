@@ -1,19 +1,24 @@
 package com.d4viddf.medicationreminder.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.Screen // Required for Screen routes
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRailItemDefaults
 
 @Composable
 fun AppNavigationRail(
@@ -27,20 +32,27 @@ fun AppNavigationRail(
 ) {
     NavigationRail(
         modifier = modifier,
-        // Optional: Apply custom container color if needed, e.g., MaterialTheme.colorScheme.surfaceVariant
+        header = {
+            // Box to provide padding and alignment for the FAB if needed.
+            // NavigationRail's header slot might already center, but explicit control is safer.
+            Box(
+                modifier = Modifier.padding(vertical = 20.dp), // Adjust padding as needed
+                contentAlignment = Alignment.Center
+            ) {
+                FloatingActionButton(
+                    onClick = onAddClick,
+                    // containerColor and contentColor can be customized if defaults are not suitable
+                    // e.g., containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    // contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.add_medication_title)
+                    )
+                }
+            }
+        }
     ) {
-        // "Add" item - typically no selected state
-        NavigationRailItem(
-            icon = { Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.add_medication_title)) },
-            selected = false,
-            onClick = onAddClick,
-            label = { Text(stringResource(R.string.add_medication_short_action)) },
-            colors = NavigationRailItemDefaults.colors( // Ensure consistent unselected color if needed
-                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-
         val homeSelected = currentRoute == Screen.Home.route
         NavigationRailItem(
             icon = {

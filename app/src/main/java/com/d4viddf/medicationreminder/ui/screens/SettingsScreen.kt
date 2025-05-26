@@ -21,16 +21,24 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.app.Activity
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +62,19 @@ fun SettingsScreen(
     val currentThemeKey by viewModel.currentTheme.collectAsState()
     val currentVolume by viewModel.currentVolume.collectAsState()
     val maxVolume by viewModel.maxVolume.collectAsState()
+    val currentNotificationSoundUri by viewModel.currentNotificationSoundUri.collectAsState()
+    // The notificationSoundName is now updated whenever currentNotificationSoundUri changes,
+    // because getNotificationSoundName is called within the Composable that observes currentNotificationSoundUri.
+    // val notificationSoundName = viewModel.getNotificationSoundName(currentNotificationSoundUri) // This line can be removed or kept, it's fine either way.
+
+    val ringtonePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            viewModel.updateNotificationSoundUri(uri?.toString())
+        }
+    }
 
     val languages = remember {
         listOf(
@@ -82,7 +103,9 @@ fun SettingsScreen(
     }
 
     Scaffold(
-
+        topBar = {
+            TopAppBar(title = { Text(stringResource(id = R.string.settings_screen_title)) })
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -197,6 +220,51 @@ fun SettingsScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp)) // Spacer between sections
+
+            // Notification Sound Setting Group
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true) // Allowing selection of "None" or "Silent"
+                            putExtra(
+                                RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
+                                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                            )
+                            // Pass current URI if one is set, to show it as selected in the picker
+                            currentNotificationSoundUri?.let {
+                                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(it))
+                            }
+                        }
+                        ringtonePickerLauncher.launch(intent)
+                    },
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp), // Inner padding for content
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.settings_notification_sound_label),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f) // Takes available space, pushing the sound name to the end
+                    )
+                    Text(
+                        // viewModel.getNotificationSoundName will be recomposed if currentNotificationSoundUri changes
+                        text = viewModel.getNotificationSoundName(currentNotificationSoundUri),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

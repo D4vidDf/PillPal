@@ -118,6 +118,9 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_system">System Default</string>
+    <string name="settings_notification_sound_label">Notification Sound</string>
+    <string name="settings_notification_sound_default">Default</string>
+    <string name="settings_notification_sound_unknown">Unknown Sound</string>
     <string name="settings_volume_label">Volume Control</string>
     <string name="volume_up_content_description">Volume Up</string>
     <string name="volume_off_content_description">Volume Off</string>
@@ -180,6 +183,17 @@
     <string name="notification_action_mark_as_taken">Mark as Taken</string>
     <string name="notification_text_interval_dose_valid">Take %1$s. Valid for approx. %2$s.</string>
     <string name="notification_text_interval_dose_window_ended">Take %1$s. Dose window ending/ended.</string>
+
+    <!-- FullScreenNotificationActivity -->
+    <string name="fullscreen_notification_action_taken">Mark as Taken</string>
+    <string name="fullscreen_notification_action_dismiss">Dismiss</string>
+    <string name="medication_type_pill_image_description">Pill icon</string>
+    <string name="medication_type_capsule_image_description">Capsule icon</string>
+    <string name="medication_type_syrup_image_description">Syrup icon</string>
+    <string name="medication_type_injection_image_description">Injection icon</string>
+    <string name="medication_type_drops_image_description">Drops icon</string>
+    <string name="medication_type_inhaler_image_description">Inhaler icon</string>
+    <string name="medication_type_other_image_description">Medication icon</string>
 
     <string name="prereminder_title_medication">%1$s</string>
     <string name="prereminder_text_in_about_hour">Reminder in about an hour</string>

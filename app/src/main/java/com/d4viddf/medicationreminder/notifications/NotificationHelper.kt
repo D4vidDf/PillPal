@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -91,16 +92,20 @@ object NotificationHelper {
         medicationDosage: String,
         isIntervalType: Boolean,
         nextDoseTimeMillisForHelper: Long?,
-        actualReminderTimeMillis: Long
+        actualReminderTimeMillis: Long,
+        notificationSoundUriString: String?,
+        medicationColorHex: String?, // New parameter
+        medicationTypeName: String?  // New parameter
     ) {
         Log.i(
             TAG,
-            "showReminderNotification called for ID: $reminderDbId, Name: $medicationName, Interval: $isIntervalType, NextDoseHelper: $nextDoseTimeMillisForHelper, ActualTime: $actualReminderTimeMillis"
+            "showReminderNotification called for ID: $reminderDbId, Name: $medicationName, Interval: $isIntervalType, NextDoseHelper: $nextDoseTimeMillisForHelper, ActualTime: $actualReminderTimeMillis, SoundURI: $notificationSoundUriString, Color: $medicationColorHex, Type: $medicationTypeName"
         )
 
+        // Standard content intent (tapping the notification itself)
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("notification_tap_reminder_id", reminderDbId)
+            putExtra("notification_tap_reminder_id", reminderDbId) // For MainActivity to know which reminder
         }
         val contentPendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -108,7 +113,26 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
         val contentPendingIntent = PendingIntent.getActivity(
-            context, reminderDbId, contentIntent, contentPendingIntentFlags
+            context,
+            reminderDbId, // Standard request code for content PI
+            contentIntent,
+            contentPendingIntentFlags
+        )
+
+        // Full-screen activity intent
+        val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity::class.java).apply {
+            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_REMINDER_ID, reminderDbId)
+            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_NAME, medicationName)
+            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_DOSAGE, medicationDosage)
+            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_COLOR_HEX, medicationColorHex)
+            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_TYPE_NAME, medicationTypeName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Standard flags
+        }
+        val fullScreenPendingIntent = PendingIntent.getActivity(
+            context,
+            reminderDbId + 2000, // Unique request code for full-screen PI
+            fullScreenActivityIntent,
+            contentPendingIntentFlags // Re-use flags, suitable for activities
         )
 
         val markAsActionIntent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
@@ -124,21 +148,38 @@ object NotificationHelper {
         val notificationTitle = context.getString(R.string.notification_title_time_for, medicationName)
         var notificationText = context.getString(R.string.notification_text_take_dosage, medicationDosage)
 
-        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
+        // val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Old line, to be removed or replaced
 
         val notificationCompatBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(notificationTitle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setContentIntent(contentPendingIntent)
-            .setFullScreenIntent(contentPendingIntent, true)
+            .setContentIntent(contentPendingIntent) // For tap on notification body
+            .setFullScreenIntent(fullScreenPendingIntent, true) // For the pop-up
             .setAutoCancel(true)
             .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)
             .addAction(R.drawable.ic_check_circle, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setSound(defaultSoundUri) // Set sound for pre-Oreo and as default
+        // Sound will be set below based on notificationSoundUriString
+
+        if (!notificationSoundUriString.isNullOrEmpty()) {
+            try {
+                val customSoundUri = Uri.parse(notificationSoundUriString)
+                notificationCompatBuilder.setSound(customSoundUri)
+                Log.d(TAG, "Using custom notification sound: $customSoundUri")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to parse custom sound URI: $notificationSoundUriString. Falling back to default notification sound.", e)
+                val defaultNotificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                notificationCompatBuilder.setSound(defaultNotificationSound)
+            }
+        } else {
+            // User selected "Default" or no sound is set, use system default notification sound.
+            val defaultNotificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            notificationCompatBuilder.setSound(defaultNotificationSound)
+            Log.d(TAG, "Using default notification sound: $defaultNotificationSound")
+        }
 
         if (isIntervalType && nextDoseTimeMillisForHelper != null && nextDoseTimeMillisForHelper > actualReminderTimeMillis) {
             val startTimeMillis = actualReminderTimeMillis

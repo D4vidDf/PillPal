@@ -118,6 +118,9 @@
     <string name="settings_theme_dark">Oscuro</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_system">Predeterminado del sistema</string>
+    <string name="settings_notification_sound_label">GL: Notification Sound</string>
+    <string name="settings_notification_sound_default">GL: Default</string>
+    <string name="settings_notification_sound_unknown">GL: Unknown Sound</string>
 
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Notificaciones</string>
@@ -190,4 +193,15 @@
     <string name="time_hr">%1$d hr</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
+
+    <!-- FullScreenNotificationActivity -->
+    <string name="fullscreen_notification_action_taken">GL: Mark as Taken</string>
+    <string name="fullscreen_notification_action_dismiss">GL: Dismiss</string>
+    <string name="medication_type_pill_image_description">GL: Pill icon</string>
+    <string name="medication_type_capsule_image_description">GL: Capsule icon</string>
+    <string name="medication_type_syrup_image_description">GL: Syrup icon</string>
+    <string name="medication_type_injection_image_description">GL: Injection icon</string>
+    <string name="medication_type_drops_image_description">GL: Drops icon</string>
+    <string name="medication_type_inhaler_image_description">GL: Inhaler icon</string>
+    <string name="medication_type_other_image_description">GL: Medication icon</string>
 </resources>
