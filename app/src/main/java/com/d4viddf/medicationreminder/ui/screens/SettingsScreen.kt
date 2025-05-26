@@ -43,8 +43,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview // Added import
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Added import for AppTheme in previews
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import kotlin.math.roundToInt
@@ -226,47 +228,78 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp)) // Spacer between sections
 
             // Notification Sound Setting Group
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
-                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true) // Allowing selection of "None" or "Silent"
-                            putExtra(
-                                RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
-                                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                            )
-                            // Pass current URI if one is set, to show it as selected in the picker
-                            currentNotificationSoundUri?.let {
-                                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(it))
-                            }
+            NotificationSoundSettingItem(
+                soundName = viewModel.getNotificationSoundName(currentNotificationSoundUri),
+                onClick = {
+                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                        putExtra(
+                            RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
+                            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
+                        )
+                        currentNotificationSoundUri?.let {
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(it))
                         }
-                        ringtonePickerLauncher.launch(intent)
-                    },
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), // Inner padding for content
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.settings_notification_sound_label),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f) // Takes available space, pushing the sound name to the end
-                    )
-                    Text(
-                        // viewModel.getNotificationSoundName will be recomposed if currentNotificationSoundUri changes
-                        text = viewModel.getNotificationSoundName(currentNotificationSoundUri),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    }
+                    ringtonePickerLauncher.launch(intent)
                 }
-            }
+            )
         }
+    }
+}
+
+@Composable
+private fun NotificationSoundSettingItem(
+    soundName: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick), // Apply clickable here
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.settings_notification_sound_label),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = soundName,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Preview(name = "Notification Sound Default")
+@Composable
+private fun NotificationSoundSettingItemDefaultPreview() {
+    AppTheme {
+        NotificationSoundSettingItem(
+            soundName = "Default",
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Notification Sound Custom")
+@Composable
+private fun NotificationSoundSettingItemCustomPreview() {
+    AppTheme {
+        NotificationSoundSettingItem(
+            soundName = "My Cool Ringtone",
+            onClick = {}
+        )
     }
 }

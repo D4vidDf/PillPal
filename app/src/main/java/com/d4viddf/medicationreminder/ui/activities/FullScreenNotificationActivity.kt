@@ -22,9 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.theme.AppTheme // Corrected import
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
+import androidx.compose.ui.tooling.preview.Preview // Added import
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -236,4 +237,36 @@ fun Color.luminance(): Float {
     val blue = this.blue
     // Formula for luminance (Y)
     return 0.2126f * red + 0.7152f * green + 0.0722f * blue
+}
+
+@Preview(name = "Light Mode - Pill")
+@Composable
+fun FullScreenNotificationScreenPillPreview() {
+    AppTheme {
+        FullScreenNotificationScreen(
+            medicationName = "Ibuprofen",
+            medicationDosage = "200 mg",
+            medicationTypeName = "Pill",
+            backgroundColor = Color(0xFFE0E0E0), // Light Gray
+            contentColor = Color.Black,
+            onMarkAsTaken = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(name = "Dark Mode - Syrup", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun FullScreenNotificationScreenSyrupDarkPreview() {
+    AppTheme {
+        FullScreenNotificationScreen(
+            medicationName = "Paracetamol Syrup",
+            medicationDosage = "10 ml",
+            medicationTypeName = "Syrup",
+            backgroundColor = Color(0xFF757575), // Darker Gray
+            contentColor = Color.White,
+            onMarkAsTaken = {},
+            onDismiss = {}
+        )
+    }
 }

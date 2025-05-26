@@ -29,7 +29,7 @@ fun MedicationList(
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
-        modifier = modifier.fillMaxSize(), // Changed from fillMaxWidth() to fillMaxSize() to match previous working version
+        modifier = modifier, // Use the modifier passed from the caller directly
         state = pullToRefreshState,
         onRefresh = onRefresh,
         isRefreshing = isLoading,

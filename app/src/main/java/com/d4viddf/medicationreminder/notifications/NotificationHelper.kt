@@ -170,15 +170,15 @@ object NotificationHelper {
                 notificationCompatBuilder.setSound(customSoundUri)
                 Log.d(TAG, "Using custom notification sound: $customSoundUri")
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to parse custom sound URI: $notificationSoundUriString. Falling back to default notification sound.", e)
-                val defaultNotificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                notificationCompatBuilder.setSound(defaultNotificationSound)
+                Log.e(TAG, "Failed to parse custom sound URI: $notificationSoundUriString. Falling back to default ALARM sound.", e)
+                val defaultAlarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                notificationCompatBuilder.setSound(defaultAlarmSound)
             }
         } else {
-            // User selected "Default" or no sound is set, use system default notification sound.
-            val defaultNotificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            notificationCompatBuilder.setSound(defaultNotificationSound)
-            Log.d(TAG, "Using default notification sound: $defaultNotificationSound")
+            // User selected "Default" or no sound is set, use system default ALARM sound.
+            val defaultAlarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            notificationCompatBuilder.setSound(defaultAlarmSound)
+            Log.d(TAG, "Using default ALARM sound: $defaultAlarmSound")
         }
 
         if (isIntervalType && nextDoseTimeMillisForHelper != null && nextDoseTimeMillisForHelper > actualReminderTimeMillis) {
