@@ -1,12 +1,15 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import android.app.Application
+import android.app.Application // Keep one import
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.d4viddf.medicationreminder.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.UserPreferencesRepository
@@ -99,6 +102,35 @@ class SettingsViewModel @Inject constructor(
     fun updateTheme(themeKey: String) {
         viewModelScope.launch {
             userPreferencesRepository.setTheme(themeKey)
+        }
+    }
+
+    // Notification Sound Preference
+    val currentNotificationSoundUri: StateFlow<String?> = userPreferencesRepository.notificationSoundUriFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null // Default to null (no specific sound set)
+        )
+
+    fun updateNotificationSoundUri(uri: String?) {
+        viewModelScope.launch {
+            userPreferencesRepository.setNotificationSoundUri(uri)
+        }
+    }
+
+    fun getNotificationSoundName(uriString: String?): String {
+        return if (uriString.isNullOrEmpty()) {
+            application.getString(R.string.settings_notification_sound_default)
+        } else {
+            try {
+                val uri = Uri.parse(uriString)
+                val ringtone = RingtoneManager.getRingtone(application, uri)
+                ringtone?.getTitle(application) ?: application.getString(R.string.settings_notification_sound_unknown)
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Error getting ringtone title", e)
+                application.getString(R.string.settings_notification_sound_unknown)
+            }
         }
     }
 }

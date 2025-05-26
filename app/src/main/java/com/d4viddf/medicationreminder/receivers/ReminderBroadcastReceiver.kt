@@ -9,22 +9,29 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.d4viddf.medicationreminder.data.UserPreferencesRepository
 import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.services.PreReminderForegroundService // Importa el servicio
+import com.d4viddf.medicationreminder.services.PreReminderForegroundService
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ReminderBroadcastReceiver : BroadcastReceiver() {
 
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.IO + job)
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+    private val job = SupervisorJob() // Create a SupervisorJob for the scope
+    private val scope = CoroutineScope(Dispatchers.IO + job) // Create a CoroutineScope with IO dispatcher
 
     companion object {
         const val ACTION_SHOW_REMINDER = "com.d4viddf.medicationreminder.ACTION_SHOW_REMINDER"
@@ -51,6 +58,8 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         )
         val localReminderRepository = entryPoint.reminderRepository()
         val localNotificationScheduler = entryPoint.notificationScheduler()
+        val localMedicationRepository = entryPoint.medicationRepository() // Added
+        val localMedicationTypeRepository = entryPoint.medicationTypeRepository() // Added
 
         val action = intent.action
         Log.d(TAG, "Received action: $action with Intent extras: ${intent.extras}")
@@ -75,10 +84,52 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                 val nextDoseTimeForHelper = if (nextDoseTimeMillisExtra > 0) nextDoseTimeMillisExtra else null
 
                 Log.i(TAG, "ACTION_SHOW_REMINDER for ID: $reminderId, Name: $medicationName. Interval: $isIntervalType, NextDoseMillis: $nextDoseTimeForHelper")
-                NotificationHelper.showReminderNotification(
-                    context, reminderId, medicationName, medicationDosage,
-                    isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis
-                )
+
+                // Fetch notification sound URI and show notification
+                val pendingResult = goAsync()
+                scope.launch {
+                    try {
+                        val notificationSoundUri = userPreferencesRepository.notificationSoundUriFlow.firstOrNull()
+                        val reminder = localReminderRepository.getReminderById(reminderId) // Fetch reminder for medicationId
+
+                        var medicationColorHex: String? = null
+                        var medicationTypeName: String? = null
+
+                        if (reminder != null) {
+                            val medication = localMedicationRepository.getMedicationById(reminder.medicationId)
+                            if (medication != null) {
+                                medicationColorHex = medication.color
+                                medication.typeId?.let { actualTypeId -> // Renamed 'typeId' to 'actualTypeId' for clarity
+                                    val medicationType = localMedicationTypeRepository.getMedicationTypeById(actualTypeId)
+                                    medicationTypeName = medicationType?.name
+                                }
+                                Log.d(TAG, "Fetched details for FullScreenNotification: Color=$medicationColorHex, TypeName=$medicationTypeName for MedicationId=${medication.id}")
+                            } else {
+                                Log.w(TAG, "Medication not found for ReminderId: $reminderId, MedicationId: ${reminder.medicationId}")
+                            }
+                        } else {
+                            Log.w(TAG, "Reminder not found for ID: $reminderId when fetching details for FullScreenNotification.")
+                        }
+
+                        NotificationHelper.showReminderNotification(
+                            context, reminderId, medicationName, medicationDosage,
+                            isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
+                            notificationSoundUri,
+                            medicationColorHex, // Pass fetched color
+                            medicationTypeName  // Pass fetched type name
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error fetching data or showing notification for ReminderId: $reminderId", e)
+                        // Fallback call with null for new parameters
+                        NotificationHelper.showReminderNotification(
+                            context, reminderId, medicationName, medicationDosage,
+                            isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
+                            null, null, null
+                        )
+                    } finally {
+                        pendingResult.finish()
+                    }
+                }
             }
 
             ACTION_TRIGGER_PRE_REMINDER_SERVICE -> {
@@ -119,22 +170,25 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                             val reminder = localReminderRepository.getReminderById(reminderId)
                             if (reminder == null) {
                                 Log.e(TAG, "Reminder with ID $reminderId not found for ACTION_MARK_AS_TAKEN.")
-                                localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId) // Intenta limpiar por si acaso
+                                // reminderId is non-null Int here, direct call is fine.
+                                localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                                 return@launch
                             }
                             medicationIdToReschedule = reminder.medicationId
 
                             if (reminder.isTaken) {
                                 Log.w(TAG, "Reminder ID $reminderId was already marked as taken.")
+                                // reminderId is non-null Int here, direct call is fine.
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             } else {
                                 val nowString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                 localReminderRepository.markReminderAsTaken(reminderId, nowString)
                                 Log.d(TAG, "Reminder ID $reminderId marked as taken in DB.")
+                                // reminderId is non-null Int here, direct call is fine.
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             }
 
-                            medicationIdToReschedule.let { medId ->
+                            medicationIdToReschedule?.let { medId -> // Added ?.let for safety, though medId should be set if reminder was found.
                                 Log.d(TAG, "Scheduling next reminder for medication ID: $medId after taken action.")
                                 val workManager = WorkManager.getInstance(context.applicationContext)
                                 val data = Data.Builder()

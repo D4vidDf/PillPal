@@ -166,36 +166,28 @@ fun MedicationDetailCounters(
 
     val itemsToDisplay = mutableListOf<Pair<String, String>>()
 
-
-    // Logic to select up to 3 items to display, prioritizing dose, then days/frequency, then duration.
+    // 1. Add Dose (if available and space permits)
     if (doseValue != null && doseUnit != null) {
         itemsToDisplay.add(doseValue to doseUnit)
     }
 
-    // If specific days are set, use that summary. Otherwise, use the general frequency.
-    if (daysSummaryValue != null && daysSummaryLabel != null) {
-        if (itemsToDisplay.size < 3) {
+    // 2. Add Frequency/Days Information (only one of these, if space permits)
+    if (itemsToDisplay.size < 3) {
+        if (daysSummaryValue != null && daysSummaryLabel != null) {
             itemsToDisplay.add(daysSummaryValue to daysSummaryLabel)
-        }
-    } else if (frequencyValue != null && frequencyUnit != null) {
-        if (itemsToDisplay.size < 3) {
+        } else if (frequencyValue != null && frequencyUnit != null) {
+            // This 'else if' ensures general frequency (including interval)
+            // is only added if a specific day summary was not.
             itemsToDisplay.add(frequencyValue to frequencyUnit)
         }
     }
-    // If there's still space and we haven't added a day/frequency related counter (or if it's different), add general frequency.
-    // This logic might need refinement to avoid redundancy, e.g. not showing "1 vez al día" if "todos los días" is already shown.
-    // For now, keeping it simple: if daysSummary was added, this general frequency might be skipped if it's too similar or space is full.
-    if (itemsToDisplay.size < 3 && frequencyValue != null && frequencyUnit != null && daysSummaryValue == null) {
-         // Only add general frequency if specific day summary wasn't added and there's space.
-        itemsToDisplay.add(frequencyValue to frequencyUnit)
-    }
 
-
+    // 3. Add Duration (if available and space permits)
     if (itemsToDisplay.size < 3 && durationValue != null && durationUnit != null) {
         itemsToDisplay.add(durationValue to durationUnit)
     }
 
-    val finalItems = itemsToDisplay.take(3)
+    val finalItems = itemsToDisplay.take(3) // This line already exists and is correct.
 
     Row(
         modifier = modifier

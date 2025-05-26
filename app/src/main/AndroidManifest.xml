@@ -37,6 +37,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.activities.FullScreenNotificationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MedicationReminder"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true" />
 
         <receiver
             android:name=".receivers.ReminderBroadcastReceiver"

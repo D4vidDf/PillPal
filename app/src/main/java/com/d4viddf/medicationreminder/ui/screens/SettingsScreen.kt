@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Added import
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.DropdownMenuItem
@@ -21,22 +22,33 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.app.Activity
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview // Added import
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Added import for AppTheme in previews
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import kotlin.math.roundToInt
@@ -54,6 +66,19 @@ fun SettingsScreen(
     val currentThemeKey by viewModel.currentTheme.collectAsState()
     val currentVolume by viewModel.currentVolume.collectAsState()
     val maxVolume by viewModel.maxVolume.collectAsState()
+    val currentNotificationSoundUri by viewModel.currentNotificationSoundUri.collectAsState()
+    // The notificationSoundName is now updated whenever currentNotificationSoundUri changes,
+    // because getNotificationSoundName is called within the Composable that observes currentNotificationSoundUri.
+    // val notificationSoundName = viewModel.getNotificationSoundName(currentNotificationSoundUri) // This line can be removed or kept, it's fine either way.
+
+    val ringtonePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            viewModel.updateNotificationSoundUri(uri?.toString())
+        }
+    }
 
     val languages = remember {
         listOf(
@@ -82,7 +107,19 @@ fun SettingsScreen(
     }
 
     Scaffold(
-
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.settings_screen_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.back)
+                        )
+                    }
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -199,6 +236,82 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp)) // Spacer between sections
+
+            // Notification Sound Setting Group
+            NotificationSoundSettingItem(
+                soundName = viewModel.getNotificationSoundName(currentNotificationSoundUri),
+                onClick = {
+                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                        putExtra(
+                            RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
+                            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
+                        )
+                        currentNotificationSoundUri?.let {
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(it))
+                        }
+                    }
+                    ringtonePickerLauncher.launch(intent)
+                }
+            )
         }
+    }
+}
+
+@Composable
+private fun NotificationSoundSettingItem(
+    soundName: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick), // Apply clickable here
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.settings_notification_sound_label),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = soundName,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Preview(name = "Notification Sound Default")
+@Composable
+private fun NotificationSoundSettingItemDefaultPreview() {
+    AppTheme {
+        NotificationSoundSettingItem(
+            soundName = "Default",
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Notification Sound Custom")
+@Composable
+private fun NotificationSoundSettingItemCustomPreview() {
+    AppTheme {
+        NotificationSoundSettingItem(
+            soundName = "My Cool Ringtone",
+            onClick = {}
+        )
     }
 }
