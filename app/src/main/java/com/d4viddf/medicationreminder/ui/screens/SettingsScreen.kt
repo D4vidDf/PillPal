@@ -1,49 +1,45 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-// Removed selectable and selectableGroup as they are not used with SegmentedButtons
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-// Removed RadioButton import
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.BorderStroke // Added for Surface border
-import androidx.compose.material3.Surface // Added for grouping
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow // Added
-import androidx.compose.material3.SegmentedButton // Added
-import androidx.compose.material3.SegmentedButtonDefaults // Added
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
+import kotlin.math.roundToInt
 
 data class LanguageOption(val displayName: String, val tag: String)
 
@@ -56,6 +52,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
     val currentThemeKey by viewModel.currentTheme.collectAsState()
+    val currentVolume by viewModel.currentVolume.collectAsState()
+    val maxVolume by viewModel.maxVolume.collectAsState()
 
     val languages = remember {
         listOf(
@@ -84,19 +82,7 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.settings_screen_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
-                    }
-                }
-            )
-        }
+
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -174,6 +160,42 @@ fun SettingsScreen(
                                 label = { Text(themeDisplayName, style = MaterialTheme.typography.labelLarge) }
                             )
                         }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp)) // Spacer between sections
+
+            // Volume Control Group
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(id = R.string.settings_volume_label), // Ensure this string resource exists
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = if (currentVolume > 0) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            contentDescription = stringResource(id = if (currentVolume > 0) R.string.volume_up_content_description else R.string.volume_off_content_description) // Ensure these string resources exist
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Slider(
+                            value = currentVolume.toFloat(),
+                            onValueChange = { newVolume ->
+                                viewModel.setVolume(newVolume.roundToInt())
+                            },
+                            valueRange = 0f..(if (maxVolume > 0) maxVolume.toFloat() else 1f), // Avoid division by zero or empty range if maxVolume is 0
+                            steps = if (maxVolume > 1) maxVolume - 1 else 0, // Ensure steps are at least 0
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }

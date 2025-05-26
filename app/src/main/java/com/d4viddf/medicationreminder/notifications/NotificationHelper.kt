@@ -34,7 +34,7 @@ object NotificationHelper {
 
     fun createNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
 
             val reminderChannelHigh = NotificationChannel(
                 REMINDER_CHANNEL_ID,
@@ -124,7 +124,7 @@ object NotificationHelper {
         val notificationTitle = context.getString(R.string.notification_title_time_for, medicationName)
         var notificationText = context.getString(R.string.notification_text_take_dosage, medicationDosage)
 
-        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
 
         val notificationCompatBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)

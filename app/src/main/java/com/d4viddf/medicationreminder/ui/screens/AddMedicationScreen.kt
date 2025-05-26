@@ -93,51 +93,48 @@ fun AddMedicationScreen(
 
     Scaffold(
         topBar = {
-            var titleWidth by remember { mutableStateOf(0) }
-            Column {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = if (medicationName.isBlank() || currentStep == 0) stringResource(id = com.d4viddf.medicationreminder.R.string.new_medication_toolbar_title) else medicationName.substringBefore(" "),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.onGloballyPositioned { titleWidth = it.size.width }
+            CenterAlignedTopAppBar(
+                title = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = if (medicationName.isBlank() || currentStep == 0) stringResource(id = com.d4viddf.medicationreminder.R.string.new_medication_toolbar_title) else medicationName.substringBefore(" "),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                            // Removed onGloballyPositioned as titleWidth is not used
+                        )
+                        if (currentStep != 0) {
+                            LinearProgressIndicator(
+                                progress = { progress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, start = 16.dp, end = 16.dp)
                             )
-                            if (currentStep != 0) {
-                                LinearProgressIndicator(
-                                    progress = { progress },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 8.dp, start = 16.dp, end = 16.dp)
-                                )
-                            } else {
-                                Spacer(Modifier.height(4.dp + 8.dp)) // Placeholder for progress bar height
-                            }
-                        }
-                    },
-                    navigationIcon = {
-                        if (currentStep > 0) {
-                            IconButton(onClick = {
-                                currentStep--
-                                progress = (currentStep + 1) / 5f
-                            }) {
-                                Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
-                            }
                         } else {
-                            Spacer(Modifier.width(48.dp))
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Rounded.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.close))
+                            Spacer(Modifier.height(4.dp + 8.dp)) // Placeholder for progress bar height
                         }
                     }
-                )
-            }
+                },
+                navigationIcon = {
+                    if (currentStep > 0) {
+                        IconButton(onClick = {
+                            currentStep--
+                            progress = (currentStep + 1) / 5f
+                        }) {
+                            Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
+                        }
+                    } else {
+                        Spacer(Modifier.width(48.dp))
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Rounded.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.close))
+                    }
+                }
+            )
         },
         bottomBar = {
             Button(
