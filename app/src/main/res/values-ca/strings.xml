@@ -9,7 +9,7 @@
     <string name="next">Siguiente</string>
     <string name="confirm">Confirmar</string>
     <string name="edit">Editar</string>
-    <string name="loading">Cargando...</string>
+    <string name="loading">Cargando…</string>
     <string name="not_set">No establecido</string>
     <string name="none_set">Ninguno establecido</string>
     <string name="error_required_field">Este campo es obligatorio o contiene un error</string>
@@ -189,4 +189,5 @@
     <string name="time_hr_min">%1$d hr %2$d min</string>
     <string name="time_hr">%1$d hr</string>
     <string name="time_min">%1$d min</string>
+    <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
 </resources>

@@ -45,7 +45,7 @@ fun AppNavigationRail(
         NavigationRailItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = if (homeSelected) R.drawable.rounded_home_24 else R.drawable.ic_outline_home_24),
+                    painter = painterResource(id = if (homeSelected) R.drawable.ic_home_filled else R.drawable.rounded_home_24),
                     contentDescription = stringResource(R.string.home_screen_title)
                 )
             },
@@ -65,7 +65,7 @@ fun AppNavigationRail(
         NavigationRailItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = if (calendarSelected) R.drawable.ic_round_calendar_today_24 else R.drawable.ic_outline_calendar_today_24),
+                    painter = painterResource(id = if (calendarSelected) R.drawable.ic_calendar_filled else R.drawable.ic_calendar),
                     contentDescription = stringResource(R.string.calendar_screen_title)
                 )
             },
@@ -85,7 +85,7 @@ fun AppNavigationRail(
         NavigationRailItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = if (profileSelected) R.drawable.rounded_person_24 else R.drawable.ic_outline_person_24),
+                    painter = painterResource(id = if (profileSelected) R.drawable.ic_person_filled else R.drawable.rounded_person_24),
                     contentDescription = stringResource(R.string.profile_screen_title)
                 )
             },
@@ -105,7 +105,7 @@ fun AppNavigationRail(
         NavigationRailItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = if (settingsSelected) R.drawable.rounded_settings_24 else R.drawable.ic_outline_settings_24),
+                    painter = painterResource(id = if (settingsSelected) R.drawable.ic_outline_settings_24 else R.drawable.ic_outline_settings_24),
                     contentDescription = stringResource(R.string.settings_screen_title)
                 )
             },

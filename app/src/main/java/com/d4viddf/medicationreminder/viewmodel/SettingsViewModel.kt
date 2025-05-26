@@ -6,8 +6,7 @@ import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
-import android.util.Log // Added import
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.UserPreferencesRepository
@@ -52,10 +51,7 @@ class SettingsViewModel @Inject constructor(
         _maxVolume.value = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
         _currentVolume.value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM) // Initial fetch
 
-        // Register observer
-        val alarmVolumeUri = Settings.System.getUriFor(Settings.System.VOLUME_ALARM)
-        application.contentResolver.registerContentObserver(alarmVolumeUri, false, volumeObserver)
-        Log.d("SettingsViewModel", "Volume observer registered for URI: $alarmVolumeUri")
+
     }
 
     fun setVolume(volume: Int) {

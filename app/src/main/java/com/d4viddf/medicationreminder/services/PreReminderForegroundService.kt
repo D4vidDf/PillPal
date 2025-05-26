@@ -10,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Handler
@@ -20,13 +19,13 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Import ReminderBroadcastReceiver
+import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import java.util.concurrent.TimeUnit
-import androidx.core.graphics.toColorInt
 
 class PreReminderForegroundService : Service() {
 
@@ -51,6 +50,7 @@ class PreReminderForegroundService : Service() {
 
     private val updateNotificationRunnable = object : Runnable {
         // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -75,11 +75,12 @@ class PreReminderForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         Log.d(TAG, "PreReminderForegroundService onCreate")
     }
 
     // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
         val reminderIdFromIntent = intent?.getIntExtra(EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
@@ -120,7 +121,7 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val notificationToShow = if (Build.VERSION.SDK_INT == 35) { // Changed condition to == 35
+        val notificationToShow = if (Build.VERSION.SDK_INT >= 35) { // Changed condition to == 35
             buildStyledNotification(initialTimeRemainingMillis)
         } else {
             buildCompatNotification(initialTimeRemainingMillis)
@@ -272,9 +273,10 @@ class PreReminderForegroundService : Service() {
     }
 
     // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
-            val notification = if (Build.VERSION.SDK_INT == 35) { // Changed condition to == 35
+            val notification = if (Build.VERSION.SDK_INT >= 35) { // Changed condition to == 35
                 buildStyledNotification(timeRemainingMillis)
             } else {
                 buildCompatNotification(timeRemainingMillis)
@@ -299,7 +301,7 @@ class PreReminderForegroundService : Service() {
     private fun stopSelfService() {
         Log.i(TAG, "Stopping PreReminderForegroundService for reminderId: $currentReminderId")
         handler.removeCallbacks(updateNotificationRunnable)
-        stopForeground(Service.STOP_FOREGROUND_REMOVE)
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         currentReminderId = -1
         actualTakeTimeMillis = -1L
