@@ -1,6 +1,7 @@
 package com.d4viddf.medicationreminder.ui.colors
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 
 // Define an enum for the color options
 enum class MedicationColor(
@@ -134,7 +135,7 @@ fun findMedicationColorByHex(hexColorString: String?): MedicationColor? {
         val inputRGB = inputColorInt and 0xFFFFFF
 
         return MedicationColor.entries.find {
-            val enumColorRGB = it.backgroundColor.toArgb() and 0xFFFFFF
+            var enumColorRGB = it.backgroundColor.toArgb() and 0xFFFFFF
             enumColorRGB == inputRGB
         }
     } catch (e: IllegalArgumentException) {

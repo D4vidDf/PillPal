@@ -1,9 +1,10 @@
 package com.d4viddf.medicationreminder.ui.activities
 
+import android.R.attr.action
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import android.content.Intent // Added import
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
