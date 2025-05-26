@@ -22,10 +22,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added import
+import com.d4viddf.medicationreminder.ui.colors.findMedicationColorByHex // Added import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
-import androidx.compose.ui.tooling.preview.Preview // Added import
+import androidx.compose.ui.tooling.preview.Preview
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -65,19 +67,30 @@ class FullScreenNotificationActivity : ComponentActivity() {
         Log.d(TAG, "Activity created for Reminder ID: $reminderId, Name: $medicationName, Dosage: $medicationDosage, Color: $medicationColorHex, Type: $medicationTypeName")
 
         setContent {
-            AppTheme { // Corrected theme name
-                val defaultBackgroundColor = MaterialTheme.colorScheme.background
-                val backgroundColor = parseColor(medicationColorHex, defaultBackgroundColor)
-                // Determine if the background is dark or light for text contrast
-                val isDarkBackground = backgroundColor.luminance() < 0.5f
-                val contentColor = if (isDarkBackground) Color.White else Color.Black
+            AppTheme {
+                val medicationColorScheme = findMedicationColorByHex(medicationColorHex)
+
+                val finalBackgroundColor: Color
+                val finalContentColor: Color
+
+                if (medicationColorScheme != null) {
+                    finalBackgroundColor = medicationColorScheme.backgroundColor
+                    finalContentColor = medicationColorScheme.onBackgroundColor // Or .textColor if more appropriate
+                    Log.d(TAG, "Using MedicationColor enum for ${medicationColorScheme.colorName}")
+                } else {
+                    // Fallback to existing parseColor logic
+                    val defaultThemeBg = MaterialTheme.colorScheme.background
+                    finalBackgroundColor = parseColor(medicationColorHex, defaultThemeBg)
+                    finalContentColor = if (finalBackgroundColor.luminance() < 0.5f) Color.White else Color.Black
+                    Log.d(TAG, "Using fallback color logic. Parsed BG: $finalBackgroundColor")
+                }
 
                 FullScreenNotificationScreen(
                     medicationName = medicationName,
                     medicationDosage = medicationDosage,
                     medicationTypeName = medicationTypeName,
-                    backgroundColor = backgroundColor,
-                    contentColor = contentColor,
+                    backgroundColor = finalBackgroundColor,
+                    contentColor = finalContentColor,
                     onMarkAsTaken = {
                         Log.i(TAG, "Mark as Taken clicked for Reminder ID: $reminderId")
                         val markTakenIntent = Intent(applicationContext, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply {
