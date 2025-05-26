@@ -1,7 +1,6 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import android.app.Application
-import android.app.Application
+import android.app.Application // Keep one import
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager

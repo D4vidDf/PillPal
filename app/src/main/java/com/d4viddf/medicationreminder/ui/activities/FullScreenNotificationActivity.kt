@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.ui.activities
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import android.content.Intent // Added import
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -21,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Corrected import
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
@@ -63,7 +64,7 @@ class FullScreenNotificationActivity : ComponentActivity() {
         Log.d(TAG, "Activity created for Reminder ID: $reminderId, Name: $medicationName, Dosage: $medicationDosage, Color: $medicationColorHex, Type: $medicationTypeName")
 
         setContent {
-            MedicationReminderTheme {
+            AppTheme { // Corrected theme name
                 val defaultBackgroundColor = MaterialTheme.colorScheme.background
                 val backgroundColor = parseColor(medicationColorHex, defaultBackgroundColor)
                 // Determine if the background is dark or light for text contrast

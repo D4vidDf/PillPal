@@ -55,8 +55,21 @@ fun MedicationProgressDisplay(
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
     val indicatorSize = 220.dp
 
-    // The old accessibilityDescription variable is no longer needed globally for the Column.
-    // Its logic will be incorporated into the CircularWavyProgressIndicator's semantics.
+    // Construct the semantic description for the progress indicator here
+    val progressIndicatorSemanticDesc: String = if (progressDetails != null) {
+        if (progressDetails.totalFromPackage > 0) {
+            progressDetails.displayText + ". " + stringResource(
+                id = com.d4viddf.medicationreminder.R.string.medication_progress_display_acc,
+                progressDetails.taken,
+                progressDetails.totalFromPackage,
+                progressDetails.remaining
+            )
+        } else {
+            progressDetails.displayText
+        }
+    } else {
+        stringResource(id = com.d4viddf.medicationreminder.R.string.medication_progress_display_info_not_available_acc)
+    }
 
     Column(
         modifier = modifier
@@ -78,20 +91,13 @@ fun MedicationProgressDisplay(
                     .semantics {
                         if (progressDetails != null && progressDetails.totalFromPackage > 0) {
                             progressBarRangeInfo = ProgressBarRangeInfo(
-                                current = animatedProgress * progressDetails.totalFromPackage,
-                                range = 0f..(progressDetails.totalFromPackage.toFloat()),
-                                steps = progressDetails.totalFromPackage
+                                current = animatedProgress * progressDetails.totalFromPackage, // Current value of progress
+                                range = 0f..(progressDetails.totalFromPackage.toFloat()), // Total range
+                                steps = progressDetails.totalFromPackage // Number of discrete steps, if applicable
                             )
-                            this.contentDescription = progressDetails.displayText + ". " +
-                                    stringResource(
-                                        id = com.d4viddf.medicationreminder.R.string.medication_progress_display_acc,
-                                        progressDetails.taken,
-                                        progressDetails.totalFromPackage,
-                                        progressDetails.remaining
-                                    )
-                        } else if (progressDetails != null) {
-                            this.contentDescription = progressDetails.displayText
                         }
+                        // Assign the pre-constructed string to contentDescription
+                        this.contentDescription = progressIndicatorSemanticDesc
                     },
                 color = colorScheme.progressBarColor,
                 trackColor = colorScheme.progressBackColor,

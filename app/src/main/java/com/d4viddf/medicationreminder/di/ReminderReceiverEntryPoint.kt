@@ -1,8 +1,8 @@
 package com.d4viddf.medicationreminder.di // Or your chosen package
 
-import com.d4viddf.medicationreminder.repository.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
+import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.MedicationRepository
+import com.d4viddf.medicationreminder.data.MedicationTypeRepository
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn

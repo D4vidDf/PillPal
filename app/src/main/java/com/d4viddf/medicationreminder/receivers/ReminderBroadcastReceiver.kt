@@ -99,8 +99,8 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                             val medication = localMedicationRepository.getMedicationById(reminder.medicationId)
                             if (medication != null) {
                                 medicationColorHex = medication.color
-                                medication.typeId?.let { typeId -> // Use safe call for typeId
-                                    val medicationType = localMedicationTypeRepository.getMedicationTypeById(typeId)
+                                medication.typeId?.let { actualTypeId -> // Renamed 'typeId' to 'actualTypeId' for clarity
+                                    val medicationType = localMedicationTypeRepository.getMedicationTypeById(actualTypeId)
                                     medicationTypeName = medicationType?.name
                                 }
                                 Log.d(TAG, "Fetched details for FullScreenNotification: Color=$medicationColorHex, TypeName=$medicationTypeName for MedicationId=${medication.id}")
@@ -170,22 +170,25 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                             val reminder = localReminderRepository.getReminderById(reminderId)
                             if (reminder == null) {
                                 Log.e(TAG, "Reminder with ID $reminderId not found for ACTION_MARK_AS_TAKEN.")
-                                localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId) // Intenta limpiar por si acaso
+                                // reminderId is non-null Int here, direct call is fine.
+                                localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                                 return@launch
                             }
                             medicationIdToReschedule = reminder.medicationId
 
                             if (reminder.isTaken) {
                                 Log.w(TAG, "Reminder ID $reminderId was already marked as taken.")
+                                // reminderId is non-null Int here, direct call is fine.
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             } else {
                                 val nowString = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                 localReminderRepository.markReminderAsTaken(reminderId, nowString)
                                 Log.d(TAG, "Reminder ID $reminderId marked as taken in DB.")
+                                // reminderId is non-null Int here, direct call is fine.
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             }
 
-                            medicationIdToReschedule.let { medId ->
+                            medicationIdToReschedule?.let { medId -> // Added ?.let for safety, though medId should be set if reminder was found.
                                 Log.d(TAG, "Scheduling next reminder for medication ID: $medId after taken action.")
                                 val workManager = WorkManager.getInstance(context.applicationContext)
                                 val data = Data.Builder()
