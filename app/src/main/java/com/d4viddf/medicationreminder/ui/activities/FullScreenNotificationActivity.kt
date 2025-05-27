@@ -12,7 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,9 +25,14 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added import
 import com.d4viddf.medicationreminder.ui.colors.findMedicationColorByHex // Added import
+// findMedicationColorByName import removed
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground
+import com.d4viddf.medicationreminder.ui.components.ShapeType
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
+import kotlin.math.abs // For abs function
+import androidx.compose.ui.graphics.ColorFilter // For ColorFilter.tint
 import androidx.compose.ui.tooling.preview.Preview
 
 // Helper function to parse color, placed outside the class or in a utility file
@@ -69,24 +74,24 @@ class FullScreenNotificationActivity : ComponentActivity() {
 
         setContent {
             AppTheme {
-                val medicationColorScheme = findMedicationColorByHex(medicationColorHex)
+                // medicationColorHex holds the enum name string from the intent
+                val medicationColorNameString = medicationColorHex // Renaming for clarity in this block as per instructions
 
-                val finalBackgroundColor: Color
-                val finalContentColor: Color
-
-                if (medicationColorScheme != null) {
-                    finalBackgroundColor = medicationColorScheme.backgroundColor
-                    finalContentColor = medicationColorScheme.onBackgroundColor // Or .textColor if more appropriate
-                    Log.d(TAG, "Using MedicationColor enum for ${medicationColorScheme.colorName}")
-                } else {
-                    // Fallback to existing parseColor logic
-                    val defaultThemeBg = MaterialTheme.colorScheme.background
-                    finalBackgroundColor = parseColor(medicationColorHex, defaultThemeBg)
-                    finalContentColor = if (finalBackgroundColor.luminance() < 0.5f) Color.White else Color.Black
-                    Log.d(TAG, "Using fallback color logic. Parsed BG: $finalBackgroundColor")
+                val medicationColorScheme: com.d4viddf.medicationreminder.ui.colors.MedicationColor = try {
+                    com.d4viddf.medicationreminder.ui.colors.MedicationColor.valueOf(
+                        medicationColorNameString ?: com.d4viddf.medicationreminder.ui.colors.MedicationColor.BLUE.name // Provide default name if string is null
+                    )
+                } catch (e: IllegalArgumentException) {
+                    Log.w(TAG, "Invalid MedicationColor name: '$medicationColorNameString'. Defaulting to BLUE.")
+                    com.d4viddf.medicationreminder.ui.colors.MedicationColor.BLUE 
                 }
 
+                val finalBackgroundColor: Color = medicationColorScheme.backgroundColor
+                val finalContentColor: Color = medicationColorScheme.textColor 
+                Log.d(TAG, "Using MedicationColor enum ${medicationColorScheme.name} for colors (descriptive name: ${medicationColorScheme.colorName})")
+
                 FullScreenNotificationScreen(
+                    reminderId = reminderId, // Add this
                     medicationName = medicationName,
                     medicationDosage = medicationDosage,
                     medicationTypeName = medicationTypeName,
@@ -118,7 +123,13 @@ class FullScreenNotificationActivity : ComponentActivity() {
 }
 
 @Composable
-fun MedicationTypeImage(typeName: String?, modifier: Modifier = Modifier) {
+fun MedicationTypeImage(
+    typeName: String?,
+    shapeType: com.d4viddf.medicationreminder.ui.components.ShapeType,
+    // iconColor: Color, // Removed
+    showTick: Boolean,
+    modifier: Modifier = Modifier
+) {
     val imageResId: Int
     val contentDescResId: Int
 
@@ -154,23 +165,35 @@ fun MedicationTypeImage(typeName: String?, modifier: Modifier = Modifier) {
     }
 
     Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(percent = 50)) // Circular shape
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)) // Contrasting background for the shape
-            .padding(24.dp), // Padding inside the circle, around the image
+        modifier = modifier, // This modifier sizes the container for the animated shape and icon
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = imageResId),
-            contentDescription = stringResource(id = contentDescResId),
-            modifier = Modifier.size(100.dp) // Adjust size of the actual image if needed
+        com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground(
+            shapeType = shapeType,
+            modifier = Modifier.fillMaxSize() // Animated shape fills the Box
         )
+        if (showTick) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_stat_medication), // Placeholder tick icon
+                contentDescription = stringResource(id = R.string.content_description_tick_mark),
+                modifier = Modifier.size(120.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary) // Changed tint
+            )
+        } else {
+            Image(
+                painter = painterResource(id = imageResId),
+                contentDescription = stringResource(id = contentDescResId),
+                modifier = Modifier.size(100.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary) // Changed tint
+            )
+        }
     }
 }
 
 
 @Composable
 fun FullScreenNotificationScreen(
+    reminderId: Int, // Add this
     medicationName: String,
     medicationDosage: String,
     medicationTypeName: String?,
@@ -179,6 +202,15 @@ fun FullScreenNotificationScreen(
     onMarkAsTaken: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    var showTick by remember { mutableStateOf(false) }
+    val shapeTypes = com.d4viddf.medicationreminder.ui.components.ShapeType.entries.toTypedArray()
+    val currentShapeType = shapeTypes[kotlin.math.abs(reminderId.hashCode()) % shapeTypes.size]
+
+    val internalOnMarkAsTaken = {
+        showTick = true
+        onMarkAsTaken()
+    }
+
     Surface( // Use Surface as the root to easily set background color
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor
@@ -190,55 +222,65 @@ fun FullScreenNotificationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceAround
         ) {
-            Spacer(modifier = Modifier.weight(0.2f)) // Less weight at top
+            if (!showTick) {
+                Spacer(modifier = Modifier.weight(0.2f)) // Less weight at top
 
-            Text(
-                text = medicationName,
-                style = MaterialTheme.typography.headlineMedium,
-                color = contentColor,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp) // Allow space if name is long
-            )
+                Text(
+                    text = medicationName,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = contentColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp) // Allow space if name is long
+                )
 
-            Text(
-                text = medicationDosage,
-                style = MaterialTheme.typography.titleLarge,
-                color = contentColor.copy(alpha = 0.8f), // Slightly less prominent than name
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp, start = 16.dp, end = 16.dp)
-            )
+                Text(
+                    text = medicationDosage,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = contentColor.copy(alpha = 0.8f), // Slightly less prominent than name
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 24.dp, start = 16.dp, end = 16.dp)
+                )
+            } else {
+                 Spacer(modifier = Modifier.weight(0.2f)) // Maintain some spacing at the top
+            }
 
             MedicationTypeImage(
                 typeName = medicationTypeName,
-                modifier = Modifier.size(200.dp) // Size of the circular shape container
+                shapeType = currentShapeType,
+                // iconColor = contentColor, // Removed argument
+                showTick = showTick,
+                modifier = Modifier.size(200.dp)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between buttons
-            ) {
-                Button(
-                    onClick = onMarkAsTaken,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium // Standard button shape
+            if (!showTick) {
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between buttons
                 ) {
-                    Text(stringResource(id = R.string.fullscreen_notification_action_taken), style = MaterialTheme.typography.labelLarge)
+                    Button(
+                        onClick = internalOnMarkAsTaken, // Use the new internal lambda
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium // Standard button shape
+                    ) {
+                        Text(stringResource(id = R.string.fullscreen_notification_action_taken), style = MaterialTheme.typography.labelLarge)
+                    }
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium, // Standard button shape
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer, // Contrasting color
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    ) {
+                        Text(stringResource(id = R.string.fullscreen_notification_action_dismiss), style = MaterialTheme.typography.labelLarge)
+                    }
                 }
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium, // Standard button shape
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer, // Contrasting color
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                ) {
-                    Text(stringResource(id = R.string.fullscreen_notification_action_dismiss), style = MaterialTheme.typography.labelLarge)
-                }
+            } else {
+                Spacer(modifier = Modifier.weight(1f)) // Ensure tick animation remains centered
             }
         }
     }
@@ -258,6 +300,7 @@ fun Color.luminance(): Float {
 fun FullScreenNotificationScreenPillPreview() {
     AppTheme {
         FullScreenNotificationScreen(
+            reminderId = 1,
             medicationName = "Ibuprofen",
             medicationDosage = "200 mg",
             medicationTypeName = "Pill",
@@ -274,6 +317,7 @@ fun FullScreenNotificationScreenPillPreview() {
 fun FullScreenNotificationScreenSyrupDarkPreview() {
     AppTheme {
         FullScreenNotificationScreen(
+            reminderId = 2,
             medicationName = "Paracetamol Syrup",
             medicationDosage = "10 ml",
             medicationTypeName = "Syrup",
