@@ -13,7 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.Stroke 
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,19 +56,18 @@ fun MedicationProgressDisplay(
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
     val indicatorSize = 220.dp
 
-    val accessibilityDescription = if (progressDetails != null && progressDetails.totalFromPackage > 0) {
-        stringResource(
-            id = com.d4viddf.medicationreminder.R.string.medication_progress_display_acc,
-            progressDetails.taken,
-            progressDetails.totalFromPackage,
-            progressDetails.remaining
-        )
-    } else if (progressDetails != null && progressDetails.displayText != stringResource(id = com.d4viddf.medicationreminder.R.string.info_not_available_short)) { // Assuming "N/A" corresponds to a general "not available"
-        stringResource(
-            id = com.d4viddf.medicationreminder.R.string.medication_progress_display_not_package_based_acc,
-            progressDetails.remaining, // This seems to be a count, ensure it's what's expected for %1$s
-            progressDetails.taken // This seems to be a count, ensure it's what's expected for %2$s
-        )
+    // Construct the semantic description for the progress indicator here
+    val progressIndicatorSemanticDesc: String = if (progressDetails != null) {
+        if (progressDetails.totalFromPackage > 0) {
+            progressDetails.displayText + ". " + stringResource(
+                id = com.d4viddf.medicationreminder.R.string.medication_progress_display_acc,
+                progressDetails.taken,
+                progressDetails.totalFromPackage,
+                progressDetails.remaining
+            )
+        } else {
+            progressDetails.displayText
+        }
     } else {
         stringResource(id = com.d4viddf.medicationreminder.R.string.medication_progress_display_info_not_available_acc)
     }
@@ -73,19 +75,31 @@ fun MedicationProgressDisplay(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = indicatorSize + 16.dp) // Altura mínima basada en el tamaño del indicador + padding
-            .padding(vertical = 8.dp)
-            .semantics { contentDescription = accessibilityDescription },
+            .defaultMinSize(minHeight = indicatorSize + 16.dp)
+            .padding(vertical = 8.dp),
+            // Removed: .semantics { contentDescription = accessibilityDescription },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            contentAlignment = Alignment.Center, // Centra el contenido del Box (la Column con los textos)
+            contentAlignment = Alignment.Center,
             modifier = Modifier.size(indicatorSize)
         ) {
             CircularWavyProgressIndicator(
                 progress = { animatedProgress },
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .semantics {
+                        if (progressDetails != null && progressDetails.totalFromPackage > 0) {
+                            progressBarRangeInfo = ProgressBarRangeInfo(
+                                current = animatedProgress * progressDetails.totalFromPackage, // Current value of progress
+                                range = 0f..(progressDetails.totalFromPackage.toFloat()), // Total range
+                                steps = progressDetails.totalFromPackage // Number of discrete steps, if applicable
+                            )
+                        }
+                        // Assign the pre-constructed string to contentDescription
+                        this.contentDescription = progressIndicatorSemanticDesc
+                    },
                 color = colorScheme.progressBarColor,
                 trackColor = colorScheme.progressBackColor,
                 stroke = Stroke(width = desiredStrokeWidthPx),
@@ -106,6 +120,7 @@ fun MedicationProgressDisplay(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.textColor,
+                        modifier = Modifier.semantics { heading() } // Mark as heading
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(

@@ -35,17 +35,46 @@ class MedicationViewModel @Inject constructor(
     private val _medications = MutableStateFlow<List<Medication>>(emptyList())
     val medications: StateFlow<List<Medication>> = _medications.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     private val _medicationProgressDetails = MutableStateFlow<ProgressDetails?>(null)
     val medicationProgressDetails: StateFlow<ProgressDetails?> = _medicationProgressDetails.asStateFlow()
 
     init {
-        getAllMedications()
+        observeMedications() // Changed from getAllMedications
     }
 
-    private fun getAllMedications() {
+    // Renamed from getAllMedications
+    private fun observeMedications() {
         viewModelScope.launch {
-            medicationRepository.getAllMedications().collect {
-                _medications.value = it
+            // This is a long-lived collection for observing data changes
+            // It should not modify _isLoading.value
+            medicationRepository.getAllMedications().collect { medications ->
+                _medications.value = medications
+            }
+        }
+    }
+
+    fun refreshMedications() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // Perform the actual data refresh logic here.
+                // This might involve a specific repository call to fetch fresh data,
+                // or if your `getAllMedications()` flow re-fetches on new collection,
+                // you could potentially take the first emission.
+                // For simplicity, if your repository automatically updates subscribers
+                // when data changes, this refresh might just be about ensuring
+                // any cached/stale data source is invalidated or re-queried.
+                // If repository.getAllMedications() is a cold flow that fetches on collection:
+                medicationRepository.getAllMedications().firstOrNull() // Ensure it re-fetches, result updates _medications via observeMedications
+                // Add a small delay if needed to simulate work if the operation is too fast, for testing UI
+                // kotlinx.coroutines.delay(1000)
+            } catch (e: Exception) {
+                // Handle error, log it (e.g., Log.e("MedicationViewModel", "Error refreshing medications", e))
+            } finally {
+                _isLoading.value = false
             }
         }
     }

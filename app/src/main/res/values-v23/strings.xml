@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="less_than_a_minute">Menos de un minuto</string>
+    <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
+</resources>

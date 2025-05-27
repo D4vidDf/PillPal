@@ -25,6 +25,7 @@ class UserPreferencesRepository @Inject constructor(
     private companion object {
         val SELECTED_LANGUAGE_KEY = stringPreferencesKey("selected_language_tag")
         val SELECTED_THEME_KEY = stringPreferencesKey("selected_theme_key")
+        val SELECTED_NOTIFICATION_SOUND_URI_KEY = stringPreferencesKey("selected_notification_sound_uri")
     }
 
     val languageTagFlow: Flow<String> = context.dataStore.data
@@ -42,6 +43,28 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setLanguageTag(tag: String) {
         context.dataStore.edit { preferences ->
             preferences[SELECTED_LANGUAGE_KEY] = tag
+        }
+    }
+
+    val notificationSoundUriFlow: Flow<String?> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[SELECTED_NOTIFICATION_SOUND_URI_KEY]
+        }
+
+    suspend fun setNotificationSoundUri(uri: String?) {
+        context.dataStore.edit { preferences ->
+            if (uri != null) {
+                preferences[SELECTED_NOTIFICATION_SOUND_URI_KEY] = uri
+            } else {
+                preferences.remove(SELECTED_NOTIFICATION_SOUND_URI_KEY)
+            }
         }
     }
 

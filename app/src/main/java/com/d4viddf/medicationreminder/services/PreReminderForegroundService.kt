@@ -1,11 +1,15 @@
 package com.d4viddf.medicationreminder.services
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Handler
@@ -14,15 +18,13 @@ import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.notifications.NotificationHelper // Para ACTION_MARK_AS_TAKEN
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Para el intent de la acción
+import com.d4viddf.medicationreminder.notifications.NotificationHelper
+import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class PreReminderForegroundService : Service() {
@@ -32,11 +34,10 @@ class PreReminderForegroundService : Service() {
         const val EXTRA_SERVICE_REMINDER_ID = "extra_service_reminder_id"
         const val EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS = "extra_service_actual_scheduled_time_millis"
         const val EXTRA_SERVICE_MEDICATION_NAME = "extra_service_medication_name"
-        // EXTRA_SERVICE_MEDICATION_DOSAGE no se está usando actualmente en este servicio, pero podría pasarse si es necesario.
 
         internal const val PRE_REMINDER_NOTIFICATION_ID_OFFSET = 2000000
         private const val TAG = "PreReminderService"
-        private const val MARK_AS_TAKEN_REQUEST_CODE_OFFSET = 3000 // Para diferenciar de otros PendingIntents
+        const val TOTAL_PRE_REMINDER_DURATION_MINUTES = ReminderSchedulingWorker.PRE_REMINDER_OFFSET_MINUTES
 
         fun getNotificationId(reminderId: Int) = reminderId + PRE_REMINDER_NOTIFICATION_ID_OFFSET
     }
@@ -46,10 +47,10 @@ class PreReminderForegroundService : Service() {
     private var currentReminderId: Int = -1
     private var medicationNameForNotification: String = "Medication"
     private var actualTakeTimeMillis: Long = -1L
-    private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-
 
     private val updateNotificationRunnable = object : Runnable {
+        // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -60,14 +61,13 @@ class PreReminderForegroundService : Service() {
             val currentTime = System.currentTimeMillis()
             val timeRemainingMillis = actualTakeTimeMillis - currentTime
 
-            if (timeRemainingMillis <= TimeUnit.SECONDS.toMillis(10)) {
+            if (timeRemainingMillis <= TimeUnit.SECONDS.toMillis(20)) {
                 Log.i(TAG, "Scheduled take time reached or very close. Stopping PreReminderService for reminderId: $currentReminderId")
                 stopSelfService()
             } else {
-                updateNotification(timeRemainingMillis)
+                updateNotificationContent(timeRemainingMillis)
                 if (currentReminderId != -1) {
                     handler.postDelayed(this, TimeUnit.MINUTES.toMillis(1))
-                    Log.d(TAG, "PreReminderService updated notification for reminderId: $currentReminderId. Time remaining: ${TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis)} min")
                 }
             }
         }
@@ -75,26 +75,27 @@ class PreReminderForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         Log.d(TAG, "PreReminderForegroundService onCreate")
     }
 
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA) // Mantenida por startForeground y buildStyledNotification
+    // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
-
         val reminderIdFromIntent = intent?.getIntExtra(EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
 
         if (intent?.action == ACTION_STOP_PRE_REMINDER) {
-            Log.d(TAG, "Received ACTION_STOP_PRE_REMINDER for reminderId: $reminderIdFromIntent. Current service processing reminderId: $currentReminderId")
-            if (currentReminderId == reminderIdFromIntent || reminderIdFromIntent == -1) {
+            Log.d(TAG, "Received ACTION_STOP_PRE_REMINDER for reminderId: $reminderIdFromIntent. Current: $currentReminderId")
+            if (currentReminderId == reminderIdFromIntent || currentReminderId == -1 || reminderIdFromIntent == -1) { // Also stop if -1 is passed, signifying generic stop
                 stopSelfService()
             }
             return START_NOT_STICKY
         }
 
         val takeTimeFromIntent = intent?.getLongExtra(EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, -1L) ?: -1L
-        val medNameFromIntent = intent?.getStringExtra(EXTRA_SERVICE_MEDICATION_NAME) ?: "Medication"
+        val medNameFromIntent = intent?.getStringExtra(EXTRA_SERVICE_MEDICATION_NAME) ?: getString(R.string.medications_title)
+
 
         if (reminderIdFromIntent == -1 || takeTimeFromIntent == -1L) {
             Log.e(TAG, "Invalid data for starting service: reminderId=$reminderIdFromIntent, takeTime=$takeTimeFromIntent. Stopping.")
@@ -111,21 +112,21 @@ class PreReminderForegroundService : Service() {
         actualTakeTimeMillis = takeTimeFromIntent
         medicationNameForNotification = medNameFromIntent
 
-        Log.i(TAG, "Starting/Updating PreReminderForegroundService for reminderId: $currentReminderId, medication: $medicationNameForNotification, actualTakeTime: $actualTakeTimeMillis (${timeFormatter.format(Date(actualTakeTimeMillis))})")
+        Log.i(TAG, "Starting/Updating PreReminderService for reminderId: $currentReminderId, med: $medicationNameForNotification, takeTime: $actualTakeTimeMillis")
 
         val initialTimeRemainingMillis = actualTakeTimeMillis - System.currentTimeMillis()
-        if (initialTimeRemainingMillis <= TimeUnit.SECONDS.toMillis(10)) {
-            Log.w(TAG, "Pre-reminder start requested for $currentReminderId, but actual take time is in the past or too close. Not starting foreground service.")
+        if (initialTimeRemainingMillis <= TimeUnit.SECONDS.toMillis(20)) {
+            Log.w(TAG, "Pre-reminder for $currentReminderId, but actual take time is too close. Not starting foreground.")
             stopSelf()
             return START_NOT_STICKY
         }
 
-        val initialNotification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+        val notificationToShow = if (Build.VERSION.SDK_INT >= 35) { // Changed condition to == 35
             buildStyledNotification(initialTimeRemainingMillis)
         } else {
             buildCompatNotification(initialTimeRemainingMillis)
         }
-        startForeground(getNotificationId(currentReminderId), initialNotification)
+        startForeground(getNotificationId(currentReminderId), notificationToShow)
 
         handler.removeCallbacks(updateNotificationRunnable)
         handler.post(updateNotificationRunnable)
@@ -133,24 +134,25 @@ class PreReminderForegroundService : Service() {
         return START_STICKY
     }
 
-    private fun createMarkAsTakenPendingIntent(reminderId: Int): PendingIntent {
-        val markAsActionIntent = Intent(this, ReminderBroadcastReceiver::class.java).apply {
-            action = NotificationHelper.ACTION_MARK_AS_TAKEN // Usar la misma acción que NotificationHelper
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId)
-            // Podrías pasar EXTRA_SERVICE_MEDICATION_NAME si el receiver lo necesitara para algo específico
-            // al marcar como tomada desde el pre-recordatorio, pero usualmente solo el ID es suficiente.
+    private fun formatTimeRemaining(millis: Long): String {
+        val totalMinutes = TimeUnit.MILLISECONDS.toMinutes(millis).coerceAtLeast(0)
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        return when {
+            hours > 0 && minutes > 0 -> getString(R.string.time_hr_min, hours, minutes) // Example: "%1$d hr %2$d min"
+            hours > 0 -> getString(R.string.time_hr, hours) // Example: "%1$d hr"
+            minutes > 0 -> getString(R.string.time_min, minutes) // Example: "%1$d min"
+            else -> getString(R.string.less_than_a_minute)
         }
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        // Usar un requestCode diferente para el PendingIntent de "Marcar como Tomada" del servicio
-        return PendingIntent.getBroadcast(this, reminderId + MARK_AS_TAKEN_REQUEST_CODE_OFFSET, markAsActionIntent, flags)
     }
 
+    @SuppressLint("SuspiciousIndentation")
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun buildStyledNotification(timeRemainingMillis: Long): Notification {
-        val totalPreReminderDurationMinutes = ReminderSchedulingWorker.PRE_REMINDER_OFFSET_MINUTES
-        val minutesRemaining = TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis).coerceAtLeast(0)
-        val elapsedMinutesInPrePeriod = (totalPreReminderDurationMinutes - minutesRemaining)
-            .coerceIn(0L, totalPreReminderDurationMinutes)
+        val minutesRemainingOverall = TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis).coerceAtLeast(0)
+        val elapsedMinutesInPrePeriod = (TOTAL_PRE_REMINDER_DURATION_MINUTES - minutesRemainingOverall)
+            .coerceIn(0L, TOTAL_PRE_REMINDER_DURATION_MINUTES)
 
         val notificationTapIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -159,121 +161,139 @@ class PreReminderForegroundService : Service() {
         val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         val tapPendingIntent = PendingIntent.getActivity(this, getNotificationId(currentReminderId) + 1, notificationTapIntent, pendingIntentFlags)
 
-        val formattedTakeTime = timeFormatter.format(Date(actualTakeTimeMillis))
-        val title = "$medicationNameForNotification a las $formattedTakeTime"
+        val titleText = getString(R.string.prereminder_title_medication, medicationNameForNotification)
+        val timeRemainingFormatted = formatTimeRemaining(timeRemainingMillis)
 
-        val dynamicText = when {
-            minutesRemaining > 55 -> "Recordatorio en aprox. 1 hora"
-            minutesRemaining > 5 -> "Aprox. $minutesRemaining minutos restantes"
-            minutesRemaining > 1 -> "$minutesRemaining minutos restantes"
-            minutesRemaining == 1L -> "En 1 minuto"
-            else -> "¡Es casi la hora!"
+        val contentText = when {
+            minutesRemainingOverall > 55 -> getString(R.string.prereminder_text_in_about_hour)
+            minutesRemainingOverall > 1 -> getString(R.string.prereminder_text_approx_minutes_left_plural, minutesRemainingOverall)
+            minutesRemainingOverall == 1L -> getString(R.string.prereminder_text_approx_minutes_left_singular, minutesRemainingOverall)
+            else -> getString(R.string.prereminder_text_about_time)
         }
 
-        val platformBuilder = Notification.Builder(this, NotificationHelper.REMINDER_CHANNEL_ID)
+        val builder = Notification.Builder(this, NotificationHelper.PRE_REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
-            .setContentTitle(title)
-            .setContentText(dynamicText)
+            .setContentTitle(titleText)
+            .setContentText(contentText)
             .setOngoing(true)
-            .setContentIntent(tapPendingIntent)
             .setOnlyAlertOnce(true)
+            .setColorized(true)
             .setShowWhen(true)
-            .setWhen(actualTakeTimeMillis)
+            .setWhen(actualTakeTimeMillis) // Changed to use actualTakeTimeMillis
+            .setCategory(Notification.CATEGORY_NAVIGATION)
+            // Progress bar for styled notification is handled differently below or not at all depending on final design
+            // .setProgress(TOTAL_PRE_REMINDER_DURATION_MINUTES.toInt(), elapsedMinutesInPrePeriod.toInt(), false) // Keep if styled uses it, remove if ProgressStyle handles it
 
-        // --- Notification.ProgressStyle (Baklava+) ---
-        val progressStyle = Notification.ProgressStyle()
-            .setStyledByProgress(false)
-        val segments = mutableListOf<Notification.ProgressStyle.Segment>()
-        val segmentLength = totalPreReminderDurationMinutes / 4.0f
-        segments.add(Notification.ProgressStyle.Segment(segmentLength.toInt()).setColor("#A5D6A7".toColorInt()))
-        segments.add(Notification.ProgressStyle.Segment(segmentLength.toInt()).setColor("#FFF59D".toColorInt()))
-        segments.add(Notification.ProgressStyle.Segment(segmentLength.toInt()).setColor("#FFCC80".toColorInt()))
-        segments.add(Notification.ProgressStyle.Segment(segmentLength.toInt()).setColor("#EF9A9A".toColorInt()))
-        progressStyle.setProgressSegments(segments)
+        
 
         try {
-            val trackerIconRes = R.drawable.tracker_dot // Asegúrate que tracker_dot es un VECTOR drawable
-            val trackerIcon = Icon.createWithResource(this, trackerIconRes)
-            progressStyle.setProgressTrackerIcon(trackerIcon)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error setting progress tracker icon (is tracker_dot.xml a vector?): ${e.message}")
-        }
-        platformBuilder.setStyle(progressStyle)
-        platformBuilder.setProgress(totalPreReminderDurationMinutes.toInt(), elapsedMinutesInPrePeriod.toInt(), false)
+            val largeIconBitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher_round)
+            if (largeIconBitmap != null) builder.setLargeIcon(largeIconBitmap)
+        } catch (e: Exception) { Log.e(TAG, "Error setting large icon: ${e.message}") }
 
-        // Añadir acción "Marcar como Tomada" si quedan 5 minutos o menos
-        if (minutesRemaining <= 5) {
-            val markAsTakenPendingIntent = createMarkAsTakenPendingIntent(currentReminderId)
-            platformBuilder.addAction(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            val progressStyle = Notification.ProgressStyle()
+                .setStyledByProgress(false)
+                .setProgress(elapsedMinutesInPrePeriod.toInt())
+            val segmentDuration = TOTAL_PRE_REMINDER_DURATION_MINUTES / 4f
+                progressStyle.setProgressSegments(listOf(
+                    Notification.ProgressStyle.Segment(segmentDuration.toInt()).setColor("#A5D6A7".toColorInt()),
+                    Notification.ProgressStyle.Segment(segmentDuration.toInt()).setColor("#FFF59D".toColorInt()),
+                    Notification.ProgressStyle.Segment(segmentDuration.toInt()).setColor("#FFCC80".toColorInt()),
+                    Notification.ProgressStyle.Segment(segmentDuration.toInt()).setColor("#EF9A9A".toColorInt())
+                ))
+
+            try {
+                val trackerIcon = Icon.createWithResource(this, R.drawable.tracker_dot)
+                progressStyle.setProgressTrackerIcon(trackerIcon)
+            } catch (e: Exception) { Log.e(TAG, "Error setting tracker icon: ${e.message}") }
+            builder.setStyle(progressStyle)
+        }
+
+        if (minutesRemainingOverall <= 10) { // Add "Taken" action in the last 10 minutes
+            val markAsActionIntent = Intent(this, ReminderBroadcastReceiver::class.java).apply {
+                action = NotificationHelper.ACTION_MARK_AS_TAKEN
+                putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, currentReminderId)
+            }
+            val markAsTakenPendingIntent = PendingIntent.getBroadcast(
+                this, currentReminderId + 3000, markAsActionIntent, pendingIntentFlags
+            )
+            builder.addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(this, R.drawable.ic_check_circle), // Reemplaza con tu icono
-                    "Tomada",
+                    Icon.createWithResource(this, R.drawable.ic_check_circle),
+                    getString(R.string.prereminder_action_taken),
                     markAsTakenPendingIntent
                 ).build()
             )
         }
-
-        Log.d(TAG, "Built PreReminder (Baklava+) with ProgressStyle: Title='$title', Text='$dynamicText', Progress=${elapsedMinutesInPrePeriod}/${totalPreReminderDurationMinutes}")
-        return platformBuilder.build()
+        return builder.build()
     }
 
     private fun buildCompatNotification(timeRemainingMillis: Long): Notification {
-        // No usar totalPreReminderDurationMinutes o elapsedMinutesInPrePeriod si no hay barra de progreso
         val minutesRemaining = TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis).coerceAtLeast(0)
+        val elapsedMinutesInPrePeriod = (TOTAL_PRE_REMINDER_DURATION_MINUTES - minutesRemaining)
+            .coerceIn(0L, TOTAL_PRE_REMINDER_DURATION_MINUTES)
 
         val notificationTapIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("notification_tap_prereminder_id", currentReminderId)
         }
-        val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        val tapPendingIntent = PendingIntent.getActivity(this, getNotificationId(currentReminderId) + 1, notificationTapIntent, pendingIntentFlags)
+        val pendingIntentFlags =
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val tapPendingIntent = PendingIntent.getActivity(this, getNotificationId(currentReminderId) + 2, notificationTapIntent, pendingIntentFlags)
 
-        val formattedTakeTime = timeFormatter.format(Date(actualTakeTimeMillis))
-        val title = "$medicationNameForNotification a las $formattedTakeTime"
+        val titleText = getString(R.string.prereminder_title_medication, medicationNameForNotification)
+        val timeRemainingFormatted = formatTimeRemaining(timeRemainingMillis)
+        val contentText = if (minutesRemaining > 0) getString(R.string.prereminder_text_approx_minutes_left_plural, minutesRemaining) else getString(R.string.prereminder_text_about_time)
 
-        val text = when {
-            minutesRemaining > 55 -> "Recordatorio en aprox. 1 hora"
-            minutesRemaining > 5 -> "Aprox. $minutesRemaining minutos restantes"
-            minutesRemaining > 1 -> "$minutesRemaining minutos restantes"
-            minutesRemaining == 1L -> "En 1 minuto"
-            else -> "¡Es casi la hora!"
-        }
 
-        val compatBuilder = NotificationCompat.Builder(this, NotificationHelper.REMINDER_CHANNEL_ID)
+        val compatBuilder = NotificationCompat.Builder(this, NotificationHelper.PRE_REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setOngoing(true) // Puede que quieras hacerlo false si no hay progreso y es solo un aviso
+            .setContentTitle(titleText)
+            .setContentText(contentText)
+            .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(tapPendingIntent)
-            .setShowWhen(true)
-            .setWhen(actualTakeTimeMillis)
-        // No llamar a .setProgress() para que sea una notificación "normal"
+            // Removed .setProgress from compat notification
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
 
-        // Añadir acción "Marcar como Tomada" si quedan 5 minutos o menos
-        if (minutesRemaining <= 5) {
-            val markAsTakenPendingIntent = createMarkAsTakenPendingIntent(currentReminderId)
-            compatBuilder.addAction(R.drawable.ic_check_circle, "Tomada", markAsTakenPendingIntent)
+
+        if (minutesRemaining <= 10) {
+            val markAsActionIntent = Intent(this, ReminderBroadcastReceiver::class.java).apply {
+                action = NotificationHelper.ACTION_MARK_AS_TAKEN
+                putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, currentReminderId)
+            }
+            val markAsTakenPendingIntent = PendingIntent.getBroadcast(
+                this, currentReminderId + 3001, markAsActionIntent, pendingIntentFlags
+            )
+            compatBuilder.addAction(R.drawable.ic_check_circle, getString(R.string.prereminder_action_taken), markAsTakenPendingIntent)
         }
-
-        Log.d(TAG, "Built PreReminder (Compat) normal notification: Title='$title', Text='$text'")
         return compatBuilder.build()
     }
 
-    private fun updateNotification(timeRemainingMillis: Long) {
+    // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
-            val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            val notification = if (Build.VERSION.SDK_INT >= 35) { // Changed condition to == 35
                 buildStyledNotification(timeRemainingMillis)
             } else {
                 buildCompatNotification(timeRemainingMillis)
             }
             try {
-                notificationManager.notify(getNotificationId(currentReminderId), notification)
-            } catch (e: SecurityException) {
-                Log.e(TAG, "SecurityException updating notification for $currentReminderId: ${e.message}")
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    notificationManager.notify(getNotificationId(currentReminderId), notification)
+                } else {
+                    Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Cannot update notification.")
+                    stopSelfService() // Stop if we can't show/update notifications
+                }
+            } catch (e: SecurityException) { // Catching SecurityException specifically if POST_NOTIFICATIONS is revoked mid-service
+                Log.e(TAG, "SecurityException updating notification for ${getNotificationId(currentReminderId)}: ${e.message}")
+                stopSelfService()
             } catch (e: Exception) {
-                Log.e(TAG, "Generic Exception updating notification for $currentReminderId: ${e.message}", e)
+                Log.e(TAG, "Generic error updating notification for ${getNotificationId(currentReminderId)}: ${e.message}", e)
+                // Optionally stop service here too, or let it try again if it's a transient issue.
             }
         }
     }
@@ -281,16 +301,10 @@ class PreReminderForegroundService : Service() {
     private fun stopSelfService() {
         Log.i(TAG, "Stopping PreReminderForegroundService for reminderId: $currentReminderId")
         handler.removeCallbacks(updateNotificationRunnable)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         currentReminderId = -1
         actualTakeTimeMillis = -1L
-        medicationNameForNotification = "Medication"
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
