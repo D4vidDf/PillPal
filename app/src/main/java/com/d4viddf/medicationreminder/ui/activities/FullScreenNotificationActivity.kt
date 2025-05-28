@@ -203,6 +203,7 @@ fun MedicationTypeImage(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FullScreenNotificationScreen(
     reminderId: Int, 
@@ -272,6 +273,7 @@ fun FullScreenNotificationScreen(
 
             if (!showTick) {
                 Spacer(modifier = Modifier.weight(1f)) // This Spacer remains
+                val size = SplitButtonDefaults.MediumContainerHeight
                 // This Box now wraps both SplitButtonLayout and DropdownMenu
                 Box(
                     modifier = Modifier
@@ -282,11 +284,14 @@ fun FullScreenNotificationScreen(
                     SplitButtonLayout(
                         leadingButton = {
                             SplitButtonDefaults.LeadingButton(
-                                onClick = internalOnMarkAsTaken // internalOnMarkAsTaken is already defined
+                                onClick = internalOnMarkAsTaken, // internalOnMarkAsTaken is already defined
+                                        modifier = Modifier.heightIn(size),
+                                shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
+                                contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(size),
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.fullscreen_notification_action_taken),
-                                    style = MaterialTheme.typography.labelLarge
+                                    style = ButtonDefaults.textStyleFor(size)
                                 )
                             }
                         },
@@ -302,7 +307,8 @@ fun FullScreenNotificationScreen(
                                     }
                                     // Use a general content description for the toggle itself
                                     this.contentDescription = moreOptionsText // Use variable
-                                }
+                                },
+                                shapes = SplitButtonDefaults.trailingButtonShapesFor(size),
                             ) {
                                 val rotation: Float by animateFloatAsState(
                                     targetValue = if (isDropdownExpanded) 180f else 0f,
@@ -318,7 +324,7 @@ fun FullScreenNotificationScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(), // SplitButtonLayout fills the parent Box's width
-                        spacing = SplitButtonDefaults.spacing
+                        spacing = SplitButtonDefaults.Spacing
                     )
 
                     DropdownMenu(
