@@ -28,12 +28,15 @@ import com.d4viddf.medicationreminder.ui.colors.findMedicationColorByHex // Adde
 // findMedicationColorByName import removed
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground
-import com.d4viddf.medicationreminder.ui.components.ShapeType
+// ShapeType is used by FullScreenNotificationScreen to determine currentShapeType, so it's still needed.
+import com.d4viddf.medicationreminder.ui.components.ShapeType 
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 import kotlin.math.abs // For abs function
 import androidx.compose.ui.graphics.ColorFilter // For ColorFilter.tint
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.launch // Added import
+import kotlinx.coroutines.delay // Added import
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -125,7 +128,7 @@ class FullScreenNotificationActivity : ComponentActivity() {
 @Composable
 fun MedicationTypeImage(
     typeName: String?,
-    shapeType: com.d4viddf.medicationreminder.ui.components.ShapeType,
+    // shapeType: com.d4viddf.medicationreminder.ui.components.ShapeType, // REMOVED
     // iconColor: Color, // Removed
     showTick: Boolean,
     modifier: Modifier = Modifier
@@ -169,7 +172,7 @@ fun MedicationTypeImage(
         contentAlignment = Alignment.Center
     ) {
         com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground(
-            shapeType = shapeType,
+            // shapeType = shapeType, // shapeType is no longer a parameter here
             modifier = Modifier.fillMaxSize() // Animated shape fills the Box
         )
         if (showTick) {
@@ -202,13 +205,17 @@ fun FullScreenNotificationScreen(
     onMarkAsTaken: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val scope = rememberCoroutineScope() // Added scope
     var showTick by remember { mutableStateOf(false) }
-    val shapeTypes = com.d4viddf.medicationreminder.ui.components.ShapeType.entries.toTypedArray()
-    val currentShapeType = shapeTypes[kotlin.math.abs(reminderId.hashCode()) % shapeTypes.size]
+    // val shapeTypes = com.d4viddf.medicationreminder.ui.components.ShapeType.entries.toTypedArray() // REMOVED
+    // val currentShapeType = shapeTypes[kotlin.math.abs(reminderId.hashCode()) % shapeTypes.size] // REMOVED
 
     val internalOnMarkAsTaken = {
-        showTick = true
-        onMarkAsTaken()
+        scope.launch { // Launch coroutine
+            showTick = true
+            delay(1000L) // Delay for 1 second
+            onMarkAsTaken() // Call original lambda
+        }
     }
 
     Surface( // Use Surface as the root to easily set background color
@@ -246,7 +253,7 @@ fun FullScreenNotificationScreen(
 
             MedicationTypeImage(
                 typeName = medicationTypeName,
-                shapeType = currentShapeType,
+                // shapeType = currentShapeType, // REMOVED
                 // iconColor = contentColor, // Removed argument
                 showTick = showTick,
                 modifier = Modifier.size(200.dp)

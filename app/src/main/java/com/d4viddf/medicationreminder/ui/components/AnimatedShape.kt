@@ -1,10 +1,12 @@
 package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.animation.core.*
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+// import androidx.compose.foundation.layout.size // No longer directly used in AnimatedShapeBackground signature
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,10 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.unit.Dp
+// import androidx.compose.ui.unit.Dp // No longer directly used in AnimatedShapeBackground signature
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.coroutines.delay // Make sure this is imported: import kotlinx.coroutines.delay
 
 enum class ShapeType {
     CIRCLE,
@@ -26,33 +29,62 @@ enum class ShapeType {
     PENTAGON
 }
 
+// ShapeType enum (CIRCLE, SUNNY, SQUARE, PENTAGON) remains unchanged
+// drawWhiteShape private function remains unchanged
+
+@OptIn(ExperimentalAnimationApi::class) // Required for AnimatedContent
 @Composable
 fun AnimatedShapeBackground(
-    shapeType: ShapeType,
-    modifier: Modifier = Modifier, // This modifier is for the Box container
-    animationDurationMillis: Int = 10000 // Duration for one full rotation
+    modifier: Modifier = Modifier,
+    rotationAnimationDurationMillis: Int = 10000, // Duration for one full rotation
+    shapeDisplayDurationMillis: Long = 3000L      // How long each shape is displayed
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "shapeAnimation")
+    val shapeTypes = remember { ShapeType.entries.toTypedArray() } // Optimized remember
+    var currentShapeIndex by remember { mutableStateOf(0) }
+
+    // Effect to cycle through shapes
+    LaunchedEffect(key1 = shapeDisplayDurationMillis) { // Re-launch if duration changes
+        while (true) {
+            delay(shapeDisplayDurationMillis)
+            currentShapeIndex = (currentShapeIndex + 1) % shapeTypes.size
+        }
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "shapeRotation")
     val rotationAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = animationDurationMillis, easing = LinearEasing),
+            animation = tween(durationMillis = rotationAnimationDurationMillis, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "rotationAngle"
     )
 
-    // The Box is the container that will be sized by the caller.
-    // The Canvas will fill this Box.
-    Box(
-        modifier = modifier, // Apply caller's modifier to the Box
-        contentAlignment = Alignment.Center // Center the Canvas if it's smaller than the Box
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) { // Canvas fills the Box
-            rotate(degrees = rotationAngle) {
-                // Draw the shape centered within the Canvas's bounds
-                drawWhiteShape(shapeType, this.size)
+    AnimatedContent(
+        targetState = currentShapeIndex,
+        transitionSpec = {
+            (fadeIn(animationSpec = tween(durationMillis = 700)) +
+             scaleIn(initialScale = 0.8f, animationSpec = tween(durationMillis = 700)))
+            .togetherWith(
+                fadeOut(animationSpec = tween(durationMillis = 700)) +
+                scaleOut(targetScale = 0.8f, animationSpec = tween(durationMillis = 700))
+            )
+        },
+        modifier = modifier, // Apply the passed modifier to AnimatedContent
+        label = "shapeTransition"
+    ) { index ->
+        val shapeTypeToDraw = shapeTypes[index]
+        // Box to center the Canvas drawing, Canvas fills this Box.
+        // Rotation is applied on the Canvas itself.
+        Box(
+            modifier = Modifier.fillMaxSize(), // This Box fills the space given by AnimatedContent
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) { // Canvas also fills its parent Box
+                rotate(degrees = rotationAngle) {
+                    drawWhiteShape(shapeTypeToDraw, this.size) // Your existing drawing function
+                }
             }
         }
     }
