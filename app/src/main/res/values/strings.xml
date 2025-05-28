@@ -209,6 +209,8 @@
 
     <string name="content_description_tick_mark">Confirmation tick</string>
     <string name="notification_actions_more_options">More options</string>
+    <string name="split_button_state_expanded">Expanded</string>
+    <string name="split_button_state_collapsed">Collapsed</string>
 
     <string name="time_hr_min">%1$d hr %2$d min</string>
     <string name="time_hr">%1$d hr</string>

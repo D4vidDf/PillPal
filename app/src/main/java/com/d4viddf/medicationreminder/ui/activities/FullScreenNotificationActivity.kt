@@ -42,11 +42,17 @@ import kotlinx.coroutines.launch // Added import
 import kotlinx.coroutines.delay // Added import
 import androidx.compose.material.icons.Icons // Added import for Material Icons
 import androidx.compose.material.icons.filled.Check // Added import for Check icon
-import androidx.compose.material.icons.filled.ArrowDropDown // Added import
+// import androidx.compose.material.icons.filled.ArrowDropDown // Replaced by KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown // For the animated icon
 import androidx.compose.material3.SplitButtonLayout // Added import
-import androidx.compose.material3.SplitButtonDefaults // Added import
+import androidx.compose.material3.SplitButtonDefaults // For LeadingButton, TrailingButton, spacing, IconSizes
 import androidx.compose.material3.DropdownMenu // Added import
 import androidx.compose.material3.DropdownMenuItem // Added import
+import androidx.compose.animation.core.animateFloatAsState // Added import
+import androidx.compose.ui.graphics.graphicsLayer // Added import
+import androidx.compose.ui.semantics.semantics // Added import
+import androidx.compose.ui.semantics.stateDescription // Added import
+import androidx.compose.ui.semantics.contentDescription // Added import
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -210,7 +216,7 @@ fun FullScreenNotificationScreen(
 ) {
     val scope = rememberCoroutineScope() 
     var showTick by remember { mutableStateOf(false) }
-    var showDismissActions by remember { mutableStateOf(false) } // Added state
+    var isDropdownExpanded by remember { mutableStateOf(false) } // Renamed state variable
 
     val internalOnMarkAsTaken: () -> Unit = { 
         scope.launch { 
@@ -261,46 +267,70 @@ fun FullScreenNotificationScreen(
 
             if (!showTick) {
                 Spacer(modifier = Modifier.weight(1f)) // This Spacer remains
-                SplitButtonLayout(
-                    leadingButton = {
-                        Button(
-                            onClick = internalOnMarkAsTaken,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Text(stringResource(id = R.string.fullscreen_notification_action_taken))
-                        }
-                    },
-                    trailingButton = {
-                        Box {
-                            Button(
-                                onClick = { showDismissActions = true },
-                                shape = MaterialTheme.shapes.medium
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.ArrowDropDown,
-                                    contentDescription = stringResource(id = R.string.notification_actions_more_options)
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = showDismissActions,
-                                onDismissRequest = { showDismissActions = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(id = R.string.fullscreen_notification_action_dismiss)) },
-                                    onClick = {
-                                        onDismiss()
-                                        showDismissActions = false
-                                    }
-                                )
-                            }
-                        }
-                    },
+                // This Box now wraps both SplitButtonLayout and DropdownMenu
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
-                    spacing = SplitButtonDefaults.spacing
-                )
+                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp) 
+                        .defaultMinSize(minHeight = ButtonDefaults.MinHeight) 
+                ) {
+                    SplitButtonLayout(
+                        leadingButton = {
+                            SplitButtonDefaults.LeadingButton(
+                                onClick = internalOnMarkAsTaken // internalOnMarkAsTaken is already defined
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.fullscreen_notification_action_taken),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
+                        },
+                        trailingButton = {
+                            SplitButtonDefaults.TrailingButton(
+                                checked = isDropdownExpanded,
+                                onCheckedChange = { isDropdownExpanded = it },
+                                modifier = Modifier.semantics {
+                                    stateDescription = if (isDropdownExpanded) {
+                                        stringResource(id = R.string.split_button_state_expanded)
+                                    } else {
+                                        stringResource(id = R.string.split_button_state_collapsed)
+                                    }
+                                    // Use a general content description for the toggle itself
+                                    this.contentDescription = stringResource(id = R.string.notification_actions_more_options)
+                                }
+                            ) {
+                                val rotation: Float by animateFloatAsState(
+                                    targetValue = if (isDropdownExpanded) 180f else 0f,
+                                    label = "TrailingIconRotation"
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.KeyboardArrowDown, // As per user example
+                                    modifier = Modifier
+                                        .size(SplitButtonDefaults.TrailingIconSize)
+                                        .graphicsLayer { this.rotationZ = rotation },
+                                    contentDescription = null // Accessibility handled by TrailingButton's semantics
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(), // SplitButtonLayout fills the parent Box's width
+                        spacing = SplitButtonDefaults.spacing
+                    )
+
+                    DropdownMenu(
+                        expanded = isDropdownExpanded,
+                        onDismissRequest = { isDropdownExpanded = false }
+                        // Consider anchoring explicitly to the trailing button if needed,
+                        // but default placement within the Box might be sufficient.
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(id = R.string.fullscreen_notification_action_dismiss)) },
+                            onClick = {
+                                onDismiss() // onDismiss is a parameter
+                                isDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
             } else {
                 Spacer(modifier = Modifier.weight(1f)) 
             }
