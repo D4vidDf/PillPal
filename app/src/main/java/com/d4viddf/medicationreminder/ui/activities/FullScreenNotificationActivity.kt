@@ -218,6 +218,11 @@ fun FullScreenNotificationScreen(
     var showTick by remember { mutableStateOf(false) }
     var isDropdownExpanded by remember { mutableStateOf(false) } // Renamed state variable
 
+    // Pre-resolve strings for semantics
+    val stateExpandedText = stringResource(id = R.string.split_button_state_expanded)
+    val stateCollapsedText = stringResource(id = R.string.split_button_state_collapsed)
+    val moreOptionsText = stringResource(id = R.string.notification_actions_more_options)
+
     val internalOnMarkAsTaken: () -> Unit = { 
         scope.launch { 
             showTick = true
@@ -291,12 +296,12 @@ fun FullScreenNotificationScreen(
                                 onCheckedChange = { isDropdownExpanded = it },
                                 modifier = Modifier.semantics {
                                     stateDescription = if (isDropdownExpanded) {
-                                        stringResource(id = R.string.split_button_state_expanded)
+                                        stateExpandedText // Use variable
                                     } else {
-                                        stringResource(id = R.string.split_button_state_collapsed)
+                                        stateCollapsedText // Use variable
                                     }
                                     // Use a general content description for the toggle itself
-                                    this.contentDescription = stringResource(id = R.string.notification_actions_more_options)
+                                    this.contentDescription = moreOptionsText // Use variable
                                 }
                             ) {
                                 val rotation: Float by animateFloatAsState(
