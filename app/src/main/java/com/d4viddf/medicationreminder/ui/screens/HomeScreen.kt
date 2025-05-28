@@ -18,8 +18,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
@@ -59,7 +59,7 @@ fun HomeScreen(
         ) { scaffoldInnerPadding -> // This is the padding provided by THIS HomeScreen's Scaffold
             Box(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) { // Outer Box handles padding and fillMaxSize
                 // Define TopAppBar height for bottom padding in LazyColumn
-                val topAppBarHeight = 64.dp 
+                val topAppBarHeight = 84.dp
 
                 MedicationList(
                     medications = medications,
@@ -67,7 +67,6 @@ fun HomeScreen(
                     isLoading = isLoading,
                     onRefresh = { viewModel.refreshMedications() },
                     modifier = Modifier.fillMaxSize(), // MedicationList (PullToRefreshBox) fills this Box
-                    externalNestedScrollConnection = scrollBehavior.nestedScrollConnection, // Pass the connection
                     bottomContentPadding = topAppBarHeight // Pass the height for bottom padding
                 )
             }
@@ -85,7 +84,8 @@ fun HomeScreen(
                     onItemClick = { medication -> medicationListClickHandler(medication.id) },
                     isLoading = isLoading,
                     onRefresh = { viewModel.refreshMedications() },
-                    modifier = Modifier.fillMaxSize() // MedicationList fills this Box
+                    modifier = Modifier.fillMaxSize(),
+                    bottomContentPadding = 0.dp // Pass the height for bottom padding
                 )
             }
 
