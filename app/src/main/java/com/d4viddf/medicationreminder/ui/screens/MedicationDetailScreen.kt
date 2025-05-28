@@ -162,7 +162,8 @@ fun MedicationDetailsScreen(
 
                     MedicationProgressDisplay(
                         progressDetails = progressDetails,
-                        colorScheme = color
+                        colorScheme = color,
+                        indicatorSizeDp = 220.dp // Explicitly pass the size
                     )
 
                     Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores

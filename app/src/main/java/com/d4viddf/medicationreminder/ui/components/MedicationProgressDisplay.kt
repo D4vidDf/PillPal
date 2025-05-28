@@ -37,7 +37,8 @@ data class ProgressDetails(
 fun MedicationProgressDisplay(
     progressDetails: ProgressDetails?,
     colorScheme: MedicationColor,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    indicatorSizeDp: Dp = 220.dp // Add new parameter for size
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     val animatedProgress by animateFloatAsState(
@@ -54,7 +55,7 @@ fun MedicationProgressDisplay(
     val density = LocalDensity.current
     val desiredStrokeWidth = 12.dp
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
-    val indicatorSize = 220.dp
+    val indicatorSize = indicatorSizeDp // Use the parameter value
 
     // Construct the semantic description for the progress indicator here
     val progressIndicatorSemanticDesc: String = if (progressDetails != null) {

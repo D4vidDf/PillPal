@@ -54,15 +54,15 @@ fun HomeScreen(
         Scaffold(
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Apply the NavHost modifier here
         ) { scaffoldInnerPadding -> // This is the padding provided by THIS HomeScreen's Scaffold
-            MedicationList(
-                medications = medications,
-                onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                isLoading = isLoading,
-                onRefresh = { viewModel.refreshMedications() },
-                modifier = Modifier
-                    .padding(scaffoldInnerPadding) // Apply padding from THIS Scaffold
-                    .fillMaxSize()
-            )
+            Box(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) { // Outer Box handles padding and fillMaxSize
+                MedicationList(
+                    medications = medications,
+                    onItemClick = { medication -> medicationListClickHandler(medication.id) },
+                    isLoading = isLoading,
+                    onRefresh = { viewModel.refreshMedications() },
+                    modifier = Modifier.fillMaxSize() // MedicationList (PullToRefreshBox) fills this Box
+                )
+            }
         }
     } else { // Medium or Expanded - List/Detail View
         Row(modifier = modifier.fillMaxSize()) { // Modifier from NavHost applied to the Row
