@@ -24,12 +24,13 @@ fun MedicationList(
     onItemClick: (Medication) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
-    modifier: Modifier = Modifier // This modifier is passed from HomeScreen
+    modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
+    externalNestedScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection? = null
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
-        modifier = modifier, // Use the modifier passed from the caller directly
+        modifier = modifier.then(externalNestedScrollConnection ?: Modifier), // Apply the external connection
         state = pullToRefreshState,
         onRefresh = onRefresh,
         isRefreshing = isLoading,

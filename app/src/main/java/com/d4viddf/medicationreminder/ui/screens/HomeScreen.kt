@@ -52,7 +52,10 @@ fun HomeScreen(
         // is applied to this Scaffold.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
         Scaffold(
-            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Apply the NavHost modifier here
+            modifier = modifier, // Remove .nestedScroll(scrollBehavior.nestedScrollConnection)
+            // The TopAppBar itself will use the scrollBehavior,
+            // and the connection will be passed to MedicationList.
+            // topBar = { TopAppBar(title = { Text("Medications") }, scrollBehavior = scrollBehavior) } // Example TopAppBar
         ) { scaffoldInnerPadding -> // This is the padding provided by THIS HomeScreen's Scaffold
             Box(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) { // Outer Box handles padding and fillMaxSize
                 MedicationList(
@@ -60,7 +63,8 @@ fun HomeScreen(
                     onItemClick = { medication -> medicationListClickHandler(medication.id) },
                     isLoading = isLoading,
                     onRefresh = { viewModel.refreshMedications() },
-                    modifier = Modifier.fillMaxSize() // MedicationList (PullToRefreshBox) fills this Box
+                    modifier = Modifier.fillMaxSize(), // MedicationList (PullToRefreshBox) fills this Box
+                    externalNestedScrollConnection = scrollBehavior.nestedScrollConnection // Pass the connection
                 )
             }
         }
