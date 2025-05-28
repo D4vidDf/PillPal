@@ -18,8 +18,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
@@ -52,17 +52,24 @@ fun HomeScreen(
         // is applied to this Scaffold.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
         Scaffold(
-            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Apply the NavHost modifier here
+            modifier = modifier, // Remove .nestedScroll(scrollBehavior.nestedScrollConnection)
+            // The TopAppBar itself will use the scrollBehavior,
+            // and the connection will be passed to MedicationList.
+            // topBar = { TopAppBar(title = { Text("Medications") }, scrollBehavior = scrollBehavior) } // Example TopAppBar
         ) { scaffoldInnerPadding -> // This is the padding provided by THIS HomeScreen's Scaffold
-            MedicationList(
-                medications = medications,
-                onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                isLoading = isLoading,
-                onRefresh = { viewModel.refreshMedications() },
-                modifier = Modifier
-                    .padding(scaffoldInnerPadding) // Apply padding from THIS Scaffold
-                    .fillMaxSize()
-            )
+            Box(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) { // Outer Box handles padding and fillMaxSize
+                // Define TopAppBar height for bottom padding in LazyColumn
+                val topAppBarHeight = 84.dp
+
+                MedicationList(
+                    medications = medications,
+                    onItemClick = { medication -> medicationListClickHandler(medication.id) },
+                    isLoading = isLoading,
+                    onRefresh = { viewModel.refreshMedications() },
+                    modifier = Modifier.fillMaxSize(), // MedicationList (PullToRefreshBox) fills this Box
+                    bottomContentPadding = topAppBarHeight // Pass the height for bottom padding
+                )
+            }
         }
     } else { // Medium or Expanded - List/Detail View
         Row(modifier = modifier.fillMaxSize()) { // Modifier from NavHost applied to the Row
@@ -77,11 +84,11 @@ fun HomeScreen(
                     onItemClick = { medication -> medicationListClickHandler(medication.id) },
                     isLoading = isLoading,
                     onRefresh = { viewModel.refreshMedications() },
-                    modifier = Modifier.fillMaxSize() // MedicationList fills this Box
+                    modifier = Modifier.fillMaxSize(),
+                    bottomContentPadding = 0.dp // Pass the height for bottom padding
                 )
             }
 
-            // Detail Pane
             Box(
                 modifier = Modifier
                     .weight(1.5f) // Adjust weight as needed, e.g., 1.5f or 0.6f for 60%

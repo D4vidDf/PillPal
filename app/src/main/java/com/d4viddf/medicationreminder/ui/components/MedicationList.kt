@@ -13,7 +13,10 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 
@@ -24,12 +27,13 @@ fun MedicationList(
     onItemClick: (Medication) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
-    modifier: Modifier = Modifier // This modifier is passed from HomeScreen
+    modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
+    bottomContentPadding: Dp
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
+
     PullToRefreshBox(
-        modifier = modifier, // Use the modifier passed from the caller directly
         state = pullToRefreshState,
         onRefresh = onRefresh,
         isRefreshing = isLoading,
@@ -54,10 +58,8 @@ fun MedicationList(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
-                // The LazyColumn is the scrollable content. It will be scrollable
-                // even when isRefreshing is true and the indicator is visible.
-                // The indicator is drawn in a separate layer or space managed by PullToRefreshBox.
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = bottomContentPadding) // Apply bottom padding
             ) {
                 items(medications, key = { medication -> medication.id }) { medication ->
                     MedicationCard(

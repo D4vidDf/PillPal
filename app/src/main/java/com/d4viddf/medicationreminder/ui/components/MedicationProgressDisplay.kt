@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke 
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -19,6 +20,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
@@ -37,7 +39,8 @@ data class ProgressDetails(
 fun MedicationProgressDisplay(
     progressDetails: ProgressDetails?,
     colorScheme: MedicationColor,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    indicatorSizeDp: Dp = 220.dp // Add new parameter for size
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     val animatedProgress by animateFloatAsState(
@@ -52,9 +55,9 @@ fun MedicationProgressDisplay(
     }
 
     val density = LocalDensity.current
-    val desiredStrokeWidth = 12.dp
+    val desiredStrokeWidth = 8.dp
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
-    val indicatorSize = 220.dp
+    val indicatorSize = indicatorSizeDp // Use the parameter value
 
     // Construct the semantic description for the progress indicator here
     val progressIndicatorSemanticDesc: String = if (progressDetails != null) {
@@ -102,11 +105,11 @@ fun MedicationProgressDisplay(
                     },
                 color = colorScheme.progressBarColor,
                 trackColor = colorScheme.progressBackColor,
-                stroke = Stroke(width = desiredStrokeWidthPx),
-                trackStroke = Stroke(width = desiredStrokeWidthPx),
-                wavelength = 52.dp,
-                waveSpeed = 4.dp,
-                gapSize = 0.dp
+                stroke = Stroke(width = desiredStrokeWidthPx,cap = StrokeCap.Round),
+                trackStroke = Stroke(width = desiredStrokeWidthPx,cap = StrokeCap.Round),
+                wavelength = 42.dp,
+                waveSpeed = 3.dp,
+                gapSize = 12.dp
             )
 
             // Column para agrupar "Progreso" y los números, y centrar esta Column dentro del Box
