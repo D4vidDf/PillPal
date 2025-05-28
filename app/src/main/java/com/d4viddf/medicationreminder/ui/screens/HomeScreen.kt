@@ -58,13 +58,17 @@ fun HomeScreen(
             // topBar = { TopAppBar(title = { Text("Medications") }, scrollBehavior = scrollBehavior) } // Example TopAppBar
         ) { scaffoldInnerPadding -> // This is the padding provided by THIS HomeScreen's Scaffold
             Box(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) { // Outer Box handles padding and fillMaxSize
+                // Define TopAppBar height for bottom padding in LazyColumn
+                val topAppBarHeight = 64.dp 
+
                 MedicationList(
                     medications = medications,
                     onItemClick = { medication -> medicationListClickHandler(medication.id) },
                     isLoading = isLoading,
                     onRefresh = { viewModel.refreshMedications() },
                     modifier = Modifier.fillMaxSize(), // MedicationList (PullToRefreshBox) fills this Box
-                    externalNestedScrollConnection = scrollBehavior.nestedScrollConnection // Pass the connection
+                    externalNestedScrollConnection = scrollBehavior.nestedScrollConnection, // Pass the connection
+                    bottomContentPadding = topAppBarHeight // Pass the height for bottom padding
                 )
             }
         }
