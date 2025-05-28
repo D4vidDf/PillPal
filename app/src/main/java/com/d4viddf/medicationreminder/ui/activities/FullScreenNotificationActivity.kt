@@ -32,7 +32,7 @@ import com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground
 // However, the clean code doesn't use currentShapeType logic, so ShapeType import might be removable later if not used.
 // For now, keeping it as per user's clean code.
 import com.d4viddf.medicationreminder.ui.components.ShapeType 
-import com.d4viddf.medicationreminder.ui.components.SplitButton // Added import
+// import com.d4viddf.medicationreminder.ui.components.SplitButton // Custom SplitButton import removed
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 import kotlin.math.abs // For abs function
@@ -42,6 +42,11 @@ import kotlinx.coroutines.launch // Added import
 import kotlinx.coroutines.delay // Added import
 import androidx.compose.material.icons.Icons // Added import for Material Icons
 import androidx.compose.material.icons.filled.Check // Added import for Check icon
+import androidx.compose.material.icons.filled.ArrowDropDown // Added import
+import androidx.compose.material3.SplitButtonLayout // Added import
+import androidx.compose.material3.SplitButtonDefaults // Added import
+import androidx.compose.material3.DropdownMenu // Added import
+import androidx.compose.material3.DropdownMenuItem // Added import
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -205,6 +210,7 @@ fun FullScreenNotificationScreen(
 ) {
     val scope = rememberCoroutineScope() 
     var showTick by remember { mutableStateOf(false) }
+    var showDismissActions by remember { mutableStateOf(false) } // Added state
 
     val internalOnMarkAsTaken: () -> Unit = { 
         scope.launch { 
@@ -255,17 +261,45 @@ fun FullScreenNotificationScreen(
 
             if (!showTick) {
                 Spacer(modifier = Modifier.weight(1f)) // This Spacer remains
-                SplitButton(
-                    primaryActionText = stringResource(id = R.string.fullscreen_notification_action_taken),
-                    onPrimaryActionClick = internalOnMarkAsTaken,
-                    secondaryActions = listOf(
-                        stringResource(id = R.string.fullscreen_notification_action_dismiss) to onDismiss
-                    ),
+                SplitButtonLayout(
+                    leadingButton = {
+                        Button(
+                            onClick = internalOnMarkAsTaken,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(stringResource(id = R.string.fullscreen_notification_action_taken))
+                        }
+                    },
+                    trailingButton = {
+                        Box {
+                            Button(
+                                onClick = { showDismissActions = true },
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowDropDown,
+                                    contentDescription = stringResource(id = R.string.notification_actions_more_options)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showDismissActions,
+                                onDismissRequest = { showDismissActions = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(id = R.string.fullscreen_notification_action_dismiss)) },
+                                    onClick = {
+                                        onDismiss()
+                                        showDismissActions = false
+                                    }
+                                )
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp), // Kept similar padding
-                    enabled = true, 
-                    primaryButtonModifier = Modifier.weight(1f) 
+                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                    spacing = SplitButtonDefaults.spacing
                 )
             } else {
                 Spacer(modifier = Modifier.weight(1f)) 

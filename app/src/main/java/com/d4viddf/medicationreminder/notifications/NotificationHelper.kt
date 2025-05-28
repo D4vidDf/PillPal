@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes // Added import
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -47,7 +48,10 @@ object NotificationHelper {
                 lightColor = android.graphics.Color.CYAN
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 250, 500)
-                setSound(defaultSoundUri, Notification.AUDIO_ATTRIBUTES_DEFAULT)
+                setSound(defaultSoundUri, AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build())
 
             }
 
