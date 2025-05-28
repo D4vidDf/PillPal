@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius // Added import for CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -106,11 +107,14 @@ private fun DrawScope.drawWhiteShape(shapeType: ShapeType, canvasSize: Size) {
             )
         }
         ShapeType.SQUARE -> {
-            val sideLength = radius * 2f / kotlin.math.sqrt(2f) // So the corners touch the circle of 'radius'
-            drawRect(
+            val sideLength = radius * 2f / kotlin.math.sqrt(2f) // Current calculation for sideLength
+            val cornerRadiusValue = sideLength * 0.1f // Example: 10% of side length for corner radius
+
+            drawRoundRect(
                 color = Color.White,
                 topLeft = Offset(center.x - sideLength / 2f, center.y - sideLength / 2f),
-                size = Size(sideLength, sideLength)
+                size = Size(sideLength, sideLength),
+                cornerRadius = CornerRadius(cornerRadiusValue, cornerRadiusValue) // Apply corner radius
             )
         }
         ShapeType.PENTAGON -> {

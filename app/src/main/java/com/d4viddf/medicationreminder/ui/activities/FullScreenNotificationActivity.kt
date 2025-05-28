@@ -29,7 +29,7 @@ import com.d4viddf.medicationreminder.ui.colors.findMedicationColorByHex // Adde
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground
 // ShapeType is used by FullScreenNotificationScreen to determine currentShapeType, so it's still needed.
-import com.d4viddf.medicationreminder.ui.components.ShapeType 
+import com.d4viddf.medicationreminder.ui.components.ShapeType
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 import kotlin.math.abs // For abs function
@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.ColorFilter // For ColorFilter.tint
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.launch // Added import
 import kotlinx.coroutines.delay // Added import
+import androidx.compose.material.icons.Icons // Added import for Material Icons
+import androidx.compose.material.icons.filled.Check // Added import for Check icon
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -177,10 +179,10 @@ fun MedicationTypeImage(
         )
         if (showTick) {
             Image(
-                painter = painterResource(id = R.drawable.ic_stat_medication), // Placeholder tick icon
+                imageVector = Icons.Filled.Check, // Changed to imageVector
                 contentDescription = stringResource(id = R.string.content_description_tick_mark),
-                modifier = Modifier.size(120.dp),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary) // Changed tint
+                modifier = Modifier.size(120.dp), // Size can remain 120.dp or be adjusted if needed
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
         } else {
             Image(
