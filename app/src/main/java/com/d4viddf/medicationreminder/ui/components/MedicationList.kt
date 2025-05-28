@@ -29,8 +29,14 @@ fun MedicationList(
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
+    val finalModifier = if (externalNestedScrollConnection != null) {
+        modifier.nestedScroll(externalNestedScrollConnection)
+    } else {
+        modifier
+    }
+
     PullToRefreshBox(
-        modifier = modifier.then(externalNestedScrollConnection ?: Modifier), // Apply the external connection
+        modifier = finalModifier, // Apply the correctly composed modifier
         state = pullToRefreshState,
         onRefresh = onRefresh,
         isRefreshing = isLoading,
