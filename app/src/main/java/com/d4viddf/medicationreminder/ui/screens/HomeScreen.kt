@@ -89,7 +89,6 @@ fun HomeScreen(
                 )
             }
 
-            // Detail Pane
             Box(
                 modifier = Modifier
                     .weight(1.5f) // Adjust weight as needed, e.g., 1.5f or 0.6f for 60%
