@@ -30,6 +30,7 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.components.AnimatedShapeBackground
 // ShapeType is used by FullScreenNotificationScreen to determine currentShapeType, so it's still needed.
 import com.d4viddf.medicationreminder.ui.components.ShapeType
+import com.d4viddf.medicationreminder.ui.components.SplitButton // Added import for SplitButton
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 import kotlin.math.abs // For abs function
@@ -39,6 +40,9 @@ import kotlinx.coroutines.launch // Added import
 import kotlinx.coroutines.delay // Added import
 import androidx.compose.material.icons.Icons // Added import for Material Icons
 import androidx.compose.material.icons.filled.Check // Added import for Check icon
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi // Added import
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass // Added import
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added import
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -66,6 +70,7 @@ class FullScreenNotificationActivity : ComponentActivity() {
         private const val TAG = "FullScreenNotification"
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class) // Added annotation
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -76,6 +81,9 @@ class FullScreenNotificationActivity : ComponentActivity() {
         val medicationTypeName = intent.getStringExtra(EXTRA_MED_TYPE_NAME)
 
         Log.d(TAG, "Activity created for Reminder ID: $reminderId, Name: $medicationName, Dosage: $medicationDosage, Color: $medicationColorHex, Type: $medicationTypeName")
+
+        val windowSizeClass = calculateWindowSizeClass(this) // Added calculation
+        val widthSizeClass = windowSizeClass.widthSizeClass // Added calculation
 
         setContent {
             AppTheme {
@@ -96,7 +104,8 @@ class FullScreenNotificationActivity : ComponentActivity() {
                 Log.d(TAG, "Using MedicationColor enum ${medicationColorScheme.name} for colors (descriptive name: ${medicationColorScheme.colorName})")
 
                 FullScreenNotificationScreen(
-                    reminderId = reminderId, // Add this
+                    widthSizeClass = widthSizeClass, // New parameter
+                    reminderId = reminderId, 
                     medicationName = medicationName,
                     medicationDosage = medicationDosage,
                     medicationTypeName = medicationTypeName,
@@ -198,99 +207,195 @@ fun MedicationTypeImage(
 
 @Composable
 fun FullScreenNotificationScreen(
-    reminderId: Int, // Add this
+    widthSizeClass: WindowWidthSizeClass,
+    reminderId: Int, // Kept for potential future use, though not directly used in new layouts
     medicationName: String,
     medicationDosage: String,
     medicationTypeName: String?,
     backgroundColor: Color,
-    contentColor: Color, // For text and icons to contrast with backgroundColor
-    onMarkAsTaken: () -> Unit,
+    contentColor: Color,
+    onMarkAsTaken: () -> Unit, // This is the one from Activity
     onDismiss: () -> Unit
 ) {
-    val scope = rememberCoroutineScope() // Added scope
+    val scope = rememberCoroutineScope()
     var showTick by remember { mutableStateOf(false) }
-    // val shapeTypes = com.d4viddf.medicationreminder.ui.components.ShapeType.entries.toTypedArray() // REMOVED
-    // val currentShapeType = shapeTypes[kotlin.math.abs(reminderId.hashCode()) % shapeTypes.size] // REMOVED
 
-    val internalOnMarkAsTaken: () -> Unit = { // Explicitly typed
-        scope.launch { // Launch coroutine
+    val internalOnMarkAsTaken: () -> Unit = {
+        scope.launch {
             showTick = true
-            delay(1000L) // Delay for 1 second
-            onMarkAsTaken() // Call original lambda
+            delay(1000L)
+            onMarkAsTaken() // Call the original onMarkAsTaken from Activity
         }
     }
 
-    Surface( // Use Surface as the root to easily set background color
+    Surface(
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor
     ) {
+        when (widthSizeClass) {
+            WindowWidthSizeClass.Compact -> {
+                CompactLayout(
+                    medicationName = medicationName,
+                    medicationDosage = medicationDosage,
+                    medicationTypeName = medicationTypeName,
+                    contentColor = contentColor,
+                    showTick = showTick,
+                    onMarkAsTakenClick = internalOnMarkAsTaken,
+                    onDismissClick = onDismiss
+                )
+            }
+            else -> { // Medium, Expanded, and any other fallbacks
+                LargeScreenLayout(
+                    medicationName = medicationName,
+                    medicationDosage = medicationDosage,
+                    medicationTypeName = medicationTypeName,
+                    contentColor = contentColor,
+                    showTick = showTick,
+                    onMarkAsTakenClick = internalOnMarkAsTaken,
+                    onDismissClick = onDismiss
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactLayout(
+    medicationName: String,
+    medicationDosage: String,
+    medicationTypeName: String?,
+    contentColor: Color,
+    showTick: Boolean,
+    onMarkAsTakenClick: () -> Unit,
+    onDismissClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceAround
+            verticalArrangement = Arrangement.spacedBy(24.dp) // Applied spacing
         ) {
             if (!showTick) {
-                Spacer(modifier = Modifier.weight(0.2f)) // Less weight at top
-
                 Text(
                     text = medicationName,
                     style = MaterialTheme.typography.headlineMedium,
                     color = contentColor,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp) // Allow space if name is long
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-
                 Text(
                     text = medicationDosage,
                     style = MaterialTheme.typography.titleLarge,
-                    color = contentColor.copy(alpha = 0.8f), // Slightly less prominent than name
+                    color = contentColor.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 24.dp, start = 16.dp, end = 16.dp)
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp) // Removed bottom padding to use spacedBy
                 )
             } else {
-                 Spacer(modifier = Modifier.weight(0.2f)) // Maintain some spacing at the top
+                // Potentially a Spacer or an empty Composable to maintain some balance if needed when tick is shown
+                // For now, relying on Arrangement.spacedBy and the central MedicationTypeImage
             }
 
             MedicationTypeImage(
                 typeName = medicationTypeName,
-                // shapeType = currentShapeType, // REMOVED
-                // iconColor = contentColor, // Removed argument
                 showTick = showTick,
                 modifier = Modifier.size(200.dp)
             )
 
             if (!showTick) {
-                Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between buttons
-                ) {
-                    Button(
-                        onClick = internalOnMarkAsTaken, // Use the new internal lambda
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium // Standard button shape
-                    ) {
-                        Text(stringResource(id = R.string.fullscreen_notification_action_taken), style = MaterialTheme.typography.labelLarge)
-                    }
-                    Button(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium, // Standard button shape
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer, // Contrasting color
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    ) {
-                        Text(stringResource(id = R.string.fullscreen_notification_action_dismiss), style = MaterialTheme.typography.labelLarge)
-                    }
-                }
+                SplitButton(
+                    primaryActionText = stringResource(id = R.string.fullscreen_notification_action_taken),
+                    onPrimaryActionClick = onMarkAsTakenClick,
+                    secondaryActions = listOf(
+                        stringResource(id = R.string.fullscreen_notification_action_dismiss) to onDismissClick
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = true, // The whole SplitButton is conditional on !showTick
+                    primaryButtonModifier = Modifier.weight(1f) // Allows primary text to expand
+                )
             } else {
-                Spacer(modifier = Modifier.weight(1f)) // Ensure tick animation remains centered
+                 // Spacer to balance the layout when buttons are hidden, if needed.
+                 // For now, the MedicationTypeImage will be centered by the parent Box.
             }
+        }
+    }
+}
+
+@Composable
+private fun LargeScreenLayout(
+    medicationName: String,
+    medicationDosage: String,
+    medicationTypeName: String?,
+    contentColor: Color,
+    showTick: Boolean,
+    onMarkAsTakenClick: () -> Unit,
+    onDismissClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        // Left Pane
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (!showTick) {
+                Text(
+                    text = medicationName,
+                    style = MaterialTheme.typography.displaySmall, // Larger style
+                    color = contentColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp)) // Added Spacer
+                Text(
+                    text = medicationDosage,
+                    style = MaterialTheme.typography.headlineSmall, // Slightly larger style
+                    color = contentColor.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(32.dp)) // Added Spacer
+                SplitButton(
+                    primaryActionText = stringResource(id = R.string.fullscreen_notification_action_taken),
+                    onPrimaryActionClick = onMarkAsTakenClick,
+                    secondaryActions = listOf(
+                        stringResource(id = R.string.fullscreen_notification_action_dismiss) to onDismissClick
+                    ),
+                    modifier = Modifier.fillMaxWidth(0.8f), // Adjust width as needed, e.g., 80% of the column
+                    enabled = true, // The whole SplitButton is conditional on !showTick
+                    primaryButtonModifier = Modifier.weight(1f) // Allows primary text to expand
+                )
+            } else {
+                // Spacer to maintain balance if text/buttons are hidden
+                // The MedicationTypeImage on the right will be the main focus.
+                // We can add a spacer of equivalent approximate height of the hidden content
+                // For simplicity, this is omitted but can be added if visual balance is off.
+            }
+        }
+
+        // Right Pane
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), // Fill height for vertical centering of content
+            contentAlignment = Alignment.Center
+        ) {
+            MedicationTypeImage(
+                typeName = medicationTypeName,
+                showTick = showTick,
+                modifier = Modifier.size(300.dp) // Larger size for MedicationTypeImage
+            )
         }
     }
 }
@@ -309,6 +414,7 @@ fun Color.luminance(): Float {
 fun FullScreenNotificationScreenPillPreview() {
     AppTheme {
         FullScreenNotificationScreen(
+            widthSizeClass = WindowWidthSizeClass.Compact, // Added for preview
             reminderId = 1,
             medicationName = "Ibuprofen",
             medicationDosage = "200 mg",
@@ -326,7 +432,8 @@ fun FullScreenNotificationScreenPillPreview() {
 fun FullScreenNotificationScreenSyrupDarkPreview() {
     AppTheme {
         FullScreenNotificationScreen(
-            reminderId = 2,
+            widthSizeClass = WindowWidthSizeClass.Compact, // Added for preview
+            reminderId = 2, // Changed from 1 to 2 to match original
             medicationName = "Paracetamol Syrup",
             medicationDosage = "10 ml",
             medicationTypeName = "Syrup",
