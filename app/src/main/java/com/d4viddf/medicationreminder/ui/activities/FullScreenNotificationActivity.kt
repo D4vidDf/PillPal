@@ -210,7 +210,7 @@ fun FullScreenNotificationScreen(
     // val shapeTypes = com.d4viddf.medicationreminder.ui.components.ShapeType.entries.toTypedArray() // REMOVED
     // val currentShapeType = shapeTypes[kotlin.math.abs(reminderId.hashCode()) % shapeTypes.size] // REMOVED
 
-    val internalOnMarkAsTaken = {
+    val internalOnMarkAsTaken: () -> Unit = { // Explicitly typed
         scope.launch { // Launch coroutine
             showTick = true
             delay(1000L) // Delay for 1 second
