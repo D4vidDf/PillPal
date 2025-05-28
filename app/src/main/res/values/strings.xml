@@ -207,11 +207,8 @@
     <string name="prereminder_text_about_time">It\'s about time!</string>
     <string name="prereminder_action_taken">Taken</string>
 
-    <string name="content_description_tick_mark">Confirmation tick</string>
-
     <string name="time_hr_min">%1$d hr %2$d min</string>
     <string name="time_hr">%1$d hr</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
-    <string name="split_button_more_options">More options</string>
 </resources>
