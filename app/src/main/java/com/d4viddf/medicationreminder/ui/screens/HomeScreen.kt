@@ -1,5 +1,14 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,17 +19,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.foundation.clickable // Required for Card clickable
-import androidx.compose.foundation.shape.RoundedCornerShape // Required for Card shape
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-// import androidx.compose.material3.ListItem // No longer needed
-import androidx.compose.material3.MaterialTheme // Added for colorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -41,21 +48,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
+import com.d4viddf.medicationreminder.utils.PermissionUtils
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Intent
-import android.speech.RecognizerIntent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class) // ExperimentalPermissionsApi removed if not needed elsewhere
 @Composable
 fun HomeScreen(
     onAddMedicationClick: () -> Unit,
@@ -73,8 +70,8 @@ fun HomeScreen(
     // Local state for SearchBar active state
     var searchActive by rememberSaveable { mutableStateOf(false) }
 
-    val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
-    val context = LocalContext.current
+    // val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO) // Removed
+    // val activity = LocalContext.current as Activity // Will be replaced by findActivity()
 
     val speechRecognitionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -137,18 +134,28 @@ fun HomeScreen(
                                 )
                             },
                             trailingIcon = {
+                                val localContext = LocalContext.current // Renamed to avoid conflict in lambdas
                                 IconButton(onClick = {
-                                    if (audioPermissionState.status.isGranted) {
-                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
-                                        }
-                                        speechRecognitionLauncher.launch(intent)
-                                    } else if (audioPermissionState.status.shouldShowRationale) {
-                                        // Optional: Show a rationale SnackBar/Toast if needed before re-requesting
-                                        audioPermissionState.launchPermissionRequest()
+                                    val activity = localContext.findActivity()
+                                    if (activity != null) {
+                                        PermissionUtils.requestRecordAudioPermission(
+                                            activity = activity,
+                                            onAlreadyGranted = {
+                                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                                    putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
+                                                }
+                                                speechRecognitionLauncher.launch(intent)
+                                            },
+                                            onRationaleNeeded = {
+                                                // TODO: Implement a user-facing rationale (e.g., Snackbar)
+                                                Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed. User should be informed.")
+                                                // Toast.makeText(localContext, "Microphone access is needed for voice search.", Toast.LENGTH_LONG).show()
+                                            }
+                                        )
                                     } else {
-                                        audioPermissionState.launchPermissionRequest()
+                                        Log.e("HomeScreen", "Could not find Activity context to request RECORD_AUDIO permission.")
+                                        // Toast.makeText(localContext, "Error: Could not perform voice search.", Toast.LENGTH_SHORT).show()
                                     }
                                 }) {
                                     Icon(
@@ -231,18 +238,28 @@ fun HomeScreen(
                                 )
                             },
                             trailingIcon = {
+                                val localContext = LocalContext.current // Renamed to avoid conflict in lambdas
                                 IconButton(onClick = {
-                                    if (audioPermissionState.status.isGranted) {
-                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
-                                        }
-                                        speechRecognitionLauncher.launch(intent)
-                                    } else if (audioPermissionState.status.shouldShowRationale) {
-                                        // Optional: Show a rationale SnackBar/Toast if needed before re-requesting
-                                        audioPermissionState.launchPermissionRequest()
+                                    val activity = localContext.findActivity()
+                                    if (activity != null) {
+                                        PermissionUtils.requestRecordAudioPermission(
+                                            activity = activity,
+                                            onAlreadyGranted = {
+                                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                                    putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
+                                                }
+                                                speechRecognitionLauncher.launch(intent)
+                                            },
+                                            onRationaleNeeded = {
+                                                // TODO: Implement a user-facing rationale (e.g., Snackbar)
+                                                Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed. User should be informed.")
+                                                // Toast.makeText(localContext, "Microphone access is needed for voice search.", Toast.LENGTH_LONG).show()
+                                            }
+                                        )
                                     } else {
-                                        audioPermissionState.launchPermissionRequest()
+                                        Log.e("HomeScreen", "Could not find Activity context to request RECORD_AUDIO permission.")
+                                        // Toast.makeText(localContext, "Error: Could not perform voice search.", Toast.LENGTH_SHORT).show()
                                     }
                                 }) {
                                     Icon(
@@ -316,3 +333,10 @@ fun HomeScreen(
 }
 // Helper import, will be moved by IDE if not used explicitly but good for clarity
 // import androidx.compose.foundation.clickable
+
+// Top-level extension function
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}

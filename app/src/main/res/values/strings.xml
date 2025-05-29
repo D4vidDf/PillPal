@@ -127,6 +127,11 @@
 
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Notifications</string>
+    <string name="notification_channel_reminder_name">Medication Reminders</string>
+    <string name="notification_channel_reminder_description">Notifications for medication intake reminders</string>
+    <string name="notification_channel_prereminder_name">Pre-Medication Reminders</string>
+    <string name="notification_channel_prereminder_description">Notifications that appear before medication is due.</string>
+
 
     <!-- Day initialisms for medication summary -->
     <string name="day_mon">Mon</string>
