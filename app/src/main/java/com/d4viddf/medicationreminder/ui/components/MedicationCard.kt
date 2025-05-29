@@ -44,14 +44,15 @@ fun MedicationCard(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween, // Ensure spacing
-            verticalAlignment = Alignment.CenterVertically // Align items vertically
+            // horizontalArrangement = Arrangement.SpaceBetween, // Removed for weight-based layout
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f) // Ensure the text column takes available space
+                modifier = Modifier.weight(2f) // Text part takes 2/3 of the space
             ) {
+                val displayName = medication.name.split(" ").take(3).joinToString(" ")
                 Text(
-                    text = medication.name, // Use original name
+                    text = displayName, // Use processed name
                     style = MaterialTheme.typography.headlineSmall,
                     color= color.textColor,
                     fontWeight = FontWeight.Bold
