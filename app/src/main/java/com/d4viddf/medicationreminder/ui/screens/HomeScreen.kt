@@ -1,12 +1,29 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.clickable // Required for Card clickable
+import androidx.compose.foundation.shape.RoundedCornerShape // Required for Card shape
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+// import androidx.compose.material3.ListItem // No longer needed
+import androidx.compose.material3.MaterialTheme // Added for colorScheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -18,14 +35,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     onAddMedicationClick: () -> Unit,
@@ -36,9 +66,34 @@ fun HomeScreen(
 ) {
     val medications by viewModel.medications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val currentSearchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
     var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) }
 
+    // Local state for SearchBar active state
+    var searchActive by rememberSaveable { mutableStateOf(false) }
+
+    val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    val context = LocalContext.current
+
+    val speechRecognitionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val spokenText: ArrayList<String>? =
+                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!spokenText.isNullOrEmpty()) {
+                viewModel.updateSearchQuery(spokenText[0])
+                searchActive = true // Optionally activate search bar if you want to see results immediately
+            }
+        }
+    }
+
     val medicationListClickHandler: (Int) -> Unit = { medicationId ->
+        // When a medication is clicked, whether from main list or search results,
+        // deactivate search and clear query to return to normal view.
+        searchActive = false
+        viewModel.updateSearchQuery("") // Clear search query
         if (widthSizeClass == WindowWidthSizeClass.Compact) {
             onMedicationClick(medicationId)
         } else {
@@ -52,41 +107,188 @@ fun HomeScreen(
         // is applied to this Scaffold.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
         Scaffold(
-            modifier = modifier, // Remove .nestedScroll(scrollBehavior.nestedScrollConnection)
-            // The TopAppBar itself will use the scrollBehavior,
-            // and the connection will be passed to MedicationList.
-            // topBar = { TopAppBar(title = { Text("Medications") }, scrollBehavior = scrollBehavior) } // Example TopAppBar
-        ) { scaffoldInnerPadding -> // This is the padding provided by THIS HomeScreen's Scaffold
-            Box(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) { // Outer Box handles padding and fillMaxSize
-                // Define TopAppBar height for bottom padding in LazyColumn
-                val topAppBarHeight = 84.dp
+            // modifier = modifier, // Modifier from NavHost is now applied to the Column below
+        ) {
+            // Apply the modifier from NavHost (which includes padding from MedicationReminderApp's Scaffold)
+            // AND the scaffoldInnerPadding from this HomeScreen's Scaffold to the Column.
+            Column() {
+                SearchBar(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp),
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = currentSearchQuery,
+                            onQueryChange = { viewModel.updateSearchQuery(it) },
+                            onSearch = {
+                                searchActive = false
+                                // Keyboard hidden automatically by onSearch
+                            },
+                            expanded = searchActive, // Pass the active state here
+                            onExpandedChange = { isActive -> // This seems to be missing in SearchBarDefaults.InputField, handle in SearchBar
+                                searchActive = isActive
+                                if (!isActive) {
+                                    viewModel.updateSearchQuery("")
+                                }
+                            },
+                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = stringResource(id = R.string.search_icon_content_description)
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    if (audioPermissionState.status.isGranted) {
+                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
+                                        }
+                                        speechRecognitionLauncher.launch(intent)
+                                    } else if (audioPermissionState.status.shouldShowRationale) {
+                                        // Optional: Show a rationale SnackBar/Toast if needed before re-requesting
+                                        audioPermissionState.launchPermissionRequest()
+                                    } else {
+                                        audioPermissionState.launchPermissionRequest()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Mic,
+                                        contentDescription = stringResource(id = R.string.microphone_icon_content_description)
+                                    )
+                                }
+                            },
+                        )
+                    },
+                    expanded = searchActive,
+                    onExpandedChange = { isActive ->
+                        searchActive = isActive
+                        if (!isActive) {
+                            viewModel.updateSearchQuery("") // Clear query when search becomes inactive
+                        }
+                    }
+                ) {
+                    // Content for search results - displayed when searchActive (expanded) is true
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(searchResults) { medication ->
+                            Card(
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable { medicationListClickHandler(medication.id) }
+                            ) {
+                                Text(
+                                    text = medication.name,
+                                    modifier = Modifier.padding(16.dp),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
 
-                MedicationList(
-                    medications = medications,
-                    onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                    isLoading = isLoading,
-                    onRefresh = { viewModel.refreshMedications() },
-                    modifier = Modifier.fillMaxSize(), // MedicationList (PullToRefreshBox) fills this Box
-                    bottomContentPadding = topAppBarHeight // Pass the height for bottom padding
-                )
+                // Main medication list - only shown if search is not active
+                if (!searchActive) {
+                    // Define TopAppBar height for bottom padding in LazyColumn
+                    val topAppBarHeight = 84.dp // This might need adjustment if SearchBar changes effective TopAppBar space
+                    MedicationList(
+                        medications = medications, // Display all medications from viewModel
+                        onItemClick = { medication -> medicationListClickHandler(medication.id) },
+                        isLoading = isLoading,
+                        onRefresh = { viewModel.refreshMedications() },
+                        modifier = Modifier.fillMaxSize(),
+                        bottomContentPadding = topAppBarHeight
+                    )
+                }
             }
         }
     } else { // Medium or Expanded - List/Detail View
-        Row(modifier = modifier.fillMaxSize()) { // Modifier from NavHost applied to the Row
-            // Medication List Pane
-            Box(
+        Row(modifier = modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .weight(1f) // Adjust weight as needed, e.g., 1f or 0.4f for 40%
+                    .weight(1f)
                     .fillMaxHeight()
             ) {
-                MedicationList(
-                    medications = medications,
-                    onItemClick = { medication -> medicationListClickHandler(medication.id) },
-                    isLoading = isLoading,
-                    onRefresh = { viewModel.refreshMedications() },
-                    modifier = Modifier.fillMaxSize(),
-                    bottomContentPadding = 0.dp // Pass the height for bottom padding
-                )
+                SearchBar(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp),
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = currentSearchQuery,
+                            onQueryChange = { viewModel.updateSearchQuery(it) },
+                            onSearch = { searchActive = false },
+                            expanded = searchActive, // Pass the active state here
+                            onExpandedChange = { isActive -> // This seems to be missing in SearchBarDefaults.InputField, handle in SearchBar
+                                searchActive = isActive
+                                if (!isActive) {
+                                    viewModel.updateSearchQuery("")
+                                }
+                            },
+                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = stringResource(id = R.string.search_icon_content_description)
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    if (audioPermissionState.status.isGranted) {
+                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
+                                        }
+                                        speechRecognitionLauncher.launch(intent)
+                                    } else if (audioPermissionState.status.shouldShowRationale) {
+                                        // Optional: Show a rationale SnackBar/Toast if needed before re-requesting
+                                        audioPermissionState.launchPermissionRequest()
+                                    } else {
+                                        audioPermissionState.launchPermissionRequest()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Mic,
+                                        contentDescription = stringResource(id = R.string.microphone_icon_content_description)
+                                    )
+                                }
+                            },
+                        )
+                    },
+                    expanded = searchActive,
+                    onExpandedChange = { isActive ->
+                        searchActive = isActive
+                        if (!isActive) {
+                            viewModel.updateSearchQuery("")
+                        }
+                    }
+                ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(searchResults) { medication ->
+                            Card(
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable { medicationListClickHandler(medication.id) }
+                            ) {
+                                Text(
+                                    text = medication.name,
+                                    modifier = Modifier.padding(16.dp),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+                if (!searchActive) {
+                    MedicationList(
+                        medications = medications, // Display all medications
+                        onItemClick = { medication -> medicationListClickHandler(medication.id) },
+                        isLoading = isLoading,
+                        onRefresh = { viewModel.refreshMedications() },
+                        modifier = Modifier.fillMaxSize(),
+                        bottomContentPadding = 0.dp
+                    )
+                }
             }
 
             Box(
@@ -100,10 +302,17 @@ fun HomeScreen(
                 } else {
                     MedicationDetailsScreen(
                         medicationId = selectedMedicationId!!,
-                        onNavigateBack = { selectedMedicationId = null }
+                        onNavigateBack = {
+                            selectedMedicationId = null
+                            // Optionally, also ensure search is reset if a detail view is dismissed
+                            // searchActive = false
+                            // viewModel.updateSearchQuery("")
+                        }
                     )
                 }
             }
         }
     }
 }
+// Helper import, will be moved by IDE if not used explicitly but good for clarity
+// import androidx.compose.foundation.clickable

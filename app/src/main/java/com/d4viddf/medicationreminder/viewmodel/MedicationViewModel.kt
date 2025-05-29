@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,19 +42,44 @@ class MedicationViewModel @Inject constructor(
     private val _medicationProgressDetails = MutableStateFlow<ProgressDetails?>(null)
     val medicationProgressDetails: StateFlow<ProgressDetails?> = _medicationProgressDetails.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<Medication>>(emptyList())
+    val searchResults: StateFlow<List<Medication>> = _searchResults.asStateFlow()
+
     init {
-        observeMedications() // Changed from getAllMedications
+        observeMedications()
+        observeSearchQueryAndMedications()
     }
 
-    // Renamed from getAllMedications
     private fun observeMedications() {
         viewModelScope.launch {
-            // This is a long-lived collection for observing data changes
-            // It should not modify _isLoading.value
             medicationRepository.getAllMedications().collect { medications ->
                 _medications.value = medications
+                // Note: Filtering logic is now in observeSearchQueryAndMedications
             }
         }
+    }
+
+    private fun observeSearchQueryAndMedications() {
+        viewModelScope.launch {
+            combine(_searchQuery, _medications) { query, medications ->
+                if (query.isBlank()) {
+                    emptyList() // Return empty list if query is blank
+                } else {
+                    medications.filter { medication ->
+                        medication.name.contains(query, ignoreCase = true)
+                    }
+                }
+            }.collect { filteredMedications ->
+                _searchResults.value = filteredMedications
+            }
+        }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
     fun refreshMedications() {

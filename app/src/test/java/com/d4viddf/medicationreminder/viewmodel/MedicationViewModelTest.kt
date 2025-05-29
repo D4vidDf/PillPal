@@ -7,6 +7,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
@@ -45,19 +46,36 @@ class MedicationViewModelTest {
 
     private val testMedId = 1
 
+    private val sampleMedications = listOf(
+        Medication(id = 1, name = "Amoxicillin", dosage = "250mg", startDate = "01/01/2023"),
+        Medication(id = 2, name = "Ibuprofen", dosage = "200mg", startDate = "01/01/2023"),
+        Medication(id = 3, name = "Metformin", dosage = "500mg", startDate = "01/01/2023"),
+        Medication(id = 4, name = "Amlodipine", dosage = "5mg", startDate = "01/01/2023")
+    )
+
     @Before
     fun setUp() {
+        // Default mock for getAllMedications, can be overridden in specific tests
+        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(emptyList()))
+        // Mock other repository methods that might be called in init or other flows if necessary
+        // For instance, if observeMedicationAndRemindersForDailyProgress or similar were called in init:
+        `when`(reminderRepository.getRemindersForMedication(org.mockito.ArgumentMatchers.anyInt())).thenReturn(flowOf(emptyList()))
+        `when`(scheduleRepository.getSchedulesForMedication(org.mockito.ArgumentMatchers.anyInt())).thenReturn(flowOf(emptyList()))
+        `when`(medicationRepository.getMedicationById(org.mockito.ArgumentMatchers.anyInt())).thenReturn(null)
+
+
         viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
     }
 
     private fun createMedication(
         id: Int = testMedId,
-        startDate: String, // Using String to match data class
+        name: String = "TestMed $id", // Added name parameter for easier testing of search
+        startDate: String,
         endDate: String? = null
     ): Medication {
         return Medication(
             id = id,
-            name = "TestMed $id",
+            name = name,
             dosage = "1 pill",
             startDate = startDate,
             endDate = endDate,
@@ -222,7 +240,7 @@ class MedicationViewModelTest {
     fun `calculateAndSetDailyProgressDetails - CUSTOM_ALARMS type - Correct TotalDoses`() = runTest {
         val today = LocalDate.now()
         val medicationStartDate = today.minusDays(1)
-        val medication = createMedication(startDate = medicationStartDate.format(dateStorableFormatter))
+        val medication = createMedication(name = "TestMed $testMedId", startDate = medicationStartDate.format(dateStorableFormatter))
         // CUSTOM_ALARMS schedule, times at 10:00, 14:00, 18:00
         val specificTimesStr = "${LocalTime.of(10,0).format(timeStorableFormatter)},${LocalTime.of(14,0).format(timeStorableFormatter)},${LocalTime.of(18,0).format(timeStorableFormatter)}"
         val schedule = createSchedule(
@@ -243,6 +261,131 @@ class MedicationViewModelTest {
             assertNotNull(updatedProgress)
             assertEquals("Total doses for CUSTOM_ALARMS schedule", 3, updatedProgress!!.totalFromPackage)
             assertEquals("0 / 3", updatedProgress.displayText)
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    // --- Search Functionality Tests ---
+
+    @Test
+    fun `searchQuery initial state is empty`() = runTest {
+        assertEquals("", viewModel.searchQuery.value)
+    }
+
+    @Test
+    fun `searchResults initial state is empty`() = runTest {
+        assertTrue(viewModel.searchResults.value.isEmpty())
+    }
+
+    @Test
+    fun `updateSearchQuery updates searchQuery StateFlow`() = runTest {
+        val testQuery = "test query"
+        viewModel.updateSearchQuery(testQuery)
+        assertEquals(testQuery, viewModel.searchQuery.value)
+    }
+
+    @Test
+    fun `searchResults updates correctly based on searchQuery`() = runTest {
+        // Override default mock for this test
+        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(sampleMedications))
+        // Re-initialize viewModel or ensure the flow is collected if init was already run by @Before
+        // Since observeMedications and observeSearchQueryAndMedications are in init,
+        // we need to re-initialize the viewModel after mocking getAllMedications for this specific test.
+        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
+
+
+        viewModel.searchResults.test {
+            // Initial state (empty because query is blank and medications might not have been processed yet by combine)
+            // Depending on timing, it might be empty or full list if query is blank initially.
+            // ViewModel's combine logic for blank query returns emptyList.
+            assertEquals(emptyList<Medication>(), awaitItem())
+
+            viewModel.updateSearchQuery("Amoxi")
+            var results = awaitItem()
+            assertEquals(1, results.size)
+            assertEquals("Amoxicillin", results[0].name)
+
+            viewModel.updateSearchQuery("iBuPrOfEn") // Case-insensitive
+            results = awaitItem()
+            assertEquals(1, results.size)
+            assertEquals("Ibuprofen", results[0].name)
+
+            viewModel.updateSearchQuery("NonExistent")
+            results = awaitItem()
+            assertTrue(results.isEmpty())
+
+            viewModel.updateSearchQuery("A") // Matches Amoxicillin and Amlodipine
+            results = awaitItem()
+            assertEquals(2, results.size)
+            assertTrue(results.any { it.name == "Amoxicillin" })
+            assertTrue(results.any { it.name == "Amlodipine" })
+
+
+            viewModel.updateSearchQuery("") // Blank query
+            results = awaitItem()
+            assertTrue("Search results should be empty for a blank query", results.isEmpty())
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `searchResults is empty if medications list is empty`() = runTest {
+        // Default setup in @Before already mocks getAllMedications to flowOf(emptyList())
+        // viewModel is already initialized with this mock.
+
+        viewModel.searchResults.test {
+            assertEquals(emptyList<Medication>(), awaitItem()) // Initial state
+
+            viewModel.updateSearchQuery("AnyQuery")
+            // Since medications list is empty, results should remain empty.
+            // awaitItem() might be needed if there's a re-emission, but if not, check current value.
+            // If the combine operator emits an empty list immediately due to empty _medications,
+            // and then emits again due to query change but still results in empty,
+            // awaitItem() might catch the same empty list or a subsequent identical one.
+            // To be safe, we can just assert the current value after action.
+            // However, turbine expects explicit consumptions.
+             assertEquals("Results should be empty when source is empty", emptyList<Medication>(), awaitItem())
+
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+     @Test
+    fun `search results are correct when medications flow updates after initial query`() = runTest {
+        val dynamicMedicationsFlow = MutableStateFlow<List<Medication>>(emptyList())
+        `when`(medicationRepository.getAllMedications()).thenReturn(dynamicMedicationsFlow)
+
+        // Re-initialize viewModel to use the new dynamic flow
+        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
+
+        viewModel.searchResults.test {
+            assertEquals(emptyList<Medication>(), awaitItem()) // Initial: empty query, empty meds
+
+            viewModel.updateSearchQuery("Metro")
+            assertEquals(emptyList<Medication>(), awaitItem()) // Query "Metro", still empty meds
+
+            dynamicMedicationsFlow.value = sampleMedications // Medications are emitted
+            // Now searchResults should update: "Metro" should find "Metformin"
+            val results = awaitItem()
+            assertEquals(1, results.size)
+            assertEquals("Metformin", results[0].name)
+
+            dynamicMedicationsFlow.value = emptyList() // Medications become empty again
+             assertEquals(emptyList<Medication>(), awaitItem()) // Query "Metro", meds now empty
+
+
+            viewModel.updateSearchQuery("") // Clear query
+            // current meds are empty, query is empty
+            assertEquals(emptyList<Medication>(), awaitItem())
+
+
+            dynamicMedicationsFlow.value = sampleMedications // Meds repopulated
+            // query is blank, so results should be empty as per current logic
+            assertEquals(emptyList<Medication>(), awaitItem())
+
+
             cancelAndConsumeRemainingEvents()
         }
     }
