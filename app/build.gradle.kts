@@ -105,6 +105,9 @@ dependencies {
     implementation(libs.accompanist.pager)
     implementation(libs.accompanist.pager.indicators)
 
+    // Accompanist Permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.35.1-alpha")
+
     // Unit Tests
     testImplementation(libs.junit)
 

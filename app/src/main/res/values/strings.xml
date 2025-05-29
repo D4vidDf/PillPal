@@ -217,4 +217,7 @@
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
     <string name="search_medications_placeholder">Search medications...</string>
+    <string name="search_icon_content_description">Search</string>
+    <string name="microphone_icon_content_description">Voice search</string>
+    <string name="speech_prompt_text">Speak now...</string>
 </resources>
