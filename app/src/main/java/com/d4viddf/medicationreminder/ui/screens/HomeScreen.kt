@@ -43,19 +43,23 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import android.Manifest
+import android.Manifest // Keep for Manifest.permission.RECORD_AUDIO if PermissionUtils doesn't export
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.speech.RecognizerIntent
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
+// import com.google.accompanist.permissions.ExperimentalPermissionsApi // Removed
+// import com.google.accompanist.permissions.isGranted // Removed
+// import com.google.accompanist.permissions.rememberPermissionState // Removed
+// import com.google.accompanist.permissions.shouldShowRationale // Removed
+import com.d4viddf.medicationreminder.utils.PermissionUtils // Added
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class) // ExperimentalPermissionsApi removed if not needed elsewhere
 @Composable
 fun HomeScreen(
     onAddMedicationClick: () -> Unit,
@@ -73,8 +77,9 @@ fun HomeScreen(
     // Local state for SearchBar active state
     var searchActive by rememberSaveable { mutableStateOf(false) }
 
-    val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    // val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO) // Removed
     val context = LocalContext.current
+    val activity = LocalContext.current as Activity // Added for PermissionUtils
 
     val speechRecognitionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -138,18 +143,22 @@ fun HomeScreen(
                             },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    if (audioPermissionState.status.isGranted) {
-                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
+                                    PermissionUtils.requestRecordAudioPermission(
+                                        activity = activity,
+                                        onAlreadyGranted = {
+                                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                                putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
+                                            }
+                                            speechRecognitionLauncher.launch(intent)
+                                        },
+                                        onRationaleNeeded = {
+                                            // TODO: Implement a user-facing rationale (e.g., Snackbar)
+                                            Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed. User should be informed.")
+                                            // Toast.makeText(context, "Microphone access is needed for voice search.", Toast.LENGTH_LONG).show()
+                                            // User will need to tap the mic icon again to trigger the request after seeing rationale.
                                         }
-                                        speechRecognitionLauncher.launch(intent)
-                                    } else if (audioPermissionState.status.shouldShowRationale) {
-                                        // Optional: Show a rationale SnackBar/Toast if needed before re-requesting
-                                        audioPermissionState.launchPermissionRequest()
-                                    } else {
-                                        audioPermissionState.launchPermissionRequest()
-                                    }
+                                    )
                                 }) {
                                     Icon(
                                         imageVector = Icons.Filled.Mic,
@@ -232,18 +241,21 @@ fun HomeScreen(
                             },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    if (audioPermissionState.status.isGranted) {
-                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
+                                    PermissionUtils.requestRecordAudioPermission(
+                                        activity = activity,
+                                        onAlreadyGranted = {
+                                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                                putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.speech_prompt_text))
+                                            }
+                                            speechRecognitionLauncher.launch(intent)
+                                        },
+                                        onRationaleNeeded = {
+                                            // TODO: Implement a user-facing rationale (e.g., Snackbar)
+                                            Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed. User should be informed.")
+                                            // Toast.makeText(context, "Microphone access is needed for voice search.", Toast.LENGTH_LONG).show()
                                         }
-                                        speechRecognitionLauncher.launch(intent)
-                                    } else if (audioPermissionState.status.shouldShowRationale) {
-                                        // Optional: Show a rationale SnackBar/Toast if needed before re-requesting
-                                        audioPermissionState.launchPermissionRequest()
-                                    } else {
-                                        audioPermissionState.launchPermissionRequest()
-                                    }
+                                    )
                                 }) {
                                     Icon(
                                         imageVector = Icons.Filled.Mic,

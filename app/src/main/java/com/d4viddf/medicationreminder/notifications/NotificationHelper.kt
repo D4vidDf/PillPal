@@ -24,12 +24,9 @@ import java.util.concurrent.TimeUnit
 object NotificationHelper {
 
     const val REMINDER_CHANNEL_ID = "medication_reminder_channel"
-    const val REMINDER_CHANNEL_NAME = "Medication Reminders" // Should be a string resource
-    const val REMINDER_CHANNEL_DESCRIPTION = "Notifications for medication intake reminders" // Should be a string resource
-
+    // REMINDER_CHANNEL_NAME and REMINDER_CHANNEL_DESCRIPTION removed
     const val PRE_REMINDER_CHANNEL_ID = "pre_medication_reminder_channel"
-    const val PRE_REMINDER_CHANNEL_NAME = "Pre-Medication Reminders" // Should be a string resource
-    const val PRE_REMINDER_CHANNEL_DESCRIPTION = "Notifications that appear before medication is due." // Should be a string resource
+    // PRE_REMINDER_CHANNEL_NAME and PRE_REMINDER_CHANNEL_DESCRIPTION removed
 
     const val ACTION_MARK_AS_TAKEN = "com.d4viddf.medicationreminder.ACTION_MARK_AS_TAKEN"
     private const val TAG = "NotificationHelper"
@@ -40,10 +37,10 @@ object NotificationHelper {
 
             val reminderChannelHigh = NotificationChannel(
                 REMINDER_CHANNEL_ID,
-                context.getString(R.string.app_name), // Use app_name or a specific channel name resource
+                context.getString(R.string.notification_channel_reminder_name), // Use new string resource
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = REMINDER_CHANNEL_DESCRIPTION // Use string resource
+                description = context.getString(R.string.notification_channel_reminder_description) // Use new string resource
                 enableLights(true)
                 lightColor = android.graphics.Color.CYAN
                 enableVibration(true)
@@ -57,10 +54,10 @@ object NotificationHelper {
 
             val preReminderChannelDefault = NotificationChannel(
                 PRE_REMINDER_CHANNEL_ID,
-                PRE_REMINDER_CHANNEL_NAME, // Use string resource
+                context.getString(R.string.notification_channel_prereminder_name), // Use new string resource
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = PRE_REMINDER_CHANNEL_DESCRIPTION // Use string resource
+                description = context.getString(R.string.notification_channel_prereminder_description) // Use new string resource
                 enableLights(false) // Typically pre-reminders are less intrusive
                 enableVibration(false) // No vibration for pre-reminders or very subtle
                 // setSound(null, null) // Explicitly no sound for pre-reminders by default
