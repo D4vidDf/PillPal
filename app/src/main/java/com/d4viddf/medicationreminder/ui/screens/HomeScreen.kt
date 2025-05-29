@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 // import androidx.compose.material3.ListItem // No longer needed
+import androidx.compose.material3.MaterialTheme // Added for colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -175,7 +176,8 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = medication.name,
-                                    modifier = Modifier.padding(16.dp)
+                                    modifier = Modifier.padding(16.dp),
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -267,7 +269,8 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = medication.name,
-                                    modifier = Modifier.padding(16.dp)
+                                    modifier = Modifier.padding(16.dp),
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
