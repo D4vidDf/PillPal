@@ -13,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -71,23 +72,35 @@ fun HomeScreen(
         ) { scaffoldInnerPadding ->
             Column(modifier = Modifier.padding(scaffoldInnerPadding).fillMaxSize()) {
                 SearchBar(
-                    query = currentSearchQuery,
-                    onQueryChange = { viewModel.updateSearchQuery(it) },
-                    onSearch = {
-                        searchActive = false
-                        // Keyboard hidden automatically by onSearch
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp),
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = currentSearchQuery,
+                            onQueryChange = { viewModel.updateSearchQuery(it) },
+                            onSearch = {
+                                searchActive = false
+                                // Keyboard hidden automatically by onSearch
+                            },
+                            expanded = searchActive, // Pass the active state here
+                            onExpandedChange = { isActive -> // This seems to be missing in SearchBarDefaults.InputField, handle in SearchBar
+                                searchActive = isActive
+                                if (!isActive) {
+                                    viewModel.updateSearchQuery("")
+                                }
+                            },
+                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
+                            // Add other necessary parameters like leading/trailing icons if needed
+                        )
                     },
-                    active = searchActive,
-                    onActiveChange = { isActive ->
+                    expanded = searchActive,
+                    onExpandedChange = { isActive ->
                         searchActive = isActive
                         if (!isActive) {
                             viewModel.updateSearchQuery("") // Clear query when search becomes inactive
                         }
-                    },
-                    placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp)
+                    }
                 ) {
-                    // Content for search results - displayed when searchActive is true
+                    // Content for search results - displayed when searchActive (expanded) is true
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
                             ListItem(
@@ -124,18 +137,29 @@ fun HomeScreen(
                     .fillMaxHeight()
             ) {
                 SearchBar(
-                    query = currentSearchQuery,
-                    onQueryChange = { viewModel.updateSearchQuery(it) },
-                    onSearch = { searchActive = false },
-                    active = searchActive,
-                    onActiveChange = { isActive ->
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp),
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = currentSearchQuery,
+                            onQueryChange = { viewModel.updateSearchQuery(it) },
+                            onSearch = { searchActive = false },
+                            expanded = searchActive, // Pass the active state here
+                            onExpandedChange = { isActive -> // This seems to be missing in SearchBarDefaults.InputField, handle in SearchBar
+                                searchActive = isActive
+                                if (!isActive) {
+                                    viewModel.updateSearchQuery("")
+                                }
+                            },
+                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
+                        )
+                    },
+                    expanded = searchActive,
+                    onExpandedChange = { isActive ->
                         searchActive = isActive
                         if (!isActive) {
                             viewModel.updateSearchQuery("")
                         }
-                    },
-                    placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp)
+                    }
                 ) {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
