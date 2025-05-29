@@ -13,9 +13,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.clickable // Required for Card clickable
+import androidx.compose.foundation.shape.RoundedCornerShape // Required for Card shape
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+// import androidx.compose.material3.ListItem // No longer needed
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -163,13 +166,18 @@ fun HomeScreen(
                     // Content for search results - displayed when searchActive (expanded) is true
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
-                            ListItem(
-                                headlineContent = { Text(medication.name) },
-                                // Add more details if needed, like dosage
-                                modifier = Modifier.fillMaxWidth()
+                            Card(
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
                                     .clickable { medicationListClickHandler(medication.id) }
-                            )
+                            ) {
+                                Text(
+                                    text = medication.name,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -250,12 +258,18 @@ fun HomeScreen(
                 ) {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
-                            ListItem(
-                                headlineContent = { Text(medication.name) },
-                                modifier = Modifier.fillMaxWidth()
+                            Card(
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
                                     .clickable { medicationListClickHandler(medication.id) }
-                            )
+                            ) {
+                                Text(
+                                    text = medication.name,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
                         }
                     }
                 }

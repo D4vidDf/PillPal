@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
@@ -34,7 +35,7 @@ fun MedicationCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() }, // Trigger navigation on click
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = color.backgroundColor)
@@ -49,11 +50,21 @@ fun MedicationCard(
             Column(
                 modifier = Modifier.weight(1f) // Ensure the text column takes available space
             ) {
+                val displayName = medication.name.let { name ->
+                    val words = name.split(" ")
+                    if (words.size > 3) {
+                        words.take(3).joinToString(" ") + "..."
+                    } else {
+                        name
+                    }
+                }
                 Text(
-                    text = medication.name,
+                    text = displayName,
                     style = MaterialTheme.typography.headlineSmall,
                     color= color.textColor,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${medication.dosage}",
