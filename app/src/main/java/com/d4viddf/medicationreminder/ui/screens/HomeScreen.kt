@@ -1,8 +1,14 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context // Added
-import android.content.ContextWrapper // Added
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,17 +19,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.foundation.clickable // Required for Card clickable
-import androidx.compose.foundation.shape.RoundedCornerShape // Required for Card shape
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-// import androidx.compose.material3.ListItem // No longer needed
-import androidx.compose.material3.MaterialTheme // Added for colorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -44,22 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
+import com.d4viddf.medicationreminder.utils.PermissionUtils
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import android.Manifest
-import android.Manifest // Keep for Manifest.permission.RECORD_AUDIO if PermissionUtils doesn't export
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Intent
-import android.speech.RecognizerIntent
-import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-// import com.google.accompanist.permissions.ExperimentalPermissionsApi // Removed
-// import com.google.accompanist.permissions.isGranted // Removed
-// import com.google.accompanist.permissions.rememberPermissionState // Removed
-// import com.google.accompanist.permissions.shouldShowRationale // Removed
-import com.d4viddf.medicationreminder.utils.PermissionUtils // Added
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class) // ExperimentalPermissionsApi removed if not needed elsewhere
