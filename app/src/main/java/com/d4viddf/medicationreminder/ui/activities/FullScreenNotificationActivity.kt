@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.graphicsLayer // Added import
 import androidx.compose.ui.semantics.semantics // Added import
 import androidx.compose.ui.semantics.stateDescription // Added import
 import androidx.compose.ui.semantics.contentDescription // Added import
+import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
 
 // Helper function to parse color, placed outside the class or in a utility file
 fun parseColor(hex: String?, defaultColor: Color): Color {
@@ -257,7 +258,10 @@ fun FullScreenNotificationScreen(
 
                 Text(
                     text = medicationName,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = androidx.compose.ui.unit.TextUnit.Unspecified
+                    ),
                     color = contentColor,
                     textAlign = TextAlign.Center,
                     maxLines = 2, // Allow name to wrap to 2 lines
