@@ -19,13 +19,15 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.CornerRounding // Re-added for manual definitions
 import androidx.graphics.shapes.Morph
-import androidx.graphics.shapes.drawMorph // Extension function for DrawScope
+// import androidx.graphics.shapes.drawMorph // No longer using direct drawMorph
 import androidx.graphics.shapes.toRoundedPolygon // For converting ui.graphics.Shape
 
 // For Canvas transform
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import kotlin.math.min
+import androidx.compose.ui.graphics.drawscope.Fill // Added for drawPath style
+import androidx.compose.ui.graphics.asComposePath // Added for Path conversion
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 object MaterialPolygons {
@@ -133,10 +135,13 @@ fun AnimatedShapeBackground(
 
         translate(left = canvasWidth / 2f, top = canvasHeight / 2f) {
             scale(scale = scaleFactor) {
-                drawMorph(
-                    morph = morph,
-                    progress = morphProgress.value,
-                    color = shapeColor
+                // Updated drawing logic as per user's specific request
+                val androidPath = morph.toPath(progress = morphProgress.value)
+                val composePath = androidPath.asComposePath() // Convert android.graphics.Path to androidx.compose.ui.graphics.Path
+                drawPath(
+                    path = composePath,
+                    color = shapeColor,
+                    style = Fill 
                 )
             }
         }
