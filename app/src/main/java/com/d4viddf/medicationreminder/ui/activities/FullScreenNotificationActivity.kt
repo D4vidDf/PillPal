@@ -232,9 +232,10 @@ fun FullScreenNotificationScreen(
         }
     }
 
-    Surface( 
+    Surface(
         modifier = Modifier.fillMaxSize(),
-        color = backgroundColor
+        color = backgroundColor,
+        shape = MaterialTheme.shapes.extraLarge
     ) {
         Column(
             modifier = Modifier
@@ -243,27 +244,7 @@ fun FullScreenNotificationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceAround
         ) {
-            if (!showTick) {
-                Spacer(modifier = Modifier.weight(0.2f)) 
-
-                Text(
-                    text = medicationName,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = contentColor,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp) 
-                )
-
-                Text(
-                    text = medicationDosage,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = contentColor.copy(alpha = 0.8f), 
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 24.dp, start = 16.dp, end = 16.dp)
-                )
-            } else {
-                 Spacer(modifier = Modifier.weight(0.2f)) 
-            }
+            Spacer(modifier = Modifier.weight(0.2f)) // Add a spacer at the top to push content down a bit
 
             MedicationTypeImage(
                 typeName = medicationTypeName,
@@ -272,7 +253,40 @@ fun FullScreenNotificationScreen(
             )
 
             if (!showTick) {
-                Spacer(modifier = Modifier.weight(1f)) // This Spacer remains
+                Spacer(modifier = Modifier.height(16.dp)) // Spacer after image
+
+                Text(
+                    text = medicationName,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                    color = contentColor,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2, // Allow name to wrap to 2 lines
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp)) // Spacer between name and dosage
+
+                Text(
+                    text = medicationDosage,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                    color = contentColor.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1, // Dosage should ideally be on one line
+                    modifier = Modifier.padding(horizontal = 16.dp, bottom = 24.dp) // Keep bottom padding for space before buttons
+                )
+            } else {
+                 // If showTick is true, we might want a spacer to take up the space of the texts
+                 // Or ensure the image remains centered appropriately.
+                 // For now, let the existing Spacer with weight(1f) handle the space below.
+                  // Add a spacer to mimic the height of the text elements (name, dosage, and their surrounding spacers) when they are hidden.
+                  // This helps in maintaining a more consistent vertical position for the MedicationTypeImage.
+                  // Approximate height: 16.dp (spacer) + ~32.dp (name) + 8.dp (spacer) + ~28.dp (dosage) + 24.dp (dosage bottom padding) = ~108.dp
+                  // Using a fixed value for simplicity.
+                 Spacer(modifier = Modifier.height(100.dp))
+            }
+
+            if (!showTick) {
+                Spacer(modifier = Modifier.weight(1f)) // This Spacer pushes buttons down
                 val size = SplitButtonDefaults.MediumContainerHeight
                 // This Box now wraps both SplitButtonLayout and DropdownMenu
                 Box(
