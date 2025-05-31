@@ -21,6 +21,8 @@ import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 
@@ -62,25 +64,23 @@ fun MedicationDetailCountersPreview() {
                 name = "Amoxicillin",
                 dosage = "250mg Capsule",
                 color = "LIGHT_ORANGE",
-                reminderTime = "10:00 AM",
-                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
-                selectedDays = listOf(1,2,3,4,5,6,7),
-                intervalHours = 0,
-                intervalMinutes = 0,
-                notificationsOn = true,
-                isActive = true,
-                startDate = "2024-01-01",
-                endDate = "2024-01-10"
+                reminderTime = "10:00 AM", // Not specified to change, kept as is
+                // Updated parameters as per request
+                typeId = 1,
+                packageSize = 0,
+                remainingDoses = 0,
+                startDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                endDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             ),
             schedule = MedicationSchedule(
                 medicationId = 1,
-                scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.DAILY,
-                daysOfWeek = "1,2,3,4,5,6,7",
-                specificTimes = "10:00",
-                intervalHours = null,
-                intervalMinutes = null,
-                startDate = "2024-01-01",
-                endDate = "2024-01-10"
+                scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.AS_NEEDED, // Consistent with AS_NEEDED
+                daysOfWeek = null, // Consistent with emptyList()
+                specificTimes = null, // AS_NEEDED might not have specific times
+                intervalHours = 0, // Default for AS_NEEDED
+                intervalMinutes = 0, // Default for AS_NEEDED
+                intervalStartTime = null, // Default value
+                intervalEndTime = null,   // Default value
             )
         )
     }

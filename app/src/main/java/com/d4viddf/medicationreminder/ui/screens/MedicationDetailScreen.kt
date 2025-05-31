@@ -42,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -136,7 +138,7 @@ fun MedicationDetailsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp),
+                            .padding(top = 18.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -212,13 +214,13 @@ fun MedicationDetailsScreen(
                     IconButton(
                         onClick = { showDialog = true },
                         modifier = Modifier
-                            .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(12.dp))
                             .padding(4.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
                         )
                     }
@@ -230,7 +232,7 @@ fun MedicationDetailsScreen(
                 val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
                 if (!isActuallyPast && !futureRemindersStarted) {
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp)
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp, color= MaterialTheme.colorScheme.onBackground)
                     futureRemindersStarted = true
                 }
                 ScheduleItem(
@@ -243,6 +245,10 @@ fun MedicationDetailsScreen(
                     // Enable toggle only for past or current items. Future items are disabled.
                     enabled = isActuallyPast || todayItem.isTaken
                 )
+
+            }
+            item{
+                Spacer(modifier = Modifier.height(48.dp)) // Espacio original antes de contadores
             }
         }
     }
@@ -261,6 +267,61 @@ fun MedicationDetailsScreen(
                 )
                 showDialog = false
             }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Medication Details Screen")
+@Composable
+fun MedicationDetailsScreenPreview() {
+    AppTheme {
+        // ViewModel parameters are omitted to use defaults,
+        // which might result in a preview with no dynamic data.
+        MedicationDetailsScreen(
+            medicationId = 1,
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Not Taken")
+@Composable
+fun ScheduleItemNotTakenPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "10:00 AM",
+            label = "Aspirin",
+            isTaken = false,
+            onTakenChange = {},
+            enabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Taken")
+@Composable
+fun ScheduleItemTakenPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "02:00 PM",
+            label = "Ibuprofen",
+            isTaken = true,
+            onTakenChange = {},
+            enabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Disabled")
+@Composable
+fun ScheduleItemDisabledPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "08:00 PM",
+            label = "Vitamin C",
+            isTaken = false,
+            onTakenChange = {},
+            enabled = false
         )
     }
 }

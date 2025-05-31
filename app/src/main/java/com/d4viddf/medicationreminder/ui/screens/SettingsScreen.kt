@@ -262,6 +262,16 @@ fun SettingsScreen(
     }
 }
 
+@Preview(showBackground = true, name = "Settings Screen")
+@Composable
+fun SettingsScreenPreview() {
+    AppTheme {
+        // ViewModel parameter is omitted to use its default,
+        // which might result in a preview with default states.
+        SettingsScreen(onNavigateBack = {})
+    }
+}
+
 @Composable
 private fun NotificationSoundSettingItem(
     soundName: String,

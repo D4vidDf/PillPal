@@ -3,6 +3,9 @@ package com.d4viddf.medicationreminder.ui.components
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme
 
 // Custom Composable to host TimePicker in an AlertDialog
 @Composable
@@ -20,4 +23,28 @@ fun TimePickerDialog(
         confirmButton = confirmButton,
         dismissButton = dismissButton,
     )
+}
+
+@Preview(showBackground = true, name = "Time Picker Dialog Preview")
+@Composable
+fun TimePickerDialogPreview() {
+    AppTheme {
+        TimePickerDialog(
+            title = "Select Time",
+            onDismissRequest = {},
+            confirmButton = {
+                TextButton(onClick = {}) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {}) {
+                    Text("Cancel")
+                }
+            },
+            content = {
+                Text("Time Picker Content Here. This dialog is a wrapper, actual TimePicker would be passed as content.")
+            }
+        )
+    }
 }

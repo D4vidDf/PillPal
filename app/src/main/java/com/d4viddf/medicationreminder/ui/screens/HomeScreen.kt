@@ -45,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
@@ -339,4 +341,40 @@ fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
+}
+
+@Preview(showBackground = true, name = "Compact HomeScreen")
+@Composable
+fun HomeScreenCompactPreview() {
+    AppTheme {
+        HomeScreen(
+            onAddMedicationClick = {},
+            onMedicationClick = {},
+            widthSizeClass = WindowWidthSizeClass.Compact
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Medium HomeScreen", widthDp = 700)
+@Composable
+fun HomeScreenMediumPreview() {
+    AppTheme {
+        HomeScreen(
+            onAddMedicationClick = {},
+            onMedicationClick = {},
+            widthSizeClass = WindowWidthSizeClass.Medium
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded HomeScreen", widthDp = 1024)
+@Composable
+fun HomeScreenExpandedPreview() {
+    AppTheme {
+        HomeScreen(
+            onAddMedicationClick = {},
+            onMedicationClick = {},
+            widthSizeClass = WindowWidthSizeClass.Expanded
+        )
+    }
 }

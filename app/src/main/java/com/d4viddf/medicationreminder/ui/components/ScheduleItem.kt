@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme
 
 // ScheduleItem Composable
 @Composable
@@ -40,6 +42,48 @@ fun ScheduleItem(
             enabled = enabled,
             modifier = Modifier.padding(start = 8.dp) // Add some padding before the switch
             // No explicit contentDescription needed for Switch when accompanied by descriptive text labels.
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Not Taken")
+@Composable
+fun ScheduleItemNotTakenPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "10:00 AM",
+            label = "Aspirin",
+            isTaken = false,
+            onTakenChange = {},
+            enabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Taken")
+@Composable
+fun ScheduleItemTakenPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "02:00 PM",
+            label = "Ibuprofen",
+            isTaken = true,
+            onTakenChange = {},
+            enabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Disabled")
+@Composable
+fun ScheduleItemDisabledPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "08:00 PM",
+            label = "Vitamin C",
+            isTaken = false,
+            onTakenChange = {},
+            enabled = false
         )
     }
 }
