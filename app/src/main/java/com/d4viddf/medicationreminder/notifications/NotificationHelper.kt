@@ -210,7 +210,9 @@ object NotificationHelper {
         notificationCompatBuilder.setContentText(notificationText)
         notificationCompatBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(notificationText))
 
-        showNotificationInternal(context, reminderDbId, notificationCompatBuilder.build())
+        val notification = notificationCompatBuilder.build()
+        notification.flags = notification.flags or Notification.FLAG_INSISTENT
+        showNotificationInternal(context, reminderDbId, notification)
     }
 
     private fun showNotificationInternal(context: Context, id: Int, notification: Notification) {
