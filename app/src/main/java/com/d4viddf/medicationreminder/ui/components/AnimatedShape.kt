@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.ui.components
+package com.d4viddf.medicationreminder.ui.components // Or your actual package
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -8,14 +8,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius // For rounded square
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
-import kotlinx.coroutines.delay // Ensure this is imported
+import androidx.compose.material3.MaterialTheme // For default color from theme
+import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -29,16 +30,17 @@ enum class ShapeType {
 
 @OptIn(ExperimentalAnimationApi::class) // Required for AnimatedContent
 @Composable
-fun AnimatedShapeBackground(
+fun AnimatedShape( // Renamed to match your newer naming
     modifier: Modifier = Modifier,
-    rotationAnimationDurationMillis: Int = 10000, // Duration for one full rotation
-    shapeDisplayDurationMillis: Long = 3000L      // How long each shape is displayed
+    rotationAnimationDurationMillis: Int = 10000,
+    shapeDisplayDurationMillis: Long = 3000L,
+    // Add shapeColor parameter
+    shapeColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
 ) {
-    val shapeTypes = remember { ShapeType.entries.toTypedArray() } // Optimized remember
+    val shapeTypes = remember { ShapeType.entries.toTypedArray() }
     var currentShapeIndex by remember { mutableStateOf(0) }
 
-    // Effect to cycle through shapes
-    LaunchedEffect(key1 = shapeDisplayDurationMillis) { // Re-launch if duration changes
+    LaunchedEffect(key1 = shapeDisplayDurationMillis) {
         while (true) {
             delay(shapeDisplayDurationMillis)
             currentShapeIndex = (currentShapeIndex + 1) % shapeTypes.size
@@ -60,62 +62,62 @@ fun AnimatedShapeBackground(
         targetState = currentShapeIndex,
         transitionSpec = {
             (fadeIn(animationSpec = tween(durationMillis = 700)) +
-             scaleIn(initialScale = 0.8f, animationSpec = tween(durationMillis = 700)))
-            .togetherWith(
-                fadeOut(animationSpec = tween(durationMillis = 700)) +
-                scaleOut(targetScale = 0.8f, animationSpec = tween(durationMillis = 700))
-            )
+                    scaleIn(initialScale = 0.8f, animationSpec = tween(durationMillis = 700)))
+                .togetherWith(
+                    fadeOut(animationSpec = tween(durationMillis = 700)) +
+                            scaleOut(targetScale = 0.8f, animationSpec = tween(durationMillis = 700))
+                )
         },
         modifier = modifier, // Apply the passed modifier to AnimatedContent
         label = "shapeTransition"
     ) { index ->
         val shapeTypeToDraw = shapeTypes[index]
-        // Box to center the Canvas drawing, Canvas fills this Box.
-        // Rotation is applied on the Canvas itself.
         Box(
-            modifier = Modifier.fillMaxSize(), // This Box fills the space given by AnimatedContent
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) { // Canvas also fills its parent Box
+            Canvas(modifier = Modifier.fillMaxSize()) {
                 rotate(degrees = rotationAngle) {
-                    drawWhiteShape(shapeTypeToDraw, this.size) // Your existing drawing function
+                    // Pass the shapeColor to your drawing function
+                    drawCustomShape(
+                        shapeType = shapeTypeToDraw,
+                        canvasSize = this.size,
+                        color = shapeColor // Use the parameter here
+                    )
                 }
             }
         }
     }
 }
 
-private fun DrawScope.drawWhiteShape(shapeType: ShapeType, canvasSize: Size) {
+// Renamed drawWhiteShape to drawCustomShape and added color parameter
+private fun DrawScope.drawCustomShape(shapeType: ShapeType, canvasSize: Size, color: Color) {
     val center = Offset(canvasSize.width / 2f, canvasSize.height / 2f)
-    // Make radius slightly smaller than half of the smallest dimension of the canvas
-    // to ensure the shape fits well and has some padding, especially when rotating.
-    val radius = (canvasSize.minDimension / 2f) * 0.9f
-
+    val radius = (canvasSize.minDimension / 2f) * 0.9f // Reduced slightly for padding
 
     when (shapeType) {
         ShapeType.CIRCLE -> {
             drawCircle(
-                color = Color.White,
+                color = color, // Use passed color
                 radius = radius,
                 center = center
             )
         }
         ShapeType.SQUARE -> {
-            // Calculate sideLength so the corners would touch a circle of 'radius' before rounding
-            val sideLength = radius * 2f / kotlin.math.sqrt(2f) 
-            val cornerRadiusValue = sideLength * 0.1f // 10% of side length for corner radius
+            val sideLength = radius * 2f / kotlin.math.sqrt(2f)
+            val cornerRadiusValue = sideLength * 0.1f
 
             drawRoundRect(
-                color = Color.White,
+                color = color, // Use passed color
                 topLeft = Offset(center.x - sideLength / 2f, center.y - sideLength / 2f),
                 size = Size(sideLength, sideLength),
-                cornerRadius = CornerRadius(cornerRadiusValue, cornerRadiusValue) // Apply corner radius
+                cornerRadius = CornerRadius(cornerRadiusValue, cornerRadiusValue)
             )
         }
         ShapeType.PENTAGON -> {
             val pentagonPath = Path().apply {
-                val angleIncrement = (2 * PI / 5).toFloat() // 72 degrees
-                val startAngleOffset = (-PI / 2).toFloat() // Start from the top point
+                val angleIncrement = (2 * PI / 5).toFloat()
+                val startAngleOffset = (-PI / 2).toFloat()
 
                 moveTo(
                     center.x + radius * cos(startAngleOffset),
@@ -129,15 +131,15 @@ private fun DrawScope.drawWhiteShape(shapeType: ShapeType, canvasSize: Size) {
                 }
                 close()
             }
-            drawPath(pentagonPath, color = Color.White)
+            drawPath(pentagonPath, color = color) // Use passed color
         }
         ShapeType.SUNNY -> { // 8-pointed star
             val starPath = Path().apply {
                 val numPoints = 8
                 val outerRadius = radius
-                val innerRadius = radius * 0.5f // Adjust for desired star pointiness
+                val innerRadius = radius * 0.5f
                 val angleIncrement = (2 * PI / (numPoints * 2)).toFloat()
-                val startAngleOffset = (-PI / 2).toFloat() // Start from the top point
+                val startAngleOffset = (-PI / 2).toFloat()
 
                 for (i in 0 until numPoints * 2) {
                     val currentRadius = if (i % 2 == 0) outerRadius else innerRadius
@@ -148,7 +150,7 @@ private fun DrawScope.drawWhiteShape(shapeType: ShapeType, canvasSize: Size) {
                 }
                 close()
             }
-            drawPath(starPath, color = Color.White)
+            drawPath(starPath, color = color) // Use passed color
         }
     }
 }
