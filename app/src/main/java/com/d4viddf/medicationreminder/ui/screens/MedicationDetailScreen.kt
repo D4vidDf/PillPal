@@ -33,10 +33,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold // Added import
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar // Added import
+import androidx.compose.material3.TopAppBarDefaults // Added import
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -123,65 +126,61 @@ fun MedicationDetailsScreen(
         }
     }
 
-    if (medicationState == null && progressDetails == null) {
+    if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) { // Adjusted condition to check todayScheduleItems
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
-        LazyColumn {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = color.backgroundColor,
-                            shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
-                        )
-                        .padding(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 16.dp)
-                ) {
-                    // Row para Back y Edit (sin cambios)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .safeDrawingPadding()
-                                .size(40.dp)
-                                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                                .clickable { onNavigateBack() },
-                            contentAlignment = Alignment.Center
-                        ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        medicationState?.name?.let { Text(it) }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
                             Icon(
-                                Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back),
-                                modifier = Modifier.size(28.dp), tint = Color.White
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                contentDescription = stringResource(id = R.string.back)
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .safeDrawingPadding()
-                                .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .clickable { /* TODO: Handle edit action */ }
-                                .padding(0.dp), // Reset padding for content description if it affects layout
-                            contentAlignment = Alignment.Center,
-                            // Adding content description to the Box acting as a button
-                            // For a Box with Text, this might be redundant if TalkBack reads the Text,
-                            // but if it were an Icon, this would be crucial.
-                            // Semantics can be used for better control: Modifier.semantics { contentDescription = "Edit medication" }
-                        ) {
-                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.edit), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    },
+                    actions = {
+                        TextButton(onClick = { /* TODO: Handle edit action */ }) {
+                            Text(stringResource(id = R.string.edit))
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = color.backgroundColor, // Use existing color scheme
+                        titleContentColor = color.onBackgroundColor,
+                        navigationIconContentColor = color.onBackgroundColor,
+                        actionIconContentColor = color.onBackgroundColor
+                    )
+                )
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Apply padding from Scaffold
+            ) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = color.backgroundColor,
+                                shape = RoundedCornerShape(bottomStart = 0.dp, bottomEnd = 0.dp) // TopAppBar handles top shape
+                            )
+                            // Padding for content inside this Column, top padding handled by TopAppBar
+                            .padding(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 16.dp)
+                    ) {
+                        // Row for Back y Edit is REMOVED from here
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                        // Spacer that was after old Row for Back/Edit might not be needed or adjusted
+                        // Spacer(modifier = Modifier.height(24.dp)) // Removed or adjusted
 
-                    // Usar el nuevo componente MedicationDetailHeader
-                    MedicationDetailHeader(
+                        MedicationDetailHeader(
                         medicationName = medicationState?.name,
                         medicationDosage = medicationState?.dosage,
                         medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
@@ -213,7 +212,8 @@ fun MedicationDetailsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(top = 16.dp) // Added top padding for separation
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Existing padding
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -225,14 +225,14 @@ fun MedicationDetailsScreen(
                     IconButton(
                         onClick = { showDialog = true },
                         modifier = Modifier
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                        // Size of IconButton can be default, or use Modifier.size(40.dp) for a typical small FAB touch target
+                            .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                            .padding(4.dp) // Padding inside the background, before the icon
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                            modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize), // Corrected: size applied to Icon
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = Color.White, // White icon on black background
+                            modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize)
                         )
                     }
                 }

@@ -26,7 +26,7 @@ fun ScheduleItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp), // Consistent padding
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp), // Adjusted padding
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween // Pushes switch to the end
     ) {
