@@ -67,12 +67,6 @@ fun MedicationDetailCountersPreview() {
                 reminderTime = "10:00 AM", // Not specified to change, kept as is
                 // Updated parameters as per request
                 typeId = 1,
-                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.AS_NEEDED,
-                selectedDays = emptyList(),
-                intervalHours = 0,
-                intervalMinutes = 0,
-                notificationsOn = false,
-                isActive = false,
                 packageSize = 0,
                 remainingDoses = 0,
                 startDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -87,8 +81,6 @@ fun MedicationDetailCountersPreview() {
                 intervalMinutes = 0, // Default for AS_NEEDED
                 intervalStartTime = null, // Default value
                 intervalEndTime = null,   // Default value
-                startDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
-                endDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             )
         )
     }

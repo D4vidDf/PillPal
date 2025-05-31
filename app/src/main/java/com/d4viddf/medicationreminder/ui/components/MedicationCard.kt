@@ -101,12 +101,6 @@ fun MedicationCardPreview() {
                 reminderTime = "10:00 AM",
                 // Updated parameters as per request
                 typeId = 1, // Default value
-                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.AS_NEEDED,
-                selectedDays = emptyList(),
-                intervalHours = 0,
-                intervalMinutes = 0,
-                notificationsOn = false, // Default value
-                isActive = false,      // Default value
                 packageSize = 0,       // Default value
                 remainingDoses = 0,    // Default value
                 startDate = null,      // Default value

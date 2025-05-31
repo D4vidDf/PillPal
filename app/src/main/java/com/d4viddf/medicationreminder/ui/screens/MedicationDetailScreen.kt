@@ -138,7 +138,7 @@ fun MedicationDetailsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp),
+                            .padding(top = 18.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -214,13 +214,13 @@ fun MedicationDetailsScreen(
                     IconButton(
                         onClick = { showDialog = true },
                         modifier = Modifier
-                            .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(12.dp))
                             .padding(4.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
                         )
                     }
@@ -232,7 +232,7 @@ fun MedicationDetailsScreen(
                 val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
                 if (!isActuallyPast && !futureRemindersStarted) {
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp)
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp, color= MaterialTheme.colorScheme.onBackground)
                     futureRemindersStarted = true
                 }
                 ScheduleItem(
@@ -245,6 +245,10 @@ fun MedicationDetailsScreen(
                     // Enable toggle only for past or current items. Future items are disabled.
                     enabled = isActuallyPast || todayItem.isTaken
                 )
+
+            }
+            item{
+                Spacer(modifier = Modifier.height(48.dp)) // Espacio original antes de contadores
             }
         }
     }

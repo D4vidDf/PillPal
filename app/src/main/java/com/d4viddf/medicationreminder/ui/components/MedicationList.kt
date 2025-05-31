@@ -85,20 +85,17 @@ fun MedicationListPreview() {
         val sampleMedications = listOf(
             Medication(
                 id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM",
-                typeId = 1, frequencyType = FrequencyType.ONCE_A_DAY, selectedDays = emptyList(),
-                intervalHours = 0, intervalMinutes = 0, notificationsOn = false, isActive = false,
+                typeId = 1,
                 packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
             ),
             Medication(
                 id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM",
-                typeId = 1, frequencyType = FrequencyType.AS_NEEDED, selectedDays = emptyList(),
-                intervalHours = 0, intervalMinutes = 0, notificationsOn = false, isActive = false,
+                typeId = 1,
                 packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
             ),
             Medication(
                 id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM",
-                typeId = 1, frequencyType = FrequencyType.INTERVAL, selectedDays = emptyList(),
-                intervalHours = 8, intervalMinutes = 0, notificationsOn = false, isActive = false, // intervalHours kept as 8 for variety
+                typeId = 1,
                 packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
             )
         )
