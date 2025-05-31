@@ -146,10 +146,3 @@ fun CustomMedicationHeader(
     }
 }
 
-@Composable
-private fun CounterItem(label: String, value: String, valueColor: Color) { // Changed parameter name to valueColor
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.titleLarge, color = valueColor, fontWeight = FontWeight.Bold) // Use new name
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = valueColor.copy(alpha = 0.8f)) // Use new name
-    }
-}

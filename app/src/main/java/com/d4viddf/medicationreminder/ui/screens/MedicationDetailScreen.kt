@@ -14,13 +14,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -39,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationType
@@ -53,11 +60,12 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel // A
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter // Added
 import java.time.format.FormatStyle // Added
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MedicationDetailsScreen(
     medicationId: Int,
@@ -141,7 +149,7 @@ fun MedicationDetailsScreen(
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back),
+                                contentDescription = stringResource(id = R.string.back),
                                 modifier = Modifier.size(28.dp), tint = Color.White
                             )
                         }
@@ -152,7 +160,7 @@ fun MedicationDetailsScreen(
                                 .clickable { /* TODO: Handle edit action */ },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(stringResource(id = com.d4viddf.medicationreminder.R.string.edit), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(stringResource(id = R.string.edit), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
 
@@ -200,7 +208,6 @@ fun MedicationDetailsScreen(
                         text = stringResource(id = R.string.medication_detail_today_title),
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
-                        color = color.onBackgroundColor // Use themed color
                     )
                     IconButton(
                         onClick = { showDialog = true },
@@ -212,30 +219,29 @@ fun MedicationDetailsScreen(
                             imageVector = Icons.Filled.Add,
                             contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
                             tint = Color.White,
-                            modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize)
+                            modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
                         )
                     }
                 }
             }
 
-            // Horizontal Divider
-            item {
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-            }
+            var futureRemindersStarted = false
+            items(todayScheduleItems, key = { it.id }) { todayItem ->
+                val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
-            items(items = todayScheduleItems, key = { it.id }) { todayItem ->
-                val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now())
-                // The logic for an additional divider *before future items* could go here if needed,
-                // but for now, we only have one divider above the list.
-
-                ScheduleItem( // This still calls the old local ScheduleItem
+                if (!isActuallyPast && !futureRemindersStarted) {
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp)
+                    futureRemindersStarted = true
+                }
+                ScheduleItem(
                     time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     label = todayItem.medicationName,
-                    isTaken = todayItem.isTaken, // Now passing isTaken
-                    onTakenChange = { newTakenState -> // Now passing onTakenChange
-                        medicationReminderViewModel.updateReminderStatus(todayItem.id, newTakenState, medicationId)
+                    isTaken = todayItem.isTaken,
+                    onTakenChange = { newState ->
+                        medicationReminderViewModel.updateReminderStatus(todayItem.id, newState, medicationId)
                     },
-                    enabled = isActuallyPast || todayItem.isTaken // This controls Switch enabled state
+                    // Enable toggle only for past or current items. Future items are disabled.
+                    enabled = isActuallyPast || todayItem.isTaken
                 )
             }
         }
@@ -250,7 +256,8 @@ fun MedicationDetailsScreen(
                     medicationId = medicationId,
                     // medicationNameParam is no longer needed by the ViewModel method
                     date = date,
-                    time = time
+                    time = time,
+                    medicationNameParam = medicationState?.name ?: ""
                 )
                 showDialog = false
             }
