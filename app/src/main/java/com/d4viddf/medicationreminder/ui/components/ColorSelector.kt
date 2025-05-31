@@ -29,7 +29,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.colors.medicationColors
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,10 +129,11 @@ fun ColorSelector(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun ColorSelectorPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         ColorSelector(
             selectedColor = medicationColors[0],
             onColorSelected = {}

@@ -19,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.Screen // Required for Screen routes
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun AppNavigationRail(
@@ -136,10 +135,11 @@ fun AppNavigationRail(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun AppNavigationRailPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         AppNavigationRail(
             onHomeClick = {},
             onCalendarClick = {},

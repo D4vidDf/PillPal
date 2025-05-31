@@ -15,12 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 // import androidx.compose.ui.text.style.TextOverflow // No longer needed
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun MedicationCard(
@@ -89,10 +87,11 @@ fun MedicationAvatar(color: Color) {
     )
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun MedicationCardPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         MedicationCard(
             medication = Medication(
                 id = 1,
@@ -100,21 +99,23 @@ fun MedicationCardPreview() {
                 dosage = "250mg",
                 color = "LIGHT_BLUE", // Assuming MedicationColor.LIGHT_BLUE exists
                 reminderTime = "10:00 AM",
-                typeId = TODO(),
-                packageSize = TODO(),
-                remainingDoses = TODO(),
-                startDate = TODO(),
-                endDate = TODO(),
+                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
+                selectedDays = listOf(1,2,3,4,5,6,7),
+                intervalHours = 0,
+                intervalMinutes = 0,
+                notificationsOn = true,
+                isActive = true
             ),
             onClick = {}
         )
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun MedicationAvatarPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         MedicationAvatar(color = Color.White)
     }
 }

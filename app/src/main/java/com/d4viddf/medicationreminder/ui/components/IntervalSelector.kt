@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.DpSize
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.LocalTime
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -50,10 +49,11 @@ fun IntervalSelector(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun IntervalSelectorPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         IntervalSelector(
             onIntervalChanged = { _, _ -> }
         )

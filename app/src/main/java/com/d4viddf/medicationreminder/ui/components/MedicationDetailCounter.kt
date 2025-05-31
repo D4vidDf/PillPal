@@ -13,16 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
@@ -40,46 +37,50 @@ fun CounterItem(value: String, label: String, valueColor: Color) {
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun CounterItemPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         CounterItem(
             value = "250mg",
             label = "Dose",
-            valueColor = MedicationColor.LIGHT_ORANGE.onBackgroundColor
+            valueColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_ORANGE.onBackgroundColor
         )
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun MedicationDetailCountersPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         MedicationDetailCounters(
-            colorScheme = MedicationColor.LIGHT_ORANGE,
+            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_ORANGE,
             medication = Medication(
                 id = 1,
                 name = "Amoxicillin",
                 dosage = "250mg Capsule",
                 color = "LIGHT_ORANGE",
                 reminderTime = "10:00 AM",
-                typeId = TODO(),
-                packageSize = TODO(),
-                remainingDoses = TODO(),
-                startDate = TODO(),
-                endDate = TODO(),
+                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
+                selectedDays = listOf(1,2,3,4,5,6,7),
+                intervalHours = 0,
+                intervalMinutes = 0,
+                notificationsOn = true,
+                isActive = true,
+                startDate = "2024-01-01",
+                endDate = "2024-01-10"
             ),
             schedule = MedicationSchedule(
                 medicationId = 1,
-                scheduleType = ScheduleType.DAILY,
+                scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.DAILY,
                 daysOfWeek = "1,2,3,4,5,6,7",
                 specificTimes = "10:00",
                 intervalHours = null,
                 intervalMinutes = null,
-                id = TODO(),
-                intervalStartTime = TODO(),
-                intervalEndTime = TODO(),
+                startDate = "2024-01-01",
+                endDate = "2024-01-10"
             )
         )
     }
@@ -108,19 +109,19 @@ fun MedicationDetailCounters(
     val doseUnit = dosePair.second // This might need mapping to a string resource if it's a translatable unit name.
 
     // Resolve strings in the Composable context
-    val strDoseUnitSingle = stringResource(id = R.string.medication_detail_counter_dose_unit_single)
-    val strDoseUnitPlural = stringResource(id = R.string.medication_detail_counter_dose_unit_plural)
-    val strFreqOnceDaily = stringResource(id = R.string.medication_detail_counter_freq_once_daily)
-    val strFreqMultipleDaily = stringResource(id = R.string.medication_detail_counter_freq_multiple_daily)
-    val strFreqInterval = stringResource(id = R.string.medication_detail_counter_freq_interval)
-    val strFreqAsNeeded = stringResource(id = R.string.medication_detail_counter_freq_as_needed)
-    val strDurationTotalDays = stringResource(id = R.string.medication_detail_counter_duration_total_days)
-    val strDurationRemainingDays = stringResource(id = R.string.medication_detail_counter_duration_remaining_days)
-    val strSelectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
-    val strSelectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
-    val strDaysAll = stringResource(id = R.string.medication_detail_counter_days_all)
-    val strDaysSingle = stringResource(id = R.string.medication_detail_counter_days_single)
-    val strDaysMultipleWeekly = stringResource(id = R.string.medication_detail_counter_days_multiple_weekly)
+    val strDoseUnitSingle = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_dose_unit_single)
+    val strDoseUnitPlural = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_dose_unit_plural)
+    val strFreqOnceDaily = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_once_daily)
+    val strFreqMultipleDaily = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_multiple_daily)
+    val strFreqInterval = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_interval)
+    val strFreqAsNeeded = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_freq_as_needed)
+    val strDurationTotalDays = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_duration_total_days)
+    val strDurationRemainingDays = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_duration_remaining_days)
+    val strSelectStartDatePlaceholder = stringResource(id = com.d4viddf.medicationreminder.R.string.select_start_date_placeholder)
+    val strSelectEndDatePlaceholder = stringResource(id = com.d4viddf.medicationreminder.R.string.select_end_date_placeholder)
+    val strDaysAll = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_all)
+    val strDaysSingle = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_single)
+    val strDaysMultipleWeekly = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_days_multiple_weekly)
 
 
     val frequencyPair: Pair<String?, String?> = remember(schedule, strDoseUnitSingle, strDoseUnitPlural, strFreqOnceDaily, strFreqMultipleDaily, strFreqInterval, strFreqAsNeeded) {
@@ -251,7 +252,7 @@ fun MedicationDetailCounters(
     ) {
         if (finalItems.isEmpty()) {
             Text(
-                stringResource(id = R.string.medication_detail_counter_no_details),
+                stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_counter_no_details),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.CenterVertically)

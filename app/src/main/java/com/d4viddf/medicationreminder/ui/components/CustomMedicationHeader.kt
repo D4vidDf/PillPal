@@ -22,7 +22,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun CustomMedicationHeader(
@@ -147,10 +146,11 @@ fun CustomMedicationHeader(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun CustomMedicationHeaderPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         CustomMedicationHeader(
             medicationName = "Amoxicillin",
             medicationTypeAndDosage = "Capsule - 250mg",
@@ -160,8 +160,8 @@ fun CustomMedicationHeaderPreview() {
             counter1Value = "3",
             counter2Label = "Missed",
             counter2Value = "1",
-            headerBackgroundColor = Color.Blue,
-            contentColor = Color.White,
+            headerBackgroundColor = Color.Blue, // Example color, AppTheme might provide better ones
+            contentColor = Color.White,      // Example color
             onNavigateBack = {},
             onEdit = {},
             scrollProgress = 0.0f

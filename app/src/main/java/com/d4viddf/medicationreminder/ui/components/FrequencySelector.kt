@@ -54,7 +54,6 @@ import com.d4viddf.medicationreminder.R // Import R class
 import com.d4viddf.medicationreminder.data.FrequencyType
 import java.time.LocalTime
 import com.d4viddf.medicationreminder.ui.components.TimePickerDialog // Added import for the shared component
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
 // Ensure other Material 3 imports like androidx.compose.material3.Text,
@@ -412,10 +411,11 @@ fun IntervalDurationSelector(
 // Removed local TimePickerDialog definition to use the one from ui.components
 // Ensure com.d4viddf.medicationreminder.ui.components.TimePickerDialog is imported at the top of the file.
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun FrequencySelectorPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         FrequencySelector(
             selectedFrequency = FrequencyType.ONCE_A_DAY,
             onFrequencySelected = {},
@@ -437,10 +437,11 @@ fun FrequencySelectorPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun DropdownMenuFrequenciesPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         DropdownMenuFrequencies(
             selectedFrequency = FrequencyType.ONCE_A_DAY,
             options = FrequencyType.values().toList(),
@@ -449,10 +450,11 @@ fun DropdownMenuFrequenciesPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun DaySelectorPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         DaySelector(
             selectedDays = emptyList(),
             onDaysSelected = {}
@@ -460,10 +462,11 @@ fun DaySelectorPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun CustomAlarmsSelectorPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         CustomAlarmsSelector(
             selectedTimes = emptyList(),
             onTimesSelected = {},
@@ -472,10 +475,11 @@ fun CustomAlarmsSelectorPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun IntervalDurationSelectorPreview() {
-    AppTheme {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         IntervalDurationSelector(
             hours = 0,
             minutes = 0,

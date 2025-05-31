@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R // Assuming R class is in this package
 import androidx.compose.material3.SelectableDates
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -152,10 +151,12 @@ fun AddPastMedicationDialog(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
 fun AddPastMedicationDialogPreview() {
-    AppTheme {
+    // Using dynamicColor = false for previews as dynamic colors are device/system specific.
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         AddPastMedicationDialog(
             medicationNameDisplay = "Amoxicillin",
             onDismissRequest = {},
