@@ -38,12 +38,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.ButtonDefaults // Added import
-import androidx.compose.material3.LargeTopAppBar // Added import for LargeTopAppBar
-import androidx.compose.material3.TopAppBarDefaults // Already present, good
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.rememberTopAppBarState // Added import
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,11 +49,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset // Added import
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll // Already present, good
+import androidx.compose.ui.graphics.graphicsLayer // Added import
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection // Added import
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource // Added import
+import androidx.compose.ui.input.nestedscroll.nestedScroll // Added import
+import androidx.compose.ui.platform.LocalDensity // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow // Added import
+import androidx.compose.ui.unit.Dp // Added import
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -68,6 +69,7 @@ import com.d4viddf.medicationreminder.data.MedicationType
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added for type safety
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.AddPastMedicationDialog
+import com.d4viddf.medicationreminder.ui.components.CustomMedicationHeader // Added import
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
@@ -79,6 +81,12 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import androidx.compose.foundation.layout.PaddingValues // For LazyColumn contentPadding
+import androidx.compose.ui.draw.clip // For button styling in MinimalStickyAppBar
+import androidx.compose.ui.graphics.graphicsLayer // For CustomMedicationHeader alpha/translation
+import androidx.compose.ui.text.style.TextOverflow // For titles
+// import com.d4viddf.medicationreminder.ui.components.CustomMedicationHeader // Already imported
+// Other imports like Dp, LocalDensity, Offset, NestedScrollConnection etc. assumed to be added with Box layout step
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +98,28 @@ fun MedicationDetailsScreen(
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
     medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel() // Added ViewModel
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Added scroll behavior
+    val localDensity = LocalDensity.current
+    // These heights are placeholders; dynamic measurement or more precise calculation is better.
+    val headerMaxHeightDp = 330.dp // Approximate height for CustomMedicationHeader
+    val headerMinHeightDp = 56.dp  // Typical toolbar height (for the sticky part when collapsed)
+
+    val headerMaxHeightPx = with(localDensity) { headerMaxHeightDp.toPx() }
+    val headerMinHeightPx = with(localDensity) { headerMinHeightDp.toPx() }
+    val headerHeightRange = headerMaxHeightPx - headerMinHeightPx
+
+    var headerOffset by remember { mutableStateOf(0f) } // Current negative offset (scroll up)
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y
+                val newOffset = headerOffset + delta
+                headerOffset = newOffset.coerceIn(-headerHeightRange, 0f)
+                // Consume the scroll delta that was used by the header
+                return Offset(0f, headerOffset - (newOffset - delta)) // Return consumed delta
+            }
+        }
+    }
 
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
@@ -99,6 +128,9 @@ fun MedicationDetailsScreen(
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+
+    // Calculate scrollProgress based on headerOffset
+    val scrollProgress = (-headerOffset / headerHeightRange).coerceIn(0f, 1f)
 
     LaunchedEffect(key1 = medicationId) {
         val med = viewModel.getMedicationById(medicationId)
@@ -138,115 +170,85 @@ fun MedicationDetailsScreen(
         }
     } else {
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                LargeTopAppBar(
-                    title = {
-                        Text(
-                            text = medicationState?.name ?: stringResource(id = R.string.loading),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = onNavigateBack,
-                            modifier = Modifier
-                                .padding(start = 8.dp) // Spacing from the edge
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = stringResource(id = R.string.back)
-                                // Tint will be color.onBackgroundColor due to LargeTopAppBar settings
-                            )
-                        }
-                    },
-                    actions = {
-                        Button( // Changed from TextButton to Button for easier background/shape control
-                            onClick = { /* TODO: Handle edit action */ },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                contentColor = color.onBackgroundColor // Explicitly use the dynamic color
-                            ),
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text(stringResource(id = R.string.edit))
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = color.backgroundColor, // Use existing dynamic color for expanded state
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant, // Color when scrolled
-                        titleContentColor = color.onBackgroundColor,
-                        navigationIconContentColor = color.onBackgroundColor,
-                        actionIconContentColor = color.onBackgroundColor
-                    )
-                )
-            }
-        ) { innerPadding ->
-            LazyColumn(
+            topBar = { /* EMPTY - No Scaffold TopAppBar */ },
+        ) { scaffoldInnerPadding -> // System bars padding
+
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Apply padding from Scaffold
+                    .padding(scaffoldInnerPadding) // Apply system bar padding to the Box
+                    .nestedScroll(nestedScrollConnection)
             ) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                color = color.backgroundColor,
-                                shape = RoundedCornerShape(bottomStart = 0.dp, bottomEnd = 0.dp) // TopAppBar handles top shape
-                            )
-                            // Padding for content inside this Column, top padding handled by TopAppBar
-                            .padding(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 16.dp)
-                    ) {
-                        // Row for Back y Edit is REMOVED from here
+                // CustomMedicationHeader will be placed here. Its offset will be controlled by headerOffset.
+                // Data mapping for CustomMedicationHeader:
+                val medName = medicationState?.name ?: stringResource(id = R.string.loading)
+                val medType = medicationTypeState?.name ?: ""
+                val medDosage = medicationState?.dosage ?: ""
+                val medTypeAndDosage = if (medType.isNotEmpty() && medDosage.isNotEmpty()) "$medType - $medDosage" else medType + medDosage
 
-                        // Spacer that was after old Row for Back/Edit might not be needed or adjusted
-                        // Spacer(modifier = Modifier.height(24.dp)) // Removed or adjusted
+                val currentProgress = progressDetails?.progress ?: 0f
+                val progressText = "${progressDetails?.taken ?: 0} of ${progressDetails?.total ?: 0} taken"
 
-                        MedicationDetailHeader(
-                        medicationName = medicationState?.name,
-                        medicationDosage = medicationState?.dosage,
-                        medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
-                        colorScheme = color
-                        // El modifier por defecto del componente ya tiene fillMaxWidth
-                    )
+                // Simplified counter data - replace with actual logic if available
+                // These were previously in MedicationDetailCounters which might have more complex logic
+                val dosesLeft = medicationState?.remainingDoses?.toString() ?: "N/A"
+                // Duration/days left calculation would need schedule.endDate or similar
+                val daysLeft = "N/A" // Placeholder
 
-                    Spacer(modifier = Modifier.height(16.dp)) // Ajustado el espacio después del header
-
-                    MedicationProgressDisplay(
-                        progressDetails = progressDetails,
-                        colorScheme = color,
-                        indicatorSizeDp = 220.dp // Explicitly pass the size
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
-
-                    MedicationDetailCounters(
-                        colorScheme = color,
-                        medication = medicationState,
-                        schedule = scheduleState,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-                }
-            }
-
-            // Item for Today's Schedule title and Add button
-            item {
-                Row(
+                CustomMedicationHeader(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp) // Added top padding for separation
-                        .padding(horizontal = 16.dp, vertical = 8.dp), // Existing padding
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .graphicsLayer {
+                            translationY = headerOffset
+                            alpha = 1f - scrollProgress // Fade out CustomMedicationHeader
+                        },
+                    medicationName = medName,
+                    medicationTypeAndDosage = medTypeAndDosage,
+                    progressValue = currentProgress,
+                    progressText = progressText,
+                    counter1Label = stringResource(id = R.string.medication_detail_counter_dose_unit_plural), // Example "tomas"
+                    counter1Value = dosesLeft,
+                    counter2Label = stringResource(id = R.string.medication_detail_counter_duration_remaining_days), // Example "días rest."
+                    counter2Value = daysLeft,
+                    headerBackgroundColor = color.backgroundColor,
+                    contentColor = color.onBackgroundColor,
+                    onNavigateBack = onNavigateBack,
+                    onEdit = { /* TODO: Handle edit action */ },
+                    scrollProgress = scrollProgress // Pass scrollProgress
+                )
+
+                MinimalStickyAppBar(
+                    title = medName, // Use the same medication name
+                    headerBackgroundColor = color.backgroundColor,
+                    contentColor = color.onBackgroundColor,
+                    onNavigateBack = onNavigateBack,
+                    onEdit = { /* TODO: Handle edit action */ },
+                    scrollProgress = scrollProgress,
+                    headerMinHeight = headerMinHeightDp,
+                    modifier = Modifier.align(Alignment.TopCenter) // Ensure it stays at the top
+                )
+
+                // The scrollable content (Today's schedule)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    // Content starts below the MINIMAL sticky header height
+                    contentPadding = PaddingValues(top = headerMinHeightDp)
                 ) {
+                    // Item 1: Spacer to push content below the fully expanded CustomMedicationHeader area
+                    item {
+                        Spacer(modifier = Modifier.height(headerMaxHeightDp - headerMinHeightDp))
+                    }
+
+                    // Item 2: "Today" title and Add button
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                     Text(
                         text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_today_title),
                         fontSize = 36.sp,
@@ -303,5 +305,71 @@ fun MedicationDetailsScreen(
                 showDialog = false // Dismiss dialog after save
             }
         )
+    }
+}
+
+@Composable
+private fun MinimalStickyAppBar(
+    modifier: Modifier = Modifier,
+    title: String,
+    headerBackgroundColor: Color,
+    contentColor: Color,
+    onNavigateBack: () -> Unit,
+    onEdit: () -> Unit,
+    scrollProgress: Float, // Value from 0 (fully expanded) to 1 (fully collapsed)
+    headerMinHeight: Dp
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(headerMinHeight)
+            .background(headerBackgroundColor.copy(alpha = scrollProgress * 0.95f))
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Back Button
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = (scrollProgress * 0.4f).coerceAtMost(0.4f)))
+                .clickable(enabled = scrollProgress > 0.5f) { onNavigateBack() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                contentDescription = stringResource(id = R.string.back),
+                modifier = Modifier.size(28.dp),
+                tint = Color.White.copy(alpha = scrollProgress)
+            )
+        }
+
+        // Title
+        Text(
+            text = title,
+            color = contentColor.copy(alpha = scrollProgress),
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        )
+
+        // Edit Button
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Black.copy(alpha = (scrollProgress * 0.4f).coerceAtMost(0.4f)))
+                .clickable(enabled = scrollProgress > 0.5f) { onEdit() }
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.edit),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White.copy(alpha = scrollProgress)
+            )
+        }
     }
 }
