@@ -86,3 +86,34 @@ fun MedicationAvatar(color: Color) {
             .background(color = color, shape = CircleShape)
     )
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun MedicationCardPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        MedicationCard(
+            medication = Medication(
+                id = 1,
+                name = "Amoxicillin Long Name For Testing Ellipsis",
+                dosage = "250mg",
+                color = "LIGHT_BLUE", // Assuming MedicationColor.LIGHT_BLUE exists
+                reminderTime = "10:00 AM",
+                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
+                selectedDays = listOf(1,2,3,4,5,6,7),
+                intervalHours = 0,
+                intervalMinutes = 0,
+                notificationsOn = true,
+                isActive = true
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun MedicationAvatarPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        MedicationAvatar(color = Color.White)
+    }
+}

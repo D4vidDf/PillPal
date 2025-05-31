@@ -139,3 +139,21 @@ fun MedicationProgressDisplay(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun MedicationProgressDisplayPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        MedicationProgressDisplay(
+            progressDetails = ProgressDetails(
+                taken = 5,
+                remaining = 5,
+                totalFromPackage = 10,
+                progressFraction = 0.5f,
+                displayText = "5 / 10"
+            ),
+            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.GREEN,
+            indicatorSizeDp = 200.dp
+        )
+    }
+}

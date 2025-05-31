@@ -77,3 +77,18 @@ fun AppHorizontalFloatingToolbar(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun AppHorizontalFloatingToolbarPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        AppHorizontalFloatingToolbar(
+            onHomeClick = {},
+            onCalendarClick = {},
+            onProfileClick = {},
+            onSettingsClick = {},
+            onAddClick = {},
+            currentRoute = Screen.Home.route
+        )
+    }
+}

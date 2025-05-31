@@ -410,3 +410,76 @@ fun IntervalDurationSelector(
 
 // Removed local TimePickerDialog definition to use the one from ui.components
 // Ensure com.d4viddf.medicationreminder.ui.components.TimePickerDialog is imported at the top of the file.
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun FrequencySelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        FrequencySelector(
+            selectedFrequency = FrequencyType.ONCE_A_DAY,
+            onFrequencySelected = {},
+            selectedDays = emptyList(),
+            onDaysSelected = {},
+            onceADayTime = null,
+            onOnceADayTimeSelected = {},
+            selectedTimes = emptyList(),
+            onTimesSelected = {},
+            intervalHours = 0,
+            onIntervalHoursChanged = {},
+            intervalMinutes = 0,
+            onIntervalMinutesChanged = {},
+            intervalStartTime = null,
+            onIntervalStartTimeSelected = {},
+            intervalEndTime = null,
+            onIntervalEndTimeSelected = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun DropdownMenuFrequenciesPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        DropdownMenuFrequencies(
+            selectedFrequency = FrequencyType.ONCE_A_DAY,
+            options = FrequencyType.values().toList(),
+            onSelectedOption = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun DaySelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        DaySelector(
+            selectedDays = emptyList(),
+            onDaysSelected = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun CustomAlarmsSelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        CustomAlarmsSelector(
+            selectedTimes = emptyList(),
+            onTimesSelected = {},
+            onShowTimePicker = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun IntervalDurationSelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        IntervalDurationSelector(
+            hours = 0,
+            minutes = 0,
+            onHoursChanged = {},
+            onMinutesChanged = {}
+        )
+    }
+}

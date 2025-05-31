@@ -134,3 +134,18 @@ fun AppNavigationRail(
         )
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun AppNavigationRailPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        AppNavigationRail(
+            onHomeClick = {},
+            onCalendarClick = {},
+            onProfileClick = {},
+            onSettingsClick = {},
+            onAddClick = {},
+            currentRoute = Screen.Home.route
+        )
+    }
+}

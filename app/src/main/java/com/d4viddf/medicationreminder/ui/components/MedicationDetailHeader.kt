@@ -65,3 +65,16 @@ fun MedicationDetailHeader(
         )
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun MedicationDetailHeaderPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        MedicationDetailHeader(
+            medicationName = "Amoxicillin Trihydrate Suspension",
+            medicationDosage = "250mg / 5ml",
+            medicationImageUrl = null, // Or a sample image URL
+            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE
+        )
+    }
+}

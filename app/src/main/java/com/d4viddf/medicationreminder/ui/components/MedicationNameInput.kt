@@ -125,3 +125,16 @@ fun MedicationNameInput(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun MedicationNameInputPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        MedicationNameInput(
+            medicationName = "Ibuprofen",
+            onMedicationNameChange = {},
+            onMedicationSelected = {}
+            // ViewModel will use its default hiltViewModel() which will likely result in empty searchResults for preview
+        )
+    }
+}

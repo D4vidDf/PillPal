@@ -47,3 +47,14 @@ fun IntervalSelector(
         )
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun IntervalSelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        IntervalSelector(
+            onIntervalChanged = { _, _ -> }
+        )
+    }
+}

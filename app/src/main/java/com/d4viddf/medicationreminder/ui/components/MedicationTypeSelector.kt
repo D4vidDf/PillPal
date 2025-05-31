@@ -86,6 +86,83 @@ fun MedicationTypeSelector(
     }
 }
 
+// --- Preview Code ---
+
+private val sampleMedicationTypes = listOf(
+    MedicationType(id = 1, name = "Tablet", imageUrl = "https://example.com/tablet.png"),
+    MedicationType(id = 2, name = "Capsule", imageUrl = "https://example.com/capsule.png"),
+    MedicationType(id = 3, name = "Liquid", imageUrl = "https://example.com/liquid.png"),
+    MedicationType(id = 4, name = "Injection", imageUrl = "https://example.com/injection.png"),
+    MedicationType(id = 5, name = "Cream", imageUrl = "https://example.com/cream.png"),
+    MedicationType(id = 6, name = "Drops", imageUrl = "https://example.com/drops.png")
+)
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun MedicationTypeItemPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        Box(modifier = Modifier.padding(8.dp).size(120.dp)) { // Added Box for better sizing in preview
+            MedicationTypeItem(
+                type = sampleMedicationTypes[0],
+                isSelected = true,
+                selectedColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_PINK,
+                cornerRadius = RoundedCornerShape(8.dp),
+                onClick = {}
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 400)
+@Composable
+fun MedicationTypeSelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        val selectedTypeId = 1
+        val selectedColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_PINK
+
+        // Replicating MedicationTypeSelector's layout for preview purposes
+        // without using the actual ViewModel-dependent composable.
+        Column(
+            modifier = Modifier.fillMaxSize(), // Adjusted to fill available space for preview
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Select Medication Type", // Using a placeholder title
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+            ) {
+                items(sampleMedicationTypes.size) { index ->
+                    val type = sampleMedicationTypes[index]
+                    val cornerShape = when (index) {
+                        0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                        2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
+                        sampleMedicationTypes.size - 3 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                        sampleMedicationTypes.size - 1 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp)
+                        else -> RoundedCornerShape(8.dp)
+                    }
+                    MedicationTypeItem(
+                        type = type,
+                        isSelected = type.id == selectedTypeId,
+                        onClick = { /* onTypeSelected(type.id) */ },
+                        selectedColor = selectedColor,
+                        cornerRadius = cornerShape
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun MedicationTypeItem(
     type: MedicationType,

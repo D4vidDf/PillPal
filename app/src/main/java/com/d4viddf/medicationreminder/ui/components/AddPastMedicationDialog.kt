@@ -150,3 +150,15 @@ fun AddPastMedicationDialog(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun AddPastMedicationDialogPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        AddPastMedicationDialog(
+            medicationNameDisplay = "Amoxicillin",
+            onDismissRequest = {},
+            onSave = { _, _ -> }
+        )
+    }
+}

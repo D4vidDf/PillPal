@@ -146,3 +146,24 @@ fun CustomMedicationHeader(
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun CustomMedicationHeaderPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        CustomMedicationHeader(
+            medicationName = "Amoxicillin",
+            medicationTypeAndDosage = "Capsule - 250mg",
+            progressValue = 0.75f,
+            progressText = "3 of 4 doses taken",
+            counter1Label = "Taken",
+            counter1Value = "3",
+            counter2Label = "Missed",
+            counter2Value = "1",
+            headerBackgroundColor = Color.Blue,
+            contentColor = Color.White,
+            onNavigateBack = {},
+            onEdit = {},
+            scrollProgress = 0.0f
+        )
+    }
+}

@@ -90,6 +90,14 @@ fun AnimatedShape( // Renamed to match your newer naming
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun AnimatedShapePreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        AnimatedShape()
+    }
+}
+
 // Renamed drawWhiteShape to drawCustomShape and added color parameter
 private fun DrawScope.drawCustomShape(shapeType: ShapeType, canvasSize: Size, color: Color) {
     val center = Offset(canvasSize.width / 2f, canvasSize.height / 2f)

@@ -73,3 +73,28 @@ fun generateDatesList(): List<LocalDate> {
     val today = LocalDate.now()
     return (0..6).map { today.plusDays(it.toLong()) } // Generate a week starting from today.
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun DateSelectorWidgetPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        DateSelectorWidget(
+            selectedDate = LocalDate.now(),
+            onDateSelected = {}
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun DateItemPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        DateItem(
+            date = LocalDate.now(),
+            isSelected = true,
+            onClick = {}
+        )
+    }
+}

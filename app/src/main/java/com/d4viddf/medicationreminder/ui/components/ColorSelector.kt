@@ -128,3 +128,14 @@ fun ColorSelector(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun ColorSelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+        ColorSelector(
+            selectedColor = medicationColors[0],
+            onColorSelected = {}
+        )
+    }
+}
