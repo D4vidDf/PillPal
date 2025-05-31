@@ -110,6 +110,13 @@
     <string name="medication_progress_display_not_package_based_acc">Medicación: %1$s restantes, %2$s tomadas. Progreso no basado en el envase.</string>
     <string name="medication_progress_display_info_not_available_acc">Progreso de la medicación: Información no disponible.</string>
     <string name="medication_progress_display_title">Progreso</string>
+    <!-- New strings for MedicationDetailScreen -->
+    <string name="content_desc_add_past_dose">Añadir toma pasada</string>
+    <string name="dialog_add_past_dose_title">Añadir Dosis Pasada</string>
+    <string name="label_medication_name_in_dialog">Nombre del Medicamento</string>
+    <string name="button_select_date">Seleccionar Fecha</string>
+    <string name="button_save_dose">Guardar Dosis</string>
+    <string name="dialog_select_time_title">Seleccionar Hora</string>
 
     <!-- Settings Screen (New) -->
     <string name="settings_screen_title">Ajustes</string>

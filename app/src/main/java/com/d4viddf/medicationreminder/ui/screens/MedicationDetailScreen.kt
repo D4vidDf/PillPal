@@ -11,19 +11,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,13 +54,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.AddPastMedicationDialog
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
+import com.d4viddf.medicationreminder.ui.components.ScheduleItem
+import com.d4viddf.medicationreminder.ui.components.TimePickerDialog
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -64,6 +83,7 @@ fun MedicationDetailsScreen(
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) } // Estado para el tipo
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = medicationId) {
         val med = viewModel.getMedicationById(medicationId)
@@ -125,6 +145,7 @@ fun MedicationDetailsScreen(
                     ) {
                         Box(
                             modifier = Modifier
+                                .safeDrawingPadding()
                                 .size(40.dp)
                                 .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                                 .clickable { onNavigateBack() },
@@ -138,10 +159,16 @@ fun MedicationDetailsScreen(
                         }
                         Box(
                             modifier = Modifier
+                                .safeDrawingPadding()
                                 .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .clickable { /* TODO: Handle edit action */ },
-                            contentAlignment = Alignment.Center
+                                .clickable { /* TODO: Handle edit action */ }
+                                .padding(0.dp), // Reset padding for content description if it affects layout
+                            contentAlignment = Alignment.Center,
+                            // Adding content description to the Box acting as a button
+                            // For a Box with Text, this might be redundant if TalkBack reads the Text,
+                            // but if it were an Icon, this would be crucial.
+                            // Semantics can be used for better control: Modifier.semantics { contentDescription = "Edit medication" }
                         ) {
                             Text(stringResource(id = com.d4viddf.medicationreminder.R.string.edit), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
@@ -177,38 +204,66 @@ fun MedicationDetailsScreen(
                 }
             }
 
-            // ... (item para la lista de "Today's Schedule") ...
+            // Item for Today's Schedule title and Add button
             item {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_today_title), fontSize = 36.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // TODO: The actual schedule items (time, label) will be dynamic.
-                    // For now, if these are examples, they can be left or also use placeholders if they represent a fixed concept.
-                    // Assuming "After waking up" and "With lunch" are conceptual examples for now.
-                    // If they were to be dynamic string keys, that would be a more complex setup.
-                    ScheduleItem(time = "9:00", label = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_after_waking_up) , enabled = true)
-                    ScheduleItem(time = "15:00", label = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_with_lunch), enabled = false)
-                    Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_today_title),
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    IconButton(
+                        onClick = { showDialog = true },
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                            .size(FloatingActionButtonDefaults.SmallIconSize) // Small FAB size
+                    ) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.content_desc_add_past_dose),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
+            }
+
+            // Placeholder for actual medication list logic
+            // This will be replaced with dynamic data from the ViewModel
+            val todayReminders = remember { // Replace with actual ViewModel data
+                listOf(
+                    Triple("9:00 AM", "Medication A", true), // time, name, isPast
+                    Triple("1:00 PM", "Medication B", true),
+                    Triple("6:00 PM", "Medication C", false) // isPast = false for future
+                )
+            }
+            var futureRemindersStarted = false
+            items(todayReminders) { (time, label, isPast) ->
+                if (!isPast && !futureRemindersStarted) {
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                    futureRemindersStarted = true
+                }
+                ScheduleItem(
+                    time = time,
+                    label = label,
+                    isTaken = isPast, // Placeholder: for now, past items are "taken"
+                    onTakenChange = { /* TODO */ },
+                    enabled = isPast // Future items are not enabled for marking as taken
+                )
             }
         }
     }
-}
-
-// ScheduleItem Composable
-@Composable
-fun ScheduleItem(time: String, label: String, enabled: Boolean) { // 'label' is now passed as a string resource
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge) // label is already a stringResource
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(text = time, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        }
-        Switch(checked = enabled, onCheckedChange = { /* TODO: Handle toggle */ }) // contentDescription for Switch could be added if needed
+    if (showDialog) {
+        AddPastMedicationDialog(
+            onDismiss = { showDialog = false },
+            onSave = { _, _, _ -> // TODO: Will call ViewModel
+                showDialog = false
+            }
+        )
     }
 }
