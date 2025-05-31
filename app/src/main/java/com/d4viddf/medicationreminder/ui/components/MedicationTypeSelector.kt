@@ -22,6 +22,7 @@ import coil.compose.AsyncImage
 import com.d4viddf.medicationreminder.data.MedicationType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Added AppTheme import
 
 @Composable
 fun MedicationTypeSelector(
@@ -100,7 +101,7 @@ private val sampleMedicationTypes = listOf(
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
 @Composable
 fun MedicationTypeItemPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme { // Changed to AppTheme
         Box(modifier = Modifier.padding(8.dp).size(120.dp)) { // Added Box for better sizing in preview
             MedicationTypeItem(
                 type = sampleMedicationTypes[0],
@@ -116,7 +117,7 @@ fun MedicationTypeItemPreview() {
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 400)
 @Composable
 fun MedicationTypeSelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme { // Changed to AppTheme
         val selectedTypeId = 1
         val selectedColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_PINK
 

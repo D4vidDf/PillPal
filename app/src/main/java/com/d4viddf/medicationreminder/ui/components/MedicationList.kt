@@ -17,8 +17,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp // Added for dp unit
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.data.FrequencyType // Added for FrequencyType enum
+import java.time.LocalDate // Added for LocalDate
+import java.time.format.DateTimeFormatter // Added for DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) // ExperimentalMaterial3ExpressiveApi is not needed for PullToRefreshBox
 @Composable
@@ -77,17 +81,33 @@ fun MedicationList(
 @Composable
 fun MedicationListPreview() {
     com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        val todayDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val sampleMedications = listOf(
-            Medication(id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY, selectedDays = listOf(1,2,3,4,5,6,7), intervalHours = 0, intervalMinutes = 0, notificationsOn = true, isActive = true),
-            Medication(id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.AS_NEEDED, selectedDays = emptyList(), intervalHours = 0, intervalMinutes = 0, notificationsOn = true, isActive = true),
-            Medication(id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.DAILY_INTERVAL, selectedDays = emptyList(), intervalHours = 8, intervalMinutes = 0, notificationsOn = true, isActive = true, startDate = "2024-01-01", endDate = "2024-12-31")
+            Medication(
+                id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM",
+                typeId = 1, frequencyType = FrequencyType.ONCE_A_DAY, selectedDays = emptyList(),
+                intervalHours = 0, intervalMinutes = 0, notificationsOn = false, isActive = false,
+                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
+            ),
+            Medication(
+                id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM",
+                typeId = 1, frequencyType = FrequencyType.AS_NEEDED, selectedDays = emptyList(),
+                intervalHours = 0, intervalMinutes = 0, notificationsOn = false, isActive = false,
+                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
+            ),
+            Medication(
+                id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM",
+                typeId = 1, frequencyType = FrequencyType.INTERVAL, selectedDays = emptyList(),
+                intervalHours = 8, intervalMinutes = 0, notificationsOn = false, isActive = false, // intervalHours kept as 8 for variety
+                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
+            )
         )
         MedicationList(
             medications = sampleMedications,
             onItemClick = {},
             isLoading = false,
             onRefresh = {},
-            bottomContentPadding = androidx.compose.ui.unit.dp.times(0) // 0.dp
+            bottomContentPadding = 0.dp // Changed to 0.dp
         )
     }
 }

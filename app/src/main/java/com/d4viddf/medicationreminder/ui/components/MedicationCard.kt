@@ -99,12 +99,18 @@ fun MedicationCardPreview() {
                 dosage = "250mg",
                 color = "LIGHT_BLUE", // Assuming MedicationColor.LIGHT_BLUE exists
                 reminderTime = "10:00 AM",
-                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
-                selectedDays = listOf(1,2,3,4,5,6,7),
+                // Updated parameters as per request
+                typeId = 1, // Default value
+                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.AS_NEEDED,
+                selectedDays = emptyList(),
                 intervalHours = 0,
                 intervalMinutes = 0,
-                notificationsOn = true,
-                isActive = true
+                notificationsOn = false, // Default value
+                isActive = false,      // Default value
+                packageSize = 0,       // Default value
+                remainingDoses = 0,    // Default value
+                startDate = null,      // Default value
+                endDate = null         // Default value
             ),
             onClick = {}
         )
