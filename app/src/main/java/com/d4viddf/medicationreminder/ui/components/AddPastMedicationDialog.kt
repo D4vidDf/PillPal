@@ -36,19 +36,21 @@ import java.time.format.FormatStyle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPastMedicationDialog(
-    onDismiss: () -> Unit,
-    onSave: (dateMillis: Long?, timeHour: Int, timeMinute: Int) -> Unit // TODO: Add medication selection parameter
+    medicationNameDisplay: String, // New parameter
+    onDismissRequest: () -> Unit, // Renamed from onDismiss for clarity with AlertDialog
+    onSave: (date: LocalDate, time: LocalTime) -> Unit // Updated onSave signature
 ) {
-    var dialogSelectedDate by remember { mutableStateOf(LocalDate.now()) } // State for the date
+    var dialogSelectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var dialogSelectedTime by remember { mutableStateOf(LocalTime.now()) } // State for time
     val currentYear = dialogSelectedDate.year
 
-    val datePickerState = rememberDatePickerState( // Renamed from dateState to datePickerState for clarity
+    val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = dialogSelectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
         yearRange = IntRange(currentYear - 100, currentYear),
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 // Allow selection of dates from the past up to and including today.
-                val endOfTodayMillis = today.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val endOfTodayMillis = LocalDate.now().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 return utcTimeMillis <= endOfTodayMillis
             }
 
@@ -58,49 +60,44 @@ fun AddPastMedicationDialog(
             }
         }
     )
-    val timePickerState = rememberTimePickerState( // Renamed from timeState for clarity
-        initialHour = LocalTime.now().hour,
-        initialMinute = LocalTime.now().minute,
+    val timePickerState = rememberTimePickerState(
+        initialHour = dialogSelectedTime.hour, // Initialize with dialogSelectedTime
+        initialMinute = dialogSelectedTime.minute,
         is24Hour = true
     )
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
-    var medicationName by remember { mutableStateOf("") } // Placeholder for medication selection
+    // Removed: var medicationName by remember { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(id = R.string.dialog_add_past_dose_title)) },
+        onDismissRequest = onDismissRequest, // Updated parameter name
+        title = { Text("Log past dose for: $medicationNameDisplay") }, // Updated title
         text = {
             Column {
-                OutlinedTextField(
-                    value = medicationName,
-                    onValueChange = { medicationName = it },
-                    label = { Text(stringResource(id = R.string.label_medication_name_in_dialog)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                // Removed OutlinedTextField for medicationName
+                Spacer(modifier = Modifier.height(8.dp)) // Keep spacer or adjust as needed
                 Button(onClick = { showDatePicker = true }) {
                     Text(text = dialogSelectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = { showTimePicker = true }) {
-                    Text(text = "${timeState.hour}:${String.format("%02d",timeState.minute)}")
+                    // Display the dialogSelectedTime, not the raw picker state initially
+                    Text(text = dialogSelectedTime.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
                 }
             }
         },
         confirmButton = {
-            TextButton(
+            TextButton( // Changed from Button to TextButton for consistency if desired, or keep Button
                 onClick = {
-                    // Convert dialogSelectedDate back to millis for onSave, or change onSave signature
-                    val selectedMillis = dialogSelectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                    onSave(selectedMillis, timePickerState.hour, timePickerState.minute)
+                    onSave(dialogSelectedDate, dialogSelectedTime) // Use new onSave signature
+                    onDismissRequest() // Dismiss after save
                 }
             ) {
                 Text(stringResource(id = R.string.button_save_dose))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismissRequest) { // Updated parameter name
                 Text(stringResource(id = R.string.dialog_cancel_button))
             }
         }
@@ -140,8 +137,7 @@ fun AddPastMedicationDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // timePickerState directly holds the hour and minute,
-                        // no separate state update needed here if only used for onSave.
+                        dialogSelectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                         showTimePicker = false
                     }
                 ) { Text(stringResource(id = R.string.dialog_ok_button)) }

@@ -261,20 +261,16 @@ fun MedicationDetailsScreen(
     }
     if (showDialog) {
         AddPastMedicationDialog(
-            onDismiss = { showDialog = false },
-            onSave = { dateMillis, hour, minute ->
-                // Assuming dateMillis is from DatePicker, hour/minute from TimePicker
-                val selectedDate = dateMillis?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
-                val selectedTime = java.time.LocalTime.of(hour, minute)
-                if (selectedDate != null && medicationState != null) {
-                    medicationReminderViewModel.addPastMedicationTaken(
-                        medicationId = medicationId,
-                        medicationNameParam = medicationState!!.name, // Pass the actual medication name
-                        date = selectedDate,
-                        time = selectedTime
-                    )
-                }
-                showDialog = false
+            medicationNameDisplay = medicationState?.name ?: stringResource(id = R.string.medication_name_placeholder), // Provide a fallback
+            onDismissRequest = { showDialog = false },
+            onSave = { date, time -> // Matches new signature: date is LocalDate, time is LocalTime
+                medicationReminderViewModel.addPastMedicationTaken(
+                    medicationId = medicationId,
+                    // medicationNameParam is no longer needed by the ViewModel method
+                    date = date,
+                    time = time
+                )
+                showDialog = false // Dismiss dialog after save
             }
         )
     }
