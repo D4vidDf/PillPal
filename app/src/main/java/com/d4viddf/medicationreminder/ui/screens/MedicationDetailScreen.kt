@@ -58,6 +58,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationType
+import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added for type safety
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.AddPastMedicationDialog
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
@@ -65,9 +66,12 @@ import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
 import com.d4viddf.medicationreminder.ui.components.ScheduleItem
 import com.d4viddf.medicationreminder.ui.components.TimePickerDialog
+import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,24 +80,24 @@ fun MedicationDetailsScreen(
     onNavigateBack: () -> Unit,
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
-    medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel() // Añadir ViewModel de tipo
+    medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
+    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel() // Added ViewModel
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) } // Estado para el tipo
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
+    val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = medicationId) {
         val med = viewModel.getMedicationById(medicationId)
         medicationState = med
         if (med != null) {
-            // scheduleState se necesita para MedicationDetailCounters
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
-
-            // Iniciar la observación para el progreso DIARIO
             viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
+            medicationReminderViewModel.loadTodaySchedule(medicationId) // Load today's schedule
 
             med.typeId?.let { typeId ->
                 medicationTypeViewModel.medicationTypes.collect { types ->
@@ -222,38 +226,35 @@ fun MedicationDetailsScreen(
                         onClick = { showDialog = true },
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                            .size(FloatingActionButtonDefaults.SmallIconSize) // Small FAB size
+                        // Size of IconButton can be default, or use Modifier.size(40.dp) for a typical small FAB touch target
                     ) {
                         Icon(
-                            Icons.Filled.Add,
-                            contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.content_desc_add_past_dose),
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
+                            modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize), // Corrected: size applied to Icon
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
             }
 
-            // Placeholder for actual medication list logic
-            // This will be replaced with dynamic data from the ViewModel
-            val todayReminders = remember { // Replace with actual ViewModel data
-                listOf(
-                    Triple("9:00 AM", "Medication A", true), // time, name, isPast
-                    Triple("1:00 PM", "Medication B", true),
-                    Triple("6:00 PM", "Medication C", false) // isPast = false for future
-                )
-            }
             var futureRemindersStarted = false
-            items(todayReminders) { (time, label, isPast) ->
-                if (!isPast && !futureRemindersStarted) {
+            items(todayScheduleItems, key = { it.id }) { todayItem ->
+                val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
+
+                if (!isActuallyPast && !futureRemindersStarted) {
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     futureRemindersStarted = true
                 }
                 ScheduleItem(
-                    time = time,
-                    label = label,
-                    isTaken = isPast, // Placeholder: for now, past items are "taken"
-                    onTakenChange = { /* TODO */ },
-                    enabled = isPast // Future items are not enabled for marking as taken
+                    time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                    label = todayItem.medicationName,
+                    isTaken = todayItem.isTaken,
+                    onTakenChange = { newState ->
+                        medicationReminderViewModel.updateReminderStatus(todayItem.id, newState, medicationId)
+                    },
+                    // Enable toggle only for past or current items. Future items are disabled.
+                    enabled = isActuallyPast || todayItem.isTaken
                 )
             }
         }
@@ -261,7 +262,18 @@ fun MedicationDetailsScreen(
     if (showDialog) {
         AddPastMedicationDialog(
             onDismiss = { showDialog = false },
-            onSave = { _, _, _ -> // TODO: Will call ViewModel
+            onSave = { dateMillis, hour, minute ->
+                // Assuming dateMillis is from DatePicker, hour/minute from TimePicker
+                val selectedDate = dateMillis?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
+                val selectedTime = java.time.LocalTime.of(hour, minute)
+                if (selectedDate != null && medicationState != null) {
+                    medicationReminderViewModel.addPastMedicationTaken(
+                        medicationId = medicationId,
+                        medicationNameParam = medicationState!!.name, // Pass the actual medication name
+                        date = selectedDate,
+                        time = selectedTime
+                    )
+                }
                 showDialog = false
             }
         )

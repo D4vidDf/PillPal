@@ -79,15 +79,25 @@ fun AddPastMedicationDialog(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(text = stringResource(id = R.string.dialog_ok_button)) }
+                TextButton(
+                    onClick = {
+                        // The selected date is already in dateState.selectedDateMillis
+                        // which is used directly in the onSave lambda of the AlertDialog.
+                        showDatePicker = false
+                    }
+                ) { Text(stringResource(R.string.dialog_ok_button)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(text = stringResource(id = R.string.dialog_cancel_button)) }
-            },
-            datePicker = {
-                DatePicker(state = dateState, dateValidator = { it <= System.currentTimeMillis() })
+                TextButton(
+                    onClick = { showDatePicker = false }
+                ) { Text(stringResource(R.string.dialog_cancel_button)) }
             }
-        )
+        ) { // Content lambda for DatePickerDialog
+            DatePicker(
+                state = dateState,
+                dateValidator = { timestamp -> timestamp <= System.currentTimeMillis() }
+            )
+        }
     }
 
     if (showTimePicker) {

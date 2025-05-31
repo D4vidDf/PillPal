@@ -50,9 +50,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.R // Import R class
 import com.d4viddf.medicationreminder.data.FrequencyType
 import java.time.LocalTime
+import com.d4viddf.medicationreminder.ui.components.TimePickerDialog // Added import for the shared component
 import java.time.format.DateTimeFormatter
+
+// Ensure other Material 3 imports like androidx.compose.material3.Text,
+// androidx.compose.material3.TextButton, androidx.compose.material3.TimePicker etc. are present.
+// Based on the previous file read, they seem to be.
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -378,7 +384,7 @@ fun IntervalDurationSelector(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(stringResource(id = com.d4viddf.medicationreminder.R.string.freq_every_label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(end = 8.dp))
+    Text(stringResource(id = R.string.freq_every_label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(end = 8.dp))
         Box(Modifier.width(70.dp)) {
             IOSWheelPicker(
                 items = (0..23).toList(),
@@ -388,7 +394,7 @@ fun IntervalDurationSelector(
                 displayTransform = { it.toString().padStart(2, '0') }
             )
         }
-        Text(stringResource(id = com.d4viddf.medicationreminder.R.string.freq_hours_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 8.dp))
+        Text(stringResource(id = R.string.freq_hours_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 8.dp))
         Box(Modifier.width(70.dp)) {
             IOSWheelPicker(
                 items = (0..55 step 5).toList(),
@@ -398,25 +404,9 @@ fun IntervalDurationSelector(
                 displayTransform = { it.toString().padStart(2, '0') }
             )
         }
-        Text(stringResource(id = com.d4viddf.medicationreminder.R.string.freq_minutes_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 8.dp))
+        Text(stringResource(id = R.string.freq_minutes_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 8.dp))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TimePickerDialog(
-    title: String, // Already a string resource
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable () -> Unit, // Button text handled within this composable
-    dismissButton: @Composable (() -> Unit)? = null, // Button text handled within this composable
-    content: @Composable BoxScope.() -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = title, style = MaterialTheme.typography.titleLarge.copy(textAlign = TextAlign.Center), modifier=Modifier.fillMaxWidth()) }, // title is stringResource
-        text = { Box(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center, content = content) },
-        confirmButton = confirmButton,
-        dismissButton = dismissButton,
-        modifier = Modifier.fillMaxWidth(0.95f)
-    )
-}
+// Removed local TimePickerDialog definition to use the one from ui.components
+// Ensure com.d4viddf.medicationreminder.ui.components.TimePickerDialog is imported at the top of the file.
