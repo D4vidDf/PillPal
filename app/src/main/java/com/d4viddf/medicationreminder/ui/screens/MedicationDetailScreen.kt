@@ -42,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -261,6 +263,61 @@ fun MedicationDetailsScreen(
                 )
                 showDialog = false
             }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Medication Details Screen")
+@Composable
+fun MedicationDetailsScreenPreview() {
+    AppTheme {
+        // ViewModel parameters are omitted to use defaults,
+        // which might result in a preview with no dynamic data.
+        MedicationDetailsScreen(
+            medicationId = 1,
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Not Taken")
+@Composable
+fun ScheduleItemNotTakenPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "10:00 AM",
+            label = "Aspirin",
+            isTaken = false,
+            onTakenChange = {},
+            enabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Taken")
+@Composable
+fun ScheduleItemTakenPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "02:00 PM",
+            label = "Ibuprofen",
+            isTaken = true,
+            onTakenChange = {},
+            enabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Schedule Item - Disabled")
+@Composable
+fun ScheduleItemDisabledPreview() {
+    AppTheme {
+        ScheduleItem(
+            time = "08:00 PM",
+            label = "Vitamin C",
+            isTaken = false,
+            onTakenChange = {},
+            enabled = false
         )
     }
 }

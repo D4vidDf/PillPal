@@ -204,3 +204,39 @@ private fun calculateAnimatedAlpha(
         0.2f
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "WheelTimePicker Preview")
+@Composable
+fun WheelTimePickerPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme {
+        Surface(color = MaterialTheme.colorScheme.background) { // Use Surface for background
+            WheelTimePicker(
+                startTime = LocalTime.of(10, 30),
+                onSnappedTime = {}
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "WheelPicker Preview")
+@Composable
+fun WheelPickerPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme {
+        Surface(color = MaterialTheme.colorScheme.background) { // Use Surface for background
+            WheelPicker(
+                count = 10,
+                rowCount = 3,
+                startIndex = 5,
+                onScrollFinished = { it },
+                content = { index ->
+                    Text(
+                        text = "Item $index",
+                        color = Color.Black, // Ensure text is visible on default Surface
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            )
+        }
+    }
+}

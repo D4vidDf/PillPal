@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme, adjust if MedicationReminderTheme is used
 
 @Composable
 fun NotificationToggleWidget(
@@ -26,6 +28,28 @@ fun NotificationToggleWidget(
         Switch(
             checked = isNotificationEnabled,
             onCheckedChange = { onToggle(it) }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Notifications Enabled")
+@Composable
+fun NotificationToggleWidgetEnabledPreview() {
+    AppTheme {
+        NotificationToggleWidget(
+            isNotificationEnabled = true,
+            onToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Notifications Disabled")
+@Composable
+fun NotificationToggleWidgetDisabledPreview() {
+    AppTheme {
+        NotificationToggleWidget(
+            isNotificationEnabled = false,
+            onToggle = {}
         )
     }
 }

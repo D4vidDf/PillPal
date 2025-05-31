@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,5 +45,13 @@ fun ProfileScreen(onNavigateBack: () -> Unit) {
         ) {
             Text("Profile Screen - Coming Soon!")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProfileScreenPreview() {
+    AppTheme {
+        ProfileScreen(onNavigateBack = {})
     }
 }

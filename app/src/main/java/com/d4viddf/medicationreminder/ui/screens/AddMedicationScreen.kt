@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 // import androidx.compose.ui.platform.LocalContext // Only if child components truly need it
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.work.Data
@@ -333,6 +335,46 @@ fun AddMedicationScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddMedicationScreenPreview() {
+    AppTheme {
+        AddMedicationScreen(onNavigateBack = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MedicationSummaryPreview() {
+    AppTheme {
+        MedicationSummary(
+            typeId = 1,
+            medicationName = "Medication Name",
+            color = Color.Cyan,
+            dosage = "1 pill",
+            packageSize = "30",
+            frequency = FrequencyType.ONCE_A_DAY,
+            startDate = "2024-01-01",
+            endDate = "2024-01-30",
+            onceADayTime = LocalTime.of(9, 0),
+            selectedTimes = listOf(LocalTime.of(9, 0), LocalTime.of(18, 0)),
+            intervalHours = 8,
+            intervalMinutes = 0,
+            intervalStartTime = LocalTime.of(8, 0),
+            intervalEndTime = LocalTime.of(20, 0),
+            selectedDays = listOf(1, 2, 3, 4, 5)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InfoRowPreview() {
+    AppTheme {
+        InfoRow(label = "Label", value = "Value")
     }
 }
 
