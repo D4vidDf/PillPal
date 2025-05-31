@@ -25,6 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R // Assuming R class is in this package
+import androidx.compose.material3.SelectableDates
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,11 +39,30 @@ fun AddPastMedicationDialog(
     onDismiss: () -> Unit,
     onSave: (dateMillis: Long?, timeHour: Int, timeMinute: Int) -> Unit // TODO: Add medication selection parameter
 ) {
-    val dateState = rememberDatePickerState(
-        initialSelectedDateMillis = System.currentTimeMillis(),
-        dateValidator = { timestamp -> timestamp <= System.currentTimeMillis() }
+    var dialogSelectedDate by remember { mutableStateOf(LocalDate.now()) } // State for the date
+    val currentYear = dialogSelectedDate.year
+
+    val datePickerState = rememberDatePickerState( // Renamed from dateState to datePickerState for clarity
+        initialSelectedDateMillis = dialogSelectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        yearRange = IntRange(currentYear - 100, currentYear),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                // Allow selection of dates from the past up to and including today.
+                val endOfTodayMillis = today.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                return utcTimeMillis <= endOfTodayMillis
+            }
+
+            override fun isSelectableYear(year: Int): Boolean {
+                // Allow selection of years within the defined yearRange.
+                return year <= currentYear && year >= currentYear - 100
+            }
+        }
     )
-    val timeState = rememberTimePickerState(initialHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY), initialMinute = java.util.Calendar.getInstance().get(java.util.Calendar.MINUTE), is24Hour = true)
+    val timePickerState = rememberTimePickerState( // Renamed from timeState for clarity
+        initialHour = LocalTime.now().hour,
+        initialMinute = LocalTime.now().minute,
+        is24Hour = true
+    )
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var medicationName by remember { mutableStateOf("") } // Placeholder for medication selection
@@ -54,7 +80,7 @@ fun AddPastMedicationDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = { showDatePicker = true }) {
-                    Text(text = dateState.selectedDateMillis?.let { java.text.SimpleDateFormat("dd/MM/yyyy").format(java.util.Date(it)) } ?: stringResource(id = R.string.button_select_date))
+                    Text(text = dialogSelectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = { showTimePicker = true }) {
@@ -65,7 +91,9 @@ fun AddPastMedicationDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onSave(dateState.selectedDateMillis, timeState.hour, timeState.minute)
+                    // Convert dialogSelectedDate back to millis for onSave, or change onSave signature
+                    val selectedMillis = dialogSelectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    onSave(selectedMillis, timePickerState.hour, timePickerState.minute)
                 }
             ) {
                 Text(stringResource(id = R.string.button_save_dose))
@@ -84,8 +112,9 @@ fun AddPastMedicationDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // The selected date is already in dateState.selectedDateMillis
-                        // which is used directly in the onSave lambda of the AlertDialog.
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            dialogSelectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                        }
                         showDatePicker = false
                     }
                 ) { Text(stringResource(R.string.dialog_ok_button)) }
@@ -96,24 +125,32 @@ fun AddPastMedicationDialog(
                 ) { Text(stringResource(R.string.dialog_cancel_button)) }
             }
         ) { // Content lambda for DatePickerDialog
-            DatePicker(state = dateState)
+            DatePicker(state = datePickerState)
         }
     }
 
+    // It's good practice to also update a local state for time if it needs to be displayed or used elsewhere before saving.
+    // For simplicity, this example directly uses timePickerState.hour and timePickerState.minute on save.
+    // If display of selected time before saving was needed, similar state management as dialogSelectedDate would be used.
+
     if (showTimePicker) {
-        TimePickerDialog( // This now refers to the component in the same package (if this file is also in ui.components)
-                         // or needs an import if TimePickerDialog.kt is in a different sub-package of components.
-                         // Assuming it's in com.d4viddf.medicationreminder.ui.components.TimePickerDialog
+        TimePickerDialog(
             title = stringResource(id = R.string.dialog_select_time_title),
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text(text = stringResource(id = R.string.dialog_ok_button)) }
+                TextButton(
+                    onClick = {
+                        // timePickerState directly holds the hour and minute,
+                        // no separate state update needed here if only used for onSave.
+                        showTimePicker = false
+                    }
+                ) { Text(stringResource(id = R.string.dialog_ok_button)) }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) { Text(text = stringResource(id = R.string.dialog_cancel_button)) }
             }
         ) {
-            TimePicker(state = timeState, modifier = Modifier.padding(16.dp))
+            TimePicker(state = timePickerState, modifier = Modifier.padding(16.dp))
         }
     }
 }
