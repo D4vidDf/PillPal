@@ -140,11 +140,11 @@ class MedicationReminderViewModel @Inject constructor(
             val currentTime = LocalTime.now()
 
             schedules.forEach { schedule ->
-                val reminderDateTimesToday = ReminderCalculator.calculateReminderDateTimes(medication, schedule, today)
-                Log.d("MedReminderVM", "Medication: ${medication.name}, Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}, Calculated DTs for today: ${reminderDateTimesToday.size}")
+                // Strategy 1: Deduplicate reminder times from ReminderCalculator for a single schedule
+                val distinctReminderDateTimesToday = ReminderCalculator.calculateReminderDateTimes(medication, schedule, today).distinct()
+                Log.d("MedReminderVM", "Medication: ${medication.name}, Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}, Calculated DTs for today: ${distinctReminderDateTimesToday.size} (after distinct)")
 
-
-                reminderDateTimesToday.forEach { reminderDateTime ->
+                distinctReminderDateTimesToday.forEach { reminderDateTime ->
                     val reminderTimeStr = reminderDateTime.format(ReminderCalculator.storableDateTimeFormatter)
                     val existingReminder = existingReminders.find { it.medicationId == medicationId && it.reminderTime == reminderTimeStr }
 
@@ -161,8 +161,10 @@ class MedicationReminderViewModel @Inject constructor(
                 }
             }
 
-            _todayScheduleItems.value = allTodayScheduleItems.sortedBy { it.time }
-            Log.d("MedReminderVM", "Updated TodayScheduleItems for medId: $medicationId with ${allTodayScheduleItems.size} items.")
+            // Strategy 2: Deduplicate the final list of TodayScheduleItem objects
+            val uniqueTodayScheduleItems = allTodayScheduleItems.toSet().toList()
+            _todayScheduleItems.value = uniqueTodayScheduleItems.sortedBy { it.time }
+            Log.d("MedReminderVM", "Updated TodayScheduleItems for medId: $medicationId with ${uniqueTodayScheduleItems.size} unique items.")
         }
     }
 

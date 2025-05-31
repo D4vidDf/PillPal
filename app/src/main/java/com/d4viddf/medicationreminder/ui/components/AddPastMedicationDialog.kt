@@ -32,7 +32,10 @@ fun AddPastMedicationDialog(
     onDismiss: () -> Unit,
     onSave: (dateMillis: Long?, timeHour: Int, timeMinute: Int) -> Unit // TODO: Add medication selection parameter
 ) {
-    val dateState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+    val dateState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis(),
+        dateValidator = { timestamp -> timestamp <= System.currentTimeMillis() }
+    )
     val timeState = rememberTimePickerState(initialHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY), initialMinute = java.util.Calendar.getInstance().get(java.util.Calendar.MINUTE), is24Hour = true)
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -93,10 +96,7 @@ fun AddPastMedicationDialog(
                 ) { Text(stringResource(R.string.dialog_cancel_button)) }
             }
         ) { // Content lambda for DatePickerDialog
-            DatePicker(
-                state = dateState,
-                dateValidator = { timestamp -> timestamp <= System.currentTimeMillis() }
-            )
+            DatePicker(state = dateState)
         }
     }
 
