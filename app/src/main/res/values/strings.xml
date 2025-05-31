@@ -110,6 +110,14 @@
     <string name="medication_progress_display_not_package_based_acc">Medication: %1$s remaining, %2$s taken. Progress not package-based.</string>
     <string name="medication_progress_display_info_not_available_acc">Medication progress: Information not available.</string>
     <string name="medication_progress_display_title">Progress</string>
+    <!-- New strings for MedicationDetailScreen -->
+    <string name="content_desc_add_past_dose">Add past medication dose</string>
+    <string name="dialog_add_past_dose_title">Add Past Dose</string>
+    <string name="label_medication_name_in_dialog">Medication Name</string>
+    <string name="button_select_date">Select Date</string>
+    <string name="button_save_dose">Save Dose</string>
+    <string name="dialog_select_time_title">Select Time</string>
+
 
     <!-- Settings Screen (New) -->
     <string name="settings_screen_title">Settings</string>
