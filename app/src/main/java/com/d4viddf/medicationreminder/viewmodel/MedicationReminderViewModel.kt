@@ -8,9 +8,14 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.MedicationRepository
+import com.d4viddf.medicationreminder.data.MedicationSchedule
+import com.d4viddf.medicationreminder.data.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.data.TodayScheduleItem
+import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,6 +34,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MedicationReminderViewModel @Inject constructor(
+    private val medicationRepository: MedicationRepository,
+    private val scheduleRepository: MedicationScheduleRepository,
     private val reminderRepository: MedicationReminderRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
@@ -112,84 +119,108 @@ class MedicationReminderViewModel @Inject constructor(
 
     // Function to Fetch Today's Reminders for a specific medication
     fun loadTodaySchedule(medicationId: Int) {
-        viewModelScope.launch {
-            // Placeholder logic:
-            // In a real scenario, this would involve:
-            // 1. Fetching Medication by medicationId to get its name (if not passed directly).
-            // 2. Fetching MedicationSchedules for this medicationId.
-            // 3. Using a ReminderCalculator or similar logic to determine all specific reminder times for *today*.
-            // 4. For each calculated time, checking against MedicationReminder entries in the DB
-            //    to see if it's already taken or if an entry exists.
-            // 5. Mapping all this data to TodayScheduleItem objects.
+        viewModelScope.launch(Dispatchers.IO) {
+            val medication = medicationRepository.getMedicationById(medicationId)
+            if (medication == null) {
+                Log.w("MedReminderVM", "loadTodaySchedule: Medication with ID $medicationId not found.")
+                _todayScheduleItems.value = emptyList()
+                return@launch
+            }
 
-            // Example placeholder data (replace with actual logic):
-            // Assuming medicationName is fetched or known. For placeholder, using "Medication Placeholder".
-            val medicationName = "Medication $medicationId" // Placeholder
-            _todayScheduleItems.value = listOf(
-                TodayScheduleItem(
-                    id = "${medicationId}_0900",
-                    medicationName = medicationName,
-                    time = LocalTime.of(9, 0),
-                    isPast = LocalTime.now().isAfter(LocalTime.of(9, 0)),
-                    isTaken = false, // This would come from DB
-                    underlyingReminderId = 1L // Placeholder ID
-                ),
-                TodayScheduleItem(
-                    id = "${medicationId}_1500",
-                    medicationName = medicationName,
-                    time = LocalTime.of(15, 0),
-                    isPast = LocalTime.now().isAfter(LocalTime.of(15, 0)),
-                    isTaken = true, // This would come from DB
-                    underlyingReminderId = 2L // Placeholder ID
-                ),
-                TodayScheduleItem(
-                    id = "${medicationId}_2100",
-                    medicationName = medicationName,
-                    time = LocalTime.of(21, 0),
-                    isPast = LocalTime.now().isAfter(LocalTime.of(21, 0)),
-                    isTaken = false, // This would come from DB
-                    underlyingReminderId = 3L // Placeholder ID
-                )
-            ).sortedBy { it.time } // Sort by time
-            Log.d("MedReminderVM", "Loaded placeholder TodayScheduleItems for medId: $medicationId")
+            val schedules = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()
+            if (schedules.isNullOrEmpty()) {
+                Log.i("MedReminderVM", "loadTodaySchedule: No schedules found for medication ID $medicationId.")
+                _todayScheduleItems.value = emptyList()
+                return@launch
+            }
+
+            val existingReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+            val allTodayScheduleItems = mutableListOf<TodayScheduleItem>()
+            val today = LocalDate.now()
+            val currentTime = LocalTime.now()
+
+            schedules.forEach { schedule ->
+                val reminderDateTimesToday = ReminderCalculator.calculateReminderDateTimes(medication, schedule, today)
+                Log.d("MedReminderVM", "Medication: ${medication.name}, Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}, Calculated DTs for today: ${reminderDateTimesToday.size}")
+
+
+                reminderDateTimesToday.forEach { reminderDateTime ->
+                    val reminderTimeStr = reminderDateTime.format(ReminderCalculator.storableDateTimeFormatter)
+                    val existingReminder = existingReminders.find { it.medicationId == medicationId && it.reminderTime == reminderTimeStr }
+
+                    val scheduleItem = TodayScheduleItem(
+                        id = "${medicationId}_${schedule.id}_${reminderDateTime.toLocalTime().toNanoOfDay()}",
+                        medicationName = medication.name,
+                        time = reminderDateTime.toLocalTime(),
+                        isPast = currentTime.isAfter(reminderDateTime.toLocalTime()),
+                        isTaken = existingReminder?.isTaken ?: false,
+                        underlyingReminderId = existingReminder?.id?.toLong() ?: 0L, // Use existing reminder ID or 0L
+                        medicationScheduleId = schedule.id // Populate the new field
+                    )
+                    allTodayScheduleItems.add(scheduleItem)
+                }
+            }
+
+            _todayScheduleItems.value = allTodayScheduleItems.sortedBy { it.time }
+            Log.d("MedReminderVM", "Updated TodayScheduleItems for medId: $medicationId with ${allTodayScheduleItems.size} items.")
         }
     }
 
     // Function to Add Past Medication Taken
     fun addPastMedicationTaken(medicationId: Int, medicationNameParam: String, date: LocalDate, time: LocalTime) {
         viewModelScope.launch(Dispatchers.IO) {
-            val dateTime = LocalDateTime.of(date, time)
-            if (dateTime.isAfter(LocalDateTime.now())) {
-                Log.w("MedReminderVM", "Cannot log future medication taken event for medId: $medicationId at $dateTime")
-                // Handle error: cannot log future medication (e.g., show a toast or update an error StateFlow)
+            val pastDateTime = LocalDateTime.of(date, time)
+            if (pastDateTime.isAfter(LocalDateTime.now())) {
+                Log.e("MedReminderVM", "Cannot add past medication taken: Date and time are in the future. MedId: $medicationId, DateTime: $pastDateTime")
                 return@launch
             }
 
-            // Placeholder logic:
-            // 1. Determine the appropriate MedicationSchedule ID if possible/necessary.
-            //    This might involve finding a schedule that would have been active at that past date/time.
-            //    Or, if it's a one-off dose, it might not link to a specific schedule instance.
-            // 2. Create a MedicationReminder entity.
-            // val newReminder = MedicationReminder(
-            //     medicationId = medicationId,
-            //     scheduleId = foundScheduleId, // Optional, or a marker for manual log
-            //     reminderTime = dateTime.format(storableDateTimeFormatter), // Store as String, consistent with existing
-            //     isTaken = true,
-            //     takenAt = dateTime.format(storableDateTimeFormatter) // Log when it was actually taken
-            // )
-            // reminderRepository.insert(newReminder) // Or an appropriate save method
+            val medication = medicationRepository.getMedicationById(medicationId)
+            if (medication == null) {
+                Log.e("MedReminderVM", "Cannot add past medication taken: Medication with ID $medicationId not found.")
+                return@launch
+            }
 
-            Log.d("MedReminderVM", "Adding past medication taken for medId: $medicationId, name: $medicationNameParam, date: $date, time: $time")
-            // Simulate DB operation
-            // val createdReminderId = reminderRepository.insert(newReminder).await() // Assuming insert returns ID
+            val schedules = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()
+            var matchingScheduleId: Int = 0 // Default to 0 if no schedule matches, as MedicationReminder.medicationScheduleId is non-nullable.
+                                          // This assumes 0 is a valid reference or a convention for "no specific schedule" / "manual log".
+                                          // A proper solution might involve a nullable field or a dedicated "manual" schedule entry in DB.
 
-            // If the logged date is today, refresh the today's schedule list
-            if (date.isEqual(LocalDate.now())) {
-                // To reflect this newly added past medication, we might need to adjust loadTodaySchedule
-                // or specifically add this item to _todayScheduleItems.
-                // For simplicity with placeholder, just reloading:
-                loadTodaySchedule(medicationId)
-                Log.d("MedReminderVM", "Refreshed today's schedule after adding past medication for today.")
+            if (!schedules.isNullOrEmpty()) {
+                for (schedule in schedules) {
+                    val scheduledTimesOnPastDate = ReminderCalculator.calculateReminderDateTimes(medication, schedule, date)
+                    if (scheduledTimesOnPastDate.any { it.toLocalTime() == time }) {
+                        matchingScheduleId = schedule.id
+                        Log.d("MedReminderVM", "Found matching schedule (ID: $matchingScheduleId) for past dose.")
+                        break
+                    }
+                }
+            }
+            if (matchingScheduleId == 0) {
+                Log.i("MedReminderVM", "No specific schedule matched for past dose. Logging with scheduleId 0.")
+            }
+
+            val newReminder = MedicationReminder(
+                id = 0, // Auto-generated by Room
+                medicationId = medicationId,
+                medicationScheduleId = matchingScheduleId,
+                reminderTime = pastDateTime.format(ReminderCalculator.storableDateTimeFormatter), // This is effectively the "taken time"
+                isTaken = true,
+                takenAt = pastDateTime.format(ReminderCalculator.storableDateTimeFormatter), // Explicitly log when it was marked as taken (which is the past time provided)
+                notificationId = null // No notification for a past, manually added dose
+            )
+
+            try {
+                reminderRepository.insertReminder(newReminder)
+                Log.d("MedReminderVM", "Inserted past medication taken for medId: $medicationId at $pastDateTime, linked to scheduleId: $matchingScheduleId.")
+
+                if (date.isEqual(LocalDate.now())) {
+                    loadTodaySchedule(medicationId) // Refresh the list if the added dose was for today
+                    Log.d("MedReminderVM", "Refreshed today's schedule after adding past medication for today.")
+                }
+            } catch (e: Exception) {
+                Log.e("MedReminderVM", "Error inserting past medication taken for medId: $medicationId", e)
+                // Optionally, communicate error to UI
             }
         }
     }
@@ -197,46 +228,67 @@ class MedicationReminderViewModel @Inject constructor(
     // Function to Update Reminder Status (Toggle)
     fun updateReminderStatus(itemId: String, isTaken: Boolean, medicationId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val currentList = _todayScheduleItems.value.toMutableList()
-            val itemIndex = currentList.indexOfFirst { it.id == itemId }
-
-            if (itemIndex != -1) {
-                val itemToUpdate = currentList[itemIndex]
-                Log.d("MedReminderVM", "Updating status for item: $itemId, isTaken: $isTaken, medId: $medicationId")
-
-                // Placeholder for DB update:
-                // val reminderInDb = reminderRepository.getReminderById(itemToUpdate.underlyingReminderId)
-                // if (reminderInDb != null) {
-                //    val updatedReminder = reminderInDb.copy(
-                //        isTaken = isTaken,
-                //        takenAt = if (isTaken) LocalDateTime.now().format(storableDateTimeFormatter) else null
-                //    )
-                //    reminderRepository.update(updatedReminder)
-                // } else {
-                //    // If it was a conceptual reminder (not yet in DB), create it now.
-                //    // This depends on how underlyingReminderId is handled for reminders not yet in DB.
-                //    // For example, if underlyingReminderId is -1L for conceptual ones:
-                //    if (itemToUpdate.underlyingReminderId == -1L) {
-                //        val newReminder = MedicationReminder(
-                //            medicationId = medicationId,
-                //            // scheduleId = ... // needs to be determined
-                //            reminderTime = LocalDateTime.of(LocalDate.now(), itemToUpdate.time).format(storableDateTimeFormatter),
-                //            isTaken = isTaken,
-                //            takenAt = if (isTaken) LocalDateTime.now().format(storableDateTimeFormatter) else null
-                //        )
-                //        reminderRepository.insert(newReminder)
-                //    }
-                //    Log.w("MedReminderVM", "Reminder with underlyingId ${itemToUpdate.underlyingReminderId} not found in DB for update.")
-                // }
-
-
-                // Update local list for immediate UI feedback
-                currentList[itemIndex] = itemToUpdate.copy(isTaken = isTaken)
-                _todayScheduleItems.value = currentList
-                Log.d("MedReminderVM", "Updated local _todayScheduleItems for item: $itemId")
-            } else {
-                Log.w("MedReminderVM", "Item with id $itemId not found in _todayScheduleItems for update.")
+            val todayItem = _todayScheduleItems.value.find { it.id == itemId }
+            if (todayItem == null) {
+                Log.e("MedReminderVM", "updateReminderStatus: TodayScheduleItem not found for ID: $itemId. Cannot update status.")
+                return@launch
             }
+
+            val reminderDateTime = LocalDateTime.of(LocalDate.now(), todayItem.time)
+            val reminderTimeStr = reminderDateTime.format(ReminderCalculator.storableDateTimeFormatter)
+            // Attempt to find existing reminder by medicationId and exact time string.
+            // This might require a new DAO method: getReminderByMedicationIdAndExactTimeString(medId: Int, timeStr: String)
+            // For now, we fetch all and filter, which is less efficient but works with current repo methods.
+            val existingReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+            var reminderInDb = existingReminders.find { it.reminderTime == reminderTimeStr && it.medicationId == medicationId }
+
+            if (isTaken) {
+                if (reminderInDb != null) {
+                    // Update existing reminder
+                    val updatedReminder = reminderInDb.copy(
+                        isTaken = true,
+                        takenAt = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter)
+                    )
+                    reminderRepository.updateReminder(updatedReminder)
+                    Log.d("MedReminderVM", "Marked existing reminder (ID: ${reminderInDb.id}) as taken for item: $itemId.")
+                } else {
+                    // Create new reminder
+                    val newReminder = MedicationReminder(
+                        id = 0, // Auto-generated
+                        medicationId = medicationId,
+                        medicationScheduleId = todayItem.medicationScheduleId,
+                        reminderTime = reminderTimeStr,
+                        isTaken = true,
+                        takenAt = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter),
+                        notificationId = null // Or manage if notifications are linked
+                    )
+                    reminderRepository.insertReminder(newReminder)
+                    Log.d("MedReminderVM", "Created and marked new reminder as taken for item: $itemId.")
+                }
+            } else { // Unmarking as taken
+                if (reminderInDb != null) {
+                    val updatedReminder = reminderInDb.copy(
+                        isTaken = false,
+                        takenAt = null
+                    )
+                    reminderRepository.updateReminder(updatedReminder)
+                    Log.d("MedReminderVM", "Marked existing reminder (ID: ${reminderInDb.id}) as NOT taken for item: $itemId.")
+                } else {
+                    // This case implies an inconsistency or an attempt to unmark a conceptual reminder that was never saved.
+                    Log.w("MedReminderVM", "Attempted to unmark a reminder that doesn't exist in DB. ItemId: $itemId, MedId: $medicationId, Time: $reminderDateTime")
+                    // Optionally, if a TodayScheduleItem can be "taken" conceptually without a DB record yet,
+                    // and then untaken, we might not need to do anything here if it was never in DB.
+                    // However, our current loadTodaySchedule implies underlyingReminderId would be 0L if not in DB.
+                    // If underlyingReminderId is not 0L, it means it *should* exist.
+                    if (todayItem.underlyingReminderId != 0L) {
+                         Log.e("MedReminderVM", "Inconsistency: Tried to unmark item $itemId with underlyingReminderId ${todayItem.underlyingReminderId} but not found in DB via time match.")
+                    }
+                }
+            }
+            // Refresh the entire list to ensure isTaken status and underlyingReminderId are up-to-date,
+            // especially if a new reminder was inserted (which gets a new ID).
+            loadTodaySchedule(medicationId)
+            Log.d("MedReminderVM", "Refreshed today's schedule after updating status for item: $itemId.")
         }
     }
 }

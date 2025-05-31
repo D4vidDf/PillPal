@@ -8,5 +8,6 @@ data class TodayScheduleItem(
     val time: LocalTime, // Or formatted string if preferred for display
     val isPast: Boolean,
     var isTaken: Boolean,
-    val underlyingReminderId: Long // Or appropriate ID type for DB operations, using Long as a placeholder
+    val underlyingReminderId: Long, // ID of the MedicationReminder DB record, if one exists
+    val medicationScheduleId: Int   // ID of the MedicationSchedule that generated this item
 )
