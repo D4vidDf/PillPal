@@ -42,13 +42,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationType
+import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.AddPastMedicationDialog // Added
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
+// ScheduleItem will be local, so no import from components
+import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import java.time.format.DateTimeFormatter // Added
+import java.time.format.FormatStyle // Added
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,23 +64,24 @@ fun MedicationDetailsScreen(
     onNavigateBack: () -> Unit,
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
-    medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel() // Añadir ViewModel de tipo
+    medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
+    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel() // Added
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
-    var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) } // Estado para el tipo
+    var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
+    val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState() // Added
+    var showDialog by remember { mutableStateOf(false) } // Added for AddPastMedicationDialog
 
     LaunchedEffect(key1 = medicationId) {
         val med = viewModel.getMedicationById(medicationId)
         medicationState = med
         if (med != null) {
-            // scheduleState se necesita para MedicationDetailCounters
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
-
-            // Iniciar la observación para el progreso DIARIO
             viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
+            medicationReminderViewModel.loadTodaySchedule(medicationId) // Added data load call
 
             med.typeId?.let { typeId ->
                 medicationTypeViewModel.medicationTypes.collect { types ->
@@ -99,12 +107,13 @@ fun MedicationDetailsScreen(
         }
     }
 
-    if (medicationState == null && progressDetails == null) {
+    if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) { // Updated condition
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
-        LazyColumn {
+        // Scaffold was part of previous attempts, but original file is just LazyColumn
+        LazyColumn(modifier = Modifier.fillMaxSize()) { // Add .padding(scaffoldInnerPadding) if a Scaffold is reintroduced
             item {
                 Column(
                     modifier = Modifier
@@ -177,38 +186,103 @@ fun MedicationDetailsScreen(
                 }
             }
 
-            // ... (item para la lista de "Today's Schedule") ...
+            // Item for "Today" title and Add Past Reminder Button
             item {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_today_title), fontSize = 36.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // TODO: The actual schedule items (time, label) will be dynamic.
-                    // For now, if these are examples, they can be left or also use placeholders if they represent a fixed concept.
-                    // Assuming "After waking up" and "With lunch" are conceptual examples for now.
-                    // If they were to be dynamic string keys, that would be a more complex setup.
-                    ScheduleItem(time = "9:00", label = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_after_waking_up) , enabled = true)
-                    ScheduleItem(time = "15:00", label = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_with_lunch), enabled = false)
-                    Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.medication_detail_today_title),
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = color.onBackgroundColor // Use themed color
+                    )
+                    IconButton(
+                        onClick = { showDialog = true },
+                        modifier = Modifier
+                            .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                            .padding(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
+                            tint = Color.White,
+                            modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize)
+                        )
+                    }
                 }
+            }
+
+            // Horizontal Divider
+            item {
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            }
+
+            items(items = todayScheduleItems, key = { it.id }) { todayItem ->
+                val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now())
+                // The logic for an additional divider *before future items* could go here if needed,
+                // but for now, we only have one divider above the list.
+
+                ScheduleItem( // This still calls the old local ScheduleItem
+                    time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                    label = todayItem.medicationName,
+                    isTaken = todayItem.isTaken, // Now passing isTaken
+                    onTakenChange = { newTakenState -> // Now passing onTakenChange
+                        medicationReminderViewModel.updateReminderStatus(todayItem.id, newTakenState, medicationId)
+                    },
+                    enabled = isActuallyPast || todayItem.isTaken // This controls Switch enabled state
+                )
             }
         }
     }
+
+    if (showDialog) { // Added AddPastMedicationDialog call
+        AddPastMedicationDialog(
+            medicationNameDisplay = medicationState?.name ?: stringResource(id = R.string.medication_name_placeholder),
+            onDismissRequest = { showDialog = false },
+            onSave = { date, time ->
+                medicationReminderViewModel.addPastMedicationTaken(
+                    medicationId = medicationId,
+                    // medicationNameParam is no longer needed by the ViewModel method
+                    date = date,
+                    time = time
+                )
+                showDialog = false
+            }
+        )
+    }
 }
 
-// ScheduleItem Composable
+// ScheduleItem Composable - Adapted
 @Composable
-fun ScheduleItem(time: String, label: String, enabled: Boolean) { // 'label' is now passed as a string resource
+private fun ScheduleItem(
+    time: String,
+    label: String,
+    isTaken: Boolean, // Added
+    onTakenChange: (Boolean) -> Unit, // Added
+    enabled: Boolean // For Switch's enabled state (isPast or already taken)
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp), // Standardized padding for items
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge) // label is already a stringResource
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(2.dp))
             Text(text = time, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
-        Switch(checked = enabled, onCheckedChange = { /* TODO: Handle toggle */ }) // contentDescription for Switch could be added if needed
+        Switch(
+            checked = isTaken,
+            onCheckedChange = onTakenChange, // Use the callback
+            enabled = enabled // Control if switch can be interacted with
+        )
     }
 }
