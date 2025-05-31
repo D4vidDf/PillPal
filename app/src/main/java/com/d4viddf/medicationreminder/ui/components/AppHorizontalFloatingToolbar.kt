@@ -15,6 +15,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.Screen // Required for Screen routes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -81,7 +82,7 @@ fun AppHorizontalFloatingToolbar(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun AppHorizontalFloatingToolbarPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         AppHorizontalFloatingToolbar(
             onHomeClick = {},
             onCalendarClick = {},

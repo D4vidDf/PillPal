@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.material3.MaterialTheme // For default color from theme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
@@ -93,7 +94,7 @@ fun AnimatedShape( // Renamed to match your newer naming
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun AnimatedShapePreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         AnimatedShape()
     }
 }

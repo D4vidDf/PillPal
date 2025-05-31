@@ -15,10 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 // import androidx.compose.ui.text.style.TextOverflow // No longer needed
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun MedicationCard(
@@ -87,10 +89,10 @@ fun MedicationAvatar(color: Color) {
     )
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@Preview
 @Composable
 fun MedicationCardPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         MedicationCard(
             medication = Medication(
                 id = 1,
@@ -98,22 +100,21 @@ fun MedicationCardPreview() {
                 dosage = "250mg",
                 color = "LIGHT_BLUE", // Assuming MedicationColor.LIGHT_BLUE exists
                 reminderTime = "10:00 AM",
-                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
-                selectedDays = listOf(1,2,3,4,5,6,7),
-                intervalHours = 0,
-                intervalMinutes = 0,
-                notificationsOn = true,
-                isActive = true
+                typeId = TODO(),
+                packageSize = TODO(),
+                remainingDoses = TODO(),
+                startDate = TODO(),
+                endDate = TODO(),
             ),
             onClick = {}
         )
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@Preview
 @Composable
 fun MedicationAvatarPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         MedicationAvatar(color = Color.White)
     }
 }

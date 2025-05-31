@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -78,7 +79,7 @@ fun generateDatesList(): List<LocalDate> {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun DateSelectorWidgetPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         DateSelectorWidget(
             selectedDate = LocalDate.now(),
             onDateSelected = {}
@@ -90,7 +91,7 @@ fun DateSelectorWidgetPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun DateItemPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         DateItem(
             date = LocalDate.now(),
             isSelected = true,

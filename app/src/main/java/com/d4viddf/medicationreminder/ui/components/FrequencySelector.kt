@@ -54,6 +54,7 @@ import com.d4viddf.medicationreminder.R // Import R class
 import com.d4viddf.medicationreminder.data.FrequencyType
 import java.time.LocalTime
 import com.d4viddf.medicationreminder.ui.components.TimePickerDialog // Added import for the shared component
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
 // Ensure other Material 3 imports like androidx.compose.material3.Text,
@@ -414,7 +415,7 @@ fun IntervalDurationSelector(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun FrequencySelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         FrequencySelector(
             selectedFrequency = FrequencyType.ONCE_A_DAY,
             onFrequencySelected = {},
@@ -439,7 +440,7 @@ fun FrequencySelectorPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun DropdownMenuFrequenciesPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         DropdownMenuFrequencies(
             selectedFrequency = FrequencyType.ONCE_A_DAY,
             options = FrequencyType.values().toList(),
@@ -451,7 +452,7 @@ fun DropdownMenuFrequenciesPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun DaySelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         DaySelector(
             selectedDays = emptyList(),
             onDaysSelected = {}
@@ -462,7 +463,7 @@ fun DaySelectorPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun CustomAlarmsSelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         CustomAlarmsSelector(
             selectedTimes = emptyList(),
             onTimesSelected = {},
@@ -474,7 +475,7 @@ fun CustomAlarmsSelectorPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun IntervalDurationSelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         IntervalDurationSelector(
             hours = 0,
             minutes = 0,

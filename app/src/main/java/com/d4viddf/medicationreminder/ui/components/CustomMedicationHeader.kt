@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun CustomMedicationHeader(
@@ -149,7 +150,7 @@ fun CustomMedicationHeader(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun CustomMedicationHeaderPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         CustomMedicationHeader(
             medicationName = "Amoxicillin",
             medicationTypeAndDosage = "Capsule - 250mg",

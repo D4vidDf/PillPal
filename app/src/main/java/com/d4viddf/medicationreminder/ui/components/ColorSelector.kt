@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.colors.medicationColors
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,7 +133,7 @@ fun ColorSelector(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun ColorSelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         ColorSelector(
             selectedColor = medicationColors[0],
             onColorSelected = {}

@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.Screen // Required for Screen routes
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun AppNavigationRail(
@@ -138,7 +139,7 @@ fun AppNavigationRail(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun AppNavigationRailPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         AppNavigationRail(
             onHomeClick = {},
             onCalendarClick = {},

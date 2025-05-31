@@ -1,6 +1,7 @@
 package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,9 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.FrequencyType
 import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) // ExperimentalMaterial3ExpressiveApi is not needed for PullToRefreshBox
 @Composable
@@ -59,7 +64,7 @@ fun MedicationList(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = bottomContentPadding) // Apply bottom padding
+                contentPadding = PaddingValues(bottom = bottomContentPadding) // Apply bottom padding
             ) {
                 items(medications, key = { medication -> medication.id }) { medication ->
                     MedicationCard(
@@ -72,21 +77,54 @@ fun MedicationList(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@Preview
 @Composable
 fun MedicationListPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         val sampleMedications = listOf(
-            Medication(id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY, selectedDays = listOf(1,2,3,4,5,6,7), intervalHours = 0, intervalMinutes = 0, notificationsOn = true, isActive = true),
-            Medication(id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.AS_NEEDED, selectedDays = emptyList(), intervalHours = 0, intervalMinutes = 0, notificationsOn = true, isActive = true),
-            Medication(id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.DAILY_INTERVAL, selectedDays = emptyList(), intervalHours = 8, intervalMinutes = 0, notificationsOn = true, isActive = true, startDate = "2024-01-01", endDate = "2024-12-31")
+            Medication(
+                id = 1,
+                name = "Amoxicillin",
+                dosage = "250mg",
+                color = "LIGHT_BLUE",
+                reminderTime = "10:00 AM",
+                typeId = TODO(),
+                packageSize = TODO(),
+                remainingDoses = TODO(),
+                startDate = TODO(),
+                endDate = TODO(),
+            ),
+            Medication(
+                id = 2,
+                name = "Ibuprofen",
+                dosage = "200mg",
+                color = "LIGHT_RED",
+                reminderTime = "06:00 PM",
+                typeId = TODO(),
+                packageSize = TODO(),
+                remainingDoses = TODO(),
+                startDate = TODO(),
+                endDate = TODO(),
+            ),
+            Medication(
+                id = 3,
+                name = "Vitamin C",
+                dosage = "500mg",
+                color = "LIGHT_ORANGE",
+                reminderTime = "08:00 AM",
+                typeId = TODO(),
+                packageSize = TODO(),
+                remainingDoses = TODO(),
+                startDate = TODO(),
+                endDate = TODO(),
+            )
         )
         MedicationList(
             medications = sampleMedications,
             onItemClick = {},
             isLoading = false,
             onRefresh = {},
-            bottomContentPadding = androidx.compose.ui.unit.dp.times(0) // 0.dp
+            bottomContentPadding = 0.dp// 0.dp
         )
     }
 }

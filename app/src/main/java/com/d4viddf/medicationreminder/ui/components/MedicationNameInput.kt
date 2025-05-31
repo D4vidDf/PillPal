@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -129,7 +130,7 @@ fun MedicationNameInput(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MedicationNameInputPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         MedicationNameInput(
             medicationName = "Ibuprofen",
             onMedicationNameChange = {},

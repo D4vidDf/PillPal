@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 // Data class ProgressDetails (sin cambios)
 data class ProgressDetails(
@@ -143,7 +144,7 @@ fun MedicationProgressDisplay(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MedicationProgressDisplayPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         MedicationProgressDisplay(
             progressDetails = ProgressDetails(
                 taken = 5,

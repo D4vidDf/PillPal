@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -547,7 +548,7 @@ enum class SyringeUnit(val displayValue: String) { // "ml" - often not translate
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MedicationDosagePackageDateInputPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         // This preview might have limited functionality for the dosage modal
         // as the ViewModel won't be properly injected in a preview.
         // The medicationType will likely be null.
@@ -570,7 +571,7 @@ fun MedicationDosagePackageDateInputPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun M3StyledDatePickerButtonPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         M3StyledDatePickerButton(
             label = "Start Date",
             dateString = "",
@@ -583,7 +584,7 @@ fun M3StyledDatePickerButtonPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun IOSWheelPickerPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         Box(modifier = Modifier.height(150.dp).width(100.dp)) { // Provide size for the picker
             IOSWheelPicker(
                 items = (0..10).toList(),

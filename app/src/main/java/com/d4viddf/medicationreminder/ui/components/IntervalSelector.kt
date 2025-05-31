@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.DpSize
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.LocalTime
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -52,7 +53,7 @@ fun IntervalSelector(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun IntervalSelectorPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         IntervalSelector(
             onIntervalChanged = { _, _ -> }
         )

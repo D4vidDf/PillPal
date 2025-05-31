@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun MedicationDetailHeader(
@@ -69,7 +70,7 @@ fun MedicationDetailHeader(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MedicationDetailHeaderPreview() {
-    com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme {
+    AppTheme {
         MedicationDetailHeader(
             medicationName = "Amoxicillin Trihydrate Suspension",
             medicationDosage = "250mg / 5ml",
