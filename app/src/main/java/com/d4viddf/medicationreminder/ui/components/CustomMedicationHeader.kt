@@ -140,16 +140,16 @@ fun CustomMedicationHeader(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            CounterItem(label = counter1Label, value = counter1Value, textColor = contentColor)
-            CounterItem(label = counter2Label, value = counter2Value, textColor = contentColor)
+            CounterItem(label = counter1Label, value = counter1Value, valueColor = contentColor) // Changed to valueColor
+            CounterItem(label = counter2Label, value = counter2Value, valueColor = contentColor) // Changed to valueColor
         }
     }
 }
 
 @Composable
-private fun CounterItem(label: String, value: String, textColor: Color) {
+private fun CounterItem(label: String, value: String, valueColor: Color) { // Changed parameter name to valueColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.titleLarge, color = textColor, fontWeight = FontWeight.Bold)
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = textColor.copy(alpha = 0.8f))
+        Text(text = value, style = MaterialTheme.typography.titleLarge, color = valueColor, fontWeight = FontWeight.Bold) // Use new name
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = valueColor.copy(alpha = 0.8f)) // Use new name
     }
 }
