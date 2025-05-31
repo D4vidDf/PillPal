@@ -543,3 +543,57 @@ enum class SyringeUnit(val displayValue: String) { // "ml" - often not translate
     ML("ml");
     override fun toString(): String = displayValue
 }
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun MedicationDosagePackageDateInputPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        // This preview might have limited functionality for the dosage modal
+        // as the ViewModel won't be properly injected in a preview.
+        // The medicationType will likely be null.
+        MedicationDosagePackageDateInput(
+            selectedTypeId = 1,
+            dosage = "1 pill",
+            onDosageChange = {},
+            packageSize = "30",
+            onPackageSizeChange = {},
+            medicationSearchResult = null,
+            startDate = "",
+            onStartDateSelected = {},
+            endDate = "",
+            onEndDateSelected = {}
+            // viewModel = // Cannot easily provide a fake ViewModel here for preview
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun M3StyledDatePickerButtonPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        M3StyledDatePickerButton(
+            label = "Start Date",
+            dateString = "",
+            placeholder = "Select date",
+            onDateSelected = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun IOSWheelPickerPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        Box(modifier = Modifier.height(150.dp).width(100.dp)) { // Provide size for the picker
+            IOSWheelPicker(
+                items = (0..10).toList(),
+                selectedItem = 5,
+                onItemSelected = {},
+                displayTransform = { it.toString() }
+            )
+        }
+    }
+}

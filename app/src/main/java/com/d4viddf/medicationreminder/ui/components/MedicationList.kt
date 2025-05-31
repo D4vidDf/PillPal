@@ -71,3 +71,23 @@ fun MedicationList(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun MedicationListPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        val sampleMedications = listOf(
+            Medication(id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY, selectedDays = listOf(1,2,3,4,5,6,7), intervalHours = 0, intervalMinutes = 0, notificationsOn = true, isActive = true),
+            Medication(id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.AS_NEEDED, selectedDays = emptyList(), intervalHours = 0, intervalMinutes = 0, notificationsOn = true, isActive = true),
+            Medication(id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM", frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.DAILY_INTERVAL, selectedDays = emptyList(), intervalHours = 8, intervalMinutes = 0, notificationsOn = true, isActive = true, startDate = "2024-01-01", endDate = "2024-12-31")
+        )
+        MedicationList(
+            medications = sampleMedications,
+            onItemClick = {},
+            isLoading = false,
+            onRefresh = {},
+            bottomContentPadding = androidx.compose.ui.unit.dp.times(0) // 0.dp
+        )
+    }
+}

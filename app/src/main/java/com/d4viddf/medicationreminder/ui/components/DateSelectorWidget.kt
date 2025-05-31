@@ -73,3 +73,30 @@ fun generateDatesList(): List<LocalDate> {
     val today = LocalDate.now()
     return (0..6).map { today.plusDays(it.toLong()) } // Generate a week starting from today.
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun DateSelectorWidgetPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        DateSelectorWidget(
+            selectedDate = LocalDate.now(),
+            onDateSelected = {}
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun DateItemPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        DateItem(
+            date = LocalDate.now(),
+            isSelected = true,
+            onClick = {}
+        )
+    }
+}

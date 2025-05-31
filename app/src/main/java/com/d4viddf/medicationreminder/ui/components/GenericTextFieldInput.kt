@@ -71,3 +71,18 @@ fun GenericTextFieldInput(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun GenericTextFieldInputPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        GenericTextFieldInput(
+            label = "Medication Name",
+            value = "Amoxicillin",
+            onValueChange = {},
+            description = "Enter the full name of the medication.",
+            isError = false
+        )
+    }
+}

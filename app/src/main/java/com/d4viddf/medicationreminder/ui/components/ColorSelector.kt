@@ -128,3 +128,15 @@ fun ColorSelector(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun ColorSelectorPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        ColorSelector(
+            selectedColor = medicationColors[0],
+            onColorSelected = {}
+        )
+    }
+}

@@ -134,3 +134,19 @@ fun AppNavigationRail(
         )
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun AppNavigationRailPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        AppNavigationRail(
+            onHomeClick = {},
+            onCalendarClick = {},
+            onProfileClick = {},
+            onSettingsClick = {},
+            onAddClick = {},
+            currentRoute = Screen.Home.route
+        )
+    }
+}

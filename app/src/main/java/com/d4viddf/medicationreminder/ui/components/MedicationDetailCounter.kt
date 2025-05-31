@@ -37,6 +37,55 @@ fun CounterItem(value: String, label: String, valueColor: Color) {
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun CounterItemPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        CounterItem(
+            value = "250mg",
+            label = "Dose",
+            valueColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_ORANGE.onBackgroundColor
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Composable
+fun MedicationDetailCountersPreview() {
+    com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
+        MedicationDetailCounters(
+            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_ORANGE,
+            medication = Medication(
+                id = 1,
+                name = "Amoxicillin",
+                dosage = "250mg Capsule",
+                color = "LIGHT_ORANGE",
+                reminderTime = "10:00 AM",
+                frequencyType = com.d4viddf.medicationreminder.data.FrequencyType.ONCE_A_DAY,
+                selectedDays = listOf(1,2,3,4,5,6,7),
+                intervalHours = 0,
+                intervalMinutes = 0,
+                notificationsOn = true,
+                isActive = true,
+                startDate = "2024-01-01",
+                endDate = "2024-01-10"
+            ),
+            schedule = MedicationSchedule(
+                medicationId = 1,
+                scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.DAILY,
+                daysOfWeek = "1,2,3,4,5,6,7",
+                specificTimes = "10:00",
+                intervalHours = null,
+                intervalMinutes = null,
+                startDate = "2024-01-01",
+                endDate = "2024-01-10"
+            )
+        )
+    }
+}
+
 @Composable
 fun MedicationDetailCounters(
     colorScheme: MedicationColor,
