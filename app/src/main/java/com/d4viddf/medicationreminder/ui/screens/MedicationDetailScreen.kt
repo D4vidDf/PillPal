@@ -38,10 +38,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar // Added import
-import androidx.compose.material3.TopAppBarDefaults // Added import
+import androidx.compose.material3.ButtonDefaults // Added import
+import androidx.compose.material3.LargeTopAppBar // Added import for LargeTopAppBar
+import androidx.compose.material3.TopAppBarDefaults // Already present, good
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.rememberTopAppBarState // Added import
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,8 +54,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll // Already present, good
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow // Added import
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -86,6 +90,8 @@ fun MedicationDetailsScreen(
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
     medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel() // Added ViewModel
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Added scroll behavior
+
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) } // Estado para el tipo
@@ -132,26 +138,50 @@ fun MedicationDetailsScreen(
         }
     } else {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = {
-                        medicationState?.name?.let { Text(it) }
+                        Text(
+                            text = medicationState?.name ?: stringResource(id = R.string.loading),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
+                        IconButton(
+                            onClick = onNavigateBack,
+                            modifier = Modifier
+                                .padding(start = 8.dp) // Spacing from the edge
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                        ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                                 contentDescription = stringResource(id = R.string.back)
+                                // Tint will be color.onBackgroundColor due to LargeTopAppBar settings
                             )
                         }
                     },
                     actions = {
-                        TextButton(onClick = { /* TODO: Handle edit action */ }) {
+                        Button( // Changed from TextButton to Button for easier background/shape control
+                            onClick = { /* TODO: Handle edit action */ },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                contentColor = color.onBackgroundColor // Explicitly use the dynamic color
+                            ),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
                             Text(stringResource(id = R.string.edit))
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = color.backgroundColor, // Use existing color scheme
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = color.backgroundColor, // Use existing dynamic color for expanded state
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant, // Color when scrolled
                         titleContentColor = color.onBackgroundColor,
                         navigationIconContentColor = color.onBackgroundColor,
                         actionIconContentColor = color.onBackgroundColor
