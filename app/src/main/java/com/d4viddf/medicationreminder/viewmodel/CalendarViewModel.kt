@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.Job // Import Job
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -66,6 +67,7 @@ class CalendarViewModel @Inject constructor(
 
     // Formatter for medication start/end dates, changed to "dd/MM/yyyy" format
     private val dateParser = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+    private var fetchJob: Job? = null
 
     init {
         setSelectedDate(LocalDate.now())
@@ -111,8 +113,9 @@ class CalendarViewModel @Inject constructor(
 
     // Signature changed to accept the list of CalendarDay objects
     private fun fetchMedicationSchedulesForVisibleDays(currentVisibleDays: List<CalendarDay>) {
-        viewModelScope.launch {
-            // isLoading is already set true by setSelectedDate
+        fetchJob?.cancel() // Cancel any existing job
+        fetchJob = viewModelScope.launch {
+            // isLoading is already set true by setSelectedDate or loadMore functions
             try {
                 val visibleDaysList = currentVisibleDays.map { it.date } // Use passed parameter
                 if (visibleDaysList.isEmpty()) {
@@ -196,6 +199,10 @@ class CalendarViewModel @Inject constructor(
                         )
                     }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    Log.i("CalendarViewModel", "Fetch schedules job was cancelled.")
+                    throw e // Important to rethrow CancellationException
+                }
                 Log.e("CalendarViewModel", "Error fetching schedules: ${e.localizedMessage}", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
