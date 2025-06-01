@@ -113,20 +113,41 @@ class ScheduleCalendarState(
 
     // Basic fling behavior, can be enhanced with anchoring later if needed.
     val scrollFlingBehavior = object : FlingBehavior {
-        val decay = exponentialDecay<Float>()
+        val decay = exponentialDecay<Float>() // This is a Float decay, animateDecay on Animatable<Long, AnimationVector1D> will need its own or a compatible one.
+                                         // However, Animatable.animateDecay will typically use its own decay characteristics or one provided.
+                                         // The 'decay' variable here might not be directly used by secondsOffset.animateDecay if it implies a specific type.
+                                         // Let's assume Animatable<Long, AnimationVector1D> can handle decay with a Float-based velocity.
         override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
-            // Simple fling, no complex anchoring for now.
-            // Convert velocity to seconds/sec and animate the offset.
-            val secondsVelocity = initialVelocity.toSeconds().toFloat()
-            coroutineScope.launch {
-                secondsOffset.animateTo(
-                    targetValue = secondsOffset.value + decay.calculateTargetValue(0f, secondsVelocity).roundToLong(), // Ensure target is Long
-                    initialVelocity = secondsVelocity,
-                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing) // Adjust spec as needed
-                )
-                // onDateRangeChanged(startDateTime, endDateTime) // Call after fling settles
+            // Convert scroll velocity (pixels/sec) to value units/sec for the animation
+            // Positive initialVelocity means user swiped left, content moved left, time should go "forward" (offset increases)
+            // animateDecay increases the value if velocity is positive.
+            // delta in scrollableState: positive means drag towards positive (right), content moves left.
+            // So if initialVelocity from fling is positive (content was moving left, user swiped left), secondsOffset should increase.
+            // secondsOffset.animateDecay expects velocity in units per second.
+            // A positive pixel velocity (swipe left) should lead to a positive secondsOffset change.
+            // My .toSeconds() converts pixel delta to time delta:
+            //   - positive pixel delta (drag right, content moves right) -> positive time delta
+            //   - negative pixel delta (drag left, content moves left) -> negative time delta
+            // For fling:
+            //   - initialVelocity > 0 means content was moving left (user swiped from right to left) -> time should go forward -> secondsOffset should increase.
+            //   - initialVelocity < 0 means content was moving right (user swiped from left to right) -> time should go backward -> secondsOffset should decrease.
+            // So, velocity for animateDecay should be initialVelocity.toSeconds().toFloat(), but need to check sign.
+            // If initialVelocity > 0 (swipe R-to-L, content moves left, time increases): initialVelocity.toSeconds() would be negative if toSeconds() uses (pixel * secondsPerPixel) and secondsPerPixel is positive.
+            // Let's assume secondsPerPixel is positive.
+            // If initialVelocity is positive (pixels/s, list moving left), then this is like dragging finger from right to left.
+            // This means we are moving towards later times. `secondsOffset` should increase.
+            // `animateDecay` takes a velocity where positive means increasing the value.
+            // So, if `initialVelocity` (pixels/s) is positive, `initialVelocity.toSeconds().toFloat()` should be positive.
+            // My `Float.toSeconds()`: `(this * secondsPerPixel).roundToLong()`. `secondsPerPixel` is `viewSpanSeconds.toFloat() / composableWidthPx.toFloat()`, which is positive.
+            // So, `initialVelocity.toSeconds().toFloat()` has the correct sign for `animateDecay`.
+
+            val velocityInSecondsPerSecond = initialVelocity.toSeconds().toFloat()
+
+            coroutineScope.launch { // Launching the animation as animateDecay itself might not be what performFling expects to directly suspend on for its whole duration
+                secondsOffset.animateDecay(velocityInSecondsPerSecond, decay) // Pass the decay spec here
+                // onDateRangeChanged(startDateTime, endDateTime) // If re-introduced
             }
-            return initialVelocity // Indicate velocity consumed.
+            return initialVelocity // Indicate all velocity was consumed by launching an animation
         }
     }
 

@@ -360,154 +360,141 @@ fun MedicationRowsLayout(
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 fun CalendarScreenPreviewLight() {
-    AppTheme(themePreference = ThemeKeys.LIGHT) {
-        val dummyUiState = CalendarUiState(
-            selectedDate = LocalDate.now(),
-            currentMonth = YearMonth.now(),
-            visibleDays = (-3..3).map {
-                val date = LocalDate.now().plusDays(it.toLong())
-                CalendarDay(date, date.isEqual(LocalDate.now()), date.isEqual(LocalDate.now().plusDays(it.toLong())))
-            },
-            medicationSchedules = listOf(
-                MedicationScheduleItem(
-                    medication = Medication(id = 1, name = "Metformin", typeId = 1, color = "#FFE91E63", dosage = "500mg", packageSize = 30, remainingDoses = 15, startDate = "2023-01-10", endDate = "2023-01-25", reminderTime = null),
-                    schedule = MedicationSchedule(
-                        id = 1,
-                        medicationId = 1,
-                        scheduleType = ScheduleType.DAILY,
-                        specificTimes = "09:00",
-                        intervalHours = null,
-                        intervalMinutes = null,
-                        daysOfWeek = null,
-                        intervalStartTime = null,
-                        intervalEndTime = null
-                    ),
-                    startOffsetInVisibleDays = 0, endOffsetInVisibleDays = 2
-                ),
-                MedicationScheduleItem(
-                    medication = Medication(
-                        id = 2,
-                        name = "Lisinopril Long Name For Testing Ellipsis",
-                        typeId = 2,
-                        color = "#FF4CAF50",
-                        dosage = "10mg",
-                        packageSize = 90,
-                        remainingDoses = 80,
-                        startDate = "2022-12-01",
-                        endDate = null,
-                        reminderTime = null
-                    ),
-                    schedule = MedicationSchedule(
-                        id = 2,
-                        medicationId = 2,
-                        scheduleType = ScheduleType.DAILY,
-                        specificTimes = "09:00",
-                        intervalHours = null,
-                        intervalMinutes = null,
-                        daysOfWeek = null,
-                        intervalStartTime = null,
-                        intervalEndTime = null
-                    ),
-                    isOngoingOverall = true, startOffsetInVisibleDays = 0, endOffsetInVisibleDays = 6
-                )
+    AppTheme(themePreference = ThemeKeys.LIGHT) { // Assuming AppTheme is correctly defined
+        // 1. Create a remembered ScheduleCalendarState instance for the preview
+        val calendarState = rememberScheduleCalendarState(
+            // Optional: Provide a specific referenceDateTime if needed for consistent previews
+            // referenceDateTime = LocalDateTime.of(2024, 6, 1, 0, 0)
+        )
+
+        // Mock data for MedicationScheduleItem
+        val sampleMedication1 = Medication(id = 1, name = "Metformin", typeId = 1, color = "#FFE91E63", dosage = "500mg", packageSize = 30, remainingDoses = 15, startDate = "2024-05-28", endDate = "2024-06-05", reminderTime = null, registrationDate = "2024-05-01")
+        val sampleSchedule1 = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "09:00")
+
+        val sampleMedication2 = Medication(id = 2, name = "Lisinopril (Ongoing)", typeId = 2, color = "#FF4CAF50", dosage = "10mg", packageSize = 90, remainingDoses = 80, startDate = "2024-05-20", endDate = null, reminderTime = null, registrationDate = "2024-05-01")
+        val sampleSchedule2 = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = "08:00")
+
+        val previewMedicationSchedules = listOf(
+            MedicationScheduleItem(
+                medication = sampleMedication1,
+                schedule = sampleSchedule1,
+                actualStartDate = LocalDate.parse("2024-05-28"),
+                actualEndDate = LocalDate.parse("2024-06-05"),
+                isOngoingOverall = false // Explicitly false as endDate is present
+            ),
+            MedicationScheduleItem(
+                medication = sampleMedication2,
+                schedule = sampleSchedule2,
+                actualStartDate = LocalDate.parse("2024-05-20"),
+                actualEndDate = null, // No actual end date
+                isOngoingOverall = true  // Explicitly true
             )
         )
-        val currentMonth = previewUiState.currentMonth
-        Scaffold( // Preview call reverted
+
+        // Mimic the structure of CalendarScreen's Scaffold content
+        Scaffold(
             topBar = {
-                CalendarTopAppBar(currentMonth, {})
+                CalendarTopAppBar(
+                    currentMonth = YearMonth.from(calendarState.startDateTime.toLocalDate()),
+                    onDateSelectorClicked = { /* Dummy action for preview */ }
+                    // No prev/next week buttons
+                )
             }
-        ) { paddings ->
-            Column(Modifier.padding(paddings)) {
-                WeekCalendarView( // Call reverted
-                    days = previewUiState.visibleDays,
-                    currentMonthFocus = previewUiState.currentMonth,
-                    selectedDate = previewUiState.selectedDate,
-                    onDateSelected = {},
-                    listState = previewWeekScrollState // Restored
-                )
-                HorizontalDivider(thickness = DividerDefaults.Thickness, color = DividerDefaults.color)
-                MedicationScheduleListView( // Call reverted
-                    medicationSchedules = previewUiState.medicationSchedules,
-                    numVisibleDays = previewUiState.visibleDays.size,
-                    currentMonth = currentMonth,
-                    onMedicationClicked = {},
-                    horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Restored
-                    dayWidth = previewDayWidth
-                )
+        ) { innerPadding ->
+            Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        // Note: .scrollable is stateful and might be hard to preview perfectly.
+                        // For preview, we often just show a static snapshot.
+                        // If .scrollable causes issues in preview, it can be omitted here.
+                ) {
+                    val totalWidthPx = constraints.maxWidth
+                    // Call updateView for the state, though its effect might be limited in preview
+                    LaunchedEffect(totalWidthPx) {
+                        if (totalWidthPx > 0) {
+                            calendarState.updateView(newWidth = totalWidthPx)
+                        }
+                    }
+
+                    Column(Modifier.fillMaxSize()) {
+                        DaysRow(
+                            state = calendarState,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp) // Consistent height defined in DaysRow
+                        )
+                        MedicationRowsLayout(
+                            state = calendarState,
+                            medicationSchedules = previewMedicationSchedules,
+                            totalWidthPx = totalWidthPx,
+                            onMedicationClicked = { /* Dummy action */ },
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+// CalendarScreenPreviewDark should be identical except for `AppTheme(themePreference = ThemeKeys.DARK)`
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
-fun CalendarScreenPreviewDark() { // Preview reverted
-     AppTheme(themePreference = ThemeKeys.DARK) {
-        val previewWeekScrollState = rememberLazyListState()
-        val previewDayWidth = 48.dp
-        val previewHorizontalScrollOffsetPx = 0
+fun CalendarScreenPreviewDark() {
+    AppTheme(themePreference = ThemeKeys.DARK) {
+        val calendarState = rememberScheduleCalendarState()
 
-        val previewUiState = CalendarUiState(
-            selectedDate = LocalDate.now(),
-            currentMonth = YearMonth.now(),
-            visibleDays = (-3..3).map {
-                val date = LocalDate.now().plusDays(it.toLong())
-                CalendarDay(date, date.isEqual(LocalDate.now()), date.isEqual(LocalDate.now().plusDays(it.toLong())))
-            },
-            medicationSchedules = listOf(
-                MedicationScheduleItem(
-                    medication = Medication(
-                        id = 1,
-                        name = "Aspirin",
-                        typeId = 3,
-                        color = "#FF03A9F4",
-                        dosage = "81mg",
-                        packageSize = 100,
-                        remainingDoses = 50,
-                        startDate = "2023-01-01",
-                        endDate = null,
-                        reminderTime = null
-                    ),
-                    schedule = MedicationSchedule(
-                        id = 3,
-                        medicationId = 1,
-                        scheduleType = ScheduleType.DAILY,
-                        specificTimes = "09:00",
-                        intervalHours = null,
-                        intervalMinutes = null,
-                        daysOfWeek = null,
-                        intervalStartTime = null,
-                        intervalEndTime = null
-                    ),
-                    isOngoingOverall = true, startOffsetInVisibleDays = 2, endOffsetInVisibleDays = 5
-                )
+        val sampleMedication1 = Medication(id = 1, name = "Aspirin (Fixed)", typeId = 3, color = "#FF03A9F4", dosage = "81mg", packageSize = 100, remainingDoses = 50, startDate = "2024-06-03", endDate = "2024-06-07", reminderTime = null, registrationDate = "2024-06-01")
+        val sampleSchedule1 = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "07:00")
+
+        val previewMedicationSchedules = listOf(
+            MedicationScheduleItem(
+                medication = sampleMedication1,
+                schedule = sampleSchedule1,
+                actualStartDate = LocalDate.parse("2024-06-03"),
+                actualEndDate = LocalDate.parse("2024-06-07"),
+                isOngoingOverall = false
             )
         )
-        val currentMonth = previewUiState.currentMonth
-        Scaffold( // Preview call reverted
+
+        Scaffold(
             topBar = {
-                CalendarTopAppBar(currentMonth, {})
-            }
-        ) { paddings ->
-            Column(Modifier.padding(paddings)) {
-                WeekCalendarView( // Call reverted
-                    days = previewUiState.visibleDays,
-                    currentMonthFocus = previewUiState.currentMonth,
-                    selectedDate = previewUiState.selectedDate,
-                    onDateSelected = {},
-                    listState = previewWeekScrollState // Restored
-                    )
-                HorizontalDivider(thickness = DividerDefaults.Thickness, color = DividerDefaults.color)
-                MedicationScheduleListView( // Call reverted
-                    medicationSchedules = previewUiState.medicationSchedules,
-                    numVisibleDays = previewUiState.visibleDays.size,
-                    currentMonth = currentMonth,
-                    onMedicationClicked = {},
-                    horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Restored
-                    dayWidth = previewDayWidth
+                CalendarTopAppBar(
+                    currentMonth = YearMonth.from(calendarState.startDateTime.toLocalDate()),
+                    onDateSelectorClicked = { }
                 )
+            }
+        ) { innerPadding ->
+            Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    val totalWidthPx = constraints.maxWidth
+                    LaunchedEffect(totalWidthPx) {
+                        if (totalWidthPx > 0) {
+                            calendarState.updateView(newWidth = totalWidthPx)
+                        }
+                    }
+
+                    Column(Modifier.fillMaxSize()) {
+                        DaysRow(
+                            state = calendarState,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                        )
+                        MedicationRowsLayout(
+                            state = calendarState,
+                            medicationSchedules = previewMedicationSchedules,
+                            totalWidthPx = totalWidthPx,
+                            onMedicationClicked = { },
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                        )
+                    }
+                }
             }
         }
     }
 }
+// Removed old preview content that used WeekCalendarView, MedicationScheduleListView, etc.
+// The new previews above use ScheduleCalendarState, DaysRow, and MedicationRowsLayout.
