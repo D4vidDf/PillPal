@@ -64,8 +64,8 @@ class CalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
-    // Formatter for medication start/end dates if they are in "yyyy-MM-dd" format
-    private val dateParser = DateTimeFormatter.ISO_LOCAL_DATE // Assumes "yyyy-MM-dd"
+    // Formatter for medication start/end dates, changed to "dd/MM/yyyy" format
+    private val dateParser = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
 
     init {
         setSelectedDate(LocalDate.now())
