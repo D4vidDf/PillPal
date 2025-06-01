@@ -70,6 +70,49 @@ fun CalendarScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
     val weekCalendarScrollState = rememberLazyListState()
+    val dayWidth = dayWidthForCalendar // Use the existing file-level constant
+
+    // Calculate horizontalScrollOffsetPx in CalendarScreen
+    val density = LocalDensity.current
+    val horizontalScrollOffsetPx by remember(weekCalendarScrollState.firstVisibleItemIndex, weekCalendarScrollState.firstVisibleItemScrollOffset) {
+        derivedStateOf {
+            val dayWidthPx = with(density) { dayWidth.toPx() }
+            ((weekCalendarScrollState.firstVisibleItemIndex * dayWidthPx) + weekCalendarScrollState.firstVisibleItemScrollOffset).roundToInt()
+        }
+    }
+
+    // Define buffer for pagination
+    val paginationBuffer = 15 // Number of items from the edge to trigger loading
+
+    // LaunchedEffect for pagination logic, reacting to scroll state and data changes
+    LaunchedEffect(weekCalendarScrollState, uiState.isLoading, uiState.visibleDays.size) {
+        snapshotFlow { weekCalendarScrollState.layoutInfo }
+            .collect { layoutInfo ->
+                // Prevent unnecessary calls if data is empty, loading, or layout info is not ready
+                if (uiState.visibleDays.isEmpty() || uiState.isLoading || layoutInfo.visibleItemsInfo.isEmpty()) {
+                    return@collect
+                }
+
+                val firstVisibleItemIndex = layoutInfo.visibleItemsInfo.first().index
+                // totalItemsCount should be based on the current list size in the UIState for consistency
+                val totalItemsCount = uiState.visibleDays.size
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.last().index
+
+                // Log current state for easier debugging
+                Log.d("CalendarScreen", "ScrollInfo: FirstVisible=$firstVisibleItemIndex, LastVisible=$lastVisibleItemIndex, TotalItems=$totalItemsCount, Buffer=$paginationBuffer, IsLoading=${uiState.isLoading}")
+
+                // Load more past days if scrolled near the beginning
+                if (!uiState.isLoading && firstVisibleItemIndex < paginationBuffer && totalItemsCount > 0) {
+                    Log.d("CalendarScreen", "Triggering loadMorePastDays()")
+                    viewModel.loadMorePastDays()
+                }
+                // Load more future days if scrolled near the end
+                else if (!uiState.isLoading && lastVisibleItemIndex >= totalItemsCount - paginationBuffer && totalItemsCount > 0 && firstVisibleItemIndex < totalItemsCount -1 ) { // ensure not to trigger if already at very end due to small list
+                    Log.d("CalendarScreen", "Triggering loadMoreFutureDays()")
+                    viewModel.loadMoreFutureDays()
+                }
+            }
+    }
 
     if (showDatePickerDialog) {
         ShowDatePicker(
@@ -101,15 +144,16 @@ fun CalendarScreen(
                 selectedDate = uiState.selectedDate,
                 onDateSelected = { date -> viewModel.setSelectedDate(date) },
                 listState = weekCalendarScrollState
+                // uiState and viewModel removed, as pagination is handled in CalendarScreen
             )
             HorizontalDivider()
             MedicationScheduleListView(
                 medicationSchedules = uiState.medicationSchedules,
                 numVisibleDays = uiState.visibleDays.size,
-                currentMonth = uiState.currentMonth,
-                dayWidth = dayWidthForCalendar,
+                currentMonth = uiState.currentMonth, // Keep for now, might be removed if unused
                 onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
-                weekViewScrollState = weekCalendarScrollState
+                horizontalScrollOffsetPx = horizontalScrollOffsetPx, // NEW
+                dayWidth = dayWidth // NEW (using the one defined in CalendarScreen)
             )
         }
     }
@@ -183,12 +227,49 @@ fun WeekCalendarView(
     onDateSelected: (LocalDate) -> Unit,
     listState: LazyListState,
     modifier: Modifier = Modifier
+    // uiState and viewModel parameters removed
 ) {
-    LaunchedEffect(days, selectedDate) {
-        val selectedIndex = days.indexOfFirst { it.date == selectedDate }.takeIf { it != -1 } ?: 7
-        val targetScrollIndex = (selectedIndex / 7) * 7
-        if (targetScrollIndex >= 0 && targetScrollIndex < days.size) {
-            listState.scrollToItem(targetScrollIndex)
+    // Effect to scroll to selected date initially or when days/selectedDate changes, attempting to center it.
+    LaunchedEffect(days, selectedDate, listState) {
+        if (days.isNotEmpty() && listState.layoutInfo.totalItemsCount > 0) { // Ensure list is ready for scroll operations
+            val selectedIndex = days.indexOfFirst { it.date == selectedDate }
+
+            if (selectedIndex != -1) {
+                val layoutInfo = listState.layoutInfo
+                val visibleItemsCount = layoutInfo.visibleItemsInfo.size.let { if (it == 0) 7 else it } // Default to 7 if not yet calculated
+
+                // Calculate the target index to center the selectedDate
+                val targetScrollIndex = (selectedIndex - visibleItemsCount / 2)
+                    .coerceIn(0, (days.size - 1).coerceAtLeast(0)) // Ensure bounds
+
+                // Check if scrolling is necessary:
+                // - If selected item is not currently visible.
+                // - Or if it's visible but not reasonably centered.
+                val currentFirstVisibleIndex = layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: -1
+                val currentLastVisibleIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+
+                val isVisible = selectedIndex >= currentFirstVisibleIndex && selectedIndex <= currentLastVisibleIndex
+                val isCenteredEnough = isVisible && kotlin.math.abs(selectedIndex - (currentFirstVisibleIndex + visibleItemsCount / 2)) <= 1
+
+                if (!isVisible || !isCenteredEnough || layoutInfo.visibleItemsInfo.isEmpty()) { // Also scroll if layout is empty (initial setup)
+                    try {
+                        Log.d("WeekCalendarView", "Scrolling to center selectedDate. TargetIndex: $targetScrollIndex, SelectedIndex: $selectedIndex, VisibleCount: $visibleItemsCount")
+                        listState.scrollToItem(index = targetScrollIndex)
+                    } catch (e: Exception) {
+                        Log.e("WeekCalendarView", "Error scrolling to selected item: $targetScrollIndex", e)
+                    }
+                }
+            } else {
+                // Fallback: If selectedDate is not in `days` (should ideally not happen if data is consistent),
+                // scroll to the middle of the current list as a sensible default.
+                val middleIndex = (days.size / 2).coerceIn(0, (days.size - 1).coerceAtLeast(0))
+                try {
+                    Log.d("WeekCalendarView", "SelectedDate not found in days. Scrolling to middle: $middleIndex")
+                    listState.scrollToItem(index = middleIndex)
+                } catch (e: Exception) {
+                    Log.e("WeekCalendarView", "Error scrolling to middle item: $middleIndex", e)
+                }
+            }
         }
     }
 
@@ -278,10 +359,12 @@ fun MedicationScheduleListView(
     numVisibleDays: Int,
     currentMonth: YearMonth,
     onMedicationClicked: (Int) -> Unit,
-    weekViewScrollState: LazyListState,
-    dayWidth: Dp
+    // weekViewScrollState: LazyListState, // Removed
+    horizontalScrollOffsetPx: Int, // NEW
+    dayWidth: Dp // NEW
 ) {
-    val density = LocalDensity.current
+    Log.d("MedicationScheduleListView", "Received ${medicationSchedules.size} schedules. First: ${medicationSchedules.firstOrNull()?.medication?.name ?: "N/A"}. Offset: $horizontalScrollOffsetPx")
+    // val density = LocalDensity.current // No longer needed here if dayWidthPx calculation is removed
     if (medicationSchedules.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.no_medications_scheduled_for_this_month))
@@ -291,17 +374,17 @@ fun MedicationScheduleListView(
 
     LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
         items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
-            val dayWidthPx = with(density) { dayWidth.toPx() }
-            val currentScrollOffsetPx = remember(weekViewScrollState.firstVisibleItemIndex, weekViewScrollState.firstVisibleItemScrollOffset) {
-                ((weekViewScrollState.firstVisibleItemIndex * dayWidthPx) + weekViewScrollState.firstVisibleItemScrollOffset).roundToInt()
-            }
+            // val dayWidthPx = with(density) { dayWidth.toPx() } // Not needed here
+            // val currentScrollOffsetPx = remember(weekViewScrollState.firstVisibleItemIndex, weekViewScrollState.firstVisibleItemScrollOffset) { // Not needed here
+            //     ((weekViewScrollState.firstVisibleItemIndex * dayWidthPx) + weekViewScrollState.firstVisibleItemScrollOffset).roundToInt()
+            // }
 
             MedicationScheduleRow(
                 scheduleItem = scheduleItem,
-                numVisibleDays = numVisibleDays,
-                dayWidth = dayWidth,
+                numVisibleDays = numVisibleDays, // This might become less relevant
                 onClicked = { onMedicationClicked(scheduleItem.medication.id) },
-                horizontalScrollOffsetPx = currentScrollOffsetPx
+                horizontalScrollOffsetPx = horizontalScrollOffsetPx, // Pass down
+                dayWidth = dayWidth // Pass down
             )
             HorizontalDivider(thickness = 0.5.dp, color = DividerDefaults.color)
         }
@@ -316,54 +399,62 @@ fun MedicationScheduleRow(
     horizontalScrollOffsetPx: Int,
     onClicked: () -> Unit
 ) {
-    Row( // Root Row for each item in LazyColumn
+    val density = LocalDensity.current // For Px conversions
+
+    Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name}, " +
+            "SO: ${scheduleItem.startOffsetInVisibleDays}, EO: ${scheduleItem.endOffsetInVisibleDays}, " +
+            "dayWidthDp: $dayWidth, scrollOffsetPx: $horizontalScrollOffsetPx")
+
+    Row(
         modifier = Modifier
-            // REMOVE .fillMaxWidth(). Its width will be determined by its content (the offset Box),
-            // allowing it to be potentially wider than the screen if its content is.
-            .clipToBounds()
+            .fillMaxWidth() // Ensure this is present
             .clickable(onClick = onClicked)
-            .padding(vertical = 2.dp),
+            .padding(vertical = 2.dp)
+            .clipToBounds(), // Ensure this is present
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(x = -horizontalScrollOffsetPx, y = 0) }
-        ) {
-            if (numVisibleDays > 0 && scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
-                val startOffset = scheduleItem.startOffsetInVisibleDays!!
-                val endOffset = scheduleItem.endOffsetInVisibleDays!!
+        if (scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
+            val startOffset = scheduleItem.startOffsetInVisibleDays!!
+            val endOffset = scheduleItem.endOffsetInVisibleDays!!
 
-                val barStartPaddingDp = startOffset * dayWidth
-                val barWidthDp = (endOffset - startOffset + 1) * dayWidth
+            val dayWidthPx = with(density) { dayWidth.toPx() }
 
-                val barColor = try {
-                    Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC"))
-                } catch (e: IllegalArgumentException) {
-                    Color(0xFFCCCCCC)
-                }
-                Row {
-                    Box(modifier = Modifier.width(barStartPaddingDp))
-                    Box(
-                        modifier = Modifier
-                            .width(barWidthDp)
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(barColor.copy(alpha = 0.5f))
-                            .padding(horizontal = 12.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            text = scheduleItem.medication.name,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            } else {
-                Spacer(Modifier.height(48.dp))
+            val barWidthDp = (endOffset - startOffset + 1) * dayWidth
+            val barStartXpx = (startOffset * dayWidthPx) - horizontalScrollOffsetPx
+
+            // Log these values (some logging is already there, ensure these are covered)
+            Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
+                    "dayWidthPx: $dayWidthPx, " +
+                    "barWidthDp: $barWidthDp, barStartXpx_float: $barStartXpx, barStartXpx_rounded: ${barStartXpx.roundToInt()}, " +
+                    "rawSO_px: ${startOffset * dayWidthPx}, HSO_px: $horizontalScrollOffsetPx")
+
+            // Standard Box structure for ALL medications:
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Apply calculated offset
+                    .width(barWidthDp) // Set calculated width
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(
+                        try { Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")) }
+                        catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
+                        .copy(alpha = 0.5f)
+                    )
+                    .padding(horizontal = 4.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = scheduleItem.medication.name,
+                    fontSize = 10.sp, // From previous change
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
+        } else {
+            // Existing Spacer for null offsets
+            Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets, drawing spacer")
+            Spacer(Modifier.height(32.dp).fillMaxWidth())
         }
     }
 }
@@ -372,7 +463,11 @@ fun MedicationScheduleRow(
 @Composable
 fun CalendarScreenPreviewLight() {
     AppTheme(themePreference = ThemeKeys.LIGHT) {
-        val previewWeekScrollState = rememberLazyListState()
+        // For preview, we need to provide some mock values for the new parameters
+        val previewWeekScrollState = rememberLazyListState() // Keep for WeekCalendarView
+        val previewDayWidth = 48.dp
+        val previewHorizontalScrollOffsetPx = 0
+
         val previewUiState = CalendarUiState(
             selectedDate = LocalDate.now(),
             currentMonth = YearMonth.now(),
@@ -444,8 +539,9 @@ fun CalendarScreenPreviewLight() {
                     numVisibleDays = previewUiState.visibleDays.size,
                     currentMonth = currentMonth,
                     onMedicationClicked = {},
-                    weekViewScrollState = previewWeekScrollState,
-                    dayWidth = dayWidthForCalendar
+                    // weekViewScrollState = previewWeekScrollState, // Removed
+                    horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Added for preview
+                    dayWidth = previewDayWidth // Added for preview
                 )
             }
         }
@@ -456,7 +552,10 @@ fun CalendarScreenPreviewLight() {
 @Composable
 fun CalendarScreenPreviewDark() {
      AppTheme(themePreference = ThemeKeys.DARK) {
-        val previewWeekScrollState = rememberLazyListState()
+        val previewWeekScrollState = rememberLazyListState() // Keep for WeekCalendarView
+        val previewDayWidth = 48.dp
+        val previewHorizontalScrollOffsetPx = 0
+
         val previewUiState = CalendarUiState(
             selectedDate = LocalDate.now(),
             currentMonth = YearMonth.now(),
@@ -513,8 +612,9 @@ fun CalendarScreenPreviewDark() {
                     numVisibleDays = previewUiState.visibleDays.size,
                     currentMonth = currentMonth,
                     onMedicationClicked = {},
-                    weekViewScrollState = previewWeekScrollState,
-                    dayWidth = dayWidthForCalendar
+                    // weekViewScrollState = previewWeekScrollState, // Removed
+                    horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Added for preview
+                    dayWidth = previewDayWidth // Added for preview
                 )
             }
         }

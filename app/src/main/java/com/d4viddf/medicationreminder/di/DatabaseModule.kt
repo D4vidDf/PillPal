@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.di
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration // Import Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.d4viddf.medicationreminder.data.*
 import dagger.Module
@@ -19,6 +20,23 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Add the new column, allowing NULLs initially
+            // Note: Table name is "medications" as defined in Medication.kt Entity annotation
+            db.execSQL("ALTER TABLE medications ADD COLUMN registrationDate TEXT")
+
+            // Populate registrationDate for existing rows
+            // Use startDate if it's not null and not empty, otherwise use current date
+            db.execSQL("""
+                UPDATE medications
+                SET registrationDate = CASE
+                    WHEN startDate IS NOT NULL AND startDate != '' THEN startDate
+                    ELSE date('now')
+                END
+            """)
+        }
+    }
 
     @Provides
     @Singleton
@@ -52,6 +70,7 @@ object DatabaseModule {
                     }
                 }
             })
+            .addMigrations(MIGRATION_2_3) // Add this line
             .build()
     }
 

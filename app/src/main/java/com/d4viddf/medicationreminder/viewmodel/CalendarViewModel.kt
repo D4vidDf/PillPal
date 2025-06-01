@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.Job // Import Job
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -46,6 +47,15 @@ data class CalendarUiState(
     val error: String? = null
 )
 
+// Helper function to create CalendarDay objects
+private fun createCalendarDay(date: LocalDate, selectedDate: LocalDate, today: LocalDate): CalendarDay {
+    return CalendarDay(
+        date = date,
+        isSelected = date.isEqual(selectedDate),
+        isToday = date.isEqual(today)
+    )
+}
+
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
@@ -55,8 +65,8 @@ class CalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
-    // Formatter for medication start/end dates if they are in "yyyy-MM-dd" format
-    private val dateParser = DateTimeFormatter.ISO_LOCAL_DATE // Assumes "yyyy-MM-dd"
+    // private val dateParser = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault()) // Removed
+    private var fetchJob: Job? = null
 
     init {
         setSelectedDate(LocalDate.now())
@@ -80,42 +90,40 @@ class CalendarViewModel @Inject constructor(
     // Now returns the list and doesn't update state directly
     private fun generateVisibleDays(selectedDate: LocalDate): List<CalendarDay> {
         val today = LocalDate.now()
-        // Calculate Monday of the week containing selectedDate (this is the center of our 3-week view)
-        var middleWeekMonday = selectedDate
-        while (middleWeekMonday.dayOfWeek != DayOfWeek.MONDAY) {
-            middleWeekMonday = middleWeekMonday.minusDays(1)
-        }
-
-        // Start from one week before the middle week's Monday
-        val firstDayToShow = middleWeekMonday.minusWeeks(1)
+        // Generate 45 days before and 44 days after the selectedDate
+        val firstDayToShow = selectedDate.minusDays(45)
 
         val daysToShow = mutableListOf<CalendarDay>()
-        for (i in 0 until 21) { // 3 weeks = 21 days
+        for (i in 0 until 90) { // 90 days
             val dayInRange = firstDayToShow.plusDays(i.toLong())
-            daysToShow.add(
-                CalendarDay(
-                    date = dayInRange,
-                    isSelected = dayInRange.isEqual(selectedDate), // Highlight the originally selected date
-                    isToday = dayInRange.isEqual(today)
-                )
-            )
+            daysToShow.add(createCalendarDay(dayInRange, selectedDate, today))
         }
         return daysToShow
     }
 
     private fun parseDate(dateString: String?): LocalDate? {
+        if (dateString.isNullOrBlank()) {
+            return null
+        }
         return try {
-            dateString?.let { LocalDate.parse(it, dateParser) }
+            // Try ISO format first (yyyy-MM-dd)
+            LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
         } catch (e: DateTimeParseException) {
-            Log.e("CalendarViewModel", "Error parsing date: $dateString", e)
-            null // Or handle error appropriately
+            try {
+                // If ISO fails, try dd/MM/yyyy format
+                LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault()))
+            } catch (e2: DateTimeParseException) {
+                Log.e("CalendarViewModel", "Error parsing date string '$dateString' with known formats.", e2)
+                null
+            }
         }
     }
 
     // Signature changed to accept the list of CalendarDay objects
     private fun fetchMedicationSchedulesForVisibleDays(currentVisibleDays: List<CalendarDay>) {
-        viewModelScope.launch {
-            // isLoading is already set true by setSelectedDate
+        fetchJob?.cancel() // Cancel any existing job
+        fetchJob = viewModelScope.launch {
+            // isLoading is already set true by setSelectedDate or loadMore functions
             try {
                 val visibleDaysList = currentVisibleDays.map { it.date } // Use passed parameter
                 if (visibleDaysList.isEmpty()) {
@@ -128,14 +136,15 @@ class CalendarViewModel @Inject constructor(
                         val medicationMap = medications.associateBy { it.id }
                         schedules.mapNotNull { schedule ->
                             medicationMap[schedule.medicationId]?.let { medication ->
-                                val medStartDate = parseDate(medication.startDate)
+                                val parsedMedStartDate = parseDate(medication.startDate)
+                                val parsedRegistrationDate = parseDate(medication.registrationDate) // medication.registrationDate is String?
                                 val medEndDate = parseDate(medication.endDate)
 
                                 val firstVisibleDate = visibleDaysList.first()
                                 val lastVisibleDate = visibleDaysList.last()
 
                                 // Check overlap with the actual visibleDays range
-                                val actualStartDate = medStartDate ?: firstVisibleDate // Treat null start as very old
+                                val actualStartDate = parsedMedStartDate ?: parsedRegistrationDate ?: firstVisibleDate
                                 val actualEndDate = medEndDate ?: lastVisibleDate     // Treat null end as very far in future
 
                                 if (actualStartDate.isAfter(lastVisibleDate) || actualEndDate.isBefore(firstVisibleDate)) {
@@ -170,8 +179,11 @@ class CalendarViewModel @Inject constructor(
                                 // For simplicity now, we require start/end to align with a visible day or be outside the range.
                                 // More precise drawing can be done on canvas later.
 
-                                if (medStartDate != null && medStartDate.isEqual(firstVisibleDate) || (medStartDate?.isAfter(firstVisibleDate) == true && medStartDate.isBefore(lastVisibleDate.plusDays(1)))) {
-                                    startDateText = "Starts ${medStartDate?.format(monthDayFormatter)}"
+                                // Use parsedMedStartDate for display text if available, otherwise actualStartDate if it's not a fallback to firstVisibleDate
+                                val displayStartDate = parsedMedStartDate ?: if (actualStartDate != firstVisibleDate) actualStartDate else null
+
+                                if (displayStartDate != null && displayStartDate.isEqual(firstVisibleDate) || (displayStartDate?.isAfter(firstVisibleDate) == true && displayStartDate.isBefore(lastVisibleDate.plusDays(1)))) {
+                                    startDateText = "Starts ${displayStartDate?.format(monthDayFormatter)}"
                                 }
                                 if (medEndDate != null && medEndDate.isEqual(lastVisibleDate) || (medEndDate?.isBefore(lastVisibleDate) == true && medEndDate.isAfter(firstVisibleDate.minusDays(1)))) {
                                     endDateText = "Ends ${medEndDate?.format(monthDayFormatter)}"
@@ -199,6 +211,10 @@ class CalendarViewModel @Inject constructor(
                         )
                     }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    Log.i("CalendarViewModel", "Fetch schedules job was cancelled.")
+                    throw e // Important to rethrow CancellationException
+                }
                 Log.e("CalendarViewModel", "Error fetching schedules: ${e.localizedMessage}", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -218,4 +234,55 @@ class CalendarViewModel @Inject constructor(
         setSelectedDate(newSelectedDate)
     }
     // Removed onNextMonth and onPreviousMonth
+
+    fun loadMorePastDays() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            val currentVisibleDays = _uiState.value.visibleDays
+            if (currentVisibleDays.isEmpty()) {
+                // Should not happen if generateVisibleDays was called, but handle defensively
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                return@launch
+            }
+
+            val firstCurrentlyVisibleDate = currentVisibleDays.first().date
+            val today = LocalDate.now()
+            val selectedDate = _uiState.value.selectedDate
+            val newPastDays = mutableListOf<CalendarDay>()
+            for (i in 30 downTo 1) { // Generate 30 days before the current first day
+                val pastDay = firstCurrentlyVisibleDate.minusDays(i.toLong())
+                newPastDays.add(createCalendarDay(pastDay, selectedDate, today))
+            }
+
+            val updatedVisibleDays = newPastDays + currentVisibleDays
+            _uiState.value = _uiState.value.copy(visibleDays = updatedVisibleDays) // isLoading is already true
+            fetchMedicationSchedulesForVisibleDays(updatedVisibleDays)
+        }
+    }
+
+    fun loadMoreFutureDays() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            val currentVisibleDays = _uiState.value.visibleDays
+            if (currentVisibleDays.isEmpty()) {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                return@launch
+            }
+
+            val lastCurrentlyVisibleDate = currentVisibleDays.last().date
+            val today = LocalDate.now()
+            val selectedDate = _uiState.value.selectedDate
+            val newFutureDays = mutableListOf<CalendarDay>()
+            for (i in 1..30) { // Generate 30 days after the current last day
+                val futureDay = lastCurrentlyVisibleDate.plusDays(i.toLong())
+                newFutureDays.add(createCalendarDay(futureDay, selectedDate, today))
+            }
+
+            val updatedVisibleDays = currentVisibleDays + newFutureDays
+            _uiState.value = _uiState.value.copy(visibleDays = updatedVisibleDays) // isLoading is already true
+            fetchMedicationSchedulesForVisibleDays(updatedVisibleDays)
+        }
+    }
 }

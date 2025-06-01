@@ -14,5 +14,6 @@ data class Medication(
     val remainingDoses: Int,      // Number of doses left in the package
     val startDate: String?,       // Start date of taking medication (optional)
     val endDate: String?,          // End date if the medication is not chronic (optional)
-    val reminderTime: String? // Nullable in case the reminder time is not set
+    val reminderTime: String?, // Nullable in case the reminder time is not set
+    val registrationDate: String? = null // New field
 )
