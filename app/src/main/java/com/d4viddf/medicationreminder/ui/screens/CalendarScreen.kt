@@ -71,6 +71,39 @@ fun CalendarScreen(
     var showDatePickerDialog by remember { mutableStateOf(false) }
     val weekCalendarScrollState = rememberLazyListState()
 
+    // Define buffer for pagination
+    val paginationBuffer = 15 // Number of items from the edge to trigger loading
+
+    // LaunchedEffect for pagination logic, reacting to scroll state and data changes
+    LaunchedEffect(weekCalendarScrollState, uiState.isLoading, uiState.visibleDays.size) {
+        snapshotFlow { weekCalendarScrollState.layoutInfo }
+            .collect { layoutInfo ->
+                // Prevent unnecessary calls if data is empty, loading, or layout info is not ready
+                if (uiState.visibleDays.isEmpty() || uiState.isLoading || layoutInfo.visibleItemsInfo.isEmpty()) {
+                    return@collect
+                }
+
+                val firstVisibleItemIndex = layoutInfo.visibleItemsInfo.first().index
+                // totalItemsCount should be based on the current list size in the UIState for consistency
+                val totalItemsCount = uiState.visibleDays.size
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.last().index
+
+                // Log current state for easier debugging
+                Log.d("CalendarScreen", "ScrollInfo: FirstVisible=$firstVisibleItemIndex, LastVisible=$lastVisibleItemIndex, TotalItems=$totalItemsCount, Buffer=$paginationBuffer, IsLoading=${uiState.isLoading}")
+
+                // Load more past days if scrolled near the beginning
+                if (!uiState.isLoading && firstVisibleItemIndex < paginationBuffer && totalItemsCount > 0) {
+                    Log.d("CalendarScreen", "Triggering loadMorePastDays()")
+                    viewModel.loadMorePastDays()
+                }
+                // Load more future days if scrolled near the end
+                else if (!uiState.isLoading && lastVisibleItemIndex >= totalItemsCount - paginationBuffer && totalItemsCount > 0 && firstVisibleItemIndex < totalItemsCount -1 ) { // ensure not to trigger if already at very end due to small list
+                    Log.d("CalendarScreen", "Triggering loadMoreFutureDays()")
+                    viewModel.loadMoreFutureDays()
+                }
+            }
+    }
+
     if (showDatePickerDialog) {
         ShowDatePicker(
             initialSelectedDate = uiState.selectedDate,
@@ -101,6 +134,7 @@ fun CalendarScreen(
                 selectedDate = uiState.selectedDate,
                 onDateSelected = { date -> viewModel.setSelectedDate(date) },
                 listState = weekCalendarScrollState
+                // uiState and viewModel removed, as pagination is handled in CalendarScreen
             )
             HorizontalDivider()
             MedicationScheduleListView(
@@ -183,12 +217,49 @@ fun WeekCalendarView(
     onDateSelected: (LocalDate) -> Unit,
     listState: LazyListState,
     modifier: Modifier = Modifier
+    // uiState and viewModel parameters removed
 ) {
-    LaunchedEffect(days, selectedDate) {
-        val selectedIndex = days.indexOfFirst { it.date == selectedDate }.takeIf { it != -1 } ?: 7
-        val targetScrollIndex = (selectedIndex / 7) * 7
-        if (targetScrollIndex >= 0 && targetScrollIndex < days.size) {
-            listState.scrollToItem(targetScrollIndex)
+    // Effect to scroll to selected date initially or when days/selectedDate changes, attempting to center it.
+    LaunchedEffect(days, selectedDate, listState) {
+        if (days.isNotEmpty() && listState.layoutInfo.totalItemsCount > 0) { // Ensure list is ready for scroll operations
+            val selectedIndex = days.indexOfFirst { it.date == selectedDate }
+
+            if (selectedIndex != -1) {
+                val layoutInfo = listState.layoutInfo
+                val visibleItemsCount = layoutInfo.visibleItemsInfo.size.let { if (it == 0) 7 else it } // Default to 7 if not yet calculated
+
+                // Calculate the target index to center the selectedDate
+                val targetScrollIndex = (selectedIndex - visibleItemsCount / 2)
+                    .coerceIn(0, (days.size - 1).coerceAtLeast(0)) // Ensure bounds
+
+                // Check if scrolling is necessary:
+                // - If selected item is not currently visible.
+                // - Or if it's visible but not reasonably centered.
+                val currentFirstVisibleIndex = layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: -1
+                val currentLastVisibleIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+
+                val isVisible = selectedIndex >= currentFirstVisibleIndex && selectedIndex <= currentLastVisibleIndex
+                val isCenteredEnough = isVisible && kotlin.math.abs(selectedIndex - (currentFirstVisibleIndex + visibleItemsCount / 2)) <= 1
+
+                if (!isVisible || !isCenteredEnough || layoutInfo.visibleItemsInfo.isEmpty()) { // Also scroll if layout is empty (initial setup)
+                    try {
+                        Log.d("WeekCalendarView", "Scrolling to center selectedDate. TargetIndex: $targetScrollIndex, SelectedIndex: $selectedIndex, VisibleCount: $visibleItemsCount")
+                        listState.scrollToItem(index = targetScrollIndex)
+                    } catch (e: Exception) {
+                        Log.e("WeekCalendarView", "Error scrolling to selected item: $targetScrollIndex", e)
+                    }
+                }
+            } else {
+                // Fallback: If selectedDate is not in `days` (should ideally not happen if data is consistent),
+                // scroll to the middle of the current list as a sensible default.
+                val middleIndex = (days.size / 2).coerceIn(0, (days.size - 1).coerceAtLeast(0))
+                try {
+                    Log.d("WeekCalendarView", "SelectedDate not found in days. Scrolling to middle: $middleIndex")
+                    listState.scrollToItem(index = middleIndex)
+                } catch (e: Exception) {
+                    Log.e("WeekCalendarView", "Error scrolling to middle item: $middleIndex", e)
+                }
+            }
         }
     }
 
