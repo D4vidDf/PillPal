@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.Dp // Added for type hint
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt // Added for scroll offset
+import android.util.Log // Added for logging
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.ThemeKeys
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
@@ -88,7 +89,10 @@ fun CalendarScreen(
                 // Coerce the value to be within the valid scroll range (0 to maxValue)
                 val maxScrollPx = horizontalScrollState.maxValue.toFloat() // maxValue is in Int (pixels)
                 targetScrollPx = targetScrollPx.coerceIn(0f, maxScrollPx)
-                horizontalScrollState.animateScrollTo(targetScrollPx.roundToInt())
+
+                if (kotlin.math.abs(horizontalScrollState.value - targetScrollPx.roundToInt()) > 1) { // Only scroll if not already centered
+                    horizontalScrollState.animateScrollTo(targetScrollPx.roundToInt())
+                }
             }
         }
     }
@@ -97,12 +101,19 @@ fun CalendarScreen(
     LaunchedEffect(horizontalScrollState.isScrollInProgress) {
         if (!horizontalScrollState.isScrollInProgress && uiState.visibleDays.isNotEmpty()) {
             val dayWidthPx = with(density) { dayWidth.toPx() }
+            val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
             val currentOffsetPx = horizontalScrollState.value
-            val closestDayIndex = (currentOffsetPx / dayWidthPx).roundToInt().coerceIn(0, uiState.visibleDays.size - 1)
-            val targetSnapOffsetPx = (closestDayIndex * dayWidthPx).roundToInt()
 
-            if (currentOffsetPx != targetSnapOffsetPx) { // Only snap if not already on a boundary
-                horizontalScrollState.animateScrollTo(targetSnapOffsetPx)
+            val closestDayIndex = (currentOffsetPx / dayWidthPx).roundToInt().coerceIn(0, uiState.visibleDays.size - 1)
+
+            // Calculate the centered offset for the closest day
+            var targetCenteredSnapOffsetPx = (closestDayIndex * dayWidthPx) - (screenWidthPx / 2) + (dayWidthPx / 2)
+            val maxScrollPx = horizontalScrollState.maxValue.toFloat()
+            targetCenteredSnapOffsetPx = targetCenteredSnapOffsetPx.coerceIn(0f, maxScrollPx)
+            val finalSnapOffset = targetCenteredSnapOffsetPx.roundToInt()
+
+            if (kotlin.math.abs(currentOffsetPx - finalSnapOffset) > 1) { // Only animate if not already very close
+                horizontalScrollState.animateScrollTo(finalSnapOffset)
             }
 
             // Update selected date based on the snapped day index
@@ -337,6 +348,13 @@ fun MedicationScheduleRow(
     dayWidth: Dp,
     onClicked: () -> Unit
 ) {
+    Log.d("MedicationScheduleRow", "Rendering item: ${scheduleItem.medication.name}, " +
+            "startOff: ${scheduleItem.startOffsetInVisibleDays}, " +
+            "endOff: ${scheduleItem.endOffsetInVisibleDays}, " +
+            "numVisibleDays: $numVisibleDays, " +
+            "dayWidth: $dayWidth"
+    )
+
     val density = LocalDensity.current
     Row( // This Row will be as wide as its parent allows (total scrollable width)
         modifier = Modifier
@@ -355,6 +373,10 @@ fun MedicationScheduleRow(
 
             val barStartPaddingDp = startOffset * dayWidth
             val barWidthDp = (endOffset - startOffset + 1) * dayWidth
+
+            Log.d("MedicationScheduleRow", "Med: ${scheduleItem.medication.name}, " +
+                    "barStartPaddingDp: $barStartPaddingDp, barWidthDp: $barWidthDp"
+            )
 
             val barColor = try {
                 Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC"))

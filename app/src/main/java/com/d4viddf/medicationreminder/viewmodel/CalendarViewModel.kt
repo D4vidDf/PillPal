@@ -180,12 +180,15 @@ class CalendarViewModel @Inject constructor(
                                     isOngoingOverall = isOngoingOverall,
                                     startOffsetInVisibleDays = currentStartOffset,
                                     endOffsetInVisibleDays = currentEndOffset
-                                )
+                                ).also { item ->
+                                    Log.d("CalendarViewModel", "Created Item: ${item.medication.name}, startOff: ${item.startOffsetInVisibleDays}, endOff: ${item.endOffsetInVisibleDays}, ongoing: ${item.isOngoingOverall}")
+                                }
                             }
                         }
                     }.collect { scheduleItems ->
+                        Log.d("CalendarViewModel", "Final scheduleItems size: ${scheduleItems.size}")
                         _uiState.value = _uiState.value.copy(
-                            medicationSchedules = scheduleItems.filterNotNull(), // Ensure no nulls if mapNotNull had issues
+                            medicationSchedules = scheduleItems.filterNotNull(),
                             isLoading = false
                         )
                     }
