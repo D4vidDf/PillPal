@@ -314,9 +314,10 @@ fun MedicationScheduleRow(
     horizontalScrollOffsetPx: Int,
     onClicked: () -> Unit
 ) {
-    Row(
+    Row( // Root Row for each item in LazyColumn
         modifier = Modifier
-            .fillMaxWidth()
+            // REMOVE .fillMaxWidth(). Its width will be determined by its content (the offset Box),
+            // allowing it to be potentially wider than the screen if its content is.
             .clipToBounds()
             .clickable(onClick = onClicked)
             .padding(vertical = 2.dp),
