@@ -46,6 +46,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.ThemeKeys
 import com.d4viddf.medicationreminder.ui.calendar.rememberScheduleCalendarState
 import com.d4viddf.medicationreminder.ui.calendar.ScheduleCalendarState
+import com.d4viddf.medicationreminder.ui.colors.findMedicationColorByHex
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.CalendarDay // Keep for Preview if needed, but main usage removed
 import com.d4viddf.medicationreminder.viewmodel.CalendarViewModel
@@ -204,8 +205,10 @@ fun CalendarTopAppBar(
 ) {
     TopAppBar(
         title = {
+            val monthYearString = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
+            val capitalizedMonthYearString = monthYearString.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
             Text(
-                text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())),
+                text = capitalizedMonthYearString,
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold
                 )
@@ -240,16 +243,16 @@ private fun DaysRow(state: ScheduleCalendarState, modifier: Modifier = Modifier)
                         modifier = Modifier.then(DayData(currentDay.toLocalDate())),
                         horizontalAlignment = Alignment.CenterHorizontally // Center text within the column
                      ) {
-                        Text(
-                            text = currentDay.format(DateTimeFormatter.ofPattern("MMM dd")),
-                            fontWeight = FontWeight.Bold,
+                        Text( // This is for "E"
+                            text = currentDay.format(DateTimeFormatter.ofPattern("E", Locale.getDefault())), // Day of week
+                            fontSize = 10.sp,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             overflow = TextOverflow.Clip,
                         )
-                        Text(
-                            text = currentDay.format(DateTimeFormatter.ofPattern("E")), // Day of week
-                            fontSize = 10.sp,
+                        Text( // This is for "d"
+                            text = currentDay.format(DateTimeFormatter.ofPattern("d", Locale.getDefault())),
+                            fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             overflow = TextOverflow.Clip,
@@ -334,9 +337,7 @@ fun MedicationRowsLayout(
                                 .width(with(density) { widthPx.toDp() })
                                 .fillMaxHeight()
                                 .background(
-                                    try { Color(android.graphics.Color.parseColor(med.color ?: "#CCCCCC")) }
-                                    catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
-                                    .copy(alpha = 0.7f),
+                                    (findMedicationColorByHex(med.color)?.backgroundColor ?: Color(0xFFCCCCCC)).copy(alpha = 0.7f),
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .clip(RoundedCornerShape(4.dp))

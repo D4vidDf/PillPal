@@ -105,7 +105,7 @@ class ScheduleCalendarState(
             // secondsOffset should decrease.
             // The ScrollableState provides delta: positive means drag towards positive (right), content moves left.
             // So positive delta means we want to see later times, so secondsOffset increases.
-             secondsOffset.snapTo(secondsOffset.value + secondsDelta)
+             secondsOffset.snapTo(secondsOffset.value - secondsDelta)
         }
         // onDateRangeChanged(startDateTime, endDateTime) // Call after scroll changes
         delta // Consume the delta
