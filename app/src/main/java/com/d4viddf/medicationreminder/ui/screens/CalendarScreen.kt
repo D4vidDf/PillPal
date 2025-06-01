@@ -75,28 +75,6 @@ fun CalendarScreen(
         )
     }
 
-    // Effect to scroll to selected date initially or when it changes programmatically
-    LaunchedEffect(uiState.selectedDate, uiState.visibleDays.size) { // Key on size in case list becomes empty
-        if (uiState.visibleDays.isNotEmpty()) {
-            val selectedIndex = uiState.visibleDays.indexOfFirst { it.date == uiState.selectedDate }
-            if (selectedIndex != -1) {
-                val dayWidthPx = with(density) { dayWidth.toPx() } // Width of a single day cell in pixels
-                val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() } // Width of the screen in pixels
-
-                // Calculate the offset to center the selected day
-                var targetScrollPx = (selectedIndex * dayWidthPx) - (screenWidthPx / 2) + (dayWidthPx / 2)
-
-                // Coerce the value to be within the valid scroll range (0 to maxValue)
-                val maxScrollPx = horizontalScrollState.maxValue.toFloat() // maxValue is in Int (pixels)
-                targetScrollPx = targetScrollPx.coerceIn(0f, maxScrollPx)
-
-                if (kotlin.math.abs(horizontalScrollState.value - targetScrollPx.roundToInt()) > 1) { // Only scroll if not already centered
-                    horizontalScrollState.animateScrollTo(targetScrollPx.roundToInt())
-                }
-            }
-        }
-    }
-
     // Effect for snapping when user scrolling stops
     LaunchedEffect(horizontalScrollState.isScrollInProgress) {
         if (!horizontalScrollState.isScrollInProgress && uiState.visibleDays.isNotEmpty()) {
