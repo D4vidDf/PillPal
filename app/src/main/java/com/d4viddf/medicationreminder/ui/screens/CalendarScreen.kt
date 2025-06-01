@@ -394,65 +394,67 @@ fun MedicationScheduleListView(
 @Composable
 fun MedicationScheduleRow(
     scheduleItem: MedicationScheduleItem,
-    numVisibleDays: Int,
+    numVisibleDays: Int, // This parameter is not used in the logic below but is kept for signature consistency
     dayWidth: Dp,
     horizontalScrollOffsetPx: Int,
     onClicked: () -> Unit
 ) {
-    val density = LocalDensity.current // For Px conversions
+    val density = LocalDensity.current
 
-    Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name}, " +
-            "SO: ${scheduleItem.startOffsetInVisibleDays}, EO: ${scheduleItem.endOffsetInVisibleDays}, " +
-            "dayWidthDp: $dayWidth, scrollOffsetPx: $horizontalScrollOffsetPx")
-
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) { // Wrap the Row's content
+    // Use BoxWithConstraints to get the actual available width for the row content.
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val parentRowWidthPx = with(density) { maxWidth.toPx() }
 
-        // The existing Row composable and its logic will go here
         Row(
             modifier = Modifier
-                // .fillMaxWidth() // This might be redundant if BoxWithConstraints is fillMaxWidth
+                // .fillMaxWidth() // Not needed here as BoxWithConstraints handles it
                 .clickable(onClick = onClicked)
-                .padding(vertical = 2.dp)
+                .padding(vertical = 2.dp) // Keep consistent padding
                 .clipToBounds(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
                 val startOffset = scheduleItem.startOffsetInVisibleDays!!
+                // endOffset is not used for width calculation of ongoing items.
+                // For non-ongoing items, it's used as before.
                 val endOffset = scheduleItem.endOffsetInVisibleDays!!
+
                 val dayWidthPx = with(density) { dayWidth.toPx() }
+
+                // barStartXpx is the calculated starting X pixel of the medication bar,
+                // relative to the start of the parentRow. Can be negative.
                 val barStartXpx = (startOffset * dayWidthPx) - horizontalScrollOffsetPx
 
-                var calculatedBarWidthDp: Dp // Changed from val to var
-                if (scheduleItem.isOngoingOverall) {
-                    // For ongoing items, the bar should extend from its actual start (even if off-screen left)
-                    // to the right edge of the parent row.
-                    val widthInPx = parentRowWidthPx - barStartXpx
-                    calculatedBarWidthDp = with(density) { widthInPx.toDp() }
+                val finalBarWidthDp: Dp
 
-                    // Ensure the width is not negative if the bar effectively starts after the parentRowWidthPx
-                    // (e.g. item is completely off-screen to the right)
-                    if (calculatedBarWidthDp < 0.dp) {
-                        calculatedBarWidthDp = 0.dp
-                    }
+                if (scheduleItem.isOngoingOverall) {
+                    // For ongoing items:
+                    // The width in pixels should be such that the bar ends exactly at parentRowWidthPx.
+                    // widthInPx = parentRowWidthPx (end edge) - barStartXpx (start edge)
+                    val widthInPx = parentRowWidthPx - barStartXpx
+                    finalBarWidthDp = with(density) { widthInPx.toDp() }.coerceAtLeast(0.dp)
                 } else {
-                    // Existing calculation for items with a defined end
-                    calculatedBarWidthDp = (endOffset - startOffset + 1) * dayWidth
+                    // For items with a defined end:
+                    // Width is based on the number of days it spans.
+                    val daySpan = endOffset - startOffset + 1
+                    finalBarWidthDp = (daySpan * dayWidth).coerceAtLeast(0.dp)
                 }
 
-                // Logging for debug
+                // Log the calculation details
                 Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
                         "isOngoing: ${scheduleItem.isOngoingOverall}, " +
-                        "dayWidthPx: $dayWidthPx, " +
-                        "barWidthDp: $calculatedBarWidthDp, barStartXpx_float: $barStartXpx, barStartXpx_rounded: ${barStartXpx.roundToInt()}, " +
-                        "rawSO_px: ${startOffset * dayWidthPx}, HSO_px: $horizontalScrollOffsetPx, " +
-                        "parentRowWidthPx: $parentRowWidthPx")
+                        "SO: $startOffset, EO: $endOffset, " + // Log EO for context
+                        "dayWidthPx: $dayWidthPx, dayWidthDp: $dayWidth, " +
+                        "HSO_px: $horizontalScrollOffsetPx, " +
+                        "barStartXpx_float: $barStartXpx, " +
+                        "parentRowWidthPx: $parentRowWidthPx, " +
+                        "finalBarWidthDp: $finalBarWidthDp")
 
-                if (calculatedBarWidthDp > 0.dp) { // Only draw if width is positive
+                if (finalBarWidthDp > 0.dp) {
                     Box(
                         modifier = Modifier
                             .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) }
-                            .width(calculatedBarWidthDp) // Use the new calculatedBarWidthDp
+                            .width(finalBarWidthDp)
                             .height(32.dp)
                             .clip(RoundedCornerShape(4.dp))
                             .background(
@@ -472,13 +474,18 @@ fun MedicationScheduleRow(
                         )
                     }
                 } else {
-                    // If calculated width is zero or negative, draw nothing or a minimal spacer.
-                    // This can happen if an ongoing item starts beyond the screen's right edge.
-                    Spacer(Modifier.height(32.dp)) // Keep consistent height
+                    // If calculated width is zero or negative, draw nothing or a minimal spacer
+                    // to maintain row height and prevent visual collapse.
+                    Spacer(Modifier.height(32.dp)) // Keep consistent height if it's an empty part of a row
+                                                 // If the whole row is effectively empty due to this item,
+                                                 // it might still take up padding space.
+                                                 // If fillMaxWidth was here, it would ensure it takes space.
+                                                 // For now, just a spacer of the same height.
                 }
             } else {
-                Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets, drawing spacer")
-                Spacer(Modifier.height(32.dp).fillMaxWidth())
+                // This case is when start/end offsets are null (item not in range as per ViewModel)
+                Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets, drawing full-width spacer")
+                Spacer(Modifier.height(32.dp).fillMaxWidth()) // Keep full width spacer for items completely out of range
             }
         }
     }
