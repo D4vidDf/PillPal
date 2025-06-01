@@ -352,6 +352,7 @@ fun MedicationScheduleListView(
     weekViewScrollState: LazyListState,
     dayWidth: Dp
 ) {
+    Log.d("MedicationScheduleListView", "Received ${medicationSchedules.size} schedules. First: ${medicationSchedules.firstOrNull()?.medication?.name ?: "N/A"}")
     val density = LocalDensity.current
     if (medicationSchedules.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
