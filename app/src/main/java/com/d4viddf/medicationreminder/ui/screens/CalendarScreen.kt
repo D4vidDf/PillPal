@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 // Icons for TopAppBar were removed, but CalendarToday is still needed
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.LocalContentColor // Added
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -234,28 +235,41 @@ private data class DayData(val date: LocalDate) : ParentDataModifier {
 private fun DaysRow(state: ScheduleCalendarState, modifier: Modifier = Modifier) {
     Layout(
         content = {
+            val today = LocalDate.now() // Added
             var currentDay = state.startDateTime.truncatedTo(ChronoUnit.DAYS)
             val endLoopAt = state.endDateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1) // Corrected: end is exclusive for loop
             var safetyCount = 0 // Safety break for loop
             while (currentDay.isBefore(endLoopAt) && safetyCount < 100) {
                 key(currentDay.toLocalDate().toEpochDay()) {
-                     Column(
-                        modifier = Modifier.then(DayData(currentDay.toLocalDate())),
-                        horizontalAlignment = Alignment.CenterHorizontally // Center text within the column
-                     ) {
-                        Text( // This is for "E"
-                            text = currentDay.format(DateTimeFormatter.ofPattern("E", Locale.getDefault())), // Day of week
+                    val localDate = currentDay.toLocalDate() // Added
+                    val isCurrentDay = localDate.isEqual(today) // Added
+
+                    Column(
+                        modifier = Modifier
+                            .then(DayData(localDate))
+                            .then(
+                                if (isCurrentDay) Modifier
+                                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                                else Modifier
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text( // Day of week
+                            text = currentDay.format(DateTimeFormatter.ofPattern("E", Locale.getDefault())),
                             fontSize = 10.sp,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             overflow = TextOverflow.Clip,
+                            color = if (isCurrentDay) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current // Added color
                         )
-                        Text( // This is for "d"
+                        Text( // Day number
                             text = currentDay.format(DateTimeFormatter.ofPattern("d", Locale.getDefault())),
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             overflow = TextOverflow.Clip,
+                            color = if (isCurrentDay) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current // Added color
                         )
                     }
                 }
@@ -354,9 +368,9 @@ fun MedicationRowsLayout(
                                 .fillMaxHeight()
                                 .background(
                                     backgroundColor.copy(alpha = 0.7f),
-                                    shape = RoundedCornerShape(4.dp)
+                                    shape = RoundedCornerShape(percent = 50) // Changed
                                 )
-                                .clip(RoundedCornerShape(4.dp))
+                                .clip(RoundedCornerShape(percent = 50)) // Changed
                                 .clickable { onMedicationClicked(med.id) }
                                 .padding(horizontal = 8.dp), // Changed horizontal padding
                             contentAlignment = Alignment.CenterStart
@@ -365,6 +379,7 @@ fun MedicationRowsLayout(
                                 text = med.name,
                                 fontSize = 13.sp, // Changed fontSize
                                 color = textColor, // Apply the resolved textColor
+                                fontWeight = FontWeight.Bold, // Added this line
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
