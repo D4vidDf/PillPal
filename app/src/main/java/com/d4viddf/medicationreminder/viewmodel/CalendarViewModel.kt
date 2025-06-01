@@ -165,6 +165,9 @@ class CalendarViewModel @Inject constructor(
                                     currentStartOffset = visibleDaysList.indexOf(actualStartDate).takeIf { it != -1 }
                                 }
 
+                                // For ongoing medications (where medEndDate is null), actualEndDate becomes lastVisibleDate.
+                                // Thus, (actualEndDate.isEqual(lastVisibleDate)) is true,
+                                // and currentEndOffset is set to the last index of visibleDaysList, making the item span the loaded range.
                                 if (actualEndDate.isAfter(lastVisibleDate) || actualEndDate.isEqual(lastVisibleDate)) {
                                     currentEndOffset = visibleDaysList.size - 1
                                 } else {

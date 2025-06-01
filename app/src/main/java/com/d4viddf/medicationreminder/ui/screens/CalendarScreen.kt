@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow // Added
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.draw.clip // Added
-// import androidx.compose.foundation.layout.BoxWithConstraints // No longer needed in MedicationScheduleRow
+import androidx.compose.foundation.layout.BoxWithConstraints // Add this import
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt // Ensure this is present
@@ -405,56 +405,80 @@ fun MedicationScheduleRow(
             "SO: ${scheduleItem.startOffsetInVisibleDays}, EO: ${scheduleItem.endOffsetInVisibleDays}, " +
             "dayWidthDp: $dayWidth, scrollOffsetPx: $horizontalScrollOffsetPx")
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth() // Ensure this is present
-            .clickable(onClick = onClicked)
-            .padding(vertical = 2.dp)
-            .clipToBounds(), // Ensure this is present
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
-            val startOffset = scheduleItem.startOffsetInVisibleDays!!
-            val endOffset = scheduleItem.endOffsetInVisibleDays!!
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) { // Wrap the Row's content
+        val parentRowWidthPx = with(density) { maxWidth.toPx() }
 
-            val dayWidthPx = with(density) { dayWidth.toPx() }
+        // The existing Row composable and its logic will go here
+        Row(
+            modifier = Modifier
+                // .fillMaxWidth() // This might be redundant if BoxWithConstraints is fillMaxWidth
+                .clickable(onClick = onClicked)
+                .padding(vertical = 2.dp)
+                .clipToBounds(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
+                val startOffset = scheduleItem.startOffsetInVisibleDays!!
+                val endOffset = scheduleItem.endOffsetInVisibleDays!!
+                val dayWidthPx = with(density) { dayWidth.toPx() }
+                val barStartXpx = (startOffset * dayWidthPx) - horizontalScrollOffsetPx
 
-            val barWidthDp = (endOffset - startOffset + 1) * dayWidth
-            val barStartXpx = (startOffset * dayWidthPx) - horizontalScrollOffsetPx
+                var calculatedBarWidthDp: Dp // Changed from val to var
+                if (scheduleItem.isOngoingOverall) {
+                    // Calculate width for ongoing items to fill to the right edge
+                    val visibleBarStartXpx = barStartXpx.coerceAtLeast(0f) // Start position on screen (cannot be less than 0)
+                    val widthInPx = parentRowWidthPx - visibleBarStartXpx
+                    calculatedBarWidthDp = with(density) { widthInPx.toDp() }
 
-            // Log these values (some logging is already there, ensure these are covered)
-            Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
-                    "dayWidthPx: $dayWidthPx, " +
-                    "barWidthDp: $barWidthDp, barStartXpx_float: $barStartXpx, barStartXpx_rounded: ${barStartXpx.roundToInt()}, " +
-                    "rawSO_px: ${startOffset * dayWidthPx}, HSO_px: $horizontalScrollOffsetPx")
+                    // Ensure the width is not negative if the bar starts beyond the screen width
+                    if (calculatedBarWidthDp < 0.dp) {
+                        calculatedBarWidthDp = 0.dp
+                    }
+                } else {
+                    // Existing calculation for items with a defined end
+                    calculatedBarWidthDp = (endOffset - startOffset + 1) * dayWidth
+                }
 
-            // Standard Box structure for ALL medications:
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Apply calculated offset
-                    .width(barWidthDp) // Set calculated width
-                    .height(32.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        try { Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")) }
-                        catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
-                        .copy(alpha = 0.5f)
-                    )
-                    .padding(horizontal = 4.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = scheduleItem.medication.name,
-                    fontSize = 10.sp, // From previous change
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // Logging for debug
+                Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
+                        "isOngoing: ${scheduleItem.isOngoingOverall}, " +
+                        "dayWidthPx: $dayWidthPx, " +
+                        "barWidthDp: $calculatedBarWidthDp, barStartXpx_float: $barStartXpx, barStartXpx_rounded: ${barStartXpx.roundToInt()}, " +
+                        "rawSO_px: ${startOffset * dayWidthPx}, HSO_px: $horizontalScrollOffsetPx, " +
+                        "parentRowWidthPx: $parentRowWidthPx")
+
+                if (calculatedBarWidthDp > 0.dp) { // Only draw if width is positive
+                    Box(
+                        modifier = Modifier
+                            .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) }
+                            .width(calculatedBarWidthDp) // Use the new calculatedBarWidthDp
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                try { Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")) }
+                                catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
+                                .copy(alpha = 0.5f)
+                            )
+                            .padding(horizontal = 4.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = scheduleItem.medication.name,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                } else {
+                    // If calculated width is zero or negative, draw nothing or a minimal spacer.
+                    // This can happen if an ongoing item starts beyond the screen's right edge.
+                    Spacer(Modifier.height(32.dp)) // Keep consistent height
+                }
+            } else {
+                Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets, drawing spacer")
+                Spacer(Modifier.height(32.dp).fillMaxWidth())
             }
-        } else {
-            // Existing Spacer for null offsets
-            Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets, drawing spacer")
-            Spacer(Modifier.height(32.dp).fillMaxWidth())
         }
     }
 }
