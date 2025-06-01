@@ -3,7 +3,7 @@ package com.d4viddf.medicationreminder.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull

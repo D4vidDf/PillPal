@@ -7,12 +7,12 @@ import androidx.work.WorkerParameters
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.data.MedicationRepository
 import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
+import com.d4viddf.medicationreminder.repository.MedicationRepository
+import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
 import java.time.LocalDateTime

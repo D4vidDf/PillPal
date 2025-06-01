@@ -2,6 +2,12 @@ package com.d4viddf.medicationreminder.repository
 
 import android.content.Context
 import android.util.Log
+import com.d4viddf.medicationreminder.data.FirebaseSync
+import com.d4viddf.medicationreminder.data.FirebaseSyncDao
+import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.data.MedicationDao
+import com.d4viddf.medicationreminder.data.MedicationReminderDao
+import com.d4viddf.medicationreminder.data.SyncStatus
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +32,11 @@ class MedicationRepository @Inject constructor(
         val newId = medicationDao.insertMedication(medication).toInt()
         // Record sync request for Firebase
         firebaseSyncDao.insertSyncRecord(
-            FirebaseSync(entityName = "Medication", entityId = newId, syncStatus = SyncStatus.PENDING)
+            FirebaseSync(
+                entityName = "Medication",
+                entityId = newId,
+                syncStatus = SyncStatus.PENDING
+            )
         )
         return newId
     }

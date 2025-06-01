@@ -44,6 +44,7 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import androidx.hilt.navigation.compose.hiltViewModel // Re-add for the main composable
+import com.d4viddf.medicationreminder.viewmodel.CalendarUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -368,12 +369,12 @@ fun MedicationScheduleRow(
 @Composable
 fun CalendarScreenPreviewLight() {
     AppTheme(themePreference = ThemeKeys.LIGHT) { // Corrected AppTheme call
-        val previewUiState = com.d4viddf.medicationreminder.viewmodel.CalendarUiState(
+        val previewUiState = CalendarUiState(
             selectedDate = LocalDate.now(),
             currentMonth = YearMonth.now(),
             daysInMonth = (1..YearMonth.now().lengthOfMonth()).map {
                 val date = YearMonth.now().atDay(it)
-                com.d4viddf.medicationreminder.viewmodel.CalendarDay(date, date.isEqual(LocalDate.now()), date.isEqual(LocalDate.now()))
+                CalendarDay(date, date.isEqual(LocalDate.now()), date.isEqual(LocalDate.now()))
             },
             medicationSchedules = listOf(
                 MedicationScheduleItem(
@@ -389,7 +390,17 @@ fun CalendarScreenPreviewLight() {
                         endDate = "2023-01-25",
                         reminderTime = null
                     ),
-                    schedule = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf("08:00")),
+                    schedule = MedicationSchedule(
+                        id = 1,
+                        medicationId = 1,
+                        scheduleType = ScheduleType.DAILY,
+                        specificTimes = "08:00",
+                        intervalHours = null,
+                        intervalMinutes = null,
+                        daysOfWeek = null,
+                        intervalStartTime = null,
+                        intervalEndTime = null
+                    ),
                     startDateText = "Starts Jan 10",
                     endDateText = "Ends Jan 25"
                 ),
@@ -406,7 +417,17 @@ fun CalendarScreenPreviewLight() {
                         endDate = null, // Ongoing
                         reminderTime = null
                     ),
-                    schedule = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = listOf("09:00"))
+                    schedule = MedicationSchedule(
+                        id = 2,
+                        medicationId = 2,
+                        scheduleType = ScheduleType.DAILY,
+                        specificTimes = "09:00",
+                        intervalHours = null,
+                        intervalMinutes = null,
+                        daysOfWeek = null,
+                        intervalStartTime = null,
+                        intervalEndTime = null
+                    )
                 )
             )
         )
@@ -429,12 +450,12 @@ fun CalendarScreenPreviewLight() {
 @Composable
 fun CalendarScreenPreviewDark() {
      AppTheme(themePreference = ThemeKeys.DARK) { // Corrected AppTheme call
-        val previewUiState = com.d4viddf.medicationreminder.viewmodel.CalendarUiState(
+        val previewUiState = CalendarUiState(
             selectedDate = LocalDate.now(),
             currentMonth = YearMonth.now(),
             daysInMonth = (1..YearMonth.now().lengthOfMonth()).map {
                 val date = YearMonth.now().atDay(it)
-                com.d4viddf.medicationreminder.viewmodel.CalendarDay(date, date.isEqual(LocalDate.now()), date.isEqual(LocalDate.now()))
+                CalendarDay(date, date.isEqual(LocalDate.now()), date.isEqual(LocalDate.now()))
             },
             medicationSchedules = listOf(
                 MedicationScheduleItem(
@@ -450,7 +471,17 @@ fun CalendarScreenPreviewDark() {
                         endDate = null, // Ongoing
                         reminderTime = null
                     ),
-                    schedule = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf("07:00")),
+                    schedule = MedicationSchedule(
+                        id = 3,
+                        medicationId = 1,
+                        scheduleType = ScheduleType.DAILY,
+                        specificTimes = "07:00",
+                        intervalHours = null,
+                        intervalMinutes = null,
+                        daysOfWeek = null,
+                        intervalStartTime = null,
+                        intervalEndTime = null
+                    ),
                     startDateText = "Ongoing"
                 )
             )
