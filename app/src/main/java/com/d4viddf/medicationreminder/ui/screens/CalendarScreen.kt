@@ -28,11 +28,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.scrollable
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import android.util.Log
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Dp
@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.ParentDataModifier
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.ThemeKeys
@@ -96,6 +97,7 @@ fun CalendarScreen(
         )
     }
 
+
     Scaffold(
         topBar = {
             CalendarTopAppBar(
@@ -115,6 +117,7 @@ fun CalendarScreen(
                         flingBehavior = calendarState.scrollFlingBehavior
                     )
             ) {
+                val totalWidthPx = constraints.maxWidth
                 LaunchedEffect(constraints.maxWidth) {
                     if (constraints.maxWidth > 0) {
                         calendarState.updateView(newWidth = constraints.maxWidth)
@@ -369,10 +372,24 @@ fun CalendarScreenPreviewLight() {
 
         // Mock data for MedicationScheduleItem
         val sampleMedication1 = Medication(id = 1, name = "Metformin", typeId = 1, color = "#FFE91E63", dosage = "500mg", packageSize = 30, remainingDoses = 15, startDate = "2024-05-28", endDate = "2024-06-05", reminderTime = null, registrationDate = "2024-05-01")
-        val sampleSchedule1 = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "09:00")
+        val sampleSchedule1 = MedicationSchedule(
+            id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "09:00",
+            intervalHours = null,
+            intervalMinutes = null,
+            daysOfWeek = null,
+            intervalStartTime = null,
+            intervalEndTime = null
+        )
 
         val sampleMedication2 = Medication(id = 2, name = "Lisinopril (Ongoing)", typeId = 2, color = "#FF4CAF50", dosage = "10mg", packageSize = 90, remainingDoses = 80, startDate = "2024-05-20", endDate = null, reminderTime = null, registrationDate = "2024-05-01")
-        val sampleSchedule2 = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = "08:00")
+        val sampleSchedule2 = MedicationSchedule(
+            id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = "08:00",
+            intervalHours = null,
+            intervalMinutes = null,
+            daysOfWeek = null,
+            intervalStartTime = null,
+            intervalEndTime = null
+        )
 
         val previewMedicationSchedules = listOf(
             MedicationScheduleItem(
@@ -445,7 +462,14 @@ fun CalendarScreenPreviewDark() {
         val calendarState = rememberScheduleCalendarState()
 
         val sampleMedication1 = Medication(id = 1, name = "Aspirin (Fixed)", typeId = 3, color = "#FF03A9F4", dosage = "81mg", packageSize = 100, remainingDoses = 50, startDate = "2024-06-03", endDate = "2024-06-07", reminderTime = null, registrationDate = "2024-06-01")
-        val sampleSchedule1 = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "07:00")
+        val sampleSchedule1 = MedicationSchedule(
+            id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "07:00",
+            intervalHours = null,
+            intervalMinutes = null,
+            daysOfWeek = null,
+            intervalStartTime = null,
+            intervalEndTime = null
+        )
 
         val previewMedicationSchedules = listOf(
             MedicationScheduleItem(
