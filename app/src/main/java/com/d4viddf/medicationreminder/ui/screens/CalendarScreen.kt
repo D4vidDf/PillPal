@@ -431,16 +431,16 @@ fun MedicationScheduleRow(
             val isDiagnosticCase = scheduleItem.medication.name.contains("MESTINON")
 
             if (isDiagnosticCase) {
-                Log.d("MedScheduleRow", "Rendering DIAGNOSTIC Magenta Box for ${scheduleItem.medication.name}")
+                Log.d("MedScheduleRow", "Rendering THIN DIAGNOSTIC RED MARKER for ${scheduleItem.medication.name} at offset X: ${barStartXpx.roundToInt()}")
                 Box(
                     modifier = Modifier
-                        .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) }
-                        .width(barWidthDp)
-                        .height(32.dp)
-                        .background(Color.Magenta) // Hardcoded bright color, no alpha
+                        .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Use the same calculated start X
+                        .width(2.dp)  // Very thin
+                        .height(32.dp) // Full height of the row
+                        .background(Color.Red) // Use Red for high visibility
                 )
             } else {
-                // This is the original Box structure for other medications
+                // Original Box structure for other (non-MESTINON) medications:
                 Box(
                     modifier = Modifier
                         .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Apply calculated offset
