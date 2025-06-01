@@ -1,10 +1,5 @@
 package com.d4viddf.medicationreminder.repository
 
-import com.d4viddf.medicationreminder.data.FirebaseSync
-import com.d4viddf.medicationreminder.data.FirebaseSyncDao
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.MedicationScheduleDao
-import com.d4viddf.medicationreminder.data.SyncStatus
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,11 +21,7 @@ class MedicationScheduleRepository @Inject constructor(
     suspend fun insertSchedule(schedule: MedicationSchedule) {
         medicationScheduleDao.insertSchedule(schedule)
         firebaseSyncDao.insertSyncRecord(
-            FirebaseSync(
-                entityName = "MedicationSchedule",
-                entityId = schedule.id,
-                syncStatus = SyncStatus.PENDING
-            )
+            FirebaseSync(entityName = "MedicationSchedule", entityId = schedule.id, syncStatus = SyncStatus.PENDING)
         )
     }
 

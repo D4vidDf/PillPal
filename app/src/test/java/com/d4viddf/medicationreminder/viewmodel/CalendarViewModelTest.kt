@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -37,25 +38,55 @@ class CalendarViewModelTest {
 
     private lateinit var viewModel: CalendarViewModel
 
-    private val medication1 = Medication(id = 1, name = "Med A", color = "ColorA", startDate = "2023-01-15", endDate = "2023-03-10", packageSize = 1, remainingDoses = 1)
-    private val schedule1 = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = null, intervalStartTime = null, intervalEndTime = null)
+    // Test Data - Adjusted for week view testing
+    // Scenario: Visible week is Mon, Feb 13, 2023 to Sun, Feb 19, 2023
+    // Selected date for this scenario will be Feb 15, 2023 (Wednesday)
 
-    private val medication2 = Medication(id = 2, name = "Med B", color = "ColorB", startDate = "2023-02-05", endDate = null, packageSize = 1, remainingDoses = 1) // Ongoing
-    private val schedule2 = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.WEEKLY, intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = null, intervalStartTime = null, intervalEndTime = null)
+    // Spans before, during, and after the visible week
+    private val med1_FullOverlap = Medication(id = 1, name = "Med Full Overlap", startDate = "2023-02-01", endDate = "2023-02-28", color = "Red", packageSize = 30, remainingDoses = 30)
+    private val schedule1 = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY)
 
-    private val medication3 = Medication(id = 3, name = "Med C", color = "ColorC", startDate = "2023-02-20", endDate = "2023-02-25", packageSize = 1, remainingDoses = 1) // Short, within Feb
-    private val schedule3 = MedicationSchedule(id = 3, medicationId = 3, scheduleType = ScheduleType.DAILY, intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = null, intervalStartTime = null, intervalEndTime = null)
+    // Starts before, ends within the visible week
+    private val med2_StartBeforeEndIn = Medication(id = 2, name = "Med Start Before End In", startDate = "2023-02-10", endDate = "2023-02-15", color = "Green", packageSize = 30, remainingDoses = 30) // Ends on Wednesday
+    private val schedule2 = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY)
 
+    // Starts within, ends within the visible week
+    private val med3_StartInEndIn = Medication(id = 3, name = "Med Start In End In", startDate = "2023-02-14", endDate = "2023-02-16", color = "Blue", packageSize = 30, remainingDoses = 30) // Tue-Thu
+    private val schedule3 = MedicationSchedule(id = 3, medicationId = 3, scheduleType = ScheduleType.DAILY)
+
+    // Starts within, ends after the visible week
+    private val med4_StartInEndAfter = Medication(id = 4, name = "Med Start In End After", startDate = "2023-02-17", endDate = "2023-03-05", color = "Yellow", packageSize = 30, remainingDoses = 30) // Fri - Future
+    private val schedule4 = MedicationSchedule(id = 4, medicationId = 4, scheduleType = ScheduleType.DAILY)
+
+    // Starts and ends before the visible week (should not appear)
+    private val med5_Before = Medication(id = 5, name = "Med Before", startDate = "2023-02-01", endDate = "2023-02-05", color = "Purple", packageSize = 30, remainingDoses = 30)
+    private val schedule5 = MedicationSchedule(id = 5, medicationId = 5, scheduleType = ScheduleType.DAILY)
+
+    // Starts and ends after the visible week (should not appear)
+    private val med6_After = Medication(id = 6, name = "Med After", startDate = "2023-02-25", endDate = "2023-02-28", color = "Orange", packageSize = 30, remainingDoses = 30)
+    private val schedule6 = MedicationSchedule(id = 6, medicationId = 6, scheduleType = ScheduleType.DAILY)
+
+    // Ongoing medication, started long ago
+    private val med7_OngoingOld = Medication(id = 7, name = "Med Ongoing Old", startDate = "2022-01-01", endDate = null, color = "Cyan", packageSize = 30, remainingDoses = 30)
+    private val schedule7 = MedicationSchedule(id = 7, medicationId = 7, scheduleType = ScheduleType.DAILY)
+
+    // Starts within week, ongoing
+     private val med8_StartInOngoing = Medication(id = 8, name = "Med Start In Ongoing", startDate = "2023-02-16", endDate = null, color = "Magenta", packageSize = 30, remainingDoses = 30) // Starts Thu, ongoing
+    private val schedule8 = MedicationSchedule(id = 8, medicationId = 8, scheduleType = ScheduleType.DAILY)
+
+
+    private val allMedications = listOf(med1_FullOverlap, med2_StartBeforeEndIn, med3_StartInEndIn, med4_StartInEndAfter, med5_Before, med6_After, med7_OngoingOld, med8_StartInOngoing)
+    private val allSchedules = listOf(schedule1, schedule2, schedule3, schedule4, schedule5, schedule6, schedule7, schedule8)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(listOf(medication1, medication2, medication3)))
-        `when`(medicationScheduleRepository.getAllSchedules()).thenReturn(flowOf(listOf(schedule1, schedule2, schedule3)))
+        // Default mock responses, can be overridden in specific tests
+        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(allMedications))
+        `when`(medicationScheduleRepository.getAllSchedules()).thenReturn(flowOf(allSchedules))
 
         viewModel = CalendarViewModel(medicationRepository, medicationScheduleRepository)
-        // Advance past the initial loading triggered by init block
-        testDispatcher.scheduler.advanceUntilIdle() // Ensures init{}'s setSelectedDate and fetch completes
+        testDispatcher.scheduler.advanceUntilIdle() // For init block's setSelectedDate and fetch
     }
 
     @After
@@ -64,138 +95,198 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun `initial state is correct after init`() = runTest {
+    fun `initial state is correct with week view`() = runTest {
         viewModel.uiState.test {
-            val initialState = awaitItem() // State after init has finished loading
+            val state = awaitItem() // State after init
             val today = LocalDate.now()
-            assertEquals(today, initialState.selectedDate)
-            assertEquals(YearMonth.from(today), initialState.currentMonth)
-            assertFalse(initialState.isLoading)
-            assertNull(initialState.error)
-            assertEquals(YearMonth.from(today).lengthOfMonth(), initialState.daysInMonth.size)
+
+            assertEquals(today, state.selectedDate)
+            assertEquals(YearMonth.from(today), state.currentMonth) // Title month
+            assertFalse(state.isLoading)
+            assertNull(state.error)
+
+            assertEquals(7, state.visibleDays.size)
+            assertEquals(DayOfWeek.MONDAY, state.visibleDays.first().date.dayOfWeek)
+            assertTrue(state.visibleDays.any { it.date.isEqual(today) && it.isSelected })
+            assertTrue(state.visibleDays.any { it.date.isEqual(today) && it.isToday })
         }
     }
 
     @Test
-    fun `setSelectedDate updates date, month, and schedules correctly`() = runTest {
-        val testDate = LocalDate.of(2023, 2, 15)
+    fun `setSelectedDate updates date, visibleDays, and schedules correctly`() = runTest {
+        val testSelectedDate = LocalDate.of(2023, 2, 15) // Wednesday
+        val expectedMonday = LocalDate.of(2023, 2, 13)
 
         viewModel.uiState.test {
-            awaitItem() // Current state after init
+            awaitItem() // Initial state
 
-            viewModel.setSelectedDate(testDate)
+            viewModel.setSelectedDate(testSelectedDate)
 
             val loadingState = awaitItem()
             assertTrue(loadingState.isLoading)
-            assertEquals(YearMonth.of(2023, 2), loadingState.currentMonth)
+            assertEquals(testSelectedDate, loadingState.selectedDate)
+            assertEquals(YearMonth.from(testSelectedDate), loadingState.currentMonth)
 
             val finalState = awaitItem()
             assertFalse(finalState.isLoading)
-            assertEquals(testDate, finalState.selectedDate)
-            assertEquals(YearMonth.of(2023, 2), finalState.currentMonth)
-            assertEquals(28, finalState.daysInMonth.size) // Feb 2023 has 28 days
-            assertTrue(finalState.daysInMonth.any { it.date == testDate && it.isSelected })
-            assertEquals(3, finalState.medicationSchedules.size) // Check schedules for Feb 2023
+            assertEquals(testSelectedDate, finalState.selectedDate)
+            assertEquals(YearMonth.from(testSelectedDate), finalState.currentMonth)
+
+            assertEquals(7, finalState.visibleDays.size)
+            assertEquals(expectedMonday, finalState.visibleDays.first().date)
+            assertEquals(DayOfWeek.MONDAY, finalState.visibleDays.first().date.dayOfWeek)
+            assertTrue(finalState.visibleDays.any { it.date == testSelectedDate && it.isSelected })
+
+            // Check that schedules are filtered for the week of Feb 13-19
+            // Meds expected: 1, 2, 3, 4, 7, 8 (6 meds)
+            assertEquals(6, finalState.medicationSchedules.size)
         }
     }
 
     @Test
-    fun `onNextMonth updates month and schedules correctly`() = runTest {
-        val initialDate = LocalDate.of(2023, 1, 10)
-        viewModel.setSelectedDate(initialDate)
-        testDispatcher.scheduler.advanceUntilIdle() // Ensure this setSelectedDate completes before proceeding
-
-        viewModel.uiState.test {
-            awaitItem() // State after setSelectedDate(initialDate)
-
-            viewModel.onNextMonth()
-
-            val loadingState = awaitItem()
-            assertTrue(loadingState.isLoading)
-            assertEquals(YearMonth.of(2023, 2), loadingState.currentMonth)
-            assertEquals(LocalDate.of(2023,2,1), loadingState.selectedDate)
-
-            val finalState = awaitItem()
-            assertFalse(finalState.isLoading)
-            assertEquals(YearMonth.of(2023, 2), finalState.currentMonth)
-            assertEquals(LocalDate.of(2023,2,1), finalState.selectedDate)
-            assertEquals(3, finalState.medicationSchedules.size)
-        }
-    }
-
-    @Test
-    fun `onPreviousMonth updates month and schedules correctly`() = runTest {
-        val initialDate = LocalDate.of(2023, 3, 10)
-        viewModel.setSelectedDate(initialDate)
+    fun `onNextWeek updates selectedDate and visibleDays correctly`() = runTest {
+        val initialSelectedDate = LocalDate.of(2023, 2, 15) // Wednesday
+        viewModel.setSelectedDate(initialSelectedDate)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
-            awaitItem() // State after setSelectedDate(initialDate)
+            awaitItem()
 
-            viewModel.onPreviousMonth()
+            viewModel.onNextWeek()
 
             val loadingState = awaitItem()
             assertTrue(loadingState.isLoading)
-            assertEquals(YearMonth.of(2023, 2), loadingState.currentMonth)
-            assertEquals(LocalDate.of(2023,2,1), loadingState.selectedDate)
+            assertEquals(initialSelectedDate.plusWeeks(1), loadingState.selectedDate)
 
             val finalState = awaitItem()
             assertFalse(finalState.isLoading)
-            assertEquals(YearMonth.of(2023, 2), finalState.currentMonth)
-            assertEquals(LocalDate.of(2023,2,1), finalState.selectedDate)
-            assertEquals(3, finalState.medicationSchedules.size)
+
+            val expectedNewSelectedDate = initialSelectedDate.plusWeeks(1) // Feb 22, 2023
+            val expectedNewMonday = LocalDate.of(2023, 2, 20)
+
+            assertEquals(expectedNewSelectedDate, finalState.selectedDate)
+            assertEquals(YearMonth.from(expectedNewSelectedDate), finalState.currentMonth)
+
+            assertEquals(7, finalState.visibleDays.size)
+            assertEquals(expectedNewMonday, finalState.visibleDays.first().date)
+            assertEquals(DayOfWeek.MONDAY, finalState.visibleDays.first().date.dayOfWeek)
+            assertTrue(finalState.visibleDays.any { it.date == expectedNewSelectedDate && it.isSelected })
         }
     }
 
     @Test
-    fun `fetchMedicationSchedulesForMonth filters and formats correctly for February 2023`() = runTest {
-        val targetMonth = YearMonth.of(2023, 2)
-        // The viewModel is already initialized by @Before, and its initial fetch is done.
-        // We are testing the effect of a new setSelectedDate call.
+    fun `onPreviousWeek updates selectedDate and visibleDays correctly`() = runTest {
+        val initialSelectedDate = LocalDate.of(2023, 2, 15) // Wednesday
+        viewModel.setSelectedDate(initialSelectedDate)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
-            val initialStateFromInit = awaitItem() // Consume the state from @Before's init
+            awaitItem()
 
-            viewModel.setSelectedDate(targetMonth.atDay(1))
+            viewModel.onPreviousWeek()
 
             val loadingState = awaitItem()
-            assertTrue("Should be loading after date set", loadingState.isLoading)
-            assertEquals("Month should update in loading state", targetMonth, loadingState.currentMonth)
+            assertTrue(loadingState.isLoading)
+            assertEquals(initialSelectedDate.minusWeeks(1), loadingState.selectedDate)
 
             val finalState = awaitItem()
-            assertFalse("Should not be loading after fetch", finalState.isLoading)
-            assertNull("Error should be null on success", finalState.error)
-            assertEquals("Should have 3 schedules for Feb 2023", 3, finalState.medicationSchedules.size)
+            assertFalse(finalState.isLoading)
 
-            val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+            val expectedNewSelectedDate = initialSelectedDate.minusWeeks(1) // Feb 8, 2023
+            val expectedNewMonday = LocalDate.of(2023, 2, 6)
 
-            val item1 = finalState.medicationSchedules.find { it.medication.id == 1 } // MedA (Jan 15 - Mar 10)
-            assertNotNull("MedA should be present", item1)
-            assertNull("MedA startDateText should be null for Feb", item1!!.startDateText)
-            assertNull("MedA endDateText should be null for Feb", item1.endDateText)
-            assertTrue("MedA should be ongoing in Feb", item1.isOngoing)
+            assertEquals(expectedNewSelectedDate, finalState.selectedDate)
+            assertEquals(YearMonth.from(expectedNewSelectedDate), finalState.currentMonth)
 
-            val item2 = finalState.medicationSchedules.find { it.medication.id == 2 } // MedB (Feb 5 - Ongoing)
-            assertNotNull("MedB should be present", item2)
-            assertEquals("Starts ${LocalDate.of(2023,2,5).format(formatter)}", item2!!.startDateText)
-            assertNull("MedB endDateText should be null (ongoing)", item2.endDateText)
-            assertFalse("MedB starts in Feb, so not 'isOngoing' from prior month", item2.isOngoing)
-
-            val item3 = finalState.medicationSchedules.find { it.medication.id == 3 } // MedC (Feb 20 - Feb 25)
-            assertNotNull("MedC should be present", item3)
-            assertEquals("Starts ${LocalDate.of(2023,2,20).format(formatter)}", item3!!.startDateText)
-            assertEquals("Ends ${LocalDate.of(2023,2,25).format(formatter)}", item3.endDateText)
-            assertFalse("MedC starts in Feb, so not 'isOngoing' from prior month", item3.isOngoing)
+            assertEquals(7, finalState.visibleDays.size)
+            assertEquals(expectedNewMonday, finalState.visibleDays.first().date)
+            assertEquals(DayOfWeek.MONDAY, finalState.visibleDays.first().date.dayOfWeek)
+            assertTrue(finalState.visibleDays.any { it.date == expectedNewSelectedDate && it.isSelected })
         }
     }
 
     @Test
-    fun `fetchMedicationSchedulesForMonth handles no medications`() = runTest {
+    fun `fetchMedicationSchedulesForVisibleDays filters and formats offsets correctly`() = runTest {
+        // Visible week: Mon, Feb 13, 2023 to Sun, Feb 19, 2023
+        val selectedDateForTest = LocalDate.of(2023, 2, 15) // Wednesday
+        val expectedVisibleMonday = LocalDate.of(2023, 2, 13)
+        val expectedVisibleSunday = LocalDate.of(2023, 2, 19)
+
+        viewModel.uiState.test {
+            awaitItem() // Initial state from setup or previous test
+
+            viewModel.setSelectedDate(selectedDateForTest)
+
+            awaitItem() // Loading state
+            val finalState = awaitItem() // Final state after fetch
+
+            assertFalse("Should not be loading after fetch", finalState.isLoading)
+            assertNull("Error should be null on success", finalState.error)
+
+            assertEquals(7, finalState.visibleDays.size)
+            assertEquals(expectedVisibleMonday, finalState.visibleDays.first().date)
+            assertEquals(expectedVisibleSunday, finalState.visibleDays.last().date)
+
+            val schedules = finalState.medicationSchedules
+            assertEquals("Expected 6 medications in the Feb 13-19 week", 6, schedules.size)
+
+            val item1 = schedules.find { it.medication.id == med1_FullOverlap.id }
+            assertNotNull(item1); item1!!
+            assertEquals(0, item1.startOffsetInVisibleDays)
+            assertEquals(6, item1.endOffsetInVisibleDays)
+            assertTrue(item1.isOngoingOverall) // Ends Feb 28, after visible week
+
+            val item2 = schedules.find { it.medication.id == med2_StartBeforeEndIn.id }
+            assertNotNull(item2); item2!!
+            assertEquals(0, item2.startOffsetInVisibleDays) // Starts Feb 10 (before Mon Feb 13)
+            assertEquals(2, item2.endOffsetInVisibleDays) // Ends Feb 15 (Wed, index 2)
+            assertFalse(item2.isOngoingOverall)
+
+            val item3 = schedules.find { it.medication.id == med3_StartInEndIn.id }
+            assertNotNull(item3); item3!!
+            assertEquals(1, item3.startOffsetInVisibleDays) // Starts Feb 14 (Tue, index 1)
+            assertEquals(3, item3.endOffsetInVisibleDays) // Ends Feb 16 (Thu, index 3)
+            assertFalse(item3.isOngoingOverall)
+
+            val item4 = schedules.find { it.medication.id == med4_StartInEndAfter.id }
+            assertNotNull(item4); item4!!
+            assertEquals(4, item4.startOffsetInVisibleDays) // Starts Feb 17 (Fri, index 4)
+            assertEquals(6, item4.endOffsetInVisibleDays) // Ends Mar 05 (after Sun Feb 19)
+            assertTrue(item4.isOngoingOverall)
+
+            val item7 = schedules.find { it.medication.id == med7_OngoingOld.id }
+            assertNotNull(item7); item7!!
+            assertEquals(0, item7.startOffsetInVisibleDays)
+            assertEquals(6, item7.endOffsetInVisibleDays)
+            assertTrue(item7.isOngoingOverall)
+
+            val item8 = schedules.find { it.medication.id == med8_StartInOngoing.id }
+            assertNotNull(item8); item8!!
+            assertEquals(3, item8.startOffsetInVisibleDays) // Starts Feb 16 (Thu, index 3)
+            assertEquals(6, item8.endOffsetInVisibleDays) // Ongoing
+            assertTrue(item8.isOngoingOverall)
+
+
+            // Check startDateText and endDateText for one item for sanity (logic is simpler now)
+            // Med3: Starts Feb 14, Ends Feb 16. Both within Feb 13-19 week.
+            val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+            assertEquals("Starts ${LocalDate.of(2023,2,14).format(formatter)}", item3.startDateText)
+            assertEquals("Ends ${LocalDate.of(2023,2,16).format(formatter)}", item3.endDateText)
+
+             // Med2: Starts Feb 10 (before week), Ends Feb 15 (in week)
+            assertNull("Starts text should be null if start date is outside visible week but not way before", item2.startDateText) // Or specific text like "Ongoing in week"
+            assertEquals("Ends ${LocalDate.of(2023,2,15).format(formatter)}", item2.endDateText)
+
+        }
+    }
+
+    @Test
+    fun `fetchMedicationSchedulesForVisibleDays handles no medications`() = runTest {
         `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(emptyList()))
         `when`(medicationScheduleRepository.getAllSchedules()).thenReturn(flowOf(emptyList()))
 
+        // Need a new ViewModel instance for this specific mock setup to take effect cleanly from init
         val localViewModel = CalendarViewModel(medicationRepository, medicationScheduleRepository)
-        // init calls setSelectedDate(today), advance scheduler to let it finish
         testDispatcher.scheduler.advanceUntilIdle()
 
         localViewModel.uiState.test {
@@ -206,10 +297,9 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun `fetchMedicationSchedulesForMonth handles repository error for medications`() = runTest {
+    fun `fetchMedicationSchedulesForVisibleDays handles repository error for medications`() = runTest {
         val errorMessage = "Medication Database error"
         `when`(medicationRepository.getAllMedications()).thenReturn(flowOf { throw RuntimeException(errorMessage) })
-        // medicationScheduleRepository mock is still the default one from @Before
 
         val localViewModel = CalendarViewModel(medicationRepository, medicationScheduleRepository)
         testDispatcher.scheduler.advanceUntilIdle()
@@ -221,11 +311,11 @@ class CalendarViewModelTest {
         }
     }
 
-    @Test
-    fun `fetchMedicationSchedulesForMonth handles repository error for schedules`() = runTest {
+     @Test
+    fun `fetchMedicationSchedulesForVisibleDays handles repository error for schedules`() = runTest {
         val errorMessage = "Schedule Database error"
-        // Use default medicationRepository mock from @Before
-        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(listOf(medication1))) // Ensure combine has something to work with
+        // Use a valid flow for medications, but error for schedules
+        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(allMedications.subList(0,1)))
         `when`(medicationScheduleRepository.getAllSchedules()).thenReturn(flowOf { throw RuntimeException(errorMessage) })
 
         val localViewModel = CalendarViewModel(medicationRepository, medicationScheduleRepository)
