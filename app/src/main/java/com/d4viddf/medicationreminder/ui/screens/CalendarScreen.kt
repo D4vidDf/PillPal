@@ -67,6 +67,7 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule // Keep for Previe
 import com.d4viddf.medicationreminder.data.ScheduleType // Keep for Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.CalendarUiState // Keep for Preview
+import kotlinx.coroutines.launch // Added
 
 // Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
 private val dayWidthForCalendar = 48.dp
@@ -87,12 +88,30 @@ fun CalendarScreen(
     // LaunchedEffect for pagination removed
 
     val calendarState = rememberScheduleCalendarState() // New calendar state
+    val coroutineScope = rememberCoroutineScope() // Added: remember a coroutine scope
+
+    // Collect dateAtCenter from calendarState
+    // Note: Since dateAtCenter itself is a State<LocalDate> (due to by derivedStateOf),
+    // direct access .value is not needed if passed to another Composable that can take State,
+    // but for deriving YearMonth here, .value is appropriate if not using another collectAsState.
+    // However, derivedStateOf is already a State, so we can use its value directly.
+    val dateCurrentlyAtCenter = calendarState.dateAtCenter // This is already a LocalDate due to `by derivedStateOf`
 
     if (showDatePickerDialog) {
         ShowDatePicker(
             initialSelectedDate = uiState.selectedDate, // This might need to point to calendarState's current date
             onDateSelected = { newDate ->
-                viewModel.setSelectedDate(newDate) // This will eventually need to tell calendarState to scroll
+                // viewModel.setSelectedDate(newDate) // Keep this if it serves other purposes or if ViewModel needs to know
+                                                    // For now, the primary action is to scroll the calendarState.
+                                                    // If viewModel.setSelectedDate also triggers UI changes that
+                                                    // depend on the selected date, it should be kept.
+                                                    // Let's assume it's still needed for now.
+                viewModel.setSelectedDate(newDate)
+
+
+                coroutineScope.launch { // Added: launch a coroutine
+                    calendarState.scrollToDate(newDate)
+                }
                 showDatePickerDialog = false
             },
             onDismiss = { showDatePickerDialog = false }
@@ -103,7 +122,9 @@ fun CalendarScreen(
     Scaffold(
         topBar = {
             CalendarTopAppBar(
-                currentMonth = YearMonth.from(calendarState.startDateTime.toLocalDate()), // Updated to use calendarState
+                // currentMonth was YearMonth.from(calendarState.startDateTime.toLocalDate())
+                // Change it to use the month of the date at the center of the view:
+                currentMonth = YearMonth.from(dateCurrentlyAtCenter),
                 onDateSelectorClicked = { showDatePickerDialog = true }
             )
         }
@@ -119,10 +140,28 @@ fun CalendarScreen(
                         flingBehavior = calendarState.scrollFlingBehavior
                     )
             ) {
-                val totalWidthPx = constraints.maxWidth
-                LaunchedEffect(constraints.maxWidth) {
-                    if (constraints.maxWidth > 0) {
-                        calendarState.updateView(newWidth = constraints.maxWidth)
+                val totalWidthPx = constraints.maxWidth // This is an Int
+                // Keep the existing LaunchedEffect key as constraints.maxWidth or a more stable key if needed.
+                // A more robust key for one-time initialization might be `Unit` or a specific remembered boolean flag.
+                // However, reacting to `totalWidthPx > 0` is also a common pattern.
+                // Let's refine this to ensure it runs once when width is properly available.
+
+                // Using a remembered flag to ensure one-time initialization for scrolling to today.
+                var initialScrollDone by remember { mutableStateOf(false) }
+
+                LaunchedEffect(totalWidthPx) { // Reacts when totalWidthPx changes
+                    if (totalWidthPx > 0) {
+                        // This part updates the view dimensions in calendarState.
+                        // It's okay for this to run if the width changes (e.g., rotation).
+                        calendarState.updateView(newWidth = totalWidthPx)
+
+                        // This part should ideally run only once when the component is first ready.
+                        if (!initialScrollDone) {
+                            // coroutineScope.launch { // LaunchedEffect provides a CoroutineScope
+                            calendarState.scrollToDate(LocalDate.now())
+                            // }
+                            initialScrollDone = true
+                        }
                     }
                 }
                 Column(Modifier.fillMaxSize()) { // This Column allows stacking DaysRow and later MedicationRows
@@ -135,6 +174,16 @@ fun CalendarScreen(
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     )
                 }
+
+                // Centering Guide - Add this Box
+                // This Box will be overlaid on top of the Column above due to Z-order in BoxWithConstraints.
+                Box(
+                    modifier = Modifier
+                        .width(2.dp) // Width of the vertical line
+                        .fillMaxHeight() // Make it as tall as the scrollable area
+                        .align(Alignment.Center) // Horizontally centers it within BoxWithConstraints
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) // Color of the line
+                )
             }
             // Old WeekCalendarView and MedicationScheduleListView are removed from active display
             /*
