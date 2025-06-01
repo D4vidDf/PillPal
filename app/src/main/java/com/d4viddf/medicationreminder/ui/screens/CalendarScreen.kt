@@ -428,28 +428,41 @@ fun MedicationScheduleRow(
                     "barWidthDp: $barWidthDp, barStartXpx_float: $barStartXpx, barStartXpx_rounded: ${barStartXpx.roundToInt()}, " +
                     "rawSO_px: ${startOffset * dayWidthPx}, HSO_px: $horizontalScrollOffsetPx")
 
-            // Now define the Box for the medication bar itself
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Apply calculated offset
-                    .width(barWidthDp) // Set calculated width
-                    .height(32.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        try { Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")) }
-                        catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
-                        .copy(alpha = 0.5f)
-                    )
-                    .padding(horizontal = 4.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = scheduleItem.medication.name,
-                    fontSize = 10.sp, // From previous change
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+            val isDiagnosticCase = scheduleItem.medication.name.contains("MESTINON")
+
+            if (isDiagnosticCase) {
+                Log.d("MedScheduleRow", "Rendering DIAGNOSTIC Magenta Box for ${scheduleItem.medication.name}")
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) }
+                        .width(barWidthDp)
+                        .height(32.dp)
+                        .background(Color.Magenta) // Hardcoded bright color, no alpha
                 )
+            } else {
+                // This is the original Box structure for other medications
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Apply calculated offset
+                        .width(barWidthDp) // Set calculated width
+                        .height(32.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(
+                            try { Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")) }
+                            catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
+                            .copy(alpha = 0.5f)
+                        )
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = scheduleItem.medication.name,
+                        fontSize = 10.sp, // From previous change
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         } else {
             // Existing Spacer for null offsets
