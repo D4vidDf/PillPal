@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.data
+package com.d4viddf.medicationreminder.repository
 
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

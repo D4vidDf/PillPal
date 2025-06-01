@@ -22,11 +22,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+// Removed hiltViewModel import for preview, as it might cause issues without full Hilt setup for previews
+// import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.ThemeKeys // Added import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.CalendarDay
-import com.d4viddf.medicationreminder.viewmodel.CalendarViewModel
+import com.d4viddf.medicationreminder.viewmodel.CalendarViewModel // Keep for main composable
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleItem
 import java.time.DayOfWeek
 import java.time.Instant
@@ -37,12 +39,18 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
+// Import Medication and MedicationSchedule for previews
+import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.data.MedicationSchedule
+import com.d4viddf.medicationreminder.data.ScheduleType
+import androidx.hilt.navigation.compose.hiltViewModel // Re-add for the main composable
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMedicationDetail: (Int) -> Unit,
-    viewModel: CalendarViewModel = hiltViewModel()
+    viewModel: CalendarViewModel = hiltViewModel() // hiltViewModel is fine here for actual runtime
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
@@ -278,7 +286,10 @@ fun MedicationScheduleListView(
     }
 
     LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
-        items(medicationSchedules, key = { it.medication.id }) { scheduleItem ->
+        // Ensure the key is unique and stable for each item.
+        // If medication.id can be non-unique across different schedule items (e.g. same med, different schedule times),
+        // a compound key might be better, like { "${it.medication.id}-${it.schedule.id}" }
+        items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
             MedicationScheduleRow(
                 scheduleItem = scheduleItem,
                 currentMonth = currentMonth,
@@ -314,7 +325,15 @@ fun MedicationScheduleRow(
                 .weight(0.6f)
                 .height(36.dp) // Slightly reduced height
                 .background(
-                    color = Color(scheduleItem.medication.color ?: 0xFFCCCCCC).copy(alpha = 0.2f), // Softer alpha
+                    // Assuming medication.color is a Long (ARGB). If it's a hex String, this needs to change.
+                    // For this subtask, we are fixing previews, where prompt said use String for color.
+                    // This part of the code (actual UI) might need adjustment if Medication.color type changes.
+                    color = try {
+                        Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")).copy(alpha = 0.2f)
+                    } catch (e: IllegalArgumentException) {
+                        // Fallback color if parsing fails
+                        Color(0xFFCCCCCC).copy(alpha = 0.2f)
+                    },
                     shape = RoundedCornerShape(6.dp) // Slightly more rounded
                 )
                 .padding(horizontal = 6.dp, vertical = 4.dp), // Adjusted padding
@@ -348,10 +367,7 @@ fun MedicationScheduleRow(
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 fun CalendarScreenPreviewLight() {
-    AppTheme(darkTheme = false) {
-        // Provide a mock ViewModel or uiState for better preview
-        val previewViewModel: CalendarViewModel = hiltViewModel() // This might not work well in previews without Hilt setup
-        // For a more robust preview, consider creating a fake UiState
+    AppTheme(themePreference = ThemeKeys.LIGHT) { // Corrected AppTheme call
         val previewUiState = com.d4viddf.medicationreminder.viewmodel.CalendarUiState(
             selectedDate = LocalDate.now(),
             currentMonth = YearMonth.now(),
@@ -361,14 +377,36 @@ fun CalendarScreenPreviewLight() {
             },
             medicationSchedules = listOf(
                 MedicationScheduleItem(
-                    medication = com.d4viddf.medicationreminder.data.Medication(id = 1, name = "Metformin", color = 0xFFE91E63),
-                    schedule = com.d4viddf.medicationreminder.data.MedicationSchedule(medicationId = 1, scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.DAILY, intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = null, intervalStartTime = null, intervalEndTime = null),
+                    medication = Medication( // Corrected Medication instantiation
+                        id = 1,
+                        name = "Metformin",
+                        typeId = 1,
+                        color = "#FFE91E63", // String hex color
+                        dosage = "500mg",
+                        packageSize = 30,
+                        remainingDoses = 15,
+                        startDate = "2023-01-10",
+                        endDate = "2023-01-25",
+                        reminderTime = null
+                    ),
+                    schedule = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf("08:00")),
                     startDateText = "Starts Jan 10",
                     endDateText = "Ends Jan 25"
                 ),
                 MedicationScheduleItem(
-                    medication = com.d4viddf.medicationreminder.data.Medication(id = 2, name = "Lisinopril", color = 0xFF4CAF50),
-                    schedule = com.d4viddf.medicationreminder.data.MedicationSchedule(medicationId = 2, scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.DAILY, intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = null, intervalStartTime = null, intervalEndTime = null)
+                    medication = Medication( // Corrected Medication instantiation
+                        id = 2,
+                        name = "Lisinopril",
+                        typeId = 2,
+                        color = "#FF4CAF50", // String hex color
+                        dosage = "10mg",
+                        packageSize = 90,
+                        remainingDoses = 80,
+                        startDate = "2022-12-01",
+                        endDate = null, // Ongoing
+                        reminderTime = null
+                    ),
+                    schedule = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = listOf("09:00"))
                 )
             )
         )
@@ -377,8 +415,8 @@ fun CalendarScreenPreviewLight() {
             topBar = {
                 CalendarTopAppBar(currentMonth, {}, {}, {}, {})
             }
-        ) {Paddings ->
-            Column(Modifier.padding(Paddings)) {
+        ) { paddings -> // Changed parameter name to avoid conflict
+            Column(Modifier.padding(paddings)) {
                 MonthCalendarView(previewUiState.daysInMonth, previewUiState.selectedDate, {})
                 Divider()
                 MedicationScheduleListView(previewUiState.medicationSchedules, currentMonth, {})
@@ -390,7 +428,7 @@ fun CalendarScreenPreviewLight() {
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 fun CalendarScreenPreviewDark() {
-     AppTheme(darkTheme = true) {
+     AppTheme(themePreference = ThemeKeys.DARK) { // Corrected AppTheme call
         val previewUiState = com.d4viddf.medicationreminder.viewmodel.CalendarUiState(
             selectedDate = LocalDate.now(),
             currentMonth = YearMonth.now(),
@@ -400,8 +438,19 @@ fun CalendarScreenPreviewDark() {
             },
             medicationSchedules = listOf(
                 MedicationScheduleItem(
-                    medication = com.d4viddf.medicationreminder.data.Medication(id = 1, name = "Aspirin", color = 0xFF03A9F4),
-                    schedule = com.d4viddf.medicationreminder.data.MedicationSchedule(medicationId = 1, scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.DAILY, intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = null, intervalStartTime = null, intervalEndTime = null),
+                    medication = Medication( // Corrected Medication instantiation
+                        id = 1,
+                        name = "Aspirin",
+                        typeId = 3,
+                        color = "#FF03A9F4", // String hex color
+                        dosage = "81mg",
+                        packageSize = 100,
+                        remainingDoses = 50,
+                        startDate = "2023-01-01",
+                        endDate = null, // Ongoing
+                        reminderTime = null
+                    ),
+                    schedule = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf("07:00")),
                     startDateText = "Ongoing"
                 )
             )
@@ -411,8 +460,8 @@ fun CalendarScreenPreviewDark() {
             topBar = {
                 CalendarTopAppBar(currentMonth, {}, {}, {}, {})
             }
-        ) {Paddings ->
-            Column(Modifier.padding(Paddings)) {
+        ) { paddings -> // Changed parameter name to avoid conflict
+            Column(Modifier.padding(paddings)) {
                 MonthCalendarView(previewUiState.daysInMonth, previewUiState.selectedDate, {})
                 Divider()
                 MedicationScheduleListView(previewUiState.medicationSchedules, currentMonth, {})
