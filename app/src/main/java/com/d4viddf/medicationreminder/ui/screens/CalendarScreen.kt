@@ -79,19 +79,18 @@ fun CalendarScreen(
     LaunchedEffect(horizontalScrollState.isScrollInProgress) {
         if (!horizontalScrollState.isScrollInProgress && uiState.visibleDays.isNotEmpty()) {
             val dayWidthPx = with(density) { dayWidth.toPx() }
-            val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+            // val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() } // No longer needed for simple snap to start
             val currentOffsetPx = horizontalScrollState.value
 
             val closestDayIndex = (currentOffsetPx / dayWidthPx).roundToInt().coerceIn(0, uiState.visibleDays.size - 1)
 
-            // Calculate the centered offset for the closest day
-            var targetCenteredSnapOffsetPx = (closestDayIndex * dayWidthPx) - (screenWidthPx / 2) + (dayWidthPx / 2)
-            val maxScrollPx = horizontalScrollState.maxValue.toFloat()
-            targetCenteredSnapOffsetPx = targetCenteredSnapOffsetPx.coerceIn(0f, maxScrollPx)
-            val finalSnapOffset = targetCenteredSnapOffsetPx.roundToInt()
+            // Calculate snap offset to align start of day with start of viewport
+            val targetSnapToStartOffsetPx = (closestDayIndex * dayWidthPx).roundToInt()
+            // No need to coerce here as closestDayIndex is already coerced, and we are not subtracting screenWidthPx.
+            // Max scroll is inherently handled by ScrollState's animateScrollTo.
 
-            if (kotlin.math.abs(currentOffsetPx - finalSnapOffset) > 1) { // Only animate if not already very close
-                horizontalScrollState.animateScrollTo(finalSnapOffset)
+            if (kotlin.math.abs(currentOffsetPx - targetSnapToStartOffsetPx) > 1) {
+                horizontalScrollState.animateScrollTo(targetSnapToStartOffsetPx)
             }
 
             // Update selected date based on the snapped day index
