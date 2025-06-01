@@ -425,12 +425,13 @@ fun MedicationScheduleRow(
 
                 var calculatedBarWidthDp: Dp // Changed from val to var
                 if (scheduleItem.isOngoingOverall) {
-                    // Calculate width for ongoing items to fill to the right edge
-                    val visibleBarStartXpx = barStartXpx.coerceAtLeast(0f) // Start position on screen (cannot be less than 0)
-                    val widthInPx = parentRowWidthPx - visibleBarStartXpx
+                    // For ongoing items, the bar should extend from its actual start (even if off-screen left)
+                    // to the right edge of the parent row.
+                    val widthInPx = parentRowWidthPx - barStartXpx
                     calculatedBarWidthDp = with(density) { widthInPx.toDp() }
 
-                    // Ensure the width is not negative if the bar starts beyond the screen width
+                    // Ensure the width is not negative if the bar effectively starts after the parentRowWidthPx
+                    // (e.g. item is completely off-screen to the right)
                     if (calculatedBarWidthDp < 0.dp) {
                         calculatedBarWidthDp = 0.dp
                     }
