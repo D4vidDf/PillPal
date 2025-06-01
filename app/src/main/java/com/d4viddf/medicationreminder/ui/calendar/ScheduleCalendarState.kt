@@ -117,14 +117,15 @@ class ScheduleCalendarState(
         val decay = exponentialDecay<Long>(frictionMultiplier = 2.0f) // Or just exponentialDecay()
 
         override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
-            val velocityInSecondsPerSecond = initialVelocity.toSeconds().toFloat() // This is still float initially
+            // Comment out or remove the animateDecay call
+            // val velocityInSecondsPerSecond = initialVelocity.toSeconds().toFloat()
+            // coroutineScope.launch {
+            //     secondsOffset.animateDecay(velocityInSecondsPerSecond.roundToLong(), decay)
+            // }
 
-            coroutineScope.launch { // Launching the animation as animateDecay itself might not be what performFling expects to directly suspend on for its whole duration
-                // Velocity for animateDecay should also match Animatable's type (Long)
-                secondsOffset.animateDecay(velocityInSecondsPerSecond.roundToLong(), decay)
-                // onDateRangeChanged(startDateTime, endDateTime) // If re-introduced
-            }
-            return initialVelocity
+            // Return 0f to indicate that all velocity has been consumed and to stop further motion.
+            // This should make the fling stop when the user lifts their finger.
+            return 0f
         }
     }
 

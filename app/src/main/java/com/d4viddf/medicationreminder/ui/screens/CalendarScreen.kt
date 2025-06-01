@@ -306,7 +306,7 @@ fun MedicationRowsLayout(
     val density = LocalDensity.current
     LazyColumn(modifier = modifier) {
         items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
-            Box(modifier = Modifier.fillParentMaxWidth().height(40.dp).padding(vertical = 2.dp)) {
+            Box(modifier = Modifier.fillParentMaxWidth().height(55.dp).padding(vertical = 4.dp)) { // Changed height and vertical padding
                 val med = scheduleItem.medication
                 val medStartDate = scheduleItem.actualStartDate
                 val medEndDate = scheduleItem.actualEndDate
@@ -358,12 +358,12 @@ fun MedicationRowsLayout(
                                 )
                                 .clip(RoundedCornerShape(4.dp))
                                 .clickable { onMedicationClicked(med.id) }
-                                .padding(horizontal = 4.dp),
+                                .padding(horizontal = 8.dp), // Changed horizontal padding
                             contentAlignment = Alignment.CenterStart
                         ) {
                             Text(
                                 text = med.name,
-                                fontSize = 10.sp,
+                                fontSize = 13.sp, // Changed fontSize
                                 color = textColor, // Apply the resolved textColor
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
