@@ -65,8 +65,7 @@ class CalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
-    // Formatter for medication start/end dates, changed to "dd/MM/yyyy" format
-    private val dateParser = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+    // private val dateParser = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault()) // Removed
     private var fetchJob: Job? = null
 
     init {
@@ -103,11 +102,20 @@ class CalendarViewModel @Inject constructor(
     }
 
     private fun parseDate(dateString: String?): LocalDate? {
+        if (dateString.isNullOrBlank()) {
+            return null
+        }
         return try {
-            dateString?.let { LocalDate.parse(it, dateParser) }
+            // Try ISO format first (yyyy-MM-dd)
+            LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
         } catch (e: DateTimeParseException) {
-            Log.e("CalendarViewModel", "Error parsing date: $dateString", e)
-            null // Or handle error appropriately
+            try {
+                // If ISO fails, try dd/MM/yyyy format
+                LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault()))
+            } catch (e2: DateTimeParseException) {
+                Log.e("CalendarViewModel", "Error parsing date string '$dateString' with known formats.", e2)
+                null
+            }
         }
     }
 
@@ -128,14 +136,15 @@ class CalendarViewModel @Inject constructor(
                         val medicationMap = medications.associateBy { it.id }
                         schedules.mapNotNull { schedule ->
                             medicationMap[schedule.medicationId]?.let { medication ->
-                                val medStartDate = parseDate(medication.startDate)
+                                val parsedMedStartDate = parseDate(medication.startDate)
+                                val parsedRegistrationDate = parseDate(medication.registrationDate) // medication.registrationDate is String?
                                 val medEndDate = parseDate(medication.endDate)
 
                                 val firstVisibleDate = visibleDaysList.first()
                                 val lastVisibleDate = visibleDaysList.last()
 
                                 // Check overlap with the actual visibleDays range
-                                val actualStartDate = medStartDate ?: firstVisibleDate // Treat null start as very old
+                                val actualStartDate = parsedMedStartDate ?: parsedRegistrationDate ?: firstVisibleDate
                                 val actualEndDate = medEndDate ?: lastVisibleDate     // Treat null end as very far in future
 
                                 if (actualStartDate.isAfter(lastVisibleDate) || actualEndDate.isBefore(firstVisibleDate)) {
@@ -170,8 +179,11 @@ class CalendarViewModel @Inject constructor(
                                 // For simplicity now, we require start/end to align with a visible day or be outside the range.
                                 // More precise drawing can be done on canvas later.
 
-                                if (medStartDate != null && medStartDate.isEqual(firstVisibleDate) || (medStartDate?.isAfter(firstVisibleDate) == true && medStartDate.isBefore(lastVisibleDate.plusDays(1)))) {
-                                    startDateText = "Starts ${medStartDate?.format(monthDayFormatter)}"
+                                // Use parsedMedStartDate for display text if available, otherwise actualStartDate if it's not a fallback to firstVisibleDate
+                                val displayStartDate = parsedMedStartDate ?: if (actualStartDate != firstVisibleDate) actualStartDate else null
+
+                                if (displayStartDate != null && displayStartDate.isEqual(firstVisibleDate) || (displayStartDate?.isAfter(firstVisibleDate) == true && displayStartDate.isBefore(lastVisibleDate.plusDays(1)))) {
+                                    startDateText = "Starts ${displayStartDate?.format(monthDayFormatter)}"
                                 }
                                 if (medEndDate != null && medEndDate.isEqual(lastVisibleDate) || (medEndDate?.isBefore(lastVisibleDate) == true && medEndDate.isAfter(firstVisibleDate.minusDays(1)))) {
                                     endDateText = "Ends ${medEndDate?.format(monthDayFormatter)}"
