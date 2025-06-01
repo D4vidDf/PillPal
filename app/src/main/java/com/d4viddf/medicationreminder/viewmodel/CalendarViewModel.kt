@@ -64,16 +64,21 @@ class CalendarViewModel @Inject constructor(
 
     fun setSelectedDate(date: LocalDate) {
         val newMonth = YearMonth.from(date)
-        _uiState.value = _uiState.value.copy(
+        // Generate new visible days first
+        val newVisibleDays = generateVisibleDays(date)
+
+        _uiState.value = _uiState.value.copy( // Update state in one go
             selectedDate = date,
             currentMonth = newMonth, // Keep updating this for the title
-            isLoading = true
+            isLoading = true,
+            visibleDays = newVisibleDays // Set the newly generated visibleDays
         )
-        generateVisibleDays(date)
-        fetchMedicationSchedulesForVisibleDays() // Updated call
+        // Pass the just generated visibleDays to the fetch function
+        fetchMedicationSchedulesForVisibleDays(newVisibleDays)
     }
 
-    private fun generateVisibleDays(selectedDate: LocalDate) {
+    // Now returns the list and doesn't update state directly
+    private fun generateVisibleDays(selectedDate: LocalDate): List<CalendarDay> {
         val today = LocalDate.now()
         // Calculate Monday of the week containing selectedDate (this is the center of our 3-week view)
         var middleWeekMonday = selectedDate
@@ -95,7 +100,7 @@ class CalendarViewModel @Inject constructor(
                 )
             )
         }
-        _uiState.value = _uiState.value.copy(visibleDays = daysToShow)
+        return daysToShow
     }
 
     private fun parseDate(dateString: String?): LocalDate? {
@@ -107,11 +112,12 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    private fun fetchMedicationSchedulesForVisibleDays() {
+    // Signature changed to accept the list of CalendarDay objects
+    private fun fetchMedicationSchedulesForVisibleDays(currentVisibleDays: List<CalendarDay>) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            // isLoading is already set true by setSelectedDate
             try {
-                val visibleDaysList = _uiState.value.visibleDays.map { it.date }
+                val visibleDaysList = currentVisibleDays.map { it.date } // Use passed parameter
                 if (visibleDaysList.isEmpty()) {
                     _uiState.value = _uiState.value.copy(medicationSchedules = emptyList(), isLoading = false)
                     return@launch
