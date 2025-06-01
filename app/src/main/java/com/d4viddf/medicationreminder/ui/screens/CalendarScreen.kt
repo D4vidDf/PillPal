@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 // Icons for TopAppBar were removed, but CalendarToday is still needed
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -93,7 +95,9 @@ fun CalendarScreen(
         topBar = {
             CalendarTopAppBar(
                 currentMonth = uiState.currentMonth,
-                onDateSelectorClicked = { showDatePickerDialog = true }
+                onDateSelectorClicked = { showDatePickerDialog = true },
+                onPreviousWeekClicked = viewModel::onPreviousWeek,
+                onNextWeekClicked = viewModel::onNextWeek
             )
         }
     ) { innerPadding ->
@@ -160,7 +164,9 @@ fun ShowDatePicker(
 @Composable
 fun CalendarTopAppBar(
     currentMonth: YearMonth,
-    onDateSelectorClicked: () -> Unit
+    onDateSelectorClicked: () -> Unit,
+    onPreviousWeekClicked: () -> Unit, // New
+    onNextWeekClicked: () -> Unit    // New
 ) {
     TopAppBar(
         title = {
@@ -171,11 +177,25 @@ fun CalendarTopAppBar(
                 )
             )
         },
+        navigationIcon = { // Added for Previous Week
+            IconButton(onClick = onPreviousWeekClicked) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBackIosNew,
+                    contentDescription = "Previous week" // stringResource(R.string.previous_week)
+                )
+            }
+        },
         actions = {
             IconButton(onClick = onDateSelectorClicked) {
                 Icon(
                     imageVector = Icons.Filled.CalendarToday,
                     contentDescription = stringResource(R.string.select_date)
+                )
+            }
+            IconButton(onClick = onNextWeekClicked) { // Added for Next Week
+                Icon(
+                    imageVector = Icons.Filled.ArrowForwardIos,
+                    contentDescription = "Next week" // stringResource(R.string.next_week)
                 )
             }
         }
@@ -324,6 +344,7 @@ fun MedicationScheduleRow(
     // Use BoxWithConstraints to get the actual available width for the row content.
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val parentRowWidthPx = with(density) { maxWidth.toPx() }
+        val actualDayWidthPx = parentRowWidthPx / 7.0f // Calculated actual day width in Px
 
         Row(
             modifier = Modifier
@@ -339,11 +360,11 @@ fun MedicationScheduleRow(
                 // For non-ongoing items, it's used as before.
                 val endOffset = scheduleItem.endOffsetInVisibleDays!!
 
-                val dayWidthPx = with(density) { dayWidth.toPx() }
+                // val dayWidthPx = with(density) { dayWidth.toPx() } // Replaced by actualDayWidthPx
 
                 // barStartXpx is the calculated starting X pixel of the medication bar,
                 // relative to the start of the parentRow. Can be negative.
-                val barStartXpx = startOffset * dayWidthPx // horizontalScrollOffsetPx removed
+                val barStartXpx = startOffset * actualDayWidthPx // Use actualDayWidthPx
 
                 val finalBarWidthDp: Dp
 
@@ -357,16 +378,17 @@ fun MedicationScheduleRow(
                     // For items with a defined end:
                     // Width is based on the number of days it spans.
                     val daySpan = endOffset - startOffset + 1
-                    finalBarWidthDp = (daySpan * dayWidth).coerceAtLeast(0.dp)
+                    // finalBarWidthDp = (daySpan * dayWidth).coerceAtLeast(0.dp) // Old logic using Dp parameter
+                    val widthInPx = daySpan * actualDayWidthPx
+                    finalBarWidthDp = with(density) { widthInPx.toDp() }.coerceAtLeast(0.dp)
                 }
 
                 // Log the calculation details
                 Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
                         "isOngoing: ${scheduleItem.isOngoingOverall}, " +
-                        "SO_idx: $startOffset, EO_idx: $endOffset, " + // Clarified SO/EO are indices
-                        "dayWidthPx: $dayWidthPx, dayWidthDp: $dayWidth, " +
-                        // "HSO_px: $horizontalScrollOffsetPx, " + // Removed HSO
-                        "barStartXpx_float: $barStartXpx, " + // This is now rawSO_px effectively
+                        "SO_idx: $startOffset, EO_idx: $endOffset, " +
+                        "actualDayWidthPx: $actualDayWidthPx, dayWidthDpParam: $dayWidth, " +
+                        "barStartXpx_float: $barStartXpx, " +
                         "parentRowWidthPx: $parentRowWidthPx, " +
                         "finalBarWidthDp: $finalBarWidthDp")
 
@@ -474,7 +496,12 @@ fun CalendarScreenPreviewLight() {
         val currentMonth = previewUiState.currentMonth
         Scaffold(
             topBar = {
-                CalendarTopAppBar(currentMonth, {})
+                CalendarTopAppBar(
+                    currentMonth = currentMonth,
+                    onDateSelectorClicked = {},
+                    onPreviousWeekClicked = {},
+                    onNextWeekClicked = {}
+                )
             }
         ) { paddings ->
             Column(Modifier.padding(paddings)) {
@@ -492,8 +519,6 @@ fun CalendarScreenPreviewLight() {
                     currentMonth = currentMonth,
                     onMedicationClicked = {},
                     // weekViewScrollState = previewWeekScrollState, // Removed
-                    // horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Removed
-                    dayWidth = previewDayWidth
                     // horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Removed
                     dayWidth = previewDayWidth
                 )
@@ -549,7 +574,12 @@ fun CalendarScreenPreviewDark() {
         val currentMonth = previewUiState.currentMonth
         Scaffold(
             topBar = {
-                CalendarTopAppBar(currentMonth, {})
+                CalendarTopAppBar(
+                    currentMonth = currentMonth,
+                    onDateSelectorClicked = {},
+                    onPreviousWeekClicked = {},
+                    onNextWeekClicked = {}
+                )
             }
         ) { paddings ->
             Column(Modifier.padding(paddings)) {
@@ -567,8 +597,8 @@ fun CalendarScreenPreviewDark() {
                     currentMonth = currentMonth,
                     onMedicationClicked = {},
                     // weekViewScrollState = previewWeekScrollState, // Removed
-                    horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Added for preview
-                    dayWidth = previewDayWidth // Added for preview
+                    // horizontalScrollOffsetPx = previewHorizontalScrollOffsetPx, // Removed
+                    dayWidth = previewDayWidth
                 )
             }
         }
