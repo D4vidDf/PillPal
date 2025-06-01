@@ -67,7 +67,10 @@ fun AppNavigation(
         }
         composable(Screen.Calendar.route) {
             CalendarScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToMedicationDetail = { medicationId ->
+                    navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                }
             )
         }
         composable(Screen.Profile.route) {

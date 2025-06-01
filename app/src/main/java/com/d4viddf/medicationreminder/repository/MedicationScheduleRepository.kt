@@ -13,6 +13,11 @@ class MedicationScheduleRepository @Inject constructor(
     fun getSchedulesForMedication(medicationId: Int): Flow<List<MedicationSchedule>> =
         medicationScheduleDao.getSchedulesForMedication(medicationId)
 
+    // Add this function to MedicationScheduleRepository
+    fun getAllSchedules(): Flow<List<MedicationSchedule>> {
+        return medicationScheduleDao.getAllSchedules()
+    }
+
     suspend fun insertSchedule(schedule: MedicationSchedule) {
         medicationScheduleDao.insertSchedule(schedule)
         firebaseSyncDao.insertSyncRecord(
