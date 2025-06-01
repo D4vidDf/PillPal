@@ -331,28 +331,29 @@ fun MedicationRowsLayout(
                     )
 
                     if (widthPx > 0) {
+                        val medColorString = med.color // Expected to be an enum name like "ORANGE"
+                        val medicationEnumInstance = try {
+                            if (medColorString.isNullOrEmpty()) {
+                                Log.w("CalendarScreen", "Medication color string is null or empty for medication ${med.name}. Using default colors.")
+                                null
+                            } else {
+                                MedicationColor.valueOf(medColorString)
+                            }
+                        } catch (e: IllegalArgumentException) {
+                            Log.w("CalendarScreen", "Invalid color name: '$medColorString' for medication ${med.name}. Using default colors. Error: ${e.message}")
+                            null
+                        }
+
+                        val backgroundColor = medicationEnumInstance?.backgroundColor ?: Color(0xFFCCCCCC) // Default fallback for background
+                        val textColor = medicationEnumInstance?.textColor ?: MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f) // Default fallback for text
+
                         Box(
                             modifier = Modifier
                                 .offset { IntOffset(offsetXpx, 0) }
                                 .width(with(density) { widthPx.toDp() })
                                 .fillMaxHeight()
                                 .background(
-                                    run {
-                                        val medColorString = med.color // Expected to be an enum name like "ORANGE"
-                                        val backgroundColor = try {
-                                            // Ensure medColorString is not null or empty before calling valueOf
-                                            if (medColorString.isNullOrEmpty()) {
-                                                Log.w("CalendarScreen", "Medication color string is null or empty for medication ${med.name}. Defaulting color.")
-                                                Color(0xFFCCCCCC) // Default fallback
-                                            } else {
-                                                MedicationColor.valueOf(medColorString).backgroundColor
-                                            }
-                                        } catch (e: IllegalArgumentException) {
-                                            Log.w("CalendarScreen", "Invalid color name: '$medColorString' for medication ${med.name}. Defaulting color. Error: ${e.message}")
-                                            Color(0xFFCCCCCC) // Default fallback color (gray)
-                                        }
-                                        backgroundColor.copy(alpha = 0.7f)
-                                    },
+                                    backgroundColor.copy(alpha = 0.7f),
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .clip(RoundedCornerShape(4.dp))
@@ -363,7 +364,7 @@ fun MedicationRowsLayout(
                             Text(
                                 text = med.name,
                                 fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                                color = textColor, // Apply the resolved textColor
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
