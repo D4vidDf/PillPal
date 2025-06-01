@@ -170,11 +170,11 @@ class CalendarViewModel @Inject constructor(
                                 // For simplicity now, we require start/end to align with a visible day or be outside the range.
                                 // More precise drawing can be done on canvas later.
 
-                                if (medStartDate != null && medStartDate.isEqual(firstVisibleDate) || (medStartDate.isAfter(firstVisibleDate) && medStartDate.isBefore(lastVisibleDate.plusDays(1)))) {
-                                    startDateText = "Starts ${medStartDate.format(monthDayFormatter)}"
+                                if (medStartDate != null && medStartDate.isEqual(firstVisibleDate) || (medStartDate?.isAfter(firstVisibleDate) == true && medStartDate.isBefore(lastVisibleDate.plusDays(1)))) {
+                                    startDateText = "Starts ${medStartDate?.format(monthDayFormatter)}"
                                 }
-                                if (medEndDate != null && medEndDate.isEqual(lastVisibleDate) || (medEndDate.isBefore(lastVisibleDate) && medEndDate.isAfter(firstVisibleDate.minusDays(1)))) {
-                                    endDateText = "Ends ${medEndDate.format(monthDayFormatter)}"
+                                if (medEndDate != null && medEndDate.isEqual(lastVisibleDate) || (medEndDate?.isBefore(lastVisibleDate) == true && medEndDate.isAfter(firstVisibleDate.minusDays(1)))) {
+                                    endDateText = "Ends ${medEndDate?.format(monthDayFormatter)}"
                                 }
                                 val isOngoingOverall = medEndDate == null || medEndDate.isAfter(lastVisibleDate)
 

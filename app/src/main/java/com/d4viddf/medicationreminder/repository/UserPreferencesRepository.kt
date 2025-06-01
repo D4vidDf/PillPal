@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.data
+package com.d4viddf.medicationreminder.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore

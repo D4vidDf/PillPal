@@ -31,9 +31,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt // Ensure this is present
 import android.util.Log // Ensure this is present
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset // Added for offset
+import androidx.compose.ui.unit.times
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.ThemeKeys
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
@@ -224,8 +226,8 @@ fun DayCell(
             .fillMaxWidth() // Fill the width provided by parent Box(dayWidthForCalendar) in WeekCalendarView
             .aspectRatio(0.75f) // Make cell taller than wide to fit day name + number
             .background(
-                color = if (day.isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                shape = RoundedCornerShape(4.dp)
+                color = if (day.isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
             )
             .then(
                 if (day.isToday && !day.isSelected) Modifier.border(
@@ -381,12 +383,43 @@ fun CalendarScreenPreviewLight() {
             medicationSchedules = listOf(
                 MedicationScheduleItem(
                     medication = Medication(id = 1, name = "Metformin", typeId = 1, color = "#FFE91E63", dosage = "500mg", packageSize = 30, remainingDoses = 15, startDate = "2023-01-10", endDate = "2023-01-25", reminderTime = null),
-                    schedule = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "09:00"),
+                    schedule = MedicationSchedule(
+                        id = 1,
+                        medicationId = 1,
+                        scheduleType = ScheduleType.DAILY,
+                        specificTimes = "09:00",
+                        intervalHours = null,
+                        intervalMinutes = null,
+                        daysOfWeek = null,
+                        intervalStartTime = null,
+                        intervalEndTime = null
+                    ),
                     startOffsetInVisibleDays = 0, endOffsetInVisibleDays = 2
                 ),
                 MedicationScheduleItem(
-                    medication = Medication(id = 2, name = "Lisinopril Long Name For Testing Ellipsis", typeId = 2, color = "#FF4CAF50", dosage = "10mg", packageSize = 90, remainingDoses = 80, startDate = "2022-12-01", endDate = null),
-                    schedule = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = "09:00"),
+                    medication = Medication(
+                        id = 2,
+                        name = "Lisinopril Long Name For Testing Ellipsis",
+                        typeId = 2,
+                        color = "#FF4CAF50",
+                        dosage = "10mg",
+                        packageSize = 90,
+                        remainingDoses = 80,
+                        startDate = "2022-12-01",
+                        endDate = null,
+                        reminderTime = null
+                    ),
+                    schedule = MedicationSchedule(
+                        id = 2,
+                        medicationId = 2,
+                        scheduleType = ScheduleType.DAILY,
+                        specificTimes = "09:00",
+                        intervalHours = null,
+                        intervalMinutes = null,
+                        daysOfWeek = null,
+                        intervalStartTime = null,
+                        intervalEndTime = null
+                    ),
                     isOngoingOverall = true, startOffsetInVisibleDays = 0, endOffsetInVisibleDays = 6
                 )
             )
@@ -433,8 +466,29 @@ fun CalendarScreenPreviewDark() {
             },
             medicationSchedules = listOf(
                 MedicationScheduleItem(
-                    medication = Medication(id = 1, name = "Aspirin", typeId = 3, color = "#FF03A9F4", dosage = "81mg", packageSize = 100, remainingDoses = 50, startDate = "2023-01-01", endDate = null),
-                    schedule = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "09:00"),
+                    medication = Medication(
+                        id = 1,
+                        name = "Aspirin",
+                        typeId = 3,
+                        color = "#FF03A9F4",
+                        dosage = "81mg",
+                        packageSize = 100,
+                        remainingDoses = 50,
+                        startDate = "2023-01-01",
+                        endDate = null,
+                        reminderTime = null
+                    ),
+                    schedule = MedicationSchedule(
+                        id = 3,
+                        medicationId = 1,
+                        scheduleType = ScheduleType.DAILY,
+                        specificTimes = "09:00",
+                        intervalHours = null,
+                        intervalMinutes = null,
+                        daysOfWeek = null,
+                        intervalStartTime = null,
+                        intervalEndTime = null
+                    ),
                     isOngoingOverall = true, startOffsetInVisibleDays = 2, endOffsetInVisibleDays = 5
                 )
             )

@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.data.MedicationRepository
 import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import com.d4viddf.medicationreminder.repository.MedicationRepository
+import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.ui.components.ProgressDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

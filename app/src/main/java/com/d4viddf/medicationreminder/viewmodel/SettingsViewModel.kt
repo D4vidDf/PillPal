@@ -12,7 +12,7 @@ import android.util.Log
 import com.d4viddf.medicationreminder.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.d4viddf.medicationreminder.data.UserPreferencesRepository
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
