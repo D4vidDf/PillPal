@@ -114,7 +114,7 @@ class ScheduleCalendarState(
     // Basic fling behavior, can be enhanced with anchoring later if needed.
     val scrollFlingBehavior = object : FlingBehavior {
         // Decay spec should match the Animatable's type (Long)
-        val decay = exponentialDecay<Long>() // Or just exponentialDecay()
+        val decay = exponentialDecay<Long>(frictionMultiplier = 2.0f) // Or just exponentialDecay()
 
         override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
             val velocityInSecondsPerSecond = initialVelocity.toSeconds().toFloat() // This is still float initially

@@ -46,7 +46,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.ThemeKeys
 import com.d4viddf.medicationreminder.ui.calendar.rememberScheduleCalendarState
 import com.d4viddf.medicationreminder.ui.calendar.ScheduleCalendarState
-import com.d4viddf.medicationreminder.ui.colors.findMedicationColorByHex
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.CalendarDay // Keep for Preview if needed, but main usage removed
 import com.d4viddf.medicationreminder.viewmodel.CalendarViewModel
@@ -337,7 +337,22 @@ fun MedicationRowsLayout(
                                 .width(with(density) { widthPx.toDp() })
                                 .fillMaxHeight()
                                 .background(
-                                    (findMedicationColorByHex(med.color)?.backgroundColor ?: Color(0xFFCCCCCC)).copy(alpha = 0.7f),
+                                    run {
+                                        val medColorString = med.color // Expected to be an enum name like "ORANGE"
+                                        val backgroundColor = try {
+                                            // Ensure medColorString is not null or empty before calling valueOf
+                                            if (medColorString.isNullOrEmpty()) {
+                                                Log.w("CalendarScreen", "Medication color string is null or empty for medication ${med.name}. Defaulting color.")
+                                                Color(0xFFCCCCCC) // Default fallback
+                                            } else {
+                                                MedicationColor.valueOf(medColorString).backgroundColor
+                                            }
+                                        } catch (e: IllegalArgumentException) {
+                                            Log.w("CalendarScreen", "Invalid color name: '$medColorString' for medication ${med.name}. Defaulting color. Error: ${e.message}")
+                                            Color(0xFFCCCCCC) // Default fallback color (gray)
+                                        }
+                                        backgroundColor.copy(alpha = 0.7f)
+                                    },
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .clip(RoundedCornerShape(4.dp))
