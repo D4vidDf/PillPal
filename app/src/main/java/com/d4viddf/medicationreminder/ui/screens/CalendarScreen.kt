@@ -105,7 +105,7 @@ fun CalendarScreen(
                 medicationSchedules = uiState.medicationSchedules,
                 numVisibleDays = uiState.visibleDays.size,
                 currentMonth = uiState.currentMonth,
-                dayWidth = dayWidthForCalendar, // Pass the constant dayWidth
+                dayWidth = dayWidthForCalendar,
                 onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
                 weekViewScrollState = weekCalendarScrollState
             )
@@ -216,11 +216,13 @@ fun DayCell(
     currentMonthFocus: YearMonth,
     onDateSelected: () -> Unit
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
+    // Changed Box to Column to arrange day name and number vertically
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier
-            .fillMaxSize()
-            .aspectRatio(1f)
+            .fillMaxWidth() // Fill the width provided by parent Box(dayWidthForCalendar) in WeekCalendarView
+            .aspectRatio(0.75f) // Make cell taller than wide to fit day name + number
             .background(
                 color = if (day.isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
                 shape = RoundedCornerShape(4.dp)
@@ -233,8 +235,20 @@ fun DayCell(
                 ) else Modifier
             )
             .clickable(onClick = onDateSelected)
+            .padding(vertical = 4.dp) // Add some overall vertical padding
     ) {
-        val textColor = if (day.date.month != currentMonthFocus.month) {
+        val isOutOfFocusMonth = day.date.month != currentMonthFocus.month
+
+        // Day Name (e.g., Mon)
+        Text(
+            text = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+            fontSize = 10.sp,
+            color = if (isOutOfFocusMonth) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), // Slightly less prominent
+            textAlign = TextAlign.Center
+        )
+
+        val dayNumberTextColor = if (isOutOfFocusMonth) {
             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         } else if (day.isSelected) {
             MaterialTheme.colorScheme.onPrimaryContainer
@@ -243,11 +257,15 @@ fun DayCell(
         } else {
             MaterialTheme.colorScheme.onSurface
         }
+
+        // Day Number
         Text(
             text = day.date.dayOfMonth.toString(),
-            color = textColor,
+            color = dayNumberTextColor,
             fontSize = 12.sp,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (day.isSelected || (day.isToday && !isOutOfFocusMonth)) FontWeight.Bold else FontWeight.Normal,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -279,7 +297,7 @@ fun MedicationScheduleListView(
             MedicationScheduleRow(
                 scheduleItem = scheduleItem,
                 numVisibleDays = numVisibleDays,
-                dayWidth = dayWidth, // Pass dayWidth
+                dayWidth = dayWidth,
                 onClicked = { onMedicationClicked(scheduleItem.medication.id) },
                 horizontalScrollOffsetPx = currentScrollOffsetPx
             )
