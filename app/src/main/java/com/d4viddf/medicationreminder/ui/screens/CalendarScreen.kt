@@ -405,68 +405,56 @@ fun MedicationScheduleRow(
             "SO: ${scheduleItem.startOffsetInVisibleDays}, EO: ${scheduleItem.endOffsetInVisibleDays}, " +
             "dayWidthDp: $dayWidth, scrollOffsetPx: $horizontalScrollOffsetPx")
 
-    // This Row is the root of MedicationScheduleRow
     Row(
         modifier = Modifier
+            .fillMaxWidth() // Ensure this is present
             .clickable(onClick = onClicked)
             .padding(vertical = 2.dp)
-            .clipToBounds(),
+            .clipToBounds(), // Ensure this is present
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(x = -horizontalScrollOffsetPx, y = 0) }
-        ) {
-            if (numVisibleDays > 0 && scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
-                val startOffset = scheduleItem.startOffsetInVisibleDays!!
-                val endOffset = scheduleItem.endOffsetInVisibleDays!!
+        if (scheduleItem.startOffsetInVisibleDays != null && scheduleItem.endOffsetInVisibleDays != null) {
+            val startOffset = scheduleItem.startOffsetInVisibleDays!!
+            val endOffset = scheduleItem.endOffsetInVisibleDays!!
 
-                val dayWidthPx = with(density) { dayWidth.toPx() }
+            val dayWidthPx = with(density) { dayWidth.toPx() }
 
-                val barStartPaddingDp = startOffset * dayWidth
-                val barWidthDp = (endOffset - startOffset + 1) * dayWidth
+            val barWidthDp = (endOffset - startOffset + 1) * dayWidth
+            val barStartXpx = (startOffset * dayWidthPx) - horizontalScrollOffsetPx
 
-                val barStartPaddingPx = startOffset * dayWidthPx
-                val barWidthPx = (endOffset - startOffset + 1) * dayWidthPx
+            // Log these values (some logging is already there, ensure these are covered)
+            Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
+                    "dayWidthPx: $dayWidthPx, " +
+                    "barWidthDp: $barWidthDp, barStartXpx_float: $barStartXpx, barStartXpx_rounded: ${barStartXpx.roundToInt()}, " +
+                    "rawSO_px: ${startOffset * dayWidthPx}, HSO_px: $horizontalScrollOffsetPx")
 
-                Log.d("MedScheduleRowCalc", "Med: ${scheduleItem.medication.name}, " +
-                        "dayWidthPx: $dayWidthPx, " +
-                        "barStartPaddingDp: $barStartPaddingDp, barStartPaddingPx: $barStartPaddingPx, " +
-                        "barWidthDp: $barWidthDp, barWidthPx: $barWidthPx")
-
-                val barColor = try {
-                    Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC"))
-                } catch (e: IllegalArgumentException) {
-                    Color(0xFFCCCCCC)
-                }
-                Row {
-                    Box(modifier = Modifier.width(barStartPaddingDp)) // Spacer
-                    Box(
-                        modifier = Modifier
-                            .width(barWidthDp)
-                            .height(32.dp) // As per last styling
-                            .clip(RoundedCornerShape(4.dp)) // As per last styling
-                            .background(
-                                barColor.copy(alpha = 0.5f)
-                            )
-                            .padding(horizontal = 4.dp), // As per last styling
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            text = scheduleItem.medication.name,
-                            fontSize = 10.sp, // Changed font size
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            } else {
-                Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets")
-                // Optional: render something or a Spacer if offsets are null,
-                // though VM should ideally always provide valid offsets for visible items.
-                Spacer(Modifier.height(32.dp).fillMaxWidth()) // Placeholder, height matches the bar
+            // Now define the Box for the medication bar itself
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(x = barStartXpx.roundToInt(), y = 0) } // Apply calculated offset
+                    .width(barWidthDp) // Set calculated width
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(
+                        try { Color(android.graphics.Color.parseColor(scheduleItem.medication.color ?: "#CCCCCC")) }
+                        catch (e: IllegalArgumentException) { Color(0xFFCCCCCC) }
+                        .copy(alpha = 0.5f)
+                    )
+                    .padding(horizontal = 4.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = scheduleItem.medication.name,
+                    fontSize = 10.sp, // From previous change
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
+        } else {
+            // Existing Spacer for null offsets
+            Log.d("MedScheduleRow", "Med: ${scheduleItem.medication.name} has null offsets, drawing spacer")
+            Spacer(Modifier.height(32.dp).fillMaxWidth())
         }
     }
 }
