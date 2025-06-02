@@ -191,7 +191,13 @@ fun CalendarScreen(
                     }
                 }
                 Column(Modifier.fillMaxSize()) { // This Column allows stacking DaysRow and later MedicationRows
-                    DaysRow(state = calendarState, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) // Changed
+                    DaysRow(
+                        state = calendarState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp) // Added fixed height
+                            .padding(bottom = 16.dp) // Existing bottom padding
+                    )
                     MedicationRowsLayout(
                         state = calendarState,
                         medicationSchedules = uiState.medicationSchedules,
@@ -204,11 +210,11 @@ fun CalendarScreen(
                 // Centering Guide - REMOVE THE OLD LINE (if it was here as a separate Box)
                 // New Dot Indicator
                 // Positioned to be visually below where DaysRow renders, and horizontally centered in the viewport.
-                val daysRowApproxHeight = 50.dp // Estimate for DaysRow visual height
+                val daysRowFixedHeight = 48.dp // Match the height set for DaysRow
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter) // Horizontally centered within BoxWithConstraints
-                        .padding(top = daysRowApproxHeight + 8.dp) // Positioned below the estimated DaysRow area + spacing
+                        .padding(top = daysRowFixedHeight + 8.dp) // Positioned 8dp below the fixed DaysRow height
                         .size(8.dp) // Size of the dot
                         .background(MaterialTheme.colorScheme.primary, CircleShape) // Dot's color and shape
                 )
