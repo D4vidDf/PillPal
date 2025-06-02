@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class MedicationDatabase : RoomDatabase() {

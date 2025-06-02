@@ -42,6 +42,7 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import kotlinx.coroutines.launch
+import java.time.LocalDate // Added import
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -146,6 +147,8 @@ fun AddMedicationScreen(
                         progress = (currentStep + 1) / 5f
                     } else if (currentStep == 4) {
                         coroutineScope.launch {
+                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) // "yyyy-MM-dd"
+
                             val medicationId = medicationViewModel.insertMedication(
                                 Medication(
                                     name = medicationName, typeId = selectedTypeId, color = selectedColor.toString(),
@@ -153,7 +156,8 @@ fun AddMedicationScreen(
                                     remainingDoses = packageSize.toIntOrNull() ?: 0,
                                     startDate = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) startDate else null,
                                     endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
-                                    reminderTime = null
+                                    reminderTime = null, // This seems to be consistently null here
+                                    registrationDate = currentRegistrationDate // Set the new field
                                 )
                             )
                             medicationId.let { medId ->

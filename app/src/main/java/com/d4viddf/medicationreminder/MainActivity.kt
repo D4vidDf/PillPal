@@ -1,7 +1,6 @@
 package com.d4viddf.medicationreminder
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -18,7 +17,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.utils.PermissionUtils // Added import
 import com.d4viddf.medicationreminder.data.ThemeKeys
-import com.d4viddf.medicationreminder.data.UserPreferencesRepository
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.ui.MedicationReminderApp
 import com.d4viddf.medicationreminder.workers.TestSimpleWorker

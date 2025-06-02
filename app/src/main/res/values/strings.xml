@@ -233,4 +233,10 @@
     <string name="search_icon_content_description">Search</string>
     <string name="microphone_icon_content_description">Voice search</string>
     <string name="speech_prompt_text">Speak now...</string>
+
+    <!-- Calendar Screen Strings -->
+    <string name="select_date">Select Date</string>
+    <string name="previous_month">Previous Month</string>
+    <string name="next_month">Next Month</string>
+    <string name="no_medications_scheduled_for_this_month">No medications scheduled for this month.</string>
 </resources>

@@ -16,4 +16,8 @@ interface MedicationScheduleDao {
 
     @Query("SELECT * FROM medication_schedule WHERE medicationId = :medicationId")
     fun getSchedulesForMedication(medicationId: Int): Flow<List<MedicationSchedule>>
+
+    // Add this function to MedicationScheduleDao
+    @Query("SELECT * FROM medication_schedule")
+    fun getAllSchedules(): Flow<List<MedicationSchedule>>
 }

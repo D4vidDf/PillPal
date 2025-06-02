@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.media.AudioManager
 import app.cash.turbine.test
-import com.d4viddf.medicationreminder.data.UserPreferencesRepository
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
