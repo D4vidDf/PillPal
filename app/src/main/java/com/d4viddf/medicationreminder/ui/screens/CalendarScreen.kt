@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyRow // Added for WeekCalendarView
 import androidx.compose.foundation.lazy.LazyListState // Added
 import androidx.compose.foundation.lazy.rememberLazyListState // Added
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape // Added
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 // Icons for TopAppBar were removed, but CalendarToday is still needed
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.alpha // Added
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.gestures.Orientation
@@ -68,7 +70,9 @@ import com.d4viddf.medicationreminder.data.ScheduleType // Keep for Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.CalendarUiState // Keep for Preview
 import kotlinx.coroutines.launch // Added
-
+import androidx.compose.ui.semantics.semantics // Added
+import androidx.compose.ui.semantics.liveRegion // Added
+import androidx.compose.ui.semantics.SemanticsLiveRegion // Added
 // Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
 private val dayWidthForCalendar = 48.dp
 
@@ -96,6 +100,16 @@ fun CalendarScreen(
     // but for deriving YearMonth here, .value is appropriate if not using another collectAsState.
     // However, derivedStateOf is already a State, so we can use its value directly.
     val dateCurrentlyAtCenter = calendarState.dateAtCenter // This is already a LocalDate due to `by derivedStateOf`
+
+    // New: For accessibility announcement of the centered day
+    val accessibilityDateFormatter = remember {
+        DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.getDefault())
+    }
+    val accessibilityDateText by remember(dateCurrentlyAtCenter) {
+        // Use derivedStateOf or just remember to recompute when dateCurrentlyAtCenter changes.
+        // Simple remember is fine as dateCurrentlyAtCenter is already a State.
+        mutableStateOf("Selected day: ${dateCurrentlyAtCenter.format(accessibilityDateFormatter)}")
+    }
 
     if (showDatePickerDialog) {
         ShowDatePicker(
@@ -130,6 +144,16 @@ fun CalendarScreen(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+
+            // Add the invisible Text for screen reader announcements here
+            Text(
+                text = accessibilityDateText,
+                modifier = Modifier
+                    .semantics { liveRegion = SemanticsLiveRegion.Polite }
+                    .alpha(0f) // Make it invisible
+                    .size(0.dp) // Ensure it takes no space
+            )
+
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,7 +189,7 @@ fun CalendarScreen(
                     }
                 }
                 Column(Modifier.fillMaxSize()) { // This Column allows stacking DaysRow and later MedicationRows
-                    DaysRow(state = calendarState, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+                    DaysRow(state = calendarState, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) // Changed
                     MedicationRowsLayout(
                         state = calendarState,
                         medicationSchedules = uiState.medicationSchedules,
@@ -175,14 +199,16 @@ fun CalendarScreen(
                     )
                 }
 
-                // Centering Guide - Add this Box
-                // This Box will be overlaid on top of the Column above due to Z-order in BoxWithConstraints.
+                // Centering Guide - REMOVE THE OLD LINE (if it was here as a separate Box)
+                // New Dot Indicator
+                // Positioned to be visually below where DaysRow renders, and horizontally centered in the viewport.
+                val daysRowApproxHeight = 50.dp // Estimate for DaysRow visual height
                 Box(
                     modifier = Modifier
-                        .width(2.dp) // Width of the vertical line
-                        .fillMaxHeight() // Make it as tall as the scrollable area
-                        .align(Alignment.Center) // Horizontally centers it within BoxWithConstraints
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) // Color of the line
+                        .align(Alignment.TopCenter) // Horizontally centered within BoxWithConstraints
+                        .padding(top = daysRowApproxHeight + 8.dp) // Positioned below the estimated DaysRow area + spacing
+                        .size(8.dp) // Size of the dot
+                        .background(MaterialTheme.colorScheme.primary, CircleShape) // Dot's color and shape
                 )
             }
             // Old WeekCalendarView and MedicationScheduleListView are removed from active display
@@ -421,7 +447,7 @@ fun MedicationRowsLayout(
                                 )
                                 .clip(RoundedCornerShape(percent = 50)) // Changed
                                 .clickable { onMedicationClicked(med.id) }
-                                .padding(horizontal = 8.dp), // Changed horizontal padding
+                                .padding(horizontal = 12.dp, vertical = 4.dp), // Changed
                             contentAlignment = Alignment.CenterStart
                         ) {
                             Text(
