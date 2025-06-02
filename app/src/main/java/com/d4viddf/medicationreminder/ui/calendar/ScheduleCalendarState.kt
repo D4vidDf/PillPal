@@ -123,7 +123,7 @@ class ScheduleCalendarState(
     // Basic fling behavior, can be enhanced with anchoring later if needed.
     val scrollFlingBehavior = object : FlingBehavior {
         // Attempt: Moderate friction.
-        val decaySpec = exponentialDecay<Long>(frictionMultiplier = 14f) // Slightly more friction than default.
+        val decaySpec = exponentialDecay<Long>(frictionMultiplier = 3.0f) // Slightly more friction than default.
 
         override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
             // Convert pixel velocity to "seconds displacement per second" for the animation.

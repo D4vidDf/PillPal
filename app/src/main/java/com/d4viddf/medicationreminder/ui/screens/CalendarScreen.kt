@@ -1,92 +1,80 @@
 package com.d4viddf.medicationreminder.ui.screens
 
-// Icons for TopAppBar were removed, but CalendarToday is still needed
-
-import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow // Added for WeekCalendarView
+import androidx.compose.foundation.lazy.LazyListState // Added
+import androidx.compose.foundation.lazy.rememberLazyListState // Added
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CircleShape // Added
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+// Icons for TopAppBar were removed, but CalendarToday is still needed
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.LocalContentColor // Added
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.ParentDataModifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.alpha // Added
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
+import android.util.Log
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.times
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.ParentDataModifier
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.data.ThemeKeys
-import com.d4viddf.medicationreminder.ui.calendar.ScheduleCalendarState
 import com.d4viddf.medicationreminder.ui.calendar.rememberScheduleCalendarState
-import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.calendar.ScheduleCalendarState
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.viewmodel.CalendarDay // Keep for Preview if needed, but main usage removed
 import com.d4viddf.medicationreminder.viewmodel.CalendarViewModel
-import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleItem
-import kotlinx.coroutines.launch
+import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleItem // Keep for Preview if needed
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
-import java.time.YearMonth
 import java.time.ZoneId
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
+import com.d4viddf.medicationreminder.data.Medication // Keep for Preview
+import com.d4viddf.medicationreminder.data.MedicationSchedule // Keep for Preview
+import com.d4viddf.medicationreminder.data.ScheduleType // Keep for Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.viewmodel.CalendarUiState // Keep for Preview
+import kotlinx.coroutines.launch // Added
+import androidx.compose.ui.semantics.SemanticsPropertyKey // Added
+import androidx.compose.ui.semantics.SemanticsPropertyReceiver // Added
+import androidx.compose.ui.semantics.semantics // Added
+import androidx.compose.ui.semantics.liveRegion // Added
+import androidx.compose.ui.semantics.LiveRegionMode // Corrected import
 // Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
 private val dayWidthForCalendar = 48.dp
 
@@ -207,7 +195,7 @@ fun CalendarScreen(
                         state = calendarState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp) // Added fixed height
+                            .height(60.dp) // Changed from 48.dp
                             .padding(bottom = 16.dp) // Existing bottom padding
                     )
                     MedicationRowsLayout(
@@ -222,7 +210,7 @@ fun CalendarScreen(
                 // Centering Guide - REMOVE THE OLD LINE (if it was here as a separate Box)
                 // New Dot Indicator
                 // Positioned to be visually below where DaysRow renders, and horizontally centered in the viewport.
-                val daysRowFixedHeight = 48.dp // Match the height set for DaysRow
+                val daysRowFixedHeight = 60.dp // Changed from 48.dp
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter) // Horizontally centered within BoxWithConstraints
@@ -462,7 +450,7 @@ fun MedicationRowsLayout(
                                 .width(with(density) { widthPx.toDp() })
                                 .fillMaxHeight()
                                 .background(
-                                    backgroundColor,
+                                    backgroundColor.copy(alpha = 0.7f),
                                     shape = RoundedCornerShape(percent = 50) // Changed
                                 )
                                 .clip(RoundedCornerShape(percent = 50)) // Changed
@@ -498,7 +486,7 @@ fun CalendarScreenPreviewLight() {
         )
 
         // Mock data for MedicationScheduleItem
-        val sampleMedication1 = Medication(id = 1, name = "Metformin", typeId = 1, color = MedicationColor.LIGHT_PINK.toString(), dosage = "500mg", packageSize = 30, remainingDoses = 15, startDate = "2024-05-28", endDate = "2024-06-05", reminderTime = null, registrationDate = "2024-05-01")
+        val sampleMedication1 = Medication(id = 1, name = "Metformin", typeId = 1, color = "#FFE91E63", dosage = "500mg", packageSize = 30, remainingDoses = 15, startDate = "2024-05-28", endDate = "2024-06-05", reminderTime = null, registrationDate = "2024-05-01")
         val sampleSchedule1 = MedicationSchedule(
             id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "09:00",
             intervalHours = null,
@@ -508,7 +496,7 @@ fun CalendarScreenPreviewLight() {
             intervalEndTime = null
         )
 
-        val sampleMedication2 = Medication(id = 2, name = "Lisinopril (Ongoing)", typeId = 2, color = MedicationColor.LIGHT_YELLOW.toString(), dosage = "10mg", packageSize = 90, remainingDoses = 80, startDate = "2024-05-20", endDate = null, reminderTime = null, registrationDate = "2024-05-01")
+        val sampleMedication2 = Medication(id = 2, name = "Lisinopril (Ongoing)", typeId = 2, color = "#FF4CAF50", dosage = "10mg", packageSize = 90, remainingDoses = 80, startDate = "2024-05-20", endDate = null, reminderTime = null, registrationDate = "2024-05-01")
         val sampleSchedule2 = MedicationSchedule(
             id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = "08:00",
             intervalHours = null,
@@ -522,14 +510,14 @@ fun CalendarScreenPreviewLight() {
             MedicationScheduleItem(
                 medication = sampleMedication1,
                 schedule = sampleSchedule1,
-                actualStartDate = LocalDate.parse("2025-05-28"),
-                actualEndDate = LocalDate.parse("2025-06-05"),
+                actualStartDate = LocalDate.parse("2024-05-28"),
+                actualEndDate = LocalDate.parse("2024-06-05"),
                 isOngoingOverall = false // Explicitly false as endDate is present
             ),
             MedicationScheduleItem(
                 medication = sampleMedication2,
                 schedule = sampleSchedule2,
-                actualStartDate = LocalDate.parse("2025-05-20"),
+                actualStartDate = LocalDate.parse("2024-05-20"),
                 actualEndDate = null, // No actual end date
                 isOngoingOverall = true  // Explicitly true
             )
@@ -588,7 +576,7 @@ fun CalendarScreenPreviewDark() {
     AppTheme(themePreference = ThemeKeys.DARK) {
         val calendarState = rememberScheduleCalendarState()
 
-        val sampleMedication1 = Medication(id = 1, name = "Aspirin (Fixed)", typeId = 3, color = MedicationColor.ORANGE.toString(), dosage = "81mg", packageSize = 100, remainingDoses = 50, startDate = "2024-06-03", endDate = "2024-06-07", reminderTime = null, registrationDate = "2024-06-01")
+        val sampleMedication1 = Medication(id = 1, name = "Aspirin (Fixed)", typeId = 3, color = "#FF03A9F4", dosage = "81mg", packageSize = 100, remainingDoses = 50, startDate = "2024-06-03", endDate = "2024-06-07", reminderTime = null, registrationDate = "2024-06-01")
         val sampleSchedule1 = MedicationSchedule(
             id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "07:00",
             intervalHours = null,
@@ -602,8 +590,8 @@ fun CalendarScreenPreviewDark() {
             MedicationScheduleItem(
                 medication = sampleMedication1,
                 schedule = sampleSchedule1,
-                actualStartDate = LocalDate.parse("2025-06-03"),
-                actualEndDate = LocalDate.parse("2025-06-07"),
+                actualStartDate = LocalDate.parse("2024-06-03"),
+                actualEndDate = LocalDate.parse("2024-06-07"),
                 isOngoingOverall = false
             )
         )
@@ -647,3 +635,5 @@ fun CalendarScreenPreviewDark() {
         }
     }
 }
+// Removed old preview content that used WeekCalendarView, MedicationScheduleListView, etc.
+// The new previews above use ScheduleCalendarState, DaysRow, and MedicationRowsLayout.
