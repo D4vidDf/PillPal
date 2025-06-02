@@ -5,7 +5,7 @@ import androidx.compose.animation.core.AnimationVector1D
 // import androidx.compose.animation.core.FastOutSlowInEasing // Removed
 import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.animation.core.exponentialDecay
-// import androidx.compose.animation.core.tween // Removed
+import androidx.compose.animation.core.tween // Added
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.gestures.ScrollableState
@@ -72,6 +72,15 @@ class ScheduleCalendarState(
         startDateTime.plusSeconds(viewSpanSeconds)
     }
 
+    val dateAtCenter: LocalDate by derivedStateOf {
+        // Calculate the timestamp at the center of the current view
+        val centerViewSecondsOffset = (viewSpanSeconds / 2.0).roundToLong()
+        // Add this to the current startDateTime's seconds value
+        val centerSeconds = secondsOffset.value + centerViewSecondsOffset
+        // Convert to LocalDateTime and then to LocalDate
+        referenceDateTime.plusSeconds(centerSeconds).toLocalDate()
+    }
+
     // How many seconds are represented by a single pixel.
     private val secondsPerPixel: Float by derivedStateOf {
         viewSpanSeconds.toFloat() / composableWidthPx.toFloat()
@@ -105,7 +114,7 @@ class ScheduleCalendarState(
             // secondsOffset should decrease.
             // The ScrollableState provides delta: positive means drag towards positive (right), content moves left.
             // So positive delta means we want to see later times, so secondsOffset increases.
-             secondsOffset.snapTo(secondsOffset.value + secondsDelta)
+             secondsOffset.snapTo(secondsOffset.value - secondsDelta)
         }
         // onDateRangeChanged(startDateTime, endDateTime) // Call after scroll changes
         delta // Consume the delta
@@ -113,18 +122,28 @@ class ScheduleCalendarState(
 
     // Basic fling behavior, can be enhanced with anchoring later if needed.
     val scrollFlingBehavior = object : FlingBehavior {
-        // Decay spec should match the Animatable's type (Long)
-        val decay = exponentialDecay<Long>() // Or just exponentialDecay()
+        // Attempt: Moderate friction.
+        val decaySpec = exponentialDecay<Long>(frictionMultiplier = 3.0f) // Slightly more friction than default.
 
         override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
-            val velocityInSecondsPerSecond = initialVelocity.toSeconds().toFloat() // This is still float initially
+            // Convert pixel velocity to "seconds displacement per second" for the animation.
+            val velocityInSecondsPerSecond = initialVelocity.toSeconds() // This is already a Long after .toSeconds()
 
-            coroutineScope.launch { // Launching the animation as animateDecay itself might not be what performFling expects to directly suspend on for its whole duration
-                // Velocity for animateDecay should also match Animatable's type (Long)
-                secondsOffset.animateDecay(velocityInSecondsPerSecond.roundToLong(), decay)
-                // onDateRangeChanged(startDateTime, endDateTime) // If re-introduced
+            // Only animate if there's significant velocity.
+            if (kotlin.math.abs(initialVelocity) > 1f) { // Check against pixel velocity
+                coroutineScope.launch {
+                    secondsOffset.animateDecay(
+                        initialVelocity = velocityInSecondsPerSecond, // Pass the converted velocity
+                        animationSpec = decaySpec
+                    )
+                }
             }
-            return initialVelocity
+            // Return the initial velocity to indicate it was processed (or part of it).
+            // Or return 0f if we want to signify all velocity is handled by the decay.
+            // Standard behavior is often to return what's left, but for a custom decay,
+            // consuming it all (return 0f) or returning initialVelocity can both make sense.
+            // Let's try returning 0f to say we've handled it.
+            return 0f
         }
     }
 
@@ -162,5 +181,37 @@ class ScheduleCalendarState(
         val width = ((endFraction - startFraction) * totalWidthPx).toInt().coerceAtLeast(0)
 
         return Pair(width, offsetX)
+    }
+
+    suspend fun scrollToDate(date: LocalDate, targetOffsetFraction: Float = 0.5f) {
+        if (composableWidthPx <= 0) return // Avoid division by zero or issues if width isn't set
+
+        // Calculate the target pixel offset from the start of the view
+        // For example, if targetOffsetFraction is 0.5f, this is the center pixel.
+        val targetPixelOffsetInView = composableWidthPx * targetOffsetFraction
+
+        // Convert this pixel offset to a duration in seconds from the start of the visible view.
+        // secondsPerPixel = viewSpanSeconds / composableWidthPx
+        // So, durationInSeconds = targetPixelOffsetInView * secondsPerPixel
+        val secondsFromViewStartToTargetPixel = (targetPixelOffsetInView * (viewSpanSeconds.toFloat() / composableWidthPx.toFloat())).roundToLong()
+
+        // Calculate the number of seconds from referenceDateTime to the start of the target date.
+        val targetDateStartSecondsFromReference = ChronoUnit.SECONDS.between(referenceDateTime, date.atStartOfDay())
+
+        // The new secondsOffset should be such that the targetDate is positioned correctly.
+        // If secondsOffset = X, then view starts at referenceDateTime.plusSeconds(X).
+        // We want: referenceDateTime.plusSeconds(X).plusSeconds(secondsFromViewStartToTargetPixel) == date.atStartOfDay()
+        // So: X + secondsFromViewStartToTargetPixel = targetDateStartSecondsFromReference
+        // Which means: X = targetDateStartSecondsFromReference - secondsFromViewStartToTargetPixel
+        val newSecondsOffset = targetDateStartSecondsFromReference - secondsFromViewStartToTargetPixel
+
+        // Animate to the new offset
+        // You might want to adjust the animation spec (e.g., durationMillis)
+        secondsOffset.animateTo(
+            targetValue = newSecondsOffset,
+            animationSpec = tween(durationMillis = 300) // Or another AnimationSpec like spring()
+        )
+        // After animation, if you have onDateRangeChanged, you might call it:
+        // onDateRangeChanged(startDateTime, endDateTime)
     }
 }
