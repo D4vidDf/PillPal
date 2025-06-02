@@ -74,7 +74,7 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey // Added
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver // Added
 import androidx.compose.ui.semantics.semantics // Added
 import androidx.compose.ui.semantics.liveRegion // Added
-import androidx.compose.ui.semantics.SemanticsLiveRegion // Added
+import androidx.compose.ui.semantics.LiveRegionMode // Corrected import
 // Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
 private val dayWidthForCalendar = 48.dp
 
@@ -151,7 +151,7 @@ fun CalendarScreen(
             Text(
                 text = accessibilityDateText,
                 modifier = Modifier
-                    .semantics { liveRegion = SemanticsLiveRegion.Polite }
+                    .semantics { liveRegion = LiveRegionMode.Polite } // Corrected usage
                     .alpha(0f) // Make it invisible
                     .size(0.dp) // Ensure it takes no space
             )
