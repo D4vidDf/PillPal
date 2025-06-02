@@ -70,6 +70,8 @@ import com.d4viddf.medicationreminder.data.ScheduleType // Keep for Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.CalendarUiState // Keep for Preview
 import kotlinx.coroutines.launch // Added
+import androidx.compose.ui.semantics.SemanticsPropertyKey // Added
+import androidx.compose.ui.semantics.SemanticsPropertyReceiver // Added
 import androidx.compose.ui.semantics.semantics // Added
 import androidx.compose.ui.semantics.liveRegion // Added
 import androidx.compose.ui.semantics.SemanticsLiveRegion // Added
