@@ -216,7 +216,7 @@ fun CalendarScreen(
                 // Centering Guide - REMOVE THE OLD LINE (if it was here as a separate Box)
                 // New Dot Indicator
                 // Positioned to be visually below where DaysRow renders, and horizontally centered in the viewport.
-                val daysRowApproxHeight = 58.dp // Estimate for DaysRow visual height
+                val daysRowApproxHeight = 54.dp // Estimate for DaysRow visual height
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter) // Horizontally centered within BoxWithConstraints
