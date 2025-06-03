@@ -84,9 +84,9 @@ androidx-datastore-preferences-core = { group = "androidx.datastore", name = "da
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 androidx-material3-window-size-class1-android = { group = "androidx.compose.material3", name = "material3-window-size-class-android", version.ref = "material3WindowSizeClassAndroid" }
 androidx-graphics-shapes = { group = "androidx.graphics", name = "graphics-shapes", version.ref = "graphicsShapes" }
-androidx-compose-material3-adaptive = { group = "androidx.compose.material3", name = "adaptive", version.ref = "material3Adaptive" }
-androidx-compose-material3-adaptive-layout = { group = "androidx.compose.material3", name = "adaptive-layout", version.ref = "material3Adaptive" }
-androidx-compose-material3-adaptive-navigation = { group = "androidx.compose.material3", name = "adaptive-navigation", version.ref = "material3Adaptive" }
+androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "material3Adaptive" }
+androidx-compose-material3-adaptive-layout = { group = "androidx.compose.material3.adaptive", name = "adaptive-layout", version.ref = "material3Adaptive" }
+androidx-compose-material3-adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "material3Adaptive" }
 
 
 [plugins]
