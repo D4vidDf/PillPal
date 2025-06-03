@@ -64,6 +64,8 @@ fun MedicationProgressDisplay(
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
     val indicatorSize = indicatorSizeDp // Use the parameter value
 
+    val currentWaveSpeed = if (animatedProgress >= 0.999f) 0.dp else 3.dp // New line
+
     // Construct the semantic description for the progress indicator here
     val progressIndicatorSemanticDesc: String = if (progressDetails != null) {
         if (progressDetails.totalFromPackage > 0) {
@@ -113,7 +115,7 @@ fun MedicationProgressDisplay(
                 stroke = Stroke(width = desiredStrokeWidthPx,cap = StrokeCap.Round),
                 trackStroke = Stroke(width = desiredStrokeWidthPx,cap = StrokeCap.Round),
                 wavelength = 42.dp,
-                waveSpeed = 3.dp,
+                waveSpeed = currentWaveSpeed, // Changed from 3.dp
                 gapSize = 12.dp
             )
 
