@@ -18,13 +18,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -194,31 +189,21 @@ fun MedicationDetailsScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = color.backgroundColor.copy(alpha = 0.8f), // Example: 80% opacity
+                        containerColor = color.backgroundColor, // Reverted
                         navigationIconContentColor = Color.White,
                         actionIconContentColor = Color.White
                     )
                 )
-            },
-            contentWindowInsets = WindowInsets() // Add this line
-        ) { innerPaddingIgnored -> // Renamed to indicate it's not used in the old way for system bars
-
-            val systemStatusBarsPaddingTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-            val systemNavigationBarsPaddingBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            val topAppBarHeight = 64.dp // Approximation for TopAppBar height
+            }
+            // contentWindowInsets parameter is removed
+        ) { innerPadding -> // innerPadding is from Scaffold
+            // Vars like systemStatusBarsPaddingTop, systemNavigationBarsPaddingBottom, topAppBarHeight are removed if only used for the custom contentPadding.
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(), // Fills the space provided by Scaffold's content area
-                contentPadding = PaddingValues(
-                    top = systemStatusBarsPaddingTop + topAppBarHeight,
-                    bottom = systemNavigationBarsPaddingBottom
-                    // Horizontal padding can be added here if needed for all content,
-                    // e.g., start = 16.dp, end = 16.dp.
-                    // Or, apply horizontal padding to individual items or the shared Column if that's where it was.
-                    // The existing Column with sharedElement has .padding(start = 16.dp, end = 16.dp, bottom = 24.dp)
-                    // This horizontal padding should likely remain on the Column, not be duplicated here.
-                    // The bottom padding on that Column might need adjustment if this contentPadding also adds bottom padding.
-                )
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding), // Reverted to use innerPadding from Scaffold
+                // contentPadding argument is removed
             ) {
                 item {
                     // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
