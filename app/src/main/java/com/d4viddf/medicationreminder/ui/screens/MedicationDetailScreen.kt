@@ -320,27 +320,25 @@ fun MedicationDetailsScreen(
                     }
                 }
 
-                var futureRemindersStarted = false
+                // var futureRemindersStarted = false // Removed
                 items(todayScheduleItems, key = { it.id }) { todayItem ->
                     // AnimatedVisibility removed
                     Column(
                         modifier = Modifier.animateItem() // Corrected modifier
                     ) {
-                        val isActuallyPast =
-                            todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
+                        val isActuallyPast = // Keep this for enabling ScheduleItem
+                            todayItem.time.isBefore(java.time.LocalTime.now())
 
-                            if (!isActuallyPast && !futureRemindersStarted) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 8.dp
-                                    ), thickness = 3.dp, color = MaterialTheme.colorScheme.onBackground
-                                )
-                                futureRemindersStarted = true // This state needs to be managed carefully if items reorder or appear/disappear individually.
-                                // For a simple list appearing together, this is okay.
-                            }
-                            ScheduleItem(
-                                time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                        // Simplified HorizontalDivider logic as per subtask example
+                        if (todayItem.time.isAfter(java.time.LocalTime.now().minusMinutes(1))) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                thickness = 3.dp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        ScheduleItem(
+                            time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                                 label = todayItem.medicationName,
                                 isTaken = todayItem.isTaken,
                                 onTakenChange = { newState ->
@@ -351,7 +349,7 @@ fun MedicationDetailsScreen(
                                     )
                                 },
                                 // Enable toggle only for past or current items. Future items are disabled.
-                                enabled = isActuallyPast || todayItem.isTaken
+                                enabled = isActuallyPast || todayItem.isTaken // Use the calculated isActuallyPast
                             )
                         }
                     }
