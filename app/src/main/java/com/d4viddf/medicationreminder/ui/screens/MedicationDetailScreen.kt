@@ -147,9 +147,20 @@ fun MedicationDetailsScreen(
                         }
                     },
                     actions = {
-                        TextButton(onClick = { /* TODO: Handle edit action */ }) {
+                        // Original Box structure for the Edit button
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp) // Add some padding to separate from the edge of screen if needed
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable { /* TODO: Handle edit action */ } // Ensure clickable is present
+                                .padding(horizontal = 12.dp, vertical = 6.dp), // This is the internal padding for the text
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                stringResource(id = R.string.edit),
+                                text = stringResource(id = R.string.edit),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White

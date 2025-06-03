@@ -43,10 +43,10 @@ fun MedicationDetailHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = displayName,
-                fontSize = 36.sp,
+                fontSize = 30.sp, // Changed from 36.sp
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.textColor,
-                lineHeight = 40.sp, // Ajustar según sea necesario
+                lineHeight = 34.sp, // Adjusted lineHeight
                 maxLines = 2, // Permitir hasta 2 líneas para el nombre
                 overflow = TextOverflow.Ellipsis // Añadir elipsis si el texto es muy largo
             )
