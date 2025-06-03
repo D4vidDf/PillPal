@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class) // Added file-level OptIn
 package com.d4viddf.medicationreminder.ui.components
 
 import android.util.Log
@@ -22,10 +23,11 @@ import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope // Added this import
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 
-@OptIn(ExperimentalSharedTransitionApi::class) // Add OptIn
+// Removed OptIn from here as it's now file-level
 @Composable
 fun MedicationCard(
     medication: Medication,

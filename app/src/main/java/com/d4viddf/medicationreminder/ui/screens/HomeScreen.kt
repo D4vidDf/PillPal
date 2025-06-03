@@ -379,11 +379,7 @@ fun HomeScreen(
                             // searchActive = false
                             // viewModel.updateSearchQuery("")
                         },
-                        // animatedVisibilityScope is passed from AppNavigation to MedicationDetailsScreen directly
-                        // So, no need to pass animatedVisibilityScope from HomeScreen to MedicationDetailsScreen here
-                        // as they are siblings in the NavHost for this large screen layout.
-                        // However, if MedicationDetailsScreen were a child *composable* of HomeScreen (not via NavHost),
-                        // then we would pass it.
+                        animatedVisibilityScope = animatedVisibilityScope // Pass the scope received by HomeScreen
                     )
                 }
             }
