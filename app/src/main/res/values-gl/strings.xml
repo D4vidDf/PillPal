@@ -110,6 +110,7 @@
     <string name="medication_progress_display_not_package_based_acc">Medicación: %1$s restantes, %2$s tomadas. Progreso no basado en el envase.</string>
     <string name="medication_progress_display_info_not_available_acc">Progreso de la medicación: Información no disponible.</string>
     <string name="medication_progress_display_title">Progreso</string>
+    <string name="medication_detail_no_reminders_today">Non hai recordatorios para hoxe.</string>
 
     <!-- Settings Screen (New) -->
     <string name="settings_screen_title">Ajustes</string>

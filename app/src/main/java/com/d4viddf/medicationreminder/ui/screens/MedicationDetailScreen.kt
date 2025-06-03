@@ -28,8 +28,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold // Added
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // Added
+import androidx.compose.material3.TopAppBar // Added
+import androidx.compose.material3.TopAppBarDefaults // Added
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign // Added
 import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.ui.unit.dp
@@ -122,26 +127,11 @@ fun MedicationDetailsScreen(
             CircularProgressIndicator()
         }
     } else {
-        // Scaffold was part of previous attempts, but original file is just LazyColumn
-        LazyColumn(modifier = Modifier.fillMaxSize()) { // Add .padding(scaffoldInnerPadding) if a Scaffold is reintroduced
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = color.backgroundColor,
-                            shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
-                        )
-                        .padding(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 16.dp)
-                ) {
-                    // Row para Back y Edit (sin cambios)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 18.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { },
+                    navigationIcon = {
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -155,29 +145,54 @@ fun MedicationDetailsScreen(
                                 modifier = Modifier.size(28.dp), tint = Color.White
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .clickable { /* TODO: Handle edit action */ },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(stringResource(id = R.string.edit), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    },
+                    actions = {
+                        TextButton(onClick = { /* TODO: Handle edit action */ }) {
+                            Text(
+                                stringResource(id = R.string.edit),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = color.backgroundColor,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                    )
+                )
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Apply innerPadding
+            ) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = color.backgroundColor, // This background might be redundant if TopAppBar uses it
+                                shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+                            )
+                            .padding(start = 16.dp, end = 16.dp, bottom = 24.dp) // Removed top padding, TopAppBar handles it
+                    ) {
+                        // Row for Back and Edit is removed from here
+                        // Spacer after the Row is also removed
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Usar el nuevo componente MedicationDetailHeader
-                    MedicationDetailHeader(
+                        // Usar el nuevo componente MedicationDetailHeader
+                        MedicationDetailHeader(
                         medicationName = medicationState?.name,
                         medicationDosage = medicationState?.dosage,
                         medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
-                        colorScheme = color
+                        colorScheme = color,
+                        modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
                         // El modifier por defecto del componente ya tiene fillMaxWidth
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp)) // Ajustado el espacio después del header
+                    // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
                     MedicationProgressDisplay(
                         progressDetails = progressDetails,
@@ -227,12 +242,27 @@ fun MedicationDetailsScreen(
                 }
             }
 
+            // NEW CONDITIONAL MESSAGE LOGIC
+            if (todayScheduleItems.isEmpty() && medicationState != null) {
+                item {
+                    Text(
+                        text = stringResource(id = R.string.medication_detail_no_reminders_today),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp), // Added more vertical padding
+                        style = MaterialTheme.typography.bodyMedium, // Using bodyMedium for a slightly softer look
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
             var futureRemindersStarted = false
             items(todayScheduleItems, key = { it.id }) { todayItem ->
                 val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
                 if (!isActuallyPast && !futureRemindersStarted) {
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp, color= MaterialTheme.colorScheme.onBackground)
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), thickness = 3.dp, color = MaterialTheme.colorScheme.onBackground)
                     futureRemindersStarted = true
                 }
                 ScheduleItem(
