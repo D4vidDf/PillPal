@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
 // Icons for TopAppBar were removed, but CalendarToday is still needed
@@ -23,6 +24,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -90,11 +95,13 @@ import java.util.Locale
 // Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
 private val dayWidthForCalendar = 48.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable
 fun CalendarScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMedicationDetail: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState() // Still needed for medicationSchedules
@@ -209,6 +216,8 @@ fun CalendarScreen(
                         medicationSchedules = uiState.medicationSchedules,
                         totalWidthPx = totalWidthPx,
                         onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
+                        animatedVisibilityScope = animatedVisibilityScope, // Pass it here
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     )
                 }
@@ -404,9 +413,13 @@ fun MedicationRowsLayout(
     medicationSchedules: List<MedicationScheduleItem>,
     totalWidthPx: Int,
     onMedicationClicked: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
+    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
+
     LazyColumn(modifier = modifier) {
         items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
             Box(modifier = Modifier.fillParentMaxWidth().height(55.dp).padding(vertical = 4.dp, horizontal = 8.dp)) { // Changed height and vertical padding
@@ -461,6 +474,16 @@ fun MedicationRowsLayout(
                                 )
                                 .clip(RoundedCornerShape(percent = 50)) // Changed
                                 .clickable { onMedicationClicked(med.id) }
+                                .then(
+                                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                        with(sharedTransitionScope) { // Use with(scope)
+                                            Modifier.sharedElement(
+                                                rememberSharedContentState(key = "medication-background-${med.id}"),
+                                                animatedVisibilityScope!!
+                                            )
+                                        }
+                                    } else Modifier
+                                )
                                 .padding(horizontal = 12.dp, vertical = 4.dp), // Changed
                             contentAlignment = Alignment.CenterStart
                         ) {
@@ -470,7 +493,17 @@ fun MedicationRowsLayout(
                                 color = textColor, // Apply the resolved textColor
                                 fontWeight = FontWeight.Bold, // Added this line
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.then(
+                                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                        with(sharedTransitionScope) { // Use with(scope)
+                                            Modifier.sharedElement(
+                                                rememberSharedContentState(key = "medication-name-${med.id}"),
+                                                animatedVisibilityScope!!
+                                            )
+                                        }
+                                    } else Modifier
+                                )
                             )
                         }
                     }
@@ -566,6 +599,8 @@ fun CalendarScreenPreviewLight() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { /* Dummy action */ },
+                            sharedTransitionScope = null, // Preview
+                            animatedVisibilityScope = null, // Preview
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         )
                     }
@@ -633,6 +668,8 @@ fun CalendarScreenPreviewDark() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { },
+                            sharedTransitionScope = null, // Preview
+                            animatedVisibilityScope = null, // Preview
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         )
                     }

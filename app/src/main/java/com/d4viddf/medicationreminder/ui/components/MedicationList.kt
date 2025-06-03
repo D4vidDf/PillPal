@@ -8,6 +8,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -24,13 +27,17 @@ import com.d4viddf.medicationreminder.data.FrequencyType // Added for FrequencyT
 import java.time.LocalDate // Added for LocalDate
 import java.time.format.DateTimeFormatter // Added for DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) // ExperimentalMaterial3ExpressiveApi is not needed for PullToRefreshBox
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalSharedTransitionApi::class
+) // ExperimentalMaterial3ExpressiveApi is not needed for PullToRefreshBox
 @Composable
 fun MedicationList(
     medications: List<Medication>,
     onItemClick: (Medication) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
     bottomContentPadding: Dp
 ) {
@@ -68,7 +75,9 @@ fun MedicationList(
                 items(medications, key = { medication -> medication.id }) { medication ->
                     MedicationCard(
                         medication = medication,
-                        onClick = { onItemClick(medication) }
+                        onClick = { onItemClick(medication) },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
+                        animatedVisibilityScope = animatedVisibilityScope // Pass scope
                     )
                 }
             }
@@ -76,6 +85,7 @@ fun MedicationList(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @androidx.compose.ui.tooling.preview.Preview(name = "Light Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
 @androidx.compose.ui.tooling.preview.Preview(name = "Dark Mode", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
@@ -104,6 +114,8 @@ fun MedicationListPreview() {
             onItemClick = {},
             isLoading = false,
             onRefresh = {},
+            sharedTransitionScope = null, // Pass null for preview
+            animatedVisibilityScope = null, // Preview won't have a real scope
             bottomContentPadding = 0.dp // Changed to 0.dp
         )
     }
