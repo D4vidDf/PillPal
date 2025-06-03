@@ -24,8 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.LocalSharedTransitionScope
-import androidx.compose.animation.SharedTransitionScope // Added import
+// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
+import androidx.compose.animation.SharedTransitionScope // Already present
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 import androidx.compose.material.icons.filled.Mic
@@ -67,6 +67,7 @@ fun HomeScreen(
     onAddMedicationClick: () -> Unit,
     onMedicationClick: (Int) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: MedicationViewModel = hiltViewModel(),
     modifier: Modifier = Modifier // This modifier comes from NavHost, potentially with padding
@@ -187,7 +188,8 @@ fun HomeScreen(
                     // Content for search results - displayed when searchActive (expanded) is true
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
-                            val sharedTransitionScope = LocalSharedTransitionScope.current
+                            // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
+                            // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
                             Card(
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier
@@ -406,6 +408,7 @@ fun HomeScreenCompactPreview() {
             onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
@@ -419,6 +422,7 @@ fun HomeScreenMediumPreview() {
             onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Medium,
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
@@ -432,6 +436,7 @@ fun HomeScreenExpandedPreview() {
             onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Expanded,
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null // Preview won't have a real scope
         )
     }

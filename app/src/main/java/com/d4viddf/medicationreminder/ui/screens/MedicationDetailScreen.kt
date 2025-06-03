@@ -34,8 +34,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.LocalSharedTransitionScope
-import androidx.compose.animation.SharedTransitionScope // Added import
+// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
+import androidx.compose.animation.SharedTransitionScope // Already present
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 import androidx.compose.material3.TextButton // Added
@@ -84,6 +84,7 @@ import java.time.format.FormatStyle // Added
 fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
@@ -189,7 +190,7 @@ fun MedicationDetailsScreen(
                     .padding(innerPadding) // Apply innerPadding
             ) {
                 item {
-                    val sharedTransitionScope = LocalSharedTransitionScope.current
+                    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -219,6 +220,7 @@ fun MedicationDetailsScreen(
                             medicationDosage = medicationState?.dosage,
                             medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
                             colorScheme = color,
+                            sharedTransitionScope = sharedTransitionScope, // Pass this
                             animatedVisibilityScope = animatedVisibilityScope, // Pass scope
                             modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
                         // El modifier por defecto del componente ya tiene fillMaxWidth
@@ -342,6 +344,7 @@ fun MedicationDetailsScreenPreview() {
         MedicationDetailsScreen(
             medicationId = 1,
             onNavigateBack = {},
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null // Preview won't have a real scope
         )
     }

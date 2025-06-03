@@ -7,6 +7,7 @@ package com.d4viddf.medicationreminder.ui.screens
 // Let's assume it's fine to just have the file-level one for this API.
 // import androidx.compose.animation.ExperimentalSharedTransitionApi // Added - This line can be removed if no other composable in this file needs it individually
 import androidx.compose.animation.SharedTransitionLayout // Added
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -38,7 +39,7 @@ fun AppNavigation(
     isMainScaffold: Boolean, // Added parameter
     modifier: Modifier = Modifier // Add this line
 ) {
-    SharedTransitionLayout { // Wrap NavHost
+    SharedTransitionLayout { sharedTransitionScope -> // Captured sharedTransitionScope
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
@@ -53,6 +54,7 @@ fun AppNavigation(
                 },
                 // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
                 widthSizeClass = widthSizeClass, // Kept
+                sharedTransitionScope = sharedTransitionScope, // Pass scope
                 animatedVisibilityScope = this // Pass scope
             )
         }
@@ -70,6 +72,7 @@ fun AppNavigation(
                 MedicationDetailsScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
+                    sharedTransitionScope = sharedTransitionScope, // Pass scope
                     animatedVisibilityScope = this // Pass scope
                 )
             }
@@ -88,6 +91,7 @@ fun AppNavigation(
                 onNavigateToMedicationDetail = { medicationId ->
                     navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
                 },
+                sharedTransitionScope = sharedTransitionScope, // Pass scope
                 animatedVisibilityScope = this // Pass scope
             )
         }

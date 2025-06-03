@@ -17,8 +17,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.LocalSharedTransitionScope
-import androidx.compose.animation.SharedTransitionScope // Added import
+// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
+import androidx.compose.animation.SharedTransitionScope // Already present
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 
@@ -30,6 +30,7 @@ fun MedicationDetailHeader(
     medicationDosage: String?,
     medicationImageUrl: String?,
     colorScheme: MedicationColor,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier
 ) {
@@ -46,7 +47,7 @@ fun MedicationDetailHeader(
         }
     }
 
-    val sharedTransitionScope = LocalSharedTransitionScope.current
+    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
     Row(
         modifier = modifier.fillMaxWidth(), // El modifier se aplica al Row principal
         verticalAlignment = Alignment.CenterVertically // Alineación vertical de los elementos del Row
@@ -98,6 +99,7 @@ fun MedicationDetailHeaderPreview() {
             medicationDosage = "250mg / 5ml",
             medicationImageUrl = null, // Or a sample image URL
             colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE,
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null // Preview won't have a real scope
         )
     }

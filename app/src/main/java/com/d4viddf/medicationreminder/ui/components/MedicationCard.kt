@@ -22,8 +22,8 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.LocalSharedTransitionScope
-import androidx.compose.animation.SharedTransitionScope // Added this import
+// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
+import androidx.compose.animation.SharedTransitionScope // Already present
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 
@@ -32,6 +32,7 @@ import androidx.compose.animation.sharedElement
 fun MedicationCard(
     medication: Medication,
     onClick: () -> Unit, // Callback for navigation
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope? // Make nullable
 ) {
     val color = try {
@@ -41,7 +42,7 @@ fun MedicationCard(
         MedicationColor.LIGHT_ORANGE
     }
 
-    val sharedTransitionScope = LocalSharedTransitionScope.current
+    // val sharedTransitionScope = LocalSharedTransitionScope.current // Removed this line
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -137,6 +138,7 @@ fun MedicationCardPreview() {
                 endDate = null         // Default value
             ),
             onClick = {},
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null // Preview won't have a real scope
         )
     }

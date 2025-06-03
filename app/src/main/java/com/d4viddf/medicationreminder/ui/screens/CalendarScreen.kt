@@ -102,6 +102,7 @@ private val dayWidthForCalendar = 48.dp
 fun CalendarScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMedicationDetail: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
@@ -217,6 +218,7 @@ fun CalendarScreen(
                         medicationSchedules = uiState.medicationSchedules,
                         totalWidthPx = totalWidthPx,
                         onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
                         animatedVisibilityScope = animatedVisibilityScope, // Pass it here
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     )
@@ -413,11 +415,12 @@ fun MedicationRowsLayout(
     medicationSchedules: List<MedicationScheduleItem>,
     totalWidthPx: Int,
     onMedicationClicked: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    val sharedTransitionScope = LocalSharedTransitionScope.current
+    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
 
     LazyColumn(modifier = modifier) {
         items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
@@ -598,6 +601,7 @@ fun CalendarScreenPreviewLight() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { /* Dummy action */ },
+                            sharedTransitionScope = null, // Preview
                             animatedVisibilityScope = null, // Preview
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         )
@@ -666,6 +670,7 @@ fun CalendarScreenPreviewDark() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { },
+                            sharedTransitionScope = null, // Preview
                             animatedVisibilityScope = null, // Preview
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         )
