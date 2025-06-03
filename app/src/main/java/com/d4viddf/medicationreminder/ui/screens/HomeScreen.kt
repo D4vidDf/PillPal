@@ -312,7 +312,7 @@ fun HomeScreen(
                 ) {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
-                            val sharedTransitionScope = LocalSharedTransitionScope.current
+                            // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
                             Card(
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier

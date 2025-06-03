@@ -39,7 +39,9 @@ fun AppNavigation(
     isMainScaffold: Boolean, // Added parameter
     modifier: Modifier = Modifier // Add this line
 ) {
-    SharedTransitionLayout { sharedTransitionScope -> // Captured sharedTransitionScope
+    SharedTransitionLayout { // `this` is SharedTransitionScope
+        val currentSharedTransitionScope = this // Capture SharedTransitionScope
+
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
@@ -54,7 +56,7 @@ fun AppNavigation(
                 },
                 // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
                 widthSizeClass = widthSizeClass, // Kept
-                sharedTransitionScope = sharedTransitionScope, // Pass scope
+                sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                 animatedVisibilityScope = this // Pass scope
             )
         }
@@ -72,7 +74,7 @@ fun AppNavigation(
                 MedicationDetailsScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
-                    sharedTransitionScope = sharedTransitionScope, // Pass scope
+                    sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                     animatedVisibilityScope = this // Pass scope
                 )
             }
@@ -91,7 +93,7 @@ fun AppNavigation(
                 onNavigateToMedicationDetail = { medicationId ->
                     navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
                 },
-                sharedTransitionScope = sharedTransitionScope, // Pass scope
+                sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                 animatedVisibilityScope = this // Pass scope
             )
         }

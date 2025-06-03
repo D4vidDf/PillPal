@@ -199,10 +199,12 @@ fun MedicationDetailsScreen(
                             )
                             .then(
                                 if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                    sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                        state = rememberSharedContentState(key = "medication-background-${medicationId}"),
-                                        animatedVisibilityScope = animatedVisibilityScope!!
-                                    )
+                                    with(sharedTransitionScope) { // Use with(scope)
+                                        Modifier.sharedElement(
+                                            rememberSharedContentState(key = "medication-background-${medicationId}"),
+                                            animatedVisibilityScope!!
+                                        )
+                                    }
                                 } else Modifier
                             )
                             .padding(start = 16.dp, end = 16.dp, bottom = 24.dp) // Removed top padding, TopAppBar handles it

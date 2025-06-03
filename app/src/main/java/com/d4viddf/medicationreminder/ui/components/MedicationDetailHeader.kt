@@ -63,10 +63,12 @@ fun MedicationDetailHeader(
                 overflow = TextOverflow.Ellipsis, // Añadir elipsis si el texto es muy largo
                 modifier = Modifier.then(
                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                        sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                            state = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
-                            animatedVisibilityScope = animatedVisibilityScope!!
-                        )
+                        with(sharedTransitionScope) { // Use with(scope)
+                            Modifier.sharedElement(
+                                rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
+                                animatedVisibilityScope!!
+                            )
+                        }
                     } else Modifier
                 )
             )

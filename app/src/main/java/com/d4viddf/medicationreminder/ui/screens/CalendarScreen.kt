@@ -478,10 +478,12 @@ fun MedicationRowsLayout(
                                 .clickable { onMedicationClicked(med.id) }
                                 .then(
                                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                        sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                            state = rememberSharedContentState(key = "medication-background-${med.id}"),
-                                            animatedVisibilityScope = animatedVisibilityScope!!
-                                        )
+                                        with(sharedTransitionScope) { // Use with(scope)
+                                            Modifier.sharedElement(
+                                                rememberSharedContentState(key = "medication-background-${med.id}"),
+                                                animatedVisibilityScope!!
+                                            )
+                                        }
                                     } else Modifier
                                 )
                                 .padding(horizontal = 12.dp, vertical = 4.dp), // Changed
@@ -496,10 +498,12 @@ fun MedicationRowsLayout(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.then(
                                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                        sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                            state = rememberSharedContentState(key = "medication-name-${med.id}"),
-                                            animatedVisibilityScope = animatedVisibilityScope!!
-                                        )
+                                        with(sharedTransitionScope) { // Use with(scope)
+                                            Modifier.sharedElement(
+                                                rememberSharedContentState(key = "medication-name-${med.id}"),
+                                                animatedVisibilityScope!!
+                                            )
+                                        }
                                     } else Modifier
                                 )
                             )
