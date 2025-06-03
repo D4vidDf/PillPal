@@ -19,11 +19,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.rememberSharedContentState
+import androidx.compose.animation.sharedElement
 
+@OptIn(ExperimentalSharedTransitionApi::class) // Add OptIn
 @Composable
 fun MedicationCard(
     medication: Medication,
-    onClick: () -> Unit // Callback for navigation
+    onClick: () -> Unit, // Callback for navigation
+    animatedVisibilityScope: AnimatedVisibilityScope // Add this
 ) {
     val color = try {
         MedicationColor.valueOf(medication.color)
@@ -32,11 +39,22 @@ fun MedicationCard(
         MedicationColor.LIGHT_ORANGE
     }
 
+    val sharedTransitionScope = LocalSharedTransitionScope.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onClick() }, // Trigger navigation on click
+            .clickable { onClick() } // Trigger navigation on click
+            .then(
+                if (sharedTransitionScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedElement(
+                            state = rememberSharedContentState(key = "medication-background-${medication.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
+                    }
+                } else Modifier
+            ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = color.backgroundColor)
     ) {
@@ -55,7 +73,17 @@ fun MedicationCard(
                     text = displayName, // Use processed name
                     style = MaterialTheme.typography.headlineSmall,
                     color= color.textColor,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.then( // Apply sharedElement to Text
+                        if (sharedTransitionScope != null) {
+                            with(sharedTransitionScope) {
+                                Modifier.sharedElement(
+                                    state = rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                            }
+                        } else Modifier
+                    )
                     // Removed maxLines = 1
                     // Removed overflow = TextOverflow.Ellipsis
                 )
@@ -106,7 +134,8 @@ fun MedicationCardPreview() {
                 startDate = null,      // Default value
                 endDate = null         // Default value
             ),
-            onClick = {}
+            onClick = {},
+            animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
 }

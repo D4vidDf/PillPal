@@ -31,6 +31,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold // Added
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.rememberSharedContentState
+import androidx.compose.animation.sharedElement
 import androidx.compose.material3.TextButton // Added
 import androidx.compose.material3.TopAppBar // Added
 import androidx.compose.material3.TopAppBarDefaults // Added
@@ -72,11 +77,12 @@ import java.time.format.DateTimeFormatter // Added
 import java.time.format.FormatStyle // Added
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope, // Already added by previous tool run
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
@@ -181,12 +187,23 @@ fun MedicationDetailsScreen(
                     .padding(innerPadding) // Apply innerPadding
             ) {
                 item {
+                    val sharedTransitionScope = LocalSharedTransitionScope.current
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
                                 color = color.backgroundColor, // This background might be redundant if TopAppBar uses it
                                 shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+                            )
+                            .then(
+                                if (sharedTransitionScope != null) {
+                                    with(sharedTransitionScope) {
+                                        Modifier.sharedElement(
+                                            state = rememberSharedContentState(key = "medication-background-${medicationId}"),
+                                            animatedVisibilityScope = animatedVisibilityScope
+                                        )
+                                    }
+                                } else Modifier
                             )
                             .padding(start = 16.dp, end = 16.dp, bottom = 24.dp) // Removed top padding, TopAppBar handles it
                     ) {
@@ -195,11 +212,13 @@ fun MedicationDetailsScreen(
 
                         // Usar el nuevo componente MedicationDetailHeader
                         MedicationDetailHeader(
-                        medicationName = medicationState?.name,
-                        medicationDosage = medicationState?.dosage,
-                        medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
-                        colorScheme = color,
-                        modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
+                            medicationId = medicationId, // Pass medicationId
+                            medicationName = medicationState?.name,
+                            medicationDosage = medicationState?.dosage,
+                            medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
+                            colorScheme = color,
+                            animatedVisibilityScope = animatedVisibilityScope, // Pass scope
+                            modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
                         // El modifier por defecto del componente ya tiene fillMaxWidth
                     )
 
@@ -320,7 +339,8 @@ fun MedicationDetailsScreenPreview() {
         // which might result in a preview with no dynamic data.
         MedicationDetailsScreen(
             medicationId = 1,
-            onNavigateBack = {}
+            onNavigateBack = {},
+            animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
 }

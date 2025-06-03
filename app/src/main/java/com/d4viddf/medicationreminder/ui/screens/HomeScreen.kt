@@ -21,6 +21,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.rememberSharedContentState
+import androidx.compose.animation.sharedElement
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -54,12 +59,13 @@ import com.d4viddf.medicationreminder.utils.PermissionUtils
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class) // ExperimentalPermissionsApi removed if not needed elsewhere
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class) // ExperimentalPermissionsApi removed if not needed elsewhere
 @Composable
 fun HomeScreen(
     onAddMedicationClick: () -> Unit,
     onMedicationClick: (Int) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
+    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
     viewModel: MedicationViewModel = hiltViewModel(),
     modifier: Modifier = Modifier // This modifier comes from NavHost, potentially with padding
 ) {
@@ -179,16 +185,38 @@ fun HomeScreen(
                     // Content for search results - displayed when searchActive (expanded) is true
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
+                            val sharedTransitionScope = LocalSharedTransitionScope.current
                             Card(
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
                                     .clickable { medicationListClickHandler(medication.id) }
+                                    .then(
+                                        if (sharedTransitionScope != null) {
+                                            with(sharedTransitionScope) {
+                                                Modifier.sharedElement(
+                                                    state = rememberSharedContentState(key = "medication-background-${medication.id}"),
+                                                    animatedVisibilityScope = animatedVisibilityScope
+                                                )
+                                            }
+                                        } else Modifier
+                                    )
                             ) {
                                 Text(
                                     text = medication.name,
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .then(
+                                            if (sharedTransitionScope != null) {
+                                                with(sharedTransitionScope) {
+                                                    Modifier.sharedElement(
+                                                        state = rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                        animatedVisibilityScope = animatedVisibilityScope
+                                                    )
+                                                }
+                                            } else Modifier
+                                        ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -205,6 +233,7 @@ fun HomeScreen(
                         onItemClick = { medication -> medicationListClickHandler(medication.id) },
                         isLoading = isLoading,
                         onRefresh = { viewModel.refreshMedications() },
+                        animatedVisibilityScope = animatedVisibilityScope, // Pass scope
                         modifier = Modifier.fillMaxSize(),
                         bottomContentPadding = topAppBarHeight
                     )
@@ -282,16 +311,38 @@ fun HomeScreen(
                 ) {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(searchResults) { medication ->
+                            val sharedTransitionScope = LocalSharedTransitionScope.current
                             Card(
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
                                     .clickable { medicationListClickHandler(medication.id) }
+                                    .then(
+                                        if (sharedTransitionScope != null) {
+                                            with(sharedTransitionScope) {
+                                                Modifier.sharedElement(
+                                                    state = rememberSharedContentState(key = "medication-background-${medication.id}"),
+                                                    animatedVisibilityScope = animatedVisibilityScope
+                                                )
+                                            }
+                                        } else Modifier
+                                    )
                             ) {
                                 Text(
                                     text = medication.name,
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .then(
+                                            if (sharedTransitionScope != null) {
+                                                with(sharedTransitionScope) {
+                                                    Modifier.sharedElement(
+                                                        state = rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                        animatedVisibilityScope = animatedVisibilityScope
+                                                    )
+                                                }
+                                            } else Modifier
+                                        ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -304,6 +355,7 @@ fun HomeScreen(
                         onItemClick = { medication -> medicationListClickHandler(medication.id) },
                         isLoading = isLoading,
                         onRefresh = { viewModel.refreshMedications() },
+                        animatedVisibilityScope = animatedVisibilityScope, // Pass scope
                         modifier = Modifier.fillMaxSize(),
                         bottomContentPadding = 0.dp
                     )
@@ -326,7 +378,12 @@ fun HomeScreen(
                             // Optionally, also ensure search is reset if a detail view is dismissed
                             // searchActive = false
                             // viewModel.updateSearchQuery("")
-                        }
+                        },
+                        // animatedVisibilityScope is passed from AppNavigation to MedicationDetailsScreen directly
+                        // So, no need to pass animatedVisibilityScope from HomeScreen to MedicationDetailsScreen here
+                        // as they are siblings in the NavHost for this large screen layout.
+                        // However, if MedicationDetailsScreen were a child *composable* of HomeScreen (not via NavHost),
+                        // then we would pass it.
                     )
                 }
             }
@@ -350,7 +407,8 @@ fun HomeScreenCompactPreview() {
         HomeScreen(
             onAddMedicationClick = {},
             onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Compact
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
 }
@@ -362,7 +420,8 @@ fun HomeScreenMediumPreview() {
         HomeScreen(
             onAddMedicationClick = {},
             onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Medium
+            widthSizeClass = WindowWidthSizeClass.Medium,
+            animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
 }
@@ -374,7 +433,8 @@ fun HomeScreenExpandedPreview() {
         HomeScreen(
             onAddMedicationClick = {},
             onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Expanded
+            widthSizeClass = WindowWidthSizeClass.Expanded,
+            animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
 }

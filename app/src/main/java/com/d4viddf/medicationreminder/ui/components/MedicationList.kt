@@ -8,6 +8,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ fun MedicationList(
     onItemClick: (Medication) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
     modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
     bottomContentPadding: Dp
 ) {
@@ -68,7 +70,8 @@ fun MedicationList(
                 items(medications, key = { medication -> medication.id }) { medication ->
                     MedicationCard(
                         medication = medication,
-                        onClick = { onItemClick(medication) }
+                        onClick = { onItemClick(medication) },
+                        animatedVisibilityScope = animatedVisibilityScope // Pass scope
                     )
                 }
             }
@@ -104,6 +107,7 @@ fun MedicationListPreview() {
             onItemClick = {},
             isLoading = false,
             onRefresh = {},
+            animatedVisibilityScope = null, // Preview won't have a real scope
             bottomContentPadding = 0.dp // Changed to 0.dp
         )
     }

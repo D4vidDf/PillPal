@@ -14,13 +14,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.rememberSharedContentState
+import androidx.compose.animation.sharedElement
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MedicationDetailHeader(
+    medicationId: Int, // Add this
     medicationName: String?,
     medicationDosage: String?,
     medicationImageUrl: String?,
     colorScheme: MedicationColor,
+    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
     modifier: Modifier = Modifier
 ) {
     val loadingText = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_loading)
@@ -36,6 +44,7 @@ fun MedicationDetailHeader(
         }
     }
 
+    val sharedTransitionScope = LocalSharedTransitionScope.current
     Row(
         modifier = modifier.fillMaxWidth(), // El modifier se aplica al Row principal
         verticalAlignment = Alignment.CenterVertically // Alineación vertical de los elementos del Row
@@ -48,7 +57,17 @@ fun MedicationDetailHeader(
                 color = colorScheme.textColor,
                 lineHeight = 34.sp, // Adjusted lineHeight
                 maxLines = 2, // Permitir hasta 2 líneas para el nombre
-                overflow = TextOverflow.Ellipsis // Añadir elipsis si el texto es muy largo
+                overflow = TextOverflow.Ellipsis, // Añadir elipsis si el texto es muy largo
+                modifier = Modifier.then(
+                    if (sharedTransitionScope != null) {
+                        with(sharedTransitionScope) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                        }
+                    } else Modifier
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -72,10 +91,12 @@ fun MedicationDetailHeader(
 fun MedicationDetailHeaderPreview() {
     com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         MedicationDetailHeader(
+            medicationId = 0, // Dummy ID for preview
             medicationName = "Amoxicillin Trihydrate Suspension",
             medicationDosage = "250mg / 5ml",
             medicationImageUrl = null, // Or a sample image URL
-            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE
+            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE,
+            animatedVisibilityScope = null // Preview won't have a real scope
         )
     }
 }
