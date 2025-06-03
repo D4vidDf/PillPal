@@ -26,8 +26,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
-import androidx.compose.animation.rememberSharedContentState
-import androidx.compose.animation.sharedElement
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -198,10 +196,12 @@ fun HomeScreen(
                                     .clickable { medicationListClickHandler(medication.id) }
                                     .then(
                                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                            sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                                state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                animatedVisibilityScope = animatedVisibilityScope!!
-                                            )
+                                            with(sharedTransitionScope) { // Use with(scope)
+                                                Modifier.sharedElement(
+                                                    rememberSharedContentState(key = "medication-background-${medication.id}"),
+                                                    animatedVisibilityScope!!
+                                                )
+                                            }
                                         } else Modifier
                                     )
                             ) {
@@ -211,10 +211,12 @@ fun HomeScreen(
                                         .padding(16.dp)
                                         .then(
                                             if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                                sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                                    state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                    animatedVisibilityScope = animatedVisibilityScope!!
-                                                )
+                                                with(sharedTransitionScope) { // Use with(scope)
+                                                    Modifier.sharedElement(
+                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                        animatedVisibilityScope!!
+                                                    )
+                                                }
                                             } else Modifier
                                         ),
                                     color = MaterialTheme.colorScheme.onSurface
@@ -321,10 +323,12 @@ fun HomeScreen(
                                     .clickable { medicationListClickHandler(medication.id) }
                                     .then(
                                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                            sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                                state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                animatedVisibilityScope = animatedVisibilityScope!!
-                                            )
+                                            with(sharedTransitionScope) { // Use with(scope)
+                                                Modifier.sharedElement(
+                                                    rememberSharedContentState(key = "medication-background-${medication.id}"),
+                                                    animatedVisibilityScope!!
+                                                )
+                                            }
                                         } else Modifier
                                     )
                             ) {
@@ -334,10 +338,12 @@ fun HomeScreen(
                                         .padding(16.dp)
                                         .then(
                                             if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                                sharedTransitionScope.Modifier.sharedElement( // Corrected call
-                                                    state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                    animatedVisibilityScope = animatedVisibilityScope!!
-                                                )
+                                                with(sharedTransitionScope) { // Use with(scope)
+                                                    Modifier.sharedElement(
+                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                        animatedVisibilityScope!!
+                                                    )
+                                                }
                                             } else Modifier
                                         ),
                                     color = MaterialTheme.colorScheme.onSurface

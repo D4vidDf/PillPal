@@ -24,8 +24,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
-import androidx.compose.animation.rememberSharedContentState
-import androidx.compose.animation.sharedElement
 
 // Removed OptIn from here as it's now file-level
 @Composable

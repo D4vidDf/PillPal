@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
 // Removed ExperimentalSharedTransitionApi from here as it's now file-level (or it might be kept if other specific experimental APIs are used later)
@@ -6,6 +5,7 @@ package com.d4viddf.medicationreminder.ui.screens
 // Keeping it is fine if it's the only experimental API. If there were others, this specific one would be part of the file-level.
 // Let's assume it's fine to just have the file-level one for this API.
 // import androidx.compose.animation.ExperimentalSharedTransitionApi // Added - This line can be removed if no other composable in this file needs it individually
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout // Added
 import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +31,7 @@ sealed class Screen(val route: String) {
 }
 
 // Removed @OptIn(ExperimentalSharedTransitionApi::class) from here
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -50,59 +51,60 @@ fun AppNavigation(
             composable(Screen.Home.route) {
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
-                onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) }, // Kept
-                onMedicationClick = { medicationId -> // Kept
-                    navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
-                },
-                // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
-                widthSizeClass = widthSizeClass, // Kept
-                sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
-                animatedVisibilityScope = this // Pass scope
-            )
-        }
-        composable(Screen.AddMedication.route) {
-            // `this` is an AnimatedVisibilityScope
-            AddMedicationScreen(
-                onNavigateBack = { navController.popBackStack() }
-                // No animatedVisibilityScope passed
-            )
-        }
-        composable(Screen.MedicationDetails.route) { backStackEntry ->
-            // `this` is an AnimatedVisibilityScope
-            val medicationId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
-            if (medicationId != null) {
-                MedicationDetailsScreen(
-                    medicationId = medicationId,
-                    onNavigateBack = { navController.popBackStack() },
+                    onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) }, // Kept
+                    onMedicationClick = { medicationId -> // Kept
+                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                    },
+                    // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
+                    widthSizeClass = widthSizeClass, // Kept
                     sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                     animatedVisibilityScope = this // Pass scope
                 )
             }
-        }
-        composable(Screen.Settings.route) {
-            // `this` is an AnimatedVisibilityScope
-            SettingsScreen(
-                onNavigateBack = { navController.popBackStack() }
-                // No animatedVisibilityScope passed
-            )
-        }
-        composable(Screen.Calendar.route) {
-            // `this` is an AnimatedVisibilityScope
-            CalendarScreen(
-                onNavigateBack = { navController.popBackStack() }, // Removed
-                onNavigateToMedicationDetail = { medicationId ->
-                    navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
-                },
-                sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
-                animatedVisibilityScope = this // Pass scope
-            )
-        }
-        composable(Screen.Profile.route) {
-            // `this` is an AnimatedVisibilityScope
-            ProfileScreen(
-                onNavigateBack = { navController.popBackStack() }
-                // No animatedVisibilityScope passed
-            )
+            composable(Screen.AddMedication.route) {
+                // `this` is an AnimatedVisibilityScope
+                AddMedicationScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                    // No animatedVisibilityScope passed
+                )
+            }
+            composable(Screen.MedicationDetails.route) { backStackEntry ->
+                // `this` is an AnimatedVisibilityScope
+                val medicationId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                if (medicationId != null) {
+                    MedicationDetailsScreen(
+                        medicationId = medicationId,
+                        onNavigateBack = { navController.popBackStack() },
+                        sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
+                        animatedVisibilityScope = this // Pass scope
+                    )
+                }
+            }
+            composable(Screen.Settings.route) {
+                // `this` is an AnimatedVisibilityScope
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                    // No animatedVisibilityScope passed
+                )
+            }
+            composable(Screen.Calendar.route) {
+                // `this` is an AnimatedVisibilityScope
+                CalendarScreen(
+                    onNavigateBack = { navController.popBackStack() }, // Removed
+                    onNavigateToMedicationDetail = { medicationId ->
+                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                    },
+                    sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
+                    animatedVisibilityScope = this // Pass scope
+                )
+            }
+            composable(Screen.Profile.route) {
+                // `this` is an AnimatedVisibilityScope
+                ProfileScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                    // No animatedVisibilityScope passed
+                )
+            }
         }
     }
 }

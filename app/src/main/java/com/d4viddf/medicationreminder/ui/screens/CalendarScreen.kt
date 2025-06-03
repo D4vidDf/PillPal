@@ -28,8 +28,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Added import
-import androidx.compose.animation.rememberSharedContentState
-import androidx.compose.animation.sharedElement
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
