@@ -63,7 +63,7 @@ fun MedicationDetailHeader(
                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) { // Use with(scope)
                             Modifier.sharedElement(
-                                state = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
+                                sharedContentState = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
                                 animatedVisibilityScope = animatedVisibilityScope!!,
                                 renderInOverlayDuringTransition = true
                             )

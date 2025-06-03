@@ -330,7 +330,7 @@ fun MedicationDetailsScreen(
                         visible = contentVisible,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
                         // exit = fadeOut(),
-                        modifier = Modifier.animateItemPlacement() // Recommended for lists
+                        modifier = Modifier.animateItem()// Recommended for lists
                     ) {
                         Column { // Wrap potential divider and item together for animation
                             val isActuallyPast =

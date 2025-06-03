@@ -384,7 +384,8 @@ fun HomeScreen(
                             // viewModel.updateSearchQuery("")
                         },
                         sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope // Pass the scope received by HomeScreen
+                        animatedVisibilityScope = animatedVisibilityScope, // Pass the scope received by HomeScreen
+                        enableSharedTransition = true
                     )
                 }
             }
