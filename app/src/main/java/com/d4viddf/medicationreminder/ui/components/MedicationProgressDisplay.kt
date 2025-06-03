@@ -40,12 +40,17 @@ fun MedicationProgressDisplay(
     progressDetails: ProgressDetails?,
     colorScheme: MedicationColor,
     modifier: Modifier = Modifier,
-    indicatorSizeDp: Dp = 220.dp // Add new parameter for size
+    indicatorSizeDp: Dp = 220.dp, // Add new parameter for size
+    isTransitioning: Boolean // New parameter
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     val animatedProgress by animateFloatAsState(
         targetValue = if (startAnimation && progressDetails != null) progressDetails.progressFraction else 0f,
-        animationSpec = tween(durationMillis = 1000, delayMillis = 200),
+        animationSpec = if (isTransitioning) {
+            tween(durationMillis = 300) // Shorter animation, no delay during transition
+        } else {
+            tween(durationMillis = 1000, delayMillis = 200) // Original animation
+        },
         label = "ProgressAnimation"
     )
 
@@ -154,7 +159,8 @@ fun MedicationProgressDisplayPreview() {
                 displayText = "5 / 10"
             ),
             colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.GREEN,
-            indicatorSizeDp = 200.dp
+            indicatorSizeDp = 200.dp,
+            isTransitioning = false // Add default for preview
         )
     }
 }

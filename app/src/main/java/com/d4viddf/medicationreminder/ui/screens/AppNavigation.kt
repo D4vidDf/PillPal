@@ -55,7 +55,7 @@ fun AppNavigation(
                 HomeScreen(
                     onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) }, // Kept
                     onMedicationClick = { medicationId -> // Kept
-                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = widthSizeClass == WindowWidthSizeClass.Compact))
                     },
                     // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
                     widthSizeClass = widthSizeClass, // Kept
