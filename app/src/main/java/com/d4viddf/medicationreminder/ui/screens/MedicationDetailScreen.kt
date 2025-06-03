@@ -328,11 +328,13 @@ fun MedicationDetailsScreen(
                 items(todayScheduleItems, key = { it.id }) { todayItem ->
                     AnimatedVisibility(
                         visible = contentVisible,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
                         // exit = fadeOut(),
-                        modifier = Modifier.animateItemPlacement() // Recommended for lists
+                        // modifier = Modifier.animateItemPlacement() // Moved from here
                     ) {
-                        Column { // Wrap potential divider and item together for animation
+                        Column( // Apply animateItemPlacement to the item's root layout
+                            modifier = Modifier.animateItemPlacement() // Corrected placement
+                        ) {
                             val isActuallyPast =
                                 todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
