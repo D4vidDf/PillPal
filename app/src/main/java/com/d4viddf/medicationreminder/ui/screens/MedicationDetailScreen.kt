@@ -189,17 +189,21 @@ fun MedicationDetailsScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = color.backgroundColor,
+                        containerColor = color.backgroundColor, // Reverted
                         navigationIconContentColor = Color.White,
                         actionIconContentColor = Color.White
                     )
                 )
             }
-        ) { innerPadding ->
+            // contentWindowInsets parameter is removed
+        ) { innerPadding -> // innerPadding is from Scaffold
+            // Vars like systemStatusBarsPaddingTop, systemNavigationBarsPaddingBottom, topAppBarHeight are removed if only used for the custom contentPadding.
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Apply innerPadding
+                    .padding(innerPadding), // Reverted to use innerPadding from Scaffold
+                // contentPadding argument is removed
             ) {
                 item {
                     // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -229,33 +233,45 @@ fun MedicationDetailsScreen(
                         // Row for Back and Edit is removed from here
                         // Spacer after the Row is also removed
 
-                        // Usar el nuevo componente MedicationDetailHeader
-                        MedicationDetailHeader(
-                            medicationId = medicationId, // Pass medicationId
-                            medicationName = medicationState?.name,
-                            medicationDosage = medicationState?.dosage,
-                            medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
-                            colorScheme = color,
-                            modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
-                            // El modifier por defecto del componente ya tiene fillMaxWidth
-                        )
+                        // NEW: Add conditional rendering based on essential data
+                        if (medicationState != null && progressDetails != null) {
+                            MedicationDetailHeader(
+                                medicationId = medicationId, // Pass medicationId
+                                medicationName = medicationState?.name, // medicationState is confirmed non-null by the if
+                                medicationDosage = medicationState?.dosage,
+                                medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
+                                colorScheme = color,
+                                modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
+                                // El modifier por defecto del componente ya tiene fillMaxWidth
+                            )
 
-                        // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
+                            // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
-                        MedicationProgressDisplay(
-                            progressDetails = progressDetails,
-                            colorScheme = color,
-                            indicatorSizeDp = 220.dp // Explicitly pass the size
-                        )
+                            MedicationProgressDisplay(
+                                progressDetails = progressDetails, // progressDetails is confirmed non-null by the if
+                                colorScheme = color,
+                                indicatorSizeDp = 220.dp, // Explicitly pass the size
+                                isTransitioning = enableSharedTransition // Pass the flag here
+                            )
 
-                        Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
+                            Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
 
-                        MedicationDetailCounters(
-                            colorScheme = color,
-                            medication = medicationState,
-                            schedule = scheduleState,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
+                            MedicationDetailCounters(
+                                colorScheme = color,
+                                medication = medicationState, // medicationState is confirmed non-null by the if
+                                schedule = scheduleState,
+                                modifier = Modifier.padding(horizontal = 12.dp)
+                            )
+                        } else {
+                            // Optional: Placeholder or loading indicator if the outer screen loading condition
+                            // isn't sufficient and this specific block's data might still be loading.
+                            // For now, keeping it empty means the Column might appear empty if this condition is false,
+                            // which relies on the outer screen loading state to prevent this screen from showing prematurely.
+                            // If the outer condition (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty())
+                            // is robust, this 'else' branch for the inner 'if' might not be strictly necessary,
+                            // as the components would only be composed when data is ready.
+                            // However, being explicit ensures these specific components wait for their direct data.
+                        }
                     }
                 }
 

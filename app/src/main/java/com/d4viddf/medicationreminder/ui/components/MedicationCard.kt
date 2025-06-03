@@ -31,7 +31,8 @@ fun MedicationCard(
     medication: Medication,
     onClick: () -> Unit, // Callback for navigation
     sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope? // Make nullable
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    enableTransition: Boolean // New parameter
 ) {
     val color = try {
         MedicationColor.valueOf(medication.color)
@@ -47,7 +48,7 @@ fun MedicationCard(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() } // Trigger navigation on click
             .then(
-                if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                if (sharedTransitionScope != null && animatedVisibilityScope != null && enableTransition) {
                     with(sharedTransitionScope) { // Use with(scope)
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "medication-background-${medication.id}"),
@@ -128,7 +129,8 @@ fun MedicationCardPreview() {
             ),
             onClick = {},
             sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+            animatedVisibilityScope = null, // Preview won't have a real scope
+            enableTransition = true // Add default for preview
         )
     }
 }
