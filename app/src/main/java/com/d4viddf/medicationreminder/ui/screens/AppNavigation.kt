@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.navigation.NavHostController // Corrected order
 import androidx.navigation.NavType // Added import
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.NavHost // Corrected order
+import androidx.navigation.compose.composable // Corrected order
 import androidx.navigation.navArgument // Added import
 
 // Define the routes for navigation
