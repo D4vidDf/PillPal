@@ -21,8 +21,8 @@ import androidx.navigation.compose.composable
 sealed class Screen(val route: String) {
     object Home : Screen("home")
     object AddMedication : Screen("addMedication")
-    object MedicationDetails : Screen("medicationDetails/{id}") {
-        fun createRoute(id: Int) = "medicationDetails/$id"
+    object MedicationDetails : Screen("medicationDetails/{id}?enableSharedTransition={enableSharedTransition}") {
+        fun createRoute(id: Int, enableSharedTransition: Boolean = true) = "medicationDetails/$id?enableSharedTransition=$enableSharedTransition"
     }
     object Settings : Screen("settings")
     object Calendar : Screen("calendar")
@@ -68,15 +68,20 @@ fun AppNavigation(
                     // No animatedVisibilityScope passed
                 )
             }
-            composable(Screen.MedicationDetails.route) { backStackEntry ->
+            composable(
+                Screen.MedicationDetails.route,
+                arguments = listOf(navArgument("enableSharedTransition") { type = NavType.BoolType; defaultValue = true })
+            ) { backStackEntry ->
                 // `this` is an AnimatedVisibilityScope
                 val medicationId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                val enableSharedTransition = backStackEntry.arguments?.getBoolean("enableSharedTransition") ?: true
                 if (medicationId != null) {
                     MedicationDetailsScreen(
                         medicationId = medicationId,
                         onNavigateBack = { navController.popBackStack() },
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
-                        animatedVisibilityScope = this // Pass scope
+                        animatedVisibilityScope = this, // Pass scope
+                        enableSharedTransition = enableSharedTransition // Pass the new argument
                     )
                 }
             }
@@ -92,7 +97,7 @@ fun AppNavigation(
                 CalendarScreen(
                     onNavigateBack = { navController.popBackStack() }, // Removed
                     onNavigateToMedicationDetail = { medicationId ->
-                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = false))
                     },
                     sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                     animatedVisibilityScope = this // Pass scope

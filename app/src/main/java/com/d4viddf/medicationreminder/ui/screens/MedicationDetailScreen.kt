@@ -2,9 +2,12 @@
 package com.d4viddf.medicationreminder.ui.screens
 
 // ScheduleItem will be local, so no import from components
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -79,6 +82,7 @@ fun MedicationDetailsScreen(
     onNavigateBack: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    enableSharedTransition: Boolean, // Added new parameter
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
@@ -87,6 +91,16 @@ fun MedicationDetailsScreen(
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
+
+    var contentVisible by remember { mutableStateOf(!enableSharedTransition) }
+    LaunchedEffect(key1 = enableSharedTransition) {
+        if (enableSharedTransition) {
+            kotlinx.coroutines.delay(300) // Delay for shared elements to settle
+            contentVisible = true
+        } else {
+            contentVisible = true // Show immediately if not enabled
+        }
+    }
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState() // Added
@@ -195,7 +209,7 @@ fun MedicationDetailsScreen(
                                 shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
                             )
                             .then(
-                                if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                if (enableSharedTransition && sharedTransitionScope != null && animatedVisibilityScope != null) {
                                     with(sharedTransitionScope) { // Use with(scope)
                                         Modifier.sharedElement(
                                             rememberSharedContentState(key = "medication-background-${medicationId}"),
@@ -220,8 +234,9 @@ fun MedicationDetailsScreen(
                             medicationDosage = medicationState?.dosage,
                             medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
                             colorScheme = color,
-                            sharedTransitionScope = sharedTransitionScope, // Pass this
-                            animatedVisibilityScope = animatedVisibilityScope, // Pass scope
+                            // Pass scopes conditionally based on enableSharedTransition
+                            sharedTransitionScope = if (enableSharedTransition) sharedTransitionScope else null,
+                            animatedVisibilityScope = if (enableSharedTransition) animatedVisibilityScope else null,
                             modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
                             // El modifier por defecto del componente ya tiene fillMaxWidth
                         )
@@ -247,34 +262,40 @@ fun MedicationDetailsScreen(
 
                 // Item for "Today" title and Add Past Reminder Button
                 item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    AnimatedVisibility(
+                        visible = contentVisible,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                        // exit = fadeOut() // Optional: define exit animation
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.medication_detail_today_title),
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        IconButton(
-                            onClick = { showDialog = true },
+                        Row(
                             modifier = Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .padding(4.dp)
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.Add,
-                                contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
+                            Text(
+                                text = stringResource(id = R.string.medication_detail_today_title),
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Bold,
                             )
+                            IconButton(
+                                onClick = { showDialog = true },
+                                modifier = Modifier
+                                    .background(
+                                        MaterialTheme.colorScheme.secondaryContainer,
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
+                                )
+                            }
                         }
                     }
                 }
@@ -282,53 +303,71 @@ fun MedicationDetailsScreen(
                 // NEW CONDITIONAL MESSAGE LOGIC
                 if (todayScheduleItems.isEmpty() && medicationState != null) {
                     item {
-                        Text(
-                            text = stringResource(id = R.string.medication_detail_no_reminders_today),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = 16.dp,
-                                    vertical = 16.dp
-                                ), // Added more vertical padding
-                            style = MaterialTheme.typography.bodyMedium, // Using bodyMedium for a slightly softer look
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                        AnimatedVisibility(
+                            visible = contentVisible,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                            // exit = fadeOut()
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.medication_detail_no_reminders_today),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = 16.dp,
+                                        vertical = 16.dp
+                                    ), // Added more vertical padding
+                                style = MaterialTheme.typography.bodyMedium, // Using bodyMedium for a slightly softer look
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
 
                 var futureRemindersStarted = false
                 items(todayScheduleItems, key = { it.id }) { todayItem ->
-                    val isActuallyPast =
-                        todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
+                    AnimatedVisibility(
+                        visible = contentVisible,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                        // exit = fadeOut(),
+                        modifier = Modifier.animateItemPlacement() // Recommended for lists
+                    ) {
+                        Column { // Wrap potential divider and item together for animation
+                            val isActuallyPast =
+                                todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
-                    if (!isActuallyPast && !futureRemindersStarted) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(
-                                horizontal = 16.dp,
-                                vertical = 8.dp
-                            ), thickness = 3.dp, color = MaterialTheme.colorScheme.onBackground
-                        )
-                        futureRemindersStarted = true
-                    }
-                    ScheduleItem(
-                        time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
-                        label = todayItem.medicationName,
-                        isTaken = todayItem.isTaken,
-                        onTakenChange = { newState ->
-                            medicationReminderViewModel.updateReminderStatus(
-                                todayItem.id,
-                                newState,
-                                medicationId
+                            if (!isActuallyPast && !futureRemindersStarted) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 8.dp
+                                    ), thickness = 3.dp, color = MaterialTheme.colorScheme.onBackground
+                                )
+                                futureRemindersStarted = true // This state needs to be managed carefully if items reorder or appear/disappear individually.
+                                // For a simple list appearing together, this is okay.
+                            }
+                            ScheduleItem(
+                                time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                                label = todayItem.medicationName,
+                                isTaken = todayItem.isTaken,
+                                onTakenChange = { newState ->
+                                    medicationReminderViewModel.updateReminderStatus(
+                                        todayItem.id,
+                                        newState,
+                                        medicationId
+                                    )
+                                },
+                                // Enable toggle only for past or current items. Future items are disabled.
+                                enabled = isActuallyPast || todayItem.isTaken
                             )
-                        },
-                        // Enable toggle only for past or current items. Future items are disabled.
-                        enabled = isActuallyPast || todayItem.isTaken
-                    )
-
+                        }
+                    }
                 }
                 item {
-                    Spacer(modifier = Modifier.height(48.dp)) // Espacio original antes de contadores
+                    // This spacer can also be animated or left as is.
+                    // If animated, wrap its content or the Spacer itself.
+                    // For now, leaving it to ensure bottom padding is maintained.
+                    Spacer(modifier = Modifier.height(48.dp))
                 }
             }
         }
@@ -396,7 +435,8 @@ fun MedicationDetailsScreenPreview() {
             medicationId = 1,
             onNavigateBack = {},
             sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+            animatedVisibilityScope = null, // Preview won't have a real scope
+            enableSharedTransition = false // Added for preview
         )
     }
 }

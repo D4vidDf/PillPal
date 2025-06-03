@@ -100,8 +100,8 @@ private val dayWidthForCalendar = 48.dp
 fun CalendarScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMedicationDetail: (Int) -> Unit,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    // sharedTransitionScope: SharedTransitionScope?, // Add this // REMOVED
+    // animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable // REMOVED
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState() // Still needed for medicationSchedules
@@ -216,8 +216,8 @@ fun CalendarScreen(
                         medicationSchedules = uiState.medicationSchedules,
                         totalWidthPx = totalWidthPx,
                         onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
-                        sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope, // Pass it here
+                            // sharedTransitionScope = sharedTransitionScope, // Pass this // REMOVED
+                            // animatedVisibilityScope = animatedVisibilityScope, // Pass it here // REMOVED
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     )
                 }
@@ -413,8 +413,8 @@ fun MedicationRowsLayout(
     medicationSchedules: List<MedicationScheduleItem>,
     totalWidthPx: Int,
     onMedicationClicked: (Int) -> Unit,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    // sharedTransitionScope: SharedTransitionScope?, // Add this // REMOVED
+    // animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable // REMOVED
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
@@ -474,16 +474,7 @@ fun MedicationRowsLayout(
                                 )
                                 .clip(RoundedCornerShape(percent = 50)) // Changed
                                 .clickable { onMedicationClicked(med.id) }
-                                .then(
-                                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                        with(sharedTransitionScope) { // Use with(scope)
-                                            Modifier.sharedElement(
-                                                rememberSharedContentState(key = "medication-background-${med.id}"),
-                                                animatedVisibilityScope!!
-                                            )
-                                        }
-                                    } else Modifier
-                                )
+                                // REMOVED .then(...) for sharedElement (background)
                                 .padding(horizontal = 12.dp, vertical = 4.dp), // Changed
                             contentAlignment = Alignment.CenterStart
                         ) {
@@ -494,16 +485,7 @@ fun MedicationRowsLayout(
                                 fontWeight = FontWeight.Bold, // Added this line
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.then(
-                                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                        with(sharedTransitionScope) { // Use with(scope)
-                                            Modifier.sharedElement(
-                                                rememberSharedContentState(key = "medication-name-${med.id}"),
-                                                animatedVisibilityScope!!
-                                            )
-                                        }
-                                    } else Modifier
-                                )
+                                modifier = Modifier // REMOVED .then(...) for sharedElement (name)
                             )
                         }
                     }
@@ -599,8 +581,8 @@ fun CalendarScreenPreviewLight() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { /* Dummy action */ },
-                            sharedTransitionScope = null, // Preview
-                            animatedVisibilityScope = null, // Preview
+                            // sharedTransitionScope = null, // Preview // REMOVED
+                            // animatedVisibilityScope = null, // Preview // REMOVED
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         )
                     }
@@ -668,8 +650,8 @@ fun CalendarScreenPreviewDark() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { },
-                            sharedTransitionScope = null, // Preview
-                            animatedVisibilityScope = null, // Preview
+                            // sharedTransitionScope = null, // Preview // REMOVED
+                            // animatedVisibilityScope = null, // Preview // REMOVED
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         )
                     }

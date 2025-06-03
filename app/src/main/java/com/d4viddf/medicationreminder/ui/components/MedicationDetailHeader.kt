@@ -63,8 +63,9 @@ fun MedicationDetailHeader(
                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) { // Use with(scope)
                             Modifier.sharedElement(
-                                rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
-                                animatedVisibilityScope!!
+                                state = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
+                                animatedVisibilityScope = animatedVisibilityScope!!,
+                                renderInOverlayDuringTransition = true
                             )
                         }
                     } else Modifier
