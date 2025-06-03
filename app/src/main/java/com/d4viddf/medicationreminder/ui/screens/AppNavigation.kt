@@ -14,10 +14,8 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -101,6 +99,8 @@ fun AppNavigation(
                     onNavigateToMedicationDetail = { medicationId ->
                         navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = false))
                     },
+                    sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
+                    animatedVisibilityScope = this // Pass scope
                 )
             }
             composable(Screen.Profile.route) {

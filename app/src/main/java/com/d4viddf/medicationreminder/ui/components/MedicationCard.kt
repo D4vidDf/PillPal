@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-// import androidx.compose.ui.text.style.TextOverflow // No longer needed
+import androidx.compose.ui.text.style.TextOverflow // Ensure this is imported
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
@@ -75,18 +75,19 @@ fun MedicationCard(
                     style = MaterialTheme.typography.headlineSmall,
                     color= color.textColor,
                     fontWeight = FontWeight.Bold,
+                    maxLines = 1, // Ensure this is present
+                    overflow = TextOverflow.Ellipsis, // Ensure this is present
                     modifier = Modifier.then( // Apply sharedElement to Text
                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                             with(sharedTransitionScope) { // Use with(scope)
                                 Modifier.sharedElement(
                                     rememberSharedContentState(key = "medication-name-${medication.id}"),
                                     animatedVisibilityScope!!
+                                    // boundsTransform can also be applied here if needed, but the primary fix is in the destination
                                 )
                             }
                         } else Modifier
                     )
-                    // Removed maxLines = 1
-                    // Removed overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${medication.dosage}",

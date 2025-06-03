@@ -16,9 +16,13 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
 
 // Removed OptIn from here
 @Composable
@@ -63,9 +67,21 @@ fun MedicationDetailHeader(
                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) { // Use with(scope)
                             Modifier.sharedElement(
-                                sharedContentState = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
+                                state = rememberSharedContentState(key = "medication-name-${medicationId}"),
                                 animatedVisibilityScope = animatedVisibilityScope!!,
-                                renderInOverlayDuringTransition = true
+                                renderInOverlayDuringTransition = true,
+                                boundsTransform = { initialBounds, targetBounds ->
+                                    BoundsTransform(
+                                        widthAnimationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                                        heightAnimationSpec = keyframes {
+                                            durationMillis = 300
+                                            initialBounds.height at 0 with FastOutSlowInEasing
+                                            initialBounds.height at 150 with FastOutSlowInEasing
+                                            targetBounds.height at 300 with FastOutSlowInEasing
+                                        },
+                                        positionAnimationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                                    )
+                                }
                             )
                         }
                     } else Modifier
