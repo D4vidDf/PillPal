@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme // Ensure MaterialTheme is imported if not already via wildcard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -57,12 +58,12 @@ fun MedicationDetailHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = displayName,
-                fontSize = 30.sp, // Changed from 36.sp
+                style = MaterialTheme.typography.headlineSmall, // Changed
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.textColor,
-                lineHeight = 34.sp, // Adjusted lineHeight
-                maxLines = 2, // Permitir hasta 2 líneas para el nombre
-                overflow = TextOverflow.Ellipsis, // Añadir elipsis si el texto es muy largo
+                maxLines = 1, // Changed
+                overflow = TextOverflow.Ellipsis, // Ensured
+                // lineHeight = 34.sp, // Removed
                 modifier = Modifier.then(
                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) { // Use with(scope)
