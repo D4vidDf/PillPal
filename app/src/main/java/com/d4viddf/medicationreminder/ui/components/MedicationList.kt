@@ -3,7 +3,9 @@ package com.d4viddf.medicationreminder.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
@@ -33,13 +35,15 @@ import java.time.format.DateTimeFormatter // Added for DateTimeFormatter
 @Composable
 fun MedicationList(
     medications: List<Medication>,
-    onItemClick: (Medication) -> Unit,
+    onItemClick: (medication: Medication, index: Int) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
-    bottomContentPadding: Dp
+    bottomContentPadding: Dp,
+    listState: LazyListState,
+    enableCardTransitions: Boolean // New parameter
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -69,13 +73,15 @@ fun MedicationList(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = bottomContentPadding) // Apply bottom padding
             ) {
-                items(medications, key = { medication -> medication.id }) { medication ->
+                itemsIndexed(medications, key = { _, medication -> medication.id }) { index, medication ->
                     MedicationCard(
                         medication = medication,
-                        onClick = { onItemClick(medication) },
+                        onClick = { onItemClick(medication, index) },
+                        enableTransition = enableCardTransitions, // New line
                         sharedTransitionScope = sharedTransitionScope, // Pass this
                         animatedVisibilityScope = animatedVisibilityScope // Pass scope
                     )
@@ -111,12 +117,14 @@ fun MedicationListPreview() {
         )
         MedicationList(
             medications = sampleMedications,
-            onItemClick = {},
+            onItemClick = { _, _ -> }, // Adjust for new signature
             isLoading = false,
             onRefresh = {},
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
-            bottomContentPadding = 0.dp // Changed to 0.dp
+            bottomContentPadding = 0.dp, // Changed to 0.dp
+            listState = rememberLazyListState(), // Add this
+            enableCardTransitions = true // Add default for preview
         )
     }
 }
