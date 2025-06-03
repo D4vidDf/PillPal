@@ -243,13 +243,14 @@ fun MedicationDetailsScreen(
 
                         // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
-                        MedicationProgressDisplay(
-                            progressDetails = progressDetails,
-                            colorScheme = color,
-                            indicatorSizeDp = 220.dp // Explicitly pass the size
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
+                        if (todayScheduleItems.isNotEmpty()) {
+                            MedicationProgressDisplay(
+                                progressDetails = progressDetails,
+                                colorScheme = color,
+                                indicatorSizeDp = 220.dp // Explicitly pass the size
+                            )
+                            Spacer(modifier = Modifier.height(16.dp)) // Spacer after progress, before counters
+                        }
 
                         MedicationDetailCounters(
                             colorScheme = color,
