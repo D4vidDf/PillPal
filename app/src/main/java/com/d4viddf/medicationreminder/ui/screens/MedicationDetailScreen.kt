@@ -2,9 +2,12 @@
 package com.d4viddf.medicationreminder.ui.screens
 
 // ScheduleItem will be local, so no import from components
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -79,6 +82,7 @@ fun MedicationDetailsScreen(
     onNavigateBack: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    enableSharedTransition: Boolean, // Added new parameter
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
@@ -87,6 +91,16 @@ fun MedicationDetailsScreen(
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
+
+    // var contentVisible by remember { mutableStateOf(!enableSharedTransition) } // DELETED
+    // LaunchedEffect(key1 = enableSharedTransition) { // DELETED BLOCK
+    //     if (enableSharedTransition) {
+    //         kotlinx.coroutines.delay(300)
+    //         contentVisible = true
+    //     } else {
+    //         contentVisible = true
+    //     }
+    // }
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState() // Added
@@ -134,25 +148,27 @@ fun MedicationDetailsScreen(
                 TopAppBar(
                     title = { },
                     navigationIcon = {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                                .clickable { onNavigateBack() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = stringResource(id = R.string.back),
-                                modifier = Modifier.size(28.dp), tint = Color.White
-                            )
+                        Box (modifier = Modifier.padding(start = 10.dp)){
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                    .clickable { onNavigateBack() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                    contentDescription = stringResource(id = R.string.back),
+                                    modifier = Modifier.size(28.dp), tint = Color.White
+                                )
+                            }
                         }
                     },
                     actions = {
                         // Original Box structure for the Edit button
                         Box(
                             modifier = Modifier
-                                .padding(end = 8.dp) // Add some padding to separate from the edge of screen if needed
+                                .padding(end = 10.dp) // Add some padding to separate from the edge of screen if needed
                                 .background(
                                     color = Color.Black.copy(alpha = 0.4f),
                                     shape = RoundedCornerShape(8.dp)
@@ -220,8 +236,6 @@ fun MedicationDetailsScreen(
                             medicationDosage = medicationState?.dosage,
                             medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
                             colorScheme = color,
-                            sharedTransitionScope = sharedTransitionScope, // Pass this
-                            animatedVisibilityScope = animatedVisibilityScope, // Pass scope
                             modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
                             // El modifier por defecto del componente ya tiene fillMaxWidth
                         )
@@ -332,7 +346,6 @@ fun MedicationDetailsScreen(
                 }
             }
         }
-
         if (showDialog) { // Added AddPastMedicationDialog call
             AddPastMedicationDialog(
                 medicationNameDisplay = medicationState?.name
@@ -352,6 +365,8 @@ fun MedicationDetailsScreen(
         }
     }
 }
+
+
 
     // ScheduleItem Composable - Adapted
     @Composable
@@ -396,7 +411,8 @@ fun MedicationDetailsScreenPreview() {
             medicationId = 1,
             onNavigateBack = {},
             sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+            animatedVisibilityScope = null, // Preview won't have a real scope
+            enableSharedTransition = false // Added for preview
         )
     }
 }
