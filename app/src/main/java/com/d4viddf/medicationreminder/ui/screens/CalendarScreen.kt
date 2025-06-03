@@ -26,7 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.LocalSharedTransitionScope
+// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
@@ -478,12 +478,10 @@ fun MedicationRowsLayout(
                                 .clickable { onMedicationClicked(med.id) }
                                 .then(
                                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                        with(sharedTransitionScope) {
-                                            Modifier.sharedElement(
-                                                state = rememberSharedContentState(key = "medication-background-${med.id}"),
-                                                animatedVisibilityScope = animatedVisibilityScope!!
-                                            )
-                                        }
+                                        sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                            state = rememberSharedContentState(key = "medication-background-${med.id}"),
+                                            animatedVisibilityScope = animatedVisibilityScope!!
+                                        )
                                     } else Modifier
                                 )
                                 .padding(horizontal = 12.dp, vertical = 4.dp), // Changed
@@ -498,12 +496,10 @@ fun MedicationRowsLayout(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.then(
                                     if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                        with(sharedTransitionScope) {
-                                            Modifier.sharedElement(
-                                                state = rememberSharedContentState(key = "medication-name-${med.id}"),
-                                                animatedVisibilityScope = animatedVisibilityScope!!
-                                            )
-                                        }
+                                        sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                            state = rememberSharedContentState(key = "medication-name-${med.id}"),
+                                            animatedVisibilityScope = animatedVisibilityScope!!
+                                        )
                                     } else Modifier
                                 )
                             )

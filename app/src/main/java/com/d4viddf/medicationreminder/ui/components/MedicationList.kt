@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ fun MedicationList(
     onItemClick: (Medication) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
     bottomContentPadding: Dp
@@ -71,6 +73,7 @@ fun MedicationList(
                     MedicationCard(
                         medication = medication,
                         onClick = { onItemClick(medication) },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
                         animatedVisibilityScope = animatedVisibilityScope // Pass scope
                     )
                 }
@@ -107,6 +110,7 @@ fun MedicationListPreview() {
             onItemClick = {},
             isLoading = false,
             onRefresh = {},
+            sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
             bottomContentPadding = 0.dp // Changed to 0.dp
         )

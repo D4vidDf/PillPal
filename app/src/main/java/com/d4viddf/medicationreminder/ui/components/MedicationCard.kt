@@ -50,12 +50,10 @@ fun MedicationCard(
             .clickable { onClick() } // Trigger navigation on click
             .then(
                 if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                    with(sharedTransitionScope) {
-                        Modifier.sharedElement(
-                            state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                            animatedVisibilityScope = animatedVisibilityScope!!
-                        )
-                    }
+                    sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                        state = rememberSharedContentState(key = "medication-background-${medication.id}"),
+                        animatedVisibilityScope = animatedVisibilityScope!!
+                    )
                 } else Modifier
             ),
         shape = RoundedCornerShape(24.dp),
@@ -79,12 +77,10 @@ fun MedicationCard(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.then( // Apply sharedElement to Text
                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                            with(sharedTransitionScope) {
-                                Modifier.sharedElement(
-                                    state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                    animatedVisibilityScope = animatedVisibilityScope!!
-                                )
-                            }
+                            sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                state = rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                animatedVisibilityScope = animatedVisibilityScope!!
+                            )
                         } else Modifier
                     )
                     // Removed maxLines = 1

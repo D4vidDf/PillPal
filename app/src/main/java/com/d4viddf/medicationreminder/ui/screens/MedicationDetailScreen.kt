@@ -34,7 +34,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
@@ -200,12 +199,10 @@ fun MedicationDetailsScreen(
                             )
                             .then(
                                 if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                    with(sharedTransitionScope) {
-                                        Modifier.sharedElement(
-                                            state = rememberSharedContentState(key = "medication-background-${medicationId}"),
-                                            animatedVisibilityScope = animatedVisibilityScope!!
-                                        )
-                                    }
+                                    sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                        state = rememberSharedContentState(key = "medication-background-${medicationId}"),
+                                        animatedVisibilityScope = animatedVisibilityScope!!
+                                    )
                                 } else Modifier
                             )
                             .padding(start = 16.dp, end = 16.dp, bottom = 24.dp) // Removed top padding, TopAppBar handles it

@@ -198,12 +198,10 @@ fun HomeScreen(
                                     .clickable { medicationListClickHandler(medication.id) }
                                     .then(
                                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                            with(sharedTransitionScope) {
-                                                Modifier.sharedElement(
-                                                    state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope = animatedVisibilityScope!!
-                                                )
-                                            }
+                                            sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                                state = rememberSharedContentState(key = "medication-background-${medication.id}"),
+                                                animatedVisibilityScope = animatedVisibilityScope!!
+                                            )
                                         } else Modifier
                                     )
                             ) {
@@ -213,12 +211,10 @@ fun HomeScreen(
                                         .padding(16.dp)
                                         .then(
                                             if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                                with(sharedTransitionScope) {
-                                                    Modifier.sharedElement(
-                                                        state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope = animatedVisibilityScope!!
-                                                    )
-                                                }
+                                                sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                                    state = rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                    animatedVisibilityScope = animatedVisibilityScope!!
+                                                )
                                             } else Modifier
                                         ),
                                     color = MaterialTheme.colorScheme.onSurface
@@ -237,6 +233,7 @@ fun HomeScreen(
                         onItemClick = { medication -> medicationListClickHandler(medication.id) },
                         isLoading = isLoading,
                         onRefresh = { viewModel.refreshMedications() },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
                         animatedVisibilityScope = animatedVisibilityScope, // Pass scope
                         modifier = Modifier.fillMaxSize(),
                         bottomContentPadding = topAppBarHeight
@@ -324,12 +321,10 @@ fun HomeScreen(
                                     .clickable { medicationListClickHandler(medication.id) }
                                     .then(
                                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                            with(sharedTransitionScope) {
-                                                Modifier.sharedElement(
-                                                    state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope = animatedVisibilityScope!!
-                                                )
-                                            }
+                                            sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                                state = rememberSharedContentState(key = "medication-background-${medication.id}"),
+                                                animatedVisibilityScope = animatedVisibilityScope!!
+                                            )
                                         } else Modifier
                                     )
                             ) {
@@ -339,12 +334,10 @@ fun HomeScreen(
                                         .padding(16.dp)
                                         .then(
                                             if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                                with(sharedTransitionScope) {
-                                                    Modifier.sharedElement(
-                                                        state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope = animatedVisibilityScope!!
-                                                    )
-                                                }
+                                                sharedTransitionScope.Modifier.sharedElement( // Corrected call
+                                                    state = rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                    animatedVisibilityScope = animatedVisibilityScope!!
+                                                )
                                             } else Modifier
                                         ),
                                     color = MaterialTheme.colorScheme.onSurface
@@ -359,6 +352,7 @@ fun HomeScreen(
                         onItemClick = { medication -> medicationListClickHandler(medication.id) },
                         isLoading = isLoading,
                         onRefresh = { viewModel.refreshMedications() },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
                         animatedVisibilityScope = animatedVisibilityScope, // Pass scope
                         modifier = Modifier.fillMaxSize(),
                         bottomContentPadding = 0.dp
@@ -383,6 +377,7 @@ fun HomeScreen(
                             // searchActive = false
                             // viewModel.updateSearchQuery("")
                         },
+                        sharedTransitionScope = sharedTransitionScope, // Pass this
                         animatedVisibilityScope = animatedVisibilityScope // Pass the scope received by HomeScreen
                     )
                 }
