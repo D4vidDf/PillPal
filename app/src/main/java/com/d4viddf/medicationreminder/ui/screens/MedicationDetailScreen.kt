@@ -332,8 +332,8 @@ fun MedicationDetailsScreen(
                         // exit = fadeOut(),
                         // modifier = Modifier.animateItemPlacement() // Moved from here
                     ) {
-                        Column( // Apply animateItemPlacement to the item's root layout
-                            modifier = Modifier.animateItemPlacement() // Corrected placement
+                        Column(
+                            modifier = Modifier.animateItem() // Corrected modifier
                         ) {
                             val isActuallyPast =
                                 todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
