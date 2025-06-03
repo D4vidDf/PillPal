@@ -244,14 +244,21 @@ fun MedicationDetailsScreen(
                         // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
                         if (todayScheduleItems.isNotEmpty()) {
-                            MedicationProgressDisplay(
-                                progressDetails = progressDetails,
-                                colorScheme = color,
-                                indicatorSizeDp = 220.dp // Explicitly pass the size
-                            )
-                            Spacer(modifier = Modifier.height(16.dp)) // Spacer after progress, before counters
+                            AnimatedVisibility(
+                                visible = contentVisible,
+                                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                                // Consider adding an exit transition as well, e.g., exit = fadeOut()
+                            ) {
+                                MedicationProgressDisplay(
+                                    progressDetails = progressDetails,
+                                    colorScheme = color,
+                                    indicatorSizeDp = 220.dp
+                                )
+                            }
+                            // Spacer is no longer here
                         }
-
+                        // This Spacer is now outside the if, always providing space before MedicationDetailCounters
+                        Spacer(modifier = Modifier.height(16.dp))
                         MedicationDetailCounters(
                             colorScheme = color,
                             medication = medicationState,
