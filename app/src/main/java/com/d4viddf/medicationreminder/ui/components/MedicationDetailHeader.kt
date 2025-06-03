@@ -3,7 +3,7 @@ package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme // Ensure MaterialTheme is imported if not already via wildcard
+// import androidx.compose.material3.MaterialTheme // May become unused
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,25 +16,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import androidx.compose.animation.AnimatedVisibilityScope
-// import androidx.compose.animation.BoundsTransform // No longer needed
-import androidx.compose.animation.ExperimentalSharedTransitionApi
+// import androidx.compose.animation.AnimatedVisibilityScope // No longer needed for text sharedElement
+import androidx.compose.animation.ExperimentalSharedTransitionApi // Keep for file-level OptIn if other shared elements exist, or remove if truly unused file-wide
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
-import androidx.compose.animation.SharedTransitionScope // Already present
-import androidx.compose.animation.core.FastOutSlowInEasing
+// import androidx.compose.animation.SharedTransitionScope // No longer needed for text sharedElement
+// import androidx.compose.animation.core.FastOutSlowInEasing // No longer needed for text sharedElement
 // import androidx.compose.animation.core.keyframes // No longer needed
-import androidx.compose.animation.core.tween
+// import androidx.compose.animation.core.tween // No longer needed for text sharedElement
 
 // Removed OptIn from here
 @Composable
 fun MedicationDetailHeader(
-    medicationId: Int, // Add this
+    medicationId: Int,
     medicationName: String?,
     medicationDosage: String?,
     medicationImageUrl: String?,
     colorScheme: MedicationColor,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    // sharedTransitionScope: SharedTransitionScope?, // Removed
+    // animatedVisibilityScope: AnimatedVisibilityScope?, // Removed
     modifier: Modifier = Modifier
 ) {
     val loadingText = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_loading)
@@ -58,26 +57,13 @@ fun MedicationDetailHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = displayName,
-                style = MaterialTheme.typography.headlineSmall, // Changed
+                fontSize = 30.sp, // Reverted
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.textColor,
-                maxLines = 1, // Changed
+                lineHeight = 34.sp, // Reverted
+                maxLines = 2, // Reverted
                 overflow = TextOverflow.Ellipsis, // Ensured
-                // lineHeight = 34.sp, // Removed
-                modifier = Modifier.then(
-                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                        with(sharedTransitionScope) { // Use with(scope)
-                            Modifier.sharedElement(
-                                sharedContentState = rememberSharedContentState(key = "medication-name-${medicationId}"),
-                                animatedVisibilityScope = animatedVisibilityScope!!,
-                                renderInOverlayDuringTransition = true,
-                                boundsTransform = { _, _ -> // initialBounds and targetBounds are not used here
-                                    tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                                }
-                            )
-                        }
-                    } else Modifier
-                )
+                modifier = Modifier // sharedElement modifier removed
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -105,9 +91,9 @@ fun MedicationDetailHeaderPreview() {
             medicationName = "Amoxicillin Trihydrate Suspension",
             medicationDosage = "250mg / 5ml",
             medicationImageUrl = null, // Or a sample image URL
-            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE
+            // sharedTransitionScope = null, // Removed
+            // animatedVisibilityScope = null // Removed
         )
     }
 }

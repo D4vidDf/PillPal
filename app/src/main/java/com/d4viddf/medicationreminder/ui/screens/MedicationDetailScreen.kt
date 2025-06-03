@@ -92,15 +92,15 @@ fun MedicationDetailsScreen(
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
 
-    var contentVisible by remember { mutableStateOf(!enableSharedTransition) }
-    LaunchedEffect(key1 = enableSharedTransition) {
-        if (enableSharedTransition) {
-            kotlinx.coroutines.delay(300) // Delay for shared elements to settle
-            contentVisible = true
-        } else {
-            contentVisible = true // Show immediately if not enabled
-        }
-    }
+    // var contentVisible by remember { mutableStateOf(!enableSharedTransition) } // DELETED
+    // LaunchedEffect(key1 = enableSharedTransition) { // DELETED BLOCK
+    //     if (enableSharedTransition) {
+    //         kotlinx.coroutines.delay(300)
+    //         contentVisible = true
+    //     } else {
+    //         contentVisible = true
+    //     }
+    // }
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState() // Added
@@ -234,56 +234,42 @@ fun MedicationDetailsScreen(
                             medicationDosage = medicationState?.dosage,
                             medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
                             colorScheme = color,
-                            // Pass scopes conditionally based on enableSharedTransition
-                            sharedTransitionScope = if (enableSharedTransition) sharedTransitionScope else null,
-                            animatedVisibilityScope = if (enableSharedTransition) animatedVisibilityScope else null,
+                            // No sharedTransitionScope or animatedVisibilityScope passed to MedicationDetailHeader
                             modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
                             // El modifier por defecto del componente ya tiene fillMaxWidth
                         )
 
                         // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
-                        // New AnimatedVisibility wrapping the group
-                        AnimatedVisibility(
-                            visible = contentVisible,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
-                            // Consider adding an exit transition as well, e.g., exit = fadeOut()
+                        // Grouped content, no longer wrapped in AnimatedVisibility itself
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally // Center content like progress display
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally // Center content like progress display
-                            ) {
-                                if (todayScheduleItems.isNotEmpty()) {
-                                    MedicationProgressDisplay( // No longer individually wrapped in AnimatedVisibility
-                                        progressDetails = progressDetails,
-                                        colorScheme = color,
-                                        indicatorSizeDp = 220.dp
-                                    )
-                                }
-                                // This Spacer is now part of the animated group
-                                Spacer(modifier = Modifier.height(16.dp))
-                                MedicationDetailCounters(
+                            if (todayScheduleItems.isNotEmpty()) {
+                                MedicationProgressDisplay(
+                                    progressDetails = progressDetails,
                                     colorScheme = color,
-                                    medication = medicationState,
-                                    schedule = scheduleState,
-                                    modifier = Modifier.padding(horizontal = 12.dp) // Keep its own padding
+                                    indicatorSizeDp = 220.dp
                                 )
                             }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            MedicationDetailCounters(
+                                colorScheme = color,
+                                medication = medicationState,
+                                schedule = scheduleState,
+                                modifier = Modifier.padding(horizontal = 12.dp) // Keep its own padding
+                            )
                         }
-                        // The standalone Spacer that was here has been removed (or effectively moved into the AV block above).
                     }
                 }
 
                 // Item for "Today" title and Add Past Reminder Button
                 item {
-                    AnimatedVisibility(
-                        visible = contentVisible,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-                        // exit = fadeOut() // Optional: define exit animation
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
+                    // AnimatedVisibility removed
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -317,14 +303,10 @@ fun MedicationDetailsScreen(
                 // NEW CONDITIONAL MESSAGE LOGIC
                 if (todayScheduleItems.isEmpty() && medicationState != null) {
                     item {
-                        AnimatedVisibility(
-                            visible = contentVisible,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-                            // exit = fadeOut()
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.medication_detail_no_reminders_today),
-                                modifier = Modifier
+                        // AnimatedVisibility removed
+                        Text(
+                            text = stringResource(id = R.string.medication_detail_no_reminders_today),
+                            modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(
                                         horizontal = 16.dp,
@@ -340,17 +322,12 @@ fun MedicationDetailsScreen(
 
                 var futureRemindersStarted = false
                 items(todayScheduleItems, key = { it.id }) { todayItem ->
-                    AnimatedVisibility(
-                        visible = contentVisible,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
-                        // exit = fadeOut(),
-                        // modifier = Modifier.animateItemPlacement() // Moved from here
+                    // AnimatedVisibility removed
+                    Column(
+                        modifier = Modifier.animateItem() // Corrected modifier
                     ) {
-                        Column(
-                            modifier = Modifier.animateItem() // Corrected modifier
-                        ) {
-                            val isActuallyPast =
-                                todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
+                        val isActuallyPast =
+                            todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
                             if (!isActuallyPast && !futureRemindersStarted) {
                                 HorizontalDivider(

@@ -77,17 +77,7 @@ fun MedicationCard(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1, // Ensure this is present
                     overflow = TextOverflow.Ellipsis, // Ensure this is present
-                    modifier = Modifier.then( // Apply sharedElement to Text
-                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                            with(sharedTransitionScope) { // Use with(scope)
-                                Modifier.sharedElement(
-                                    rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                    animatedVisibilityScope!!
-                                    // boundsTransform can also be applied here if needed, but the primary fix is in the destination
-                                )
-                            }
-                        } else Modifier
-                    )
+                    modifier = Modifier // sharedElement modifier removed
                 )
                 Text(
                     text = "${medication.dosage}",
