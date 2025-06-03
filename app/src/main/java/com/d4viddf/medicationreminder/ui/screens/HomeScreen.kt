@@ -335,16 +335,7 @@ fun HomeScreen(
                                 Text(
                                     text = medication.name,
                                     modifier = Modifier
-                                        .padding(16.dp)
-                                        .then(
-                                            if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                                with(sharedTransitionScope) { // Use with(scope)
-                                                    Modifier.sharedElement(
-                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope!!
-                                                    )
-                                                }
-                                            } else Modifier
+                                        .padding(16.dp
                                         ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -384,7 +375,8 @@ fun HomeScreen(
                             // viewModel.updateSearchQuery("")
                         },
                         sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope // Pass the scope received by HomeScreen
+                        animatedVisibilityScope = animatedVisibilityScope, // Pass the scope received by HomeScreen
+                        enableSharedTransition = true
                     )
                 }
             }
