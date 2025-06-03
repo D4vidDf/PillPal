@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
 // Icons for TopAppBar were removed, but CalendarToday is still needed
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 import androidx.compose.material.icons.filled.CalendarToday
@@ -95,7 +97,7 @@ import java.util.Locale
 // Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
 private val dayWidthForCalendar = 48.dp
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable
 fun CalendarScreen(
     onNavigateBack: () -> Unit,

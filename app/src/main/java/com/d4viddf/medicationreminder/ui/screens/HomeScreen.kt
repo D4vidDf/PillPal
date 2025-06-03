@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
 import android.annotation.SuppressLint
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 import androidx.compose.material.icons.filled.Mic
@@ -59,7 +61,7 @@ import com.d4viddf.medicationreminder.utils.PermissionUtils
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class) // ExperimentalPermissionsApi removed if not needed elsewhere
+@OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable
 fun HomeScreen(
     onAddMedicationClick: () -> Unit,

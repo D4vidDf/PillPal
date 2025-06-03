@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi // Added
+// Removed ExperimentalSharedTransitionApi from here as it's now file-level (or it might be kept if other specific experimental APIs are used later)
+// For this task, specifically moving the SharedTransition one.
+// Keeping it is fine if it's the only experimental API. If there were others, this specific one would be part of the file-level.
+// Let's assume it's fine to just have the file-level one for this API.
+// import androidx.compose.animation.ExperimentalSharedTransitionApi // Added - This line can be removed if no other composable in this file needs it individually
 import androidx.compose.animation.SharedTransitionLayout // Added
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +29,7 @@ sealed class Screen(val route: String) {
 
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class) // Added OptIn
+// Removed @OptIn(ExperimentalSharedTransitionApi::class) from here
 @Composable
 fun AppNavigation(
     navController: NavHostController,

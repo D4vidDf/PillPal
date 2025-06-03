@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
 import androidx.compose.foundation.background
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.LocalSharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.animation.rememberSharedContentState
 import androidx.compose.animation.sharedElement
 import androidx.compose.material3.TextButton // Added
@@ -77,7 +79,7 @@ import java.time.format.DateTimeFormatter // Added
 import java.time.format.FormatStyle // Added
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) // Removed ExperimentalSharedTransitionApi
 @Composable
 fun MedicationDetailsScreen(
     medicationId: Int,
