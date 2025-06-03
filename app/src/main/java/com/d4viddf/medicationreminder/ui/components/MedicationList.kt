@@ -32,7 +32,7 @@ fun MedicationList(
     onItemClick: (Medication) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
-    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
     bottomContentPadding: Dp
 ) {

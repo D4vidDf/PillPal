@@ -30,7 +30,7 @@ import androidx.compose.animation.sharedElement
 fun MedicationCard(
     medication: Medication,
     onClick: () -> Unit, // Callback for navigation
-    animatedVisibilityScope: AnimatedVisibilityScope // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope? // Make nullable
 ) {
     val color = try {
         MedicationColor.valueOf(medication.color)
@@ -46,11 +46,11 @@ fun MedicationCard(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() } // Trigger navigation on click
             .then(
-                if (sharedTransitionScope != null) {
+                if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                     with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope!!
                         )
                     }
                 } else Modifier
@@ -75,11 +75,11 @@ fun MedicationCard(
                     color= color.textColor,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.then( // Apply sharedElement to Text
-                        if (sharedTransitionScope != null) {
+                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                             with(sharedTransitionScope) {
                                 Modifier.sharedElement(
                                     state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                    animatedVisibilityScope = animatedVisibilityScope
+                                    animatedVisibilityScope = animatedVisibilityScope!!
                                 )
                             }
                         } else Modifier

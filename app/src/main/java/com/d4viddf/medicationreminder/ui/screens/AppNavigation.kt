@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi // Added
 import androidx.compose.animation.SharedTransitionLayout // Added
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +24,7 @@ sealed class Screen(val route: String) {
 
 }
 
-
+@OptIn(ExperimentalSharedTransitionApi::class) // Added OptIn
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -53,8 +54,8 @@ fun AppNavigation(
         composable(Screen.AddMedication.route) {
             // `this` is an AnimatedVisibilityScope
             AddMedicationScreen(
-                onNavigateBack = { navController.popBackStack() },
-                animatedVisibilityScope = this // Pass scope
+                onNavigateBack = { navController.popBackStack() }
+                // No animatedVisibilityScope passed
             )
         }
         composable(Screen.MedicationDetails.route) { backStackEntry ->
@@ -71,8 +72,8 @@ fun AppNavigation(
         composable(Screen.Settings.route) {
             // `this` is an AnimatedVisibilityScope
             SettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                animatedVisibilityScope = this // Pass scope
+                onNavigateBack = { navController.popBackStack() }
+                // No animatedVisibilityScope passed
             )
         }
         composable(Screen.Calendar.route) {
@@ -88,8 +89,8 @@ fun AppNavigation(
         composable(Screen.Profile.route) {
             // `this` is an AnimatedVisibilityScope
             ProfileScreen(
-                onNavigateBack = { navController.popBackStack() },
-                animatedVisibilityScope = this // Pass scope
+                onNavigateBack = { navController.popBackStack() }
+                // No animatedVisibilityScope passed
             )
         }
     }

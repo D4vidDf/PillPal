@@ -28,7 +28,7 @@ fun MedicationDetailHeader(
     medicationDosage: String?,
     medicationImageUrl: String?,
     colorScheme: MedicationColor,
-    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier
 ) {
     val loadingText = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_detail_header_loading)
@@ -59,11 +59,11 @@ fun MedicationDetailHeader(
                 maxLines = 2, // Permitir hasta 2 líneas para el nombre
                 overflow = TextOverflow.Ellipsis, // Añadir elipsis si el texto es muy largo
                 modifier = Modifier.then(
-                    if (sharedTransitionScope != null) {
+                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) {
                             Modifier.sharedElement(
                                 state = rememberSharedContentState(key = "medication-name-${medicationId}"), // Use medicationId
-                                animatedVisibilityScope = animatedVisibilityScope
+                                animatedVisibilityScope = animatedVisibilityScope!!
                             )
                         }
                     } else Modifier

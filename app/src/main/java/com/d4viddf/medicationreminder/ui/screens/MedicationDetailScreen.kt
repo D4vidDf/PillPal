@@ -82,7 +82,7 @@ import java.time.format.FormatStyle // Added
 fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
-    animatedVisibilityScope: AnimatedVisibilityScope, // Already added by previous tool run
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
@@ -196,11 +196,11 @@ fun MedicationDetailsScreen(
                                 shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
                             )
                             .then(
-                                if (sharedTransitionScope != null) {
+                                if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                     with(sharedTransitionScope) {
                                         Modifier.sharedElement(
                                             state = rememberSharedContentState(key = "medication-background-${medicationId}"),
-                                            animatedVisibilityScope = animatedVisibilityScope
+                                            animatedVisibilityScope = animatedVisibilityScope!!
                                         )
                                     }
                                 } else Modifier

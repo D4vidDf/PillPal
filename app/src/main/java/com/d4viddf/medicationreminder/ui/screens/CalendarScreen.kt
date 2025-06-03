@@ -100,7 +100,7 @@ private val dayWidthForCalendar = 48.dp
 fun CalendarScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMedicationDetail: (Int) -> Unit,
-    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState() // Still needed for medicationSchedules
@@ -411,7 +411,7 @@ fun MedicationRowsLayout(
     medicationSchedules: List<MedicationScheduleItem>,
     totalWidthPx: Int,
     onMedicationClicked: (Int) -> Unit,
-    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
@@ -472,11 +472,11 @@ fun MedicationRowsLayout(
                                 .clip(RoundedCornerShape(percent = 50)) // Changed
                                 .clickable { onMedicationClicked(med.id) }
                                 .then(
-                                    if (sharedTransitionScope != null) {
+                                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                         with(sharedTransitionScope) {
                                             Modifier.sharedElement(
                                                 state = rememberSharedContentState(key = "medication-background-${med.id}"),
-                                                animatedVisibilityScope = animatedVisibilityScope
+                                                animatedVisibilityScope = animatedVisibilityScope!!
                                             )
                                         }
                                     } else Modifier
@@ -492,11 +492,11 @@ fun MedicationRowsLayout(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.then(
-                                    if (sharedTransitionScope != null) {
+                                    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                         with(sharedTransitionScope) {
                                             Modifier.sharedElement(
                                                 state = rememberSharedContentState(key = "medication-name-${med.id}"),
-                                                animatedVisibilityScope = animatedVisibilityScope
+                                                animatedVisibilityScope = animatedVisibilityScope!!
                                             )
                                         }
                                     } else Modifier

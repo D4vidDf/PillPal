@@ -65,7 +65,7 @@ fun HomeScreen(
     onAddMedicationClick: () -> Unit,
     onMedicationClick: (Int) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
-    animatedVisibilityScope: AnimatedVisibilityScope, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: MedicationViewModel = hiltViewModel(),
     modifier: Modifier = Modifier // This modifier comes from NavHost, potentially with padding
 ) {
@@ -193,11 +193,11 @@ fun HomeScreen(
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
                                     .clickable { medicationListClickHandler(medication.id) }
                                     .then(
-                                        if (sharedTransitionScope != null) {
+                                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                             with(sharedTransitionScope) {
                                                 Modifier.sharedElement(
                                                     state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope = animatedVisibilityScope
+                                                    animatedVisibilityScope = animatedVisibilityScope!!
                                                 )
                                             }
                                         } else Modifier
@@ -208,11 +208,11 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .then(
-                                            if (sharedTransitionScope != null) {
+                                            if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                                 with(sharedTransitionScope) {
                                                     Modifier.sharedElement(
                                                         state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope = animatedVisibilityScope
+                                                        animatedVisibilityScope = animatedVisibilityScope!!
                                                     )
                                                 }
                                             } else Modifier
@@ -319,11 +319,11 @@ fun HomeScreen(
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
                                     .clickable { medicationListClickHandler(medication.id) }
                                     .then(
-                                        if (sharedTransitionScope != null) {
+                                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                             with(sharedTransitionScope) {
                                                 Modifier.sharedElement(
                                                     state = rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope = animatedVisibilityScope
+                                                    animatedVisibilityScope = animatedVisibilityScope!!
                                                 )
                                             }
                                         } else Modifier
@@ -334,11 +334,11 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .then(
-                                            if (sharedTransitionScope != null) {
+                                            if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                                                 with(sharedTransitionScope) {
                                                     Modifier.sharedElement(
                                                         state = rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope = animatedVisibilityScope
+                                                        animatedVisibilityScope = animatedVisibilityScope!!
                                                     )
                                                 }
                                             } else Modifier
