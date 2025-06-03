@@ -243,28 +243,34 @@ fun MedicationDetailsScreen(
 
                         // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
-                        if (todayScheduleItems.isNotEmpty()) {
-                            AnimatedVisibility(
-                                visible = contentVisible,
-                                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
-                                // Consider adding an exit transition as well, e.g., exit = fadeOut()
+                        // New AnimatedVisibility wrapping the group
+                        AnimatedVisibility(
+                            visible = contentVisible,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                            // Consider adding an exit transition as well, e.g., exit = fadeOut()
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally // Center content like progress display
                             ) {
-                                MedicationProgressDisplay(
-                                    progressDetails = progressDetails,
+                                if (todayScheduleItems.isNotEmpty()) {
+                                    MedicationProgressDisplay( // No longer individually wrapped in AnimatedVisibility
+                                        progressDetails = progressDetails,
+                                        colorScheme = color,
+                                        indicatorSizeDp = 220.dp
+                                    )
+                                }
+                                // This Spacer is now part of the animated group
+                                Spacer(modifier = Modifier.height(16.dp))
+                                MedicationDetailCounters(
                                     colorScheme = color,
-                                    indicatorSizeDp = 220.dp
+                                    medication = medicationState,
+                                    schedule = scheduleState,
+                                    modifier = Modifier.padding(horizontal = 12.dp) // Keep its own padding
                                 )
                             }
-                            // Spacer is no longer here
                         }
-                        // This Spacer is now outside the if, always providing space before MedicationDetailCounters
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MedicationDetailCounters(
-                            colorScheme = color,
-                            medication = medicationState,
-                            schedule = scheduleState,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
+                        // The standalone Spacer that was here has been removed (or effectively moved into the AV block above).
                     }
                 }
 
