@@ -18,8 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.res.stringResource // Required for stringResource
-import com.d4viddf.medicationreminder.R // Required for R class
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
 
 @Composable
 fun OnboardingScreen() {
@@ -35,6 +35,12 @@ fun OnboardingScreen() {
 
 @Composable
 fun OnboardingPhoneLayout() {
+    // Hoist stringResource calls for content descriptions
+    val welcomeTitleText = stringResource(R.string.onboarding_welcome_title)
+    val welcomeSubtitleText = stringResource(R.string.onboarding_welcome_subtitle)
+    val stepsPlaceholderText = stringResource(R.string.onboarding_steps_placeholder)
+    val permissionsPlaceholderText = stringResource(R.string.onboarding_permissions_placeholder)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -43,45 +49,53 @@ fun OnboardingPhoneLayout() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = stringResource(R.string.onboarding_welcome_title),
+            text = welcomeTitleText,
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
+            modifier = Modifier.semantics { contentDescription = welcomeTitleText }
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = stringResource(R.string.onboarding_welcome_subtitle),
+            text = welcomeSubtitleText,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_subtitle) }
+            modifier = Modifier.semantics { contentDescription = welcomeSubtitleText }
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.onboarding_steps_placeholder),
-            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_steps_placeholder) }
+            text = stepsPlaceholderText,
+            modifier = Modifier.semantics { contentDescription = stepsPlaceholderText }
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.onboarding_permissions_placeholder),
-            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_permissions_placeholder) }
+            text = permissionsPlaceholderText,
+            modifier = Modifier.semantics { contentDescription = permissionsPlaceholderText }
         )
     }
 }
 
 @Composable
 fun OnboardingTabletLayout() {
+    // Hoist stringResource calls
+    val welcomeTitleText = stringResource(R.string.onboarding_welcome_title)
+    val welcomeSubtitleText = stringResource(R.string.onboarding_welcome_subtitle)
+    val stepsPlaceholderText = stringResource(R.string.onboarding_steps_placeholder)
+    val permissionsPlaceholderText = stringResource(R.string.onboarding_permissions_placeholder)
+    val welcomePaneDesc = stringResource(R.string.onboarding_pane_welcome_area_description)
+    val stepsPaneDesc = stringResource(R.string.onboarding_pane_steps_permissions_area_description)
+
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
                 .padding(16.dp)
-                .semantics { contentDescription = stringResource(R.string.onboarding_pane_welcome_area_description) },
+                .semantics { contentDescription = welcomePaneDesc },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = stringResource(R.string.onboarding_welcome_title),
+                text = welcomeTitleText,
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
+                modifier = Modifier.semantics { contentDescription = welcomeTitleText }
             )
         }
         Column(
@@ -89,24 +103,24 @@ fun OnboardingTabletLayout() {
                 .weight(1f)
                 .fillMaxHeight()
                 .padding(16.dp)
-                .semantics { contentDescription = stringResource(R.string.onboarding_pane_steps_permissions_area_description) },
+                .semantics { contentDescription = stepsPaneDesc },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = stringResource(R.string.onboarding_welcome_subtitle),
+                text = welcomeSubtitleText,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_subtitle) }
+                modifier = Modifier.semantics { contentDescription = welcomeSubtitleText }
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.onboarding_steps_placeholder),
-                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_steps_placeholder) }
+                text = stepsPlaceholderText,
+                modifier = Modifier.semantics { contentDescription = stepsPlaceholderText }
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.onboarding_permissions_placeholder),
-                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_permissions_placeholder) }
+                text = permissionsPlaceholderText,
+                modifier = Modifier.semantics { contentDescription = permissionsPlaceholderText }
             )
         }
     }
