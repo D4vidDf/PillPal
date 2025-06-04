@@ -1,6 +1,6 @@
 package com.d4viddf.medicationreminder.ui.screens
 
-import android.app.Activity // Keep this if it was there
+import android.app.Activity
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -39,13 +39,15 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
 
-// enum class PermissionType { NOTIFICATION, EXACT_ALARM, FULL_SCREEN_INTENT } // Already defined
+// Ensure these definitions are present at this top level
+enum class PermissionType { NOTIFICATION, EXACT_ALARM, FULL_SCREEN_INTENT }
 
-// data class OnboardingStepContent( // Already defined
-//     val titleResId: Int,
-//     val descriptionResId: Int,
-//     val permissionType: PermissionType? = null
-// )
+data class OnboardingStepContent(
+    val titleResId: Int,
+    val descriptionResId: Int,
+    val permissionType: PermissionType? = null
+)
+// End of definitions to ensure
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -54,7 +56,6 @@ fun OnboardingScreen(navController: NavHostController) {
     val screenWidthDp = configuration.screenWidthDp
 
     val onboardingSteps = listOf(
-        // Corrected this line:
         OnboardingStepContent(R.string.onboarding_welcome_title, R.string.onboarding_welcome_subtitle),
         OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, PermissionType.NOTIFICATION),
         OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc, PermissionType.EXACT_ALARM),
@@ -241,13 +242,12 @@ fun OnboardingScreenPhonePreview() {
     val currentContext = LocalContext.current
     val activity = currentContext as? ComponentActivity ?: ComponentActivity()
 
-    // Corrected dummySteps:
     val dummySteps = listOf(
         OnboardingStepContent(R.string.onboarding_welcome_title, R.string.onboarding_welcome_subtitle, PermissionType.NOTIFICATION),
         OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc)
     )
     val pagerState = rememberPagerState { dummySteps.size }
-    MaterialTheme { // Added MaterialTheme wrapper for preview
+    MaterialTheme {
         OnboardingPhoneLayout(pagerState, dummySteps, navController, activity)
     }
 }
@@ -260,13 +260,12 @@ fun OnboardingScreenTabletPreview() {
     val currentContext = LocalContext.current
     val activity = currentContext as? ComponentActivity ?: ComponentActivity()
 
-    // Corrected dummySteps:
     val dummySteps = listOf(
         OnboardingStepContent(R.string.onboarding_welcome_title, R.string.onboarding_welcome_subtitle, PermissionType.EXACT_ALARM),
         OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc)
     )
     val pagerState = rememberPagerState { dummySteps.size }
-    MaterialTheme { // Added MaterialTheme wrapper for preview
+    MaterialTheme {
         OnboardingTabletLayout(pagerState, dummySteps, navController, activity)
     }
 }
