@@ -11,7 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke 
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -40,17 +40,12 @@ fun MedicationProgressDisplay(
     progressDetails: ProgressDetails?,
     colorScheme: MedicationColor,
     modifier: Modifier = Modifier,
-    indicatorSizeDp: Dp = 220.dp, // Add new parameter for size
-    isTransitioning: Boolean // New parameter
+    indicatorSizeDp: Dp = 220.dp // Add new parameter for size
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     val animatedProgress by animateFloatAsState(
         targetValue = if (startAnimation && progressDetails != null) progressDetails.progressFraction else 0f,
-        animationSpec = if (isTransitioning) {
-            tween(durationMillis = 300) // Shorter animation, no delay during transition
-        } else {
-            tween(durationMillis = 1000, delayMillis = 200) // Original animation
-        },
+        animationSpec = tween(durationMillis = 1000, delayMillis = 200),
         label = "ProgressAnimation"
     )
 
@@ -63,8 +58,6 @@ fun MedicationProgressDisplay(
     val desiredStrokeWidth = 8.dp
     val desiredStrokeWidthPx = with(density) { desiredStrokeWidth.toPx() }
     val indicatorSize = indicatorSizeDp // Use the parameter value
-
-    val currentWaveSpeed = if (animatedProgress >= 0.999f) 0.dp else 3.dp // New line
 
     // Construct the semantic description for the progress indicator here
     val progressIndicatorSemanticDesc: String = if (progressDetails != null) {
@@ -87,7 +80,7 @@ fun MedicationProgressDisplay(
             .fillMaxWidth()
             .defaultMinSize(minHeight = indicatorSize + 16.dp)
             .padding(vertical = 8.dp),
-            // Removed: .semantics { contentDescription = accessibilityDescription },
+        // Removed: .semantics { contentDescription = accessibilityDescription },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -115,7 +108,7 @@ fun MedicationProgressDisplay(
                 stroke = Stroke(width = desiredStrokeWidthPx,cap = StrokeCap.Round),
                 trackStroke = Stroke(width = desiredStrokeWidthPx,cap = StrokeCap.Round),
                 wavelength = 42.dp,
-                waveSpeed = currentWaveSpeed, // Changed from 3.dp
+                waveSpeed = 3.dp,
                 gapSize = 12.dp
             )
 
@@ -161,8 +154,7 @@ fun MedicationProgressDisplayPreview() {
                 displayText = "5 / 10"
             ),
             colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.GREEN,
-            indicatorSizeDp = 200.dp,
-            isTransitioning = false // Add default for preview
+            indicatorSizeDp = 200.dp
         )
     }
 }

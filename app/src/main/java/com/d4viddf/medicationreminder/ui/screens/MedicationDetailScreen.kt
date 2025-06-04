@@ -2,21 +2,18 @@
 package com.d4viddf.medicationreminder.ui.screens
 
 // ScheduleItem will be local, so no import from components
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added import
-import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel.MedicationProgressDetails // Added import
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,6 +53,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -73,6 +72,7 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -82,14 +82,14 @@ import java.time.format.FormatStyle
 fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope?,
-    animatedVisibilityScope: AnimatedVisibilityScope?,
-    enableSharedTransition: Boolean,
-    isHostedInPane: Boolean = false, // Added new parameter
+    sharedTransitionScope: SharedTransitionScope?, // Add this
+    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    enableSharedTransition: Boolean, // Added new parameter
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
-    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel()
+    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(), // Added
+    isHostedInPane: Boolean
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
@@ -141,39 +141,48 @@ fun MedicationDetailsScreen(
         }
     }
 
-    // Conditional rendering based on isHostedInPane
-    if (!isHostedInPane) {
+    if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) { // Updated condition
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { }, // Empty title
+                    title = { },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                                    .clickable { onNavigateBack() },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                    contentDescription = stringResource(id = R.string.back),
-                                    modifier = Modifier.size(28.dp), tint = Color.White
-                                )
+                        if (!isHostedInPane) {
+                            Box (modifier = Modifier.padding(start = 10.dp)){
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                        .clickable { onNavigateBack() },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                        contentDescription = stringResource(id = R.string.back),
+                                        modifier = Modifier.size(28.dp), tint = Color.White
+                                    )
+                                }
                             }
-                        }
+                        } else {}
                     },
                     actions = {
+                        // Original Box structure for the Edit button
                         Box(
                             modifier = Modifier
-                                .padding(end = 10.dp)
+                                .padding(end = 10.dp) // Add some padding to separate from the edge of screen if needed
                                 .background(
                                     color = Color.Black.copy(alpha = 0.4f),
                                     shape = RoundedCornerShape(8.dp)
                                 )
-                                .clickable { /* TODO: Handle edit action */ }
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                                .clickable { /* TODO: Handle edit action */ } // Ensure clickable is present
+                                .padding(
+                                    horizontal = 12.dp,
+                                    vertical = 6.dp
+                                ), // This is the internal padding for the text
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -185,257 +194,232 @@ fun MedicationDetailsScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = color.backgroundColor,
+                        containerColor = color.backgroundColor, // Reverted
                         navigationIconContentColor = Color.White,
                         actionIconContentColor = Color.White
                     )
                 )
             }
-        ) { innerPadding ->
-            MedicationDetailsContent(
-                modifier = Modifier.padding(innerPadding).fillMaxSize(),
-                medicationId = medicationId,
-                medicationState = medicationState,
-                scheduleState = scheduleState,
-                medicationTypeState = medicationTypeState,
-                progressDetails = progressDetails,
-                todayScheduleItems = todayScheduleItems,
-                color = color,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope,
-                enableSharedTransition = enableSharedTransition,
-                showDialog = showDialog,
-                onShowDialogChange = { showDialog = it },
-                medicationReminderViewModel = medicationReminderViewModel,
-                isHostedInPane = false // Explicitly false when not in pane
-            )
-        }
-    } else {
-        // Content for when hosted in a pane
-        MedicationDetailsContent(
-            modifier = Modifier.fillMaxSize(), // Fill the pane
-            medicationId = medicationId,
-            medicationState = medicationState,
-            scheduleState = scheduleState,
-            medicationTypeState = medicationTypeState,
-            progressDetails = progressDetails,
-            todayScheduleItems = todayScheduleItems,
-            color = color,
-            sharedTransitionScope = null,
-            animatedVisibilityScope = null,
-            enableSharedTransition = false,
-            showDialog = showDialog,
-            onShowDialogChange = { showDialog = it },
-            medicationReminderViewModel = medicationReminderViewModel,
-            isHostedInPane = true // Explicitly true when in pane
-        )
-    }
-
-    // Dialog logic remains, potentially needs medicationNameDisplay from medicationState
-    if (showDialog) {
-        AddPastMedicationDialog(
-            medicationNameDisplay = medicationState?.name
-                ?: stringResource(id = R.string.medication_name_placeholder),
-            onDismissRequest = { showDialog = false },
-            onSave = { date, time ->
-                medicationReminderViewModel.addPastMedicationTaken(
-                    medicationId = medicationId,
-                    date = date,
-                    time = time,
-                    medicationNameParam = medicationState?.name ?: ""
-                )
-                showDialog = false
-            }
-        )
-    }
-}
-
-@Composable
-private fun MedicationDetailsContent(
-    modifier: Modifier,
-    medicationId: Int,
-    medicationState: Medication?,
-    scheduleState: MedicationSchedule?,
-    medicationTypeState: MedicationType?,
-    progressDetails: MedicationViewModel.MedicationProgressDetails?,
-    todayScheduleItems: List<MedicationReminderViewModel.TodayScheduleItem>,
-    color: MedicationColor,
-    sharedTransitionScope: SharedTransitionScope?,
-    animatedVisibilityScope: AnimatedVisibilityScope?,
-    enableSharedTransition: Boolean,
-    showDialog: Boolean,
-    onShowDialogChange: (Boolean) -> Unit,
-    medicationReminderViewModel: MedicationReminderViewModel,
-    isHostedInPane: Boolean // Added parameter
-) {
-    if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else {
-        LazyColumn(modifier = modifier) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = if (isHostedInPane) Color.Transparent else color.backgroundColor,
-                            shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
-                        )
-                        .then(
-                            if (sharedTransitionScope != null && animatedVisibilityScope != null && enableSharedTransition) {
-                                with(sharedTransitionScope) {
-                                    Modifier.sharedElement(
-                                        rememberSharedContentState(key = "medication-background-${medicationState?.id}"),
-                                        animatedVisibilityScope
-                                    )
-                                }
-                            } else Modifier
-                        )
-                        .padding(
-                            start = 16.dp,
-                            end = 16.dp,
-                            bottom = 24.dp,
-                            top = if (enableSharedTransition && sharedTransitionScope != null) 0.dp else if (isHostedInPane) 0.dp else 16.dp
-                        )
-                ) {
-                    if (medicationState != null && progressDetails != null) {
-                        MedicationDetailHeader(
-                            medicationId = medicationId,
-                            medicationName = medicationState.name,
-                            medicationDosage = medicationState.dosage,
-                            medicationImageUrl = medicationTypeState?.imageUrl,
-                            colorScheme = color
-                            // Removed conditional top padding from here, handled by parent Column
-                        )
-                        MedicationProgressDisplay(
-                            progressDetails = progressDetails,
-                            colorScheme = color,
-                            indicatorSizeDp = 220.dp,
-                            isTransitioning = enableSharedTransition
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MedicationDetailCounters(
-                            colorScheme = color,
-                            medication = medicationState,
-                            schedule = scheduleState,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
-                    }
-                }
-            }
-            // "Today" title and Add button item
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.medication_detail_today_title),
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    IconButton(
-                        onClick = { onShowDialogChange(true) }, // Use callback
-                        modifier = Modifier
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
-                        )
-                    }
-                }
-            }
-
-            if (todayScheduleItems.isEmpty() && medicationState != null) {
+            // contentWindowInsets parameter is removed
+        ) { innerPadding -> // innerPadding is from Scaffold
+            // Vars like systemStatusBarsPaddingTop, systemNavigationBarsPaddingBottom, topAppBarHeight are removed if only used for the custom contentPadding.
+            val padding =  if (isHostedInPane) PaddingValues(top = innerPadding.calculateTopPadding()) else innerPadding
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding), // Reverted to use innerPadding from Scaffold
+                // contentPadding argument is removed
+            ) {
                 item {
-                    Text(
-                        text = stringResource(id = R.string.medication_detail_no_reminders_today),
+                    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
+                            .background(
+                                color = color.backgroundColor, // This background might be redundant if TopAppBar uses it
+                                shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+                            )
+                            .then(
+                                if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                    with(sharedTransitionScope) { // Use with(scope)
+                                        Modifier.sharedElement(
+                                            rememberSharedContentState(key = "medication-background-${medicationId}"),
+                                            animatedVisibilityScope!!
+                                        )
+                                    }
+                                } else Modifier
+                            )
+                            .padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 24.dp
+                            ) // Removed top padding, TopAppBar handles it
+                    ) {
+                        // Row for Back and Edit is removed from here
+                        // Spacer after the Row is also removed
 
-            var futureRemindersStarted = false
-            items(todayScheduleItems, key = { it.id }) { todayItem ->
-                val isActuallyPast = todayItem.time.isBefore(java.time.LocalTime.now())
-                if (!isActuallyPast && !futureRemindersStarted) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        thickness = 3.dp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    futureRemindersStarted = true
+                        // NEW: Add conditional rendering based on essential data
+                        if (medicationState != null && progressDetails != null) {
+                            MedicationDetailHeader(
+                                medicationId = medicationId, // Pass medicationId
+                                medicationName = medicationState?.name, // medicationState is confirmed non-null by the if
+                                medicationDosage = medicationState?.dosage,
+                                medicationImageUrl = medicationTypeState?.imageUrl, // Pasar la URL de la imagen del tipo
+                                colorScheme = color,
+                                modifier = Modifier.padding(top = 16.dp) // Add padding to push content below TopAppBar
+                                // El modifier por defecto del componente ya tiene fillMaxWidth
+                            )
+
+                             Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
+
+                            MedicationProgressDisplay(
+                                progressDetails = progressDetails, // progressDetails is confirmed non-null by the if
+                                colorScheme = color,
+                                indicatorSizeDp = 220.dp, // Explicitly pass the size
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
+
+                            MedicationDetailCounters(
+                                colorScheme = color,
+                                medication = medicationState, // medicationState is confirmed non-null by the if
+                                schedule = scheduleState,
+                                modifier = Modifier.padding(horizontal = 12.dp)
+                            )
+                        } else {
+                            // Optional: Placeholder or loading indicator if the outer screen loading condition
+                            // isn't sufficient and this specific block's data might still be loading.
+                            // For now, keeping it empty means the Column might appear empty if this condition is false,
+                            // which relies on the outer screen loading state to prevent this screen from showing prematurely.
+                            // If the outer condition (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty())
+                            // is robust, this 'else' branch for the inner 'if' might not be strictly necessary,
+                            // as the components would only be composed when data is ready.
+                            // However, being explicit ensures these specific components wait for their direct data.
+                        }
+                    }
                 }
-                ScheduleItem(
-                    time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
-                    label = todayItem.medicationName,
-                    isTaken = todayItem.isTaken,
-                    onTakenChange = { newState ->
-                        medicationReminderViewModel.updateReminderStatus(
-                            todayItem.id,
-                            newState,
-                            medicationId
+
+                // Item for "Today" title and Add Past Reminder Button
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.medication_detail_today_title),
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold,
                         )
-                    },
-                    enabled = isActuallyPast || todayItem.isTaken
-                )
+                        IconButton(
+                            onClick = { showDialog = isHostedInPane },
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
+                            )
+                        }
+                    }
+                }
+
+                // NEW CONDITIONAL MESSAGE LOGIC
+                if (todayScheduleItems.isEmpty() && medicationState != null) {
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.medication_detail_no_reminders_today),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 16.dp,
+                                    vertical = 16.dp
+                                ), // Added more vertical padding
+                            style = MaterialTheme.typography.bodyMedium, // Using bodyMedium for a slightly softer look
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                var futureRemindersStarted = false
+                items(todayScheduleItems, key = { it.id }) { todayItem ->
+                    val isActuallyPast =
+                        todayItem.time.isBefore(LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
+
+                    if (!isActuallyPast && !futureRemindersStarted) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp,
+                                vertical = 8.dp
+                            ), thickness = 3.dp, color = MaterialTheme.colorScheme.onBackground
+                        )
+                        futureRemindersStarted = isHostedInPane
+                    }
+                    ScheduleItem(
+                        time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                        label = todayItem.medicationName,
+                        isTaken = todayItem.isTaken,
+                        onTakenChange = { newState ->
+                            medicationReminderViewModel.updateReminderStatus(
+                                todayItem.id,
+                                newState,
+                                medicationId
+                            )
+                        },
+                        // Enable toggle only for past or current items. Future items are disabled.
+                        enabled = isActuallyPast || todayItem.isTaken
+                    )
+
+                }
+                item {
+                    Spacer(modifier = Modifier.height(48.dp)) // Espacio original antes de contadores
+                }
             }
-            item {
-                Spacer(modifier = Modifier.height(48.dp))
-            }
+        }
+        if (showDialog) { // Added AddPastMedicationDialog call
+            AddPastMedicationDialog(
+                medicationNameDisplay = medicationState?.name
+                    ?: stringResource(id = R.string.medication_name_placeholder),
+                onDismissRequest = { showDialog = false },
+                onSave = { date, time ->
+                    medicationReminderViewModel.addPastMedicationTaken(
+                        medicationId = medicationId,
+                        // medicationNameParam is no longer needed by the ViewModel method
+                        date = date,
+                        time = time,
+                        medicationNameParam = medicationState?.name ?: ""
+                    )
+                    showDialog = false
+                }
+            )
         }
     }
 }
+
+
 
 // ScheduleItem Composable - Adapted
 @Composable
 fun ScheduleItem(
-        time: String,
-        label: String,
-        isTaken: Boolean, // Added
-        onTakenChange: (Boolean) -> Unit, // Added
-        enabled: Boolean // For Switch's enabled state (isPast or already taken)
+    time: String,
+    label: String,
+    isTaken: Boolean, // Added
+    onTakenChange: (Boolean) -> Unit, // Added
+    enabled: Boolean // For Switch's enabled state (isPast or already taken)
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp), // Standardized padding for items
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp), // Standardized padding for items
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = time,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Switch(
-                checked = isTaken,
-                onCheckedChange = onTakenChange, // Use the callback
-                enabled = enabled // Control if switch can be interacted with
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = time,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
+        Switch(
+            checked = isTaken,
+            onCheckedChange = onTakenChange, // Use the callback
+            enabled = enabled // Control if switch can be interacted with
+        )
     }
+}
 
 @Preview(showBackground = true, name = "Medication Details Screen")
 @Composable
@@ -448,7 +432,9 @@ fun MedicationDetailsScreenPreview() {
             onNavigateBack = {},
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
-            enableSharedTransition = false // Added for preview
+            enableSharedTransition = false,
+            isHostedInPane = false,
+            // Added for preview
         )
     }
 }

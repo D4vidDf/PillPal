@@ -7,7 +7,6 @@ package com.d4viddf.medicationreminder.ui.screens
 // import androidx.compose.animation.ExperimentalSharedTransitionApi // Added - This line can be removed if no other composable in this file needs it individually
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout // Added
-import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -83,7 +82,9 @@ fun AppNavigation(
                         onNavigateBack = { navController.popBackStack() },
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope
-                        enableSharedTransition = enableSharedTransition // Pass the new argument
+                        enableSharedTransition = enableSharedTransition,
+                        isHostedInPane = false
+                        // Pass the new argument
                     )
                 }
             }
