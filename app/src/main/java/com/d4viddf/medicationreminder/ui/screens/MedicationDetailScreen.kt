@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added import
+import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel.MedicationProgressDetails // Added import
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
