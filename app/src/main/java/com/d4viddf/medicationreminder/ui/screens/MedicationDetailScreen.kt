@@ -290,7 +290,7 @@ fun MedicationDetailsScreen(
                             fontWeight = FontWeight.Bold,
                         )
                         IconButton(
-                            onClick = { showDialog = isHostedInPane },
+                            onClick = { showDialog = true },
                             modifier = Modifier
                                 .background(
                                     MaterialTheme.colorScheme.secondaryContainer,
