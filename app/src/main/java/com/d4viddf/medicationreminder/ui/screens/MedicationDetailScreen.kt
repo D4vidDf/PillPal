@@ -204,7 +204,8 @@ fun MedicationDetailsScreen(
                 enableSharedTransition = enableSharedTransition,
                 showDialog = showDialog,
                 onShowDialogChange = { showDialog = it },
-                medicationReminderViewModel = medicationReminderViewModel // Pass ViewModel
+                medicationReminderViewModel = medicationReminderViewModel,
+                isHostedInPane = false // Explicitly false when not in pane
             )
         }
     } else {
@@ -218,12 +219,13 @@ fun MedicationDetailsScreen(
             progressDetails = progressDetails,
             todayScheduleItems = todayScheduleItems,
             color = color,
-            sharedTransitionScope = null, // No shared elements from here when in pane
-            animatedVisibilityScope = null, // Pane handles its own animation scope
-            enableSharedTransition = false, // Shared elements not used when in pane this way
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
+            enableSharedTransition = false,
             showDialog = showDialog,
             onShowDialogChange = { showDialog = it },
-            medicationReminderViewModel = medicationReminderViewModel // Pass ViewModel
+            medicationReminderViewModel = medicationReminderViewModel,
+            isHostedInPane = true // Explicitly true when in pane
         )
     }
 
@@ -259,24 +261,23 @@ private fun MedicationDetailsContent(
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     enableSharedTransition: Boolean,
-    showDialog: Boolean, // Pass current state
-    onShowDialogChange: (Boolean) -> Unit, // Callback to change state
-    medicationReminderViewModel: MedicationReminderViewModel // Added ViewModel
+    showDialog: Boolean,
+    onShowDialogChange: (Boolean) -> Unit,
+    medicationReminderViewModel: MedicationReminderViewModel,
+    isHostedInPane: Boolean // Added parameter
 ) {
     if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) { // Apply fillMaxSize to Box too
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
         LazyColumn(modifier = modifier) {
-            // Header item (conditionally apply sharedElement based on enableSharedTransition and scopes)
             item {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            // Example: different bg if no transition and is in pane (no TopAppBar)
-                            color = if (!enableSharedTransition && sharedTransitionScope == null) color.backgroundColor else Color.Transparent,
+                            color = if (isHostedInPane) Color.Transparent else color.backgroundColor,
                             shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
                         )
                         .then(
@@ -293,9 +294,7 @@ private fun MedicationDetailsContent(
                             start = 16.dp,
                             end = 16.dp,
                             bottom = 24.dp,
-                            // Add top padding only if in pane (no TopAppBar from local Scaffold)
-                            // and not doing a shared element transition (where it should align top)
-                            top = if (sharedTransitionScope == null && !enableSharedTransition) 16.dp else 0.dp
+                            top = if (enableSharedTransition && sharedTransitionScope != null) 0.dp else if (isHostedInPane) 0.dp else 16.dp
                         )
                 ) {
                     if (medicationState != null && progressDetails != null) {
