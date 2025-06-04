@@ -128,9 +128,8 @@ fun HomeScreen(
     NavigableListDetailPaneScaffold(
         modifier = modifier.fillMaxSize(),
         navigator = scaffoldNavigator,
-        // Define the primary pane (list)
-        primaryPane = {
-            // `this` is an AnimatedPaneScope
+        listPane = { // Changed from primaryPane
+            // `this` is ThreePaneScaffoldPaneScope
             Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                 SearchBar(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
@@ -272,23 +271,27 @@ fun HomeScreen(
                 }
             }
         },
-        // Define the secondary pane (details)
-        secondaryPane = {
-            // `this` is an AnimatedPaneScope
+        detailPane = { // Changed from secondaryPane
+            // `this` is ThreePaneScaffoldPaneScope
             val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.content
             if (selectedMedicationIdForDetail != null) {
                 MedicationDetailsScreen(
-                    medicationId = selectedMedicationIdForDetail, // This should be Int, navigator is Int?
+                    medicationId = selectedMedicationIdForDetail,
                     onNavigateBack = {
                         coroutineScope.launch {
                             scaffoldNavigator.navigateBack()
                         }
                     },
-                    // Pass null for sharedTransitionScope as shared element transitions are not typically used
-                    // when displaying details in a secondary pane. The AnimatedPane handles its own animations.
-                    sharedTransitionScope = null,
-                    animatedVisibilityScope = this, // This is AnimatedPaneScope for the secondary pane
-                    enableSharedTransition = false // Shared transitions are for full-screen navigation
+                    sharedTransitionScope = null, // Correct for detail pane
+                    // animatedVisibilityScope for MedicationDetailScreen is tricky here.
+                    // 'this' is ThreePaneScaffoldPaneScope.
+                    // If MedicationDetailScreen expects an AnimatedVisibilityScope for its own internal animations,
+                    // it would need to come from an AnimatedVisibility composable within this detailPane.
+                    // For shared elements (which are disabled: enableSharedTransition = false), it would need
+                    // the one from AppNavigation. Since shared elements are off, this is less critical.
+                    // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
+                    animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
+                    enableSharedTransition = false
                 )
             } else {
                 // Placeholder when no medication is selected in detail pane (medium/expanded screens)
