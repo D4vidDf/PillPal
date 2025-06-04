@@ -240,4 +240,12 @@
     <string name="previous_month">Previous Month</string>
     <string name="next_month">Next Month</string>
     <string name="no_medications_scheduled_for_this_month">No medications scheduled for this month.</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_welcome_title">Welcome to Medication Reminder!</string>
+    <string name="onboarding_welcome_subtitle">Let's get you set up.</string>
+    <string name="onboarding_steps_placeholder">[Placeholder for Onboarding Steps]</string>
+    <string name="onboarding_permissions_placeholder">[Placeholder for Permission Settings]</string>
+    <string name="onboarding_pane_welcome_area_description">Welcome message area</string>
+    <string name="onboarding_pane_steps_permissions_area_description">Onboarding steps and permissions area</string>
 </resources>

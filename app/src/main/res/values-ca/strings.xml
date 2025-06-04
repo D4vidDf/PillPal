@@ -205,4 +205,12 @@
     <string name="medication_type_drops_image_description">CA: Drops icon</string>
     <string name="medication_type_inhaler_image_description">CA: Inhaler icon</string>
     <string name="medication_type_other_image_description">CA: Medication icon</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_welcome_title">Benvingut/da a Recordatori de Medicació!</string>
+    <string name="onboarding_welcome_subtitle">Configurem-ho.</string>
+    <string name="onboarding_steps_placeholder">[Espai reservat per a Passos d\'Introducció]</string>
+    <string name="onboarding_permissions_placeholder">[Espai reservat per a Configuració de Permisos]</string>
+    <string name="onboarding_pane_welcome_area_description">Àrea de missatge de benvinguda</string>
+    <string name="onboarding_pane_steps_permissions_area_description">Àrea de passos d\'introducció i permisos</string>
 </resources>

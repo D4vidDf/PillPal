@@ -205,4 +205,12 @@
     <string name="medication_type_drops_image_description">Icona de gotas</string>
     <string name="medication_type_inhaler_image_description">Icona de inhalador</string>
     <string name="medication_type_other_image_description">Icona de medicamento</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_welcome_title">Benvido/a a Lembrete de Medicación!</string>
+    <string name="onboarding_welcome_subtitle">Imos configuralo.</string>
+    <string name="onboarding_steps_placeholder">[Espazo reservado para Pasos de Introdución]</string>
+    <string name="onboarding_permissions_placeholder">[Espazo reservado para Configuración de Permisos]</string>
+    <string name="onboarding_pane_welcome_area_description">Área da mensaxe de benvida</string>
+    <string name="onboarding_pane_steps_permissions_area_description">Área de pasos de introdución e permisos</string>
 </resources>

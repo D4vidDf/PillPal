@@ -216,4 +216,12 @@
     <string name="medication_type_drops_image_description">Icono de gotas</string>
     <string name="medication_type_inhaler_image_description">Icono de inhalador</string>
     <string name="medication_type_other_image_description">Icono de medicamento</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_welcome_title">¡Bienvenido/a a Recordatorio de Medicación!</string>
+    <string name="onboarding_welcome_subtitle">Vamos a configurarlo.</string>
+    <string name="onboarding_steps_placeholder">[Espacio reservado para Pasos de Introducción]</string>
+    <string name="onboarding_permissions_placeholder">[Espacio reservado para Configuración de Permisos]</string>
+    <string name="onboarding_pane_welcome_area_description">Área de mensaje de bienvenida</string>
+    <string name="onboarding_pane_steps_permissions_area_description">Área de pasos de introducción y permisos</string>
 </resources>

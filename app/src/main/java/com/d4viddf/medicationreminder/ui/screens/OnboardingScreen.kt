@@ -16,6 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.stringResource // Required for stringResource
+import com.d4viddf.medicationreminder.R // Required for R class
 
 @Composable
 fun OnboardingScreen() {
@@ -39,55 +43,71 @@ fun OnboardingPhoneLayout() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Welcome to Medication Reminder!",
-            style = MaterialTheme.typography.headlineMedium
+            text = stringResource(R.string.onboarding_welcome_title),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "Let's get you set up.",
-            style = MaterialTheme.typography.titleMedium
+            text = stringResource(R.string.onboarding_welcome_subtitle),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_subtitle) }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "[Placeholder for Onboarding Steps]")
+        Text(
+            text = stringResource(R.string.onboarding_steps_placeholder),
+            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_steps_placeholder) }
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "[Placeholder for Permission Settings]")
+        Text(
+            text = stringResource(R.string.onboarding_permissions_placeholder),
+            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_permissions_placeholder) }
+        )
     }
 }
 
 @Composable
 fun OnboardingTabletLayout() {
     Row(modifier = Modifier.fillMaxSize()) {
-        // Left Pane: Welcome Message
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .padding(16.dp),
+                .padding(16.dp)
+                .semantics { contentDescription = stringResource(R.string.onboarding_pane_welcome_area_description) },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Welcome to Medication Reminder!",
-                style = MaterialTheme.typography.headlineMedium
+                text = stringResource(R.string.onboarding_welcome_title),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
             )
         }
-        // Right Pane: Onboarding Steps and Permissions
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .padding(16.dp),
+                .padding(16.dp)
+                .semantics { contentDescription = stringResource(R.string.onboarding_pane_steps_permissions_area_description) },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Let's get you set up.",
-                style = MaterialTheme.typography.titleMedium
+                text = stringResource(R.string.onboarding_welcome_subtitle),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_subtitle) }
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "[Placeholder for Onboarding Steps]")
+            Text(
+                text = stringResource(R.string.onboarding_steps_placeholder),
+                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_steps_placeholder) }
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "[Placeholder for Permission Settings]")
+            Text(
+                text = stringResource(R.string.onboarding_permissions_placeholder),
+                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_permissions_placeholder) }
+            )
         }
     }
 }
@@ -95,11 +115,11 @@ fun OnboardingTabletLayout() {
 @Preview(showBackground = true, name = "Phone Preview", device = "spec:width=411dp,height=891dp")
 @Composable
 fun OnboardingScreenPhonePreview() {
-    OnboardingScreen() // This will now correctly preview the phone layout
+    OnboardingScreen()
 }
 
 @Preview(showBackground = true, name = "Tablet Preview", device = "spec:width=1280dp,height=800dp,dpi=240")
 @Composable
 fun OnboardingScreenTabletPreview() {
-    OnboardingScreen() // This will now correctly preview the tablet layout
+    OnboardingScreen()
 }
