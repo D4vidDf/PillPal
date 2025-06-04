@@ -16,6 +16,7 @@ import androidx.navigation.NavType // Added import
 import androidx.navigation.compose.NavHost // Corrected order
 import androidx.navigation.compose.composable // Corrected order
 import androidx.navigation.navArgument // Added import
+import com.d4viddf.medicationreminder.ui.screens.OnboardingScreen // Added import for OnboardingScreen
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -27,7 +28,7 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
-
+    data object Onboarding : Screen("onboarding_screen") // Added Onboarding screen
 }
 
 // Removed @OptIn(ExperimentalSharedTransitionApi::class) from here
@@ -44,9 +45,12 @@ fun AppNavigation(
 
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Onboarding.route, // Changed start destination to Onboarding
             modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier) // Apply incoming modifier and then conditional padding
         ) {
+            composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
+                OnboardingScreen()
+            }
             composable(Screen.Home.route) {
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
