@@ -1,18 +1,15 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
-// ScheduleItem will be local, so no import from components
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,6 +68,7 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -82,11 +80,11 @@ fun MedicationDetailsScreen(
     onNavigateBack: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    enableSharedTransition: Boolean, // Added new parameter
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
-    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel() // Added
+    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(), // Added
+    isHostedInPane: Boolean
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
@@ -148,19 +146,21 @@ fun MedicationDetailsScreen(
                 TopAppBar(
                     title = { },
                     navigationIcon = {
-                        Box (modifier = Modifier.padding(start = 10.dp)){
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                                    .clickable { onNavigateBack() },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                    contentDescription = stringResource(id = R.string.back),
-                                    modifier = Modifier.size(28.dp), tint = Color.White
-                                )
+                        if (!isHostedInPane) {
+                            Box (modifier = Modifier.padding(start = 10.dp)){
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                        .clickable { onNavigateBack() },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                        contentDescription = stringResource(id = R.string.back),
+                                        modifier = Modifier.size(28.dp), tint = Color.White
+                                    )
+                                }
                             }
                         }
                     },
@@ -198,11 +198,11 @@ fun MedicationDetailsScreen(
             // contentWindowInsets parameter is removed
         ) { innerPadding -> // innerPadding is from Scaffold
             // Vars like systemStatusBarsPaddingTop, systemNavigationBarsPaddingBottom, topAppBarHeight are removed if only used for the custom contentPadding.
-
+            val padding =  if (isHostedInPane) PaddingValues(top = innerPadding.calculateTopPadding()) else innerPadding
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding), // Reverted to use innerPadding from Scaffold
+                    .padding(padding), // Reverted to use innerPadding from Scaffold
                 // contentPadding argument is removed
             ) {
                 item {
@@ -219,7 +219,7 @@ fun MedicationDetailsScreen(
                                     with(sharedTransitionScope) { // Use with(scope)
                                         Modifier.sharedElement(
                                             rememberSharedContentState(key = "medication-background-${medicationId}"),
-                                            animatedVisibilityScope!!
+                                            animatedVisibilityScope
                                         )
                                     }
                                 } else Modifier
@@ -245,13 +245,12 @@ fun MedicationDetailsScreen(
                                 // El modifier por defecto del componente ya tiene fillMaxWidth
                             )
 
-                            // Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
+                             Spacer(modifier = Modifier.height(16.dp)) // This spacer might need adjustment or removal. Keeping for now.
 
                             MedicationProgressDisplay(
                                 progressDetails = progressDetails, // progressDetails is confirmed non-null by the if
                                 colorScheme = color,
                                 indicatorSizeDp = 220.dp, // Explicitly pass the size
-                                isTransitioning = enableSharedTransition // Pass the flag here
                             )
 
                             Spacer(modifier = Modifier.height(16.dp)) // Espacio original antes de contadores
@@ -291,7 +290,7 @@ fun MedicationDetailsScreen(
                             fontWeight = FontWeight.Bold,
                         )
                         IconButton(
-                            onClick = { showDialog = true },
+                            onClick = { showDialog = isHostedInPane },
                             modifier = Modifier
                                 .background(
                                     MaterialTheme.colorScheme.secondaryContainer,
@@ -330,7 +329,7 @@ fun MedicationDetailsScreen(
                 var futureRemindersStarted = false
                 items(todayScheduleItems, key = { it.id }) { todayItem ->
                     val isActuallyPast =
-                        todayItem.time.isBefore(java.time.LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
+                        todayItem.time.isBefore(LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
                     if (!isActuallyPast && !futureRemindersStarted) {
                         HorizontalDivider(
@@ -384,38 +383,38 @@ fun MedicationDetailsScreen(
 
 
 
-    // ScheduleItem Composable - Adapted
-    @Composable
-    fun ScheduleItem(
-        time: String,
-        label: String,
-        isTaken: Boolean, // Added
-        onTakenChange: (Boolean) -> Unit, // Added
-        enabled: Boolean // For Switch's enabled state (isPast or already taken)
+// ScheduleItem Composable - Adapted
+@Composable
+fun ScheduleItem(
+    time: String,
+    label: String,
+    isTaken: Boolean, // Added
+    onTakenChange: (Boolean) -> Unit, // Added
+    enabled: Boolean // For Switch's enabled state (isPast or already taken)
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp), // Standardized padding for items
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp), // Standardized padding for items
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = time,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Switch(
-                checked = isTaken,
-                onCheckedChange = onTakenChange, // Use the callback
-                enabled = enabled // Control if switch can be interacted with
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = time,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
+        Switch(
+            checked = isTaken,
+            onCheckedChange = onTakenChange, // Use the callback
+            enabled = enabled // Control if switch can be interacted with
+        )
     }
+}
 
 @Preview(showBackground = true, name = "Medication Details Screen")
 @Composable
@@ -428,7 +427,8 @@ fun MedicationDetailsScreenPreview() {
             onNavigateBack = {},
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
-            enableSharedTransition = false // Added for preview
+            isHostedInPane = false,
+            // Added for preview
         )
     }
 }

@@ -7,16 +7,14 @@ package com.d4viddf.medicationreminder.ui.screens
 // import androidx.compose.animation.ExperimentalSharedTransitionApi // Added - This line can be removed if no other composable in this file needs it individually
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout // Added
-import androidx.compose.animation.SharedTransitionScope // Added import
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.navigation.NavHostController // Corrected order
 import androidx.navigation.NavType // Added import
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.NavHost // Corrected order
+import androidx.navigation.compose.composable // Corrected order
 import androidx.navigation.navArgument // Added import
 
 // Define the routes for navigation
@@ -36,11 +34,10 @@ sealed class Screen(val route: String) {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
+    modifier: Modifier = Modifier, // Add this line
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
-    paddingValues: PaddingValues = PaddingValues(), // Added parameter
     isMainScaffold: Boolean, // Added parameter
-    modifier: Modifier = Modifier // Add this line
 ) {
     SharedTransitionLayout { // `this` is SharedTransitionScope
         val currentSharedTransitionScope = this // Capture SharedTransitionScope
@@ -53,7 +50,7 @@ fun AppNavigation(
             composable(Screen.Home.route) {
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
-                    onAddMedicationClick = { navController.navigate(Screen.AddMedication.route) }, // Kept
+                    // Kept
                     onMedicationClick = { medicationId -> // Kept
                         navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = widthSizeClass == WindowWidthSizeClass.Compact))
                     },
@@ -83,7 +80,8 @@ fun AppNavigation(
                         onNavigateBack = { navController.popBackStack() },
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope
-                        enableSharedTransition = enableSharedTransition // Pass the new argument
+                        isHostedInPane = false
+                        // Pass the new argument
                     )
                 }
             }

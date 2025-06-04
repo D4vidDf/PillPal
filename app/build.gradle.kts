@@ -61,6 +61,9 @@ dependencies {
     implementation(libs.androidx.graphics.shapes) // Added graphics-shapes
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material3.adaptive)
+    implementation(libs.androidx.compose.material3.adaptive.layout)
+    implementation(libs.androidx.compose.material3.adaptive.navigation)
 
     implementation(libs.coil.compose)
 
@@ -80,7 +83,6 @@ dependencies {
     implementation(libs.androidx.material)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.foundation)
-    implementation(libs.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.material3.window.size.class1.android)

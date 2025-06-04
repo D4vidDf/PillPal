@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3AdaptiveApi::class)
 package com.d4viddf.medicationreminder.ui.screens
 
 import android.annotation.SuppressLint
@@ -13,16 +13,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,11 +33,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -69,22 +66,23 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable
 fun HomeScreen(
-    onAddMedicationClick: () -> Unit,
+    modifier: Modifier = Modifier, // This modifier comes from NavHost, potentially with padding
     onMedicationClick: (Int) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: MedicationViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier // This modifier comes from NavHost, potentially with padding
+
 ) {
     val medications by viewModel.medications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val currentSearchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
-    var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) }
+    // var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) } // Will be managed by scaffoldNavigator
 
+    val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>() // Use Int? for nullable medication ID
     val mainMedicationListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope() // For general coroutines, also for scaffold nav
 
     // Local state for SearchBar active state
     var searchActive by rememberSaveable { mutableStateOf(false) }
@@ -107,39 +105,36 @@ fun HomeScreen(
 
     val medicationListClickHandler: (Int) -> Unit = { medicationId ->
         // When a medication is clicked, whether from main list or search results,
-        // deactivate search and clear query to return to normal view.
         searchActive = false
-        viewModel.updateSearchQuery("") // Clear search query
+        viewModel.updateSearchQuery("")
+
         if (widthSizeClass == WindowWidthSizeClass.Compact) {
-            onMedicationClick(medicationId)
+            onMedicationClick(medicationId) // Full screen navigation via NavController
         } else {
-            selectedMedicationId = medicationId
+            // Show in detail pane using scaffoldNavigator
+            coroutineScope.launch {
+                scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
+            }
         }
     }
 
-    if (widthSizeClass == WindowWidthSizeClass.Compact) {
-        // For compact screens, HomeScreen provides its own Scaffold for specific TopAppBar and FAB
-        // The `modifier` passed in from AppNavigation (which includes padding from MedicationReminderApp's Scaffold)
-        // is applied to this Scaffold.
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-        Scaffold(
-            // modifier = modifier, // Modifier from NavHost is now applied to the Column below
-        ) {
-            // Apply the modifier from NavHost (which includes padding from MedicationReminderApp's Scaffold)
-            // AND the scaffoldInnerPadding from this HomeScreen's Scaffold to the Column.
-            Column() {
+    NavigableListDetailPaneScaffold(
+        modifier = modifier.fillMaxSize(),
+        navigator = scaffoldNavigator,
+        listPane = { // Changed from primaryPane
+            // `this` is ThreePaneScaffoldPaneScope
+            Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                 SearchBar(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive) 0.dp else 16.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
                     inputField = {
                         SearchBarDefaults.InputField(
                             query = currentSearchQuery,
                             onQueryChange = { viewModel.updateSearchQuery(it) },
                             onSearch = {
                                 searchActive = false
-                                // Keyboard hidden automatically by onSearch
                             },
-                            expanded = searchActive, // Pass the active state here
-                            onExpandedChange = { isActive -> // This seems to be missing in SearchBarDefaults.InputField, handle in SearchBar
+                            expanded = searchActive,
+                            onExpandedChange = { isActive ->
                                 searchActive = isActive
                                 if (!isActive) {
                                     viewModel.updateSearchQuery("")
@@ -153,7 +148,7 @@ fun HomeScreen(
                                 )
                             },
                             trailingIcon = {
-                                val localContext = LocalContext.current // Renamed to avoid conflict in lambdas
+                                val localContext = LocalContext.current
                                 IconButton(onClick = {
                                     val activity = localContext.findActivity()
                                     if (activity != null) {
@@ -167,169 +162,11 @@ fun HomeScreen(
                                                 speechRecognitionLauncher.launch(intent)
                                             },
                                             onRationaleNeeded = {
-                                                // TODO: Implement a user-facing rationale (e.g., Snackbar)
-                                                Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed. User should be informed.")
-                                                // Toast.makeText(localContext, "Microphone access is needed for voice search.", Toast.LENGTH_LONG).show()
+                                                Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed.")
                                             }
                                         )
                                     } else {
-                                        Log.e("HomeScreen", "Could not find Activity context to request RECORD_AUDIO permission.")
-                                        // Toast.makeText(localContext, "Error: Could not perform voice search.", Toast.LENGTH_SHORT).show()
-                                    }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Mic,
-                                        contentDescription = stringResource(id = R.string.microphone_icon_content_description)
-                                    )
-                                }
-                            },
-                        )
-                    },
-                    expanded = searchActive,
-                    onExpandedChange = { isActive ->
-                        searchActive = isActive
-                        if (!isActive) {
-                            viewModel.updateSearchQuery("") // Clear query when search becomes inactive
-                        }
-                    }
-                ) {
-                    // Content for search results - displayed when searchActive (expanded) is true
-                    val searchResultsListState = rememberLazyListState()
-                    LazyColumn(
-                        state = searchResultsListState,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        itemsIndexed(searchResults, key = { _, med -> med.id }) { index, medication ->
-                            // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
-                            // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
-                            Card(
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable {
-                                        // This is the compact layout, where transitions are active.
-                                        // The coroutineScope should already be available from Part A changes.
-                                        coroutineScope.launch {
-                                            searchResultsListState.animateScrollToItem(index)
-                                            medicationListClickHandler(medication.id) // This eventually calls onMedicationClick for navigation
-                                        }
-                                    }
-                                    .then(
-                                        // Apply sharedElement only if scopes are available AND it's a compact screen
-                                        if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                            with(sharedTransitionScope) { // Use with(scope)
-                                                Modifier.sharedElement(
-                                                    rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope!!
-                                                )
-                                            }
-                                        } else Modifier
-                                    )
-                            ) {
-                                Text(
-                                    text = medication.name,
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .then(
-                                            // Apply sharedElement only if scopes are available AND it's a compact screen
-                                            if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                                with(sharedTransitionScope) { // Use with(scope)
-                                                    Modifier.sharedElement(
-                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope!!
-                                                    )
-                                                }
-                                            } else Modifier
-                                        ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Main medication list - only shown if search is not active
-                if (!searchActive) {
-                    // Define TopAppBar height for bottom padding in LazyColumn
-                    val topAppBarHeight = 84.dp // This might need adjustment if SearchBar changes effective TopAppBar space
-                    MedicationList(
-                        medications = medications, // Display all medications from viewModel
-                        onItemClick = { medication, index -> // Signature changed
-                            if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                // Only scroll and then navigate if transitions are possible and it's compact
-                                coroutineScope.launch {
-                                    mainMedicationListState.animateScrollToItem(index)
-                                    medicationListClickHandler(medication.id) // This is the existing handler
-                                }
-                            } else {
-                                medicationListClickHandler(medication.id) // Existing behavior for non-compact or no transition
-                            }
-                        },
-                        isLoading = isLoading,
-                        onRefresh = { viewModel.refreshMedications() },
-                        enableCardTransitions = (widthSizeClass == WindowWidthSizeClass.Compact), // New line
-                        sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope, // Pass scope
-                        modifier = Modifier.fillMaxSize(),
-                        bottomContentPadding = topAppBarHeight,
-                        listState = mainMedicationListState
-                    )
-                }
-            }
-        }
-    } else { // Medium or Expanded - List/Detail View
-        Row(modifier = modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .statusBarsPadding() // Added status bar padding
-            ) {
-                SearchBar(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp, vertical = 8.dp), // Removed conditional horizontal padding
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = currentSearchQuery,
-                            onQueryChange = { viewModel.updateSearchQuery(it) },
-                            onSearch = { searchActive = false },
-                            expanded = searchActive, // Pass the active state here
-                            onExpandedChange = { isActive -> // This seems to be missing in SearchBarDefaults.InputField, handle in SearchBar
-                                searchActive = isActive
-                                if (!isActive) {
-                                    viewModel.updateSearchQuery("")
-                                }
-                            },
-                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Search,
-                                    contentDescription = stringResource(id = R.string.search_icon_content_description)
-                                )
-                            },
-                            trailingIcon = {
-                                val localContext = LocalContext.current // Renamed to avoid conflict in lambdas
-                                IconButton(onClick = {
-                                    val activity = localContext.findActivity()
-                                    if (activity != null) {
-                                        PermissionUtils.requestRecordAudioPermission(
-                                            activity = activity,
-                                            onAlreadyGranted = {
-                                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                                    putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
-                                                }
-                                                speechRecognitionLauncher.launch(intent)
-                                            },
-                                            onRationaleNeeded = {
-                                                // TODO: Implement a user-facing rationale (e.g., Snackbar)
-                                                Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed. User should be informed.")
-                                                // Toast.makeText(localContext, "Microphone access is needed for voice search.", Toast.LENGTH_LONG).show()
-                                            }
-                                        )
-                                    } else {
-                                        Log.e("HomeScreen", "Could not find Activity context to request RECORD_AUDIO permission.")
-                                        // Toast.makeText(localContext, "Error: Could not perform voice search.", Toast.LENGTH_SHORT).show()
+                                        Log.e("HomeScreen", "Could not find Activity context.")
                                     }
                                 }) {
                                     Icon(
@@ -347,23 +184,30 @@ fun HomeScreen(
                             viewModel.updateSearchQuery("")
                         }
                     }
-                ) {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(searchResults) { medication ->
-                            // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
+                ) { // Search results content
+                    val searchResultsListState = rememberLazyListState()
+                    LazyColumn(
+                        state = searchResultsListState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        itemsIndexed(searchResults, key = { _, med -> med.id }) { index, medication ->
                             Card(
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable { medicationListClickHandler(medication.id) }
+                                    .clickable {
+                                        coroutineScope.launch {
+                                            searchResultsListState.animateScrollToItem(index)
+                                            medicationListClickHandler(medication.id)
+                                        }
+                                    }
                                     .then(
-                                        // Apply sharedElement only if scopes are available AND it's a compact screen
                                         if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                            with(sharedTransitionScope) { // Use with(scope)
+                                            with(sharedTransitionScope) {
                                                 Modifier.sharedElement(
                                                     rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope!!
+                                                    animatedVisibilityScope
                                                 )
                                             }
                                         } else Modifier
@@ -372,7 +216,16 @@ fun HomeScreen(
                                 Text(
                                     text = medication.name,
                                     modifier = Modifier
-                                        .padding(16.dp
+                                        .padding(16.dp)
+                                        .then(
+                                            if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
+                                                with(sharedTransitionScope) {
+                                                    Modifier.sharedElement(
+                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
+                                                        animatedVisibilityScope
+                                                    )
+                                                }
+                                            } else Modifier
                                         ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -380,62 +233,69 @@ fun HomeScreen(
                         }
                     }
                 }
+
                 if (!searchActive) {
+                    val topAppBarHeight = 84.dp // Approx height for SearchBar
                     MedicationList(
-                        medications = medications, // Display all medications
-                        onItemClick = { medication, index -> // Signature changed
+                        medications = medications,
+                        onItemClick = { medication, index ->
+                            // medicationListClickHandler already has the logic for Compact vs Large screen.
+                            // It also handles the coroutine for scaffoldNavigator.
+                            // For compact, we might want to scroll before full navigation.
                             if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                // Only scroll and then navigate if transitions are possible and it's compact
-                                // This branch should ideally not be hit in non-compact, but defensive coding is fine.
                                 coroutineScope.launch {
                                     mainMedicationListState.animateScrollToItem(index)
-                                    medicationListClickHandler(medication.id) // This is the existing handler
+                                    medicationListClickHandler(medication.id) // Will call onMedicationClick
                                 }
                             } else {
-                                medicationListClickHandler(medication.id) // Existing behavior for non-compact or no transition
+                                // Handles both scaffold navigation (with its own coroutine) and compact (direct call)
+                                medicationListClickHandler(medication.id)
                             }
                         },
                         isLoading = isLoading,
                         onRefresh = { viewModel.refreshMedications() },
-                        enableCardTransitions = (widthSizeClass == WindowWidthSizeClass.Compact), // New line
-                        sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope, // Pass scope
+                        enableCardTransitions = (widthSizeClass == WindowWidthSizeClass.Compact),
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope,
                         modifier = Modifier.fillMaxSize(),
-                        bottomContentPadding = 0.dp,
+                        bottomContentPadding = if (widthSizeClass == WindowWidthSizeClass.Compact) topAppBarHeight else 0.dp,
                         listState = mainMedicationListState
                     )
                 }
             }
-
-            Box(
-                modifier = Modifier
-                    .weight(1.5f) // Adjust weight as needed, e.g., 1.5f or 0.6f for 60%
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (selectedMedicationId == null) {
+        },
+        detailPane = { // Changed from secondaryPane
+            // `this` is ThreePaneScaffoldPaneScope
+            val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.contentKey
+            if (selectedMedicationIdForDetail != null) {
+                MedicationDetailsScreen(
+                    medicationId = selectedMedicationIdForDetail,
+                    onNavigateBack = {
+                        coroutineScope.launch {
+                            scaffoldNavigator.navigateBack()
+                        }
+                    },
+                    sharedTransitionScope = null, // Correct for detail pane
+                    // animatedVisibilityScope for MedicationDetailScreen is tricky here.
+                    // 'this' is ThreePaneScaffoldPaneScope.
+                    // If MedicationDetailScreen expects an AnimatedVisibilityScope for its own internal animations,
+                    // it would need to come from an AnimatedVisibility composable within this detailPane.
+                    // For shared elements (which are disabled: enableSharedTransition = false), it would need
+                    // the one from AppNavigation. Since shared elements are off, this is less critical.
+                    // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
+                    animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
+                    isHostedInPane = true // Added parameter
+                )
+            } else {
+                // Placeholder when no medication is selected in detail pane (medium/expanded screens)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(stringResource(id = R.string.select_medication_placeholder))
-                } else {
-                    MedicationDetailsScreen(
-                        medicationId = selectedMedicationId!!,
-                        onNavigateBack = {
-                            selectedMedicationId = null
-                            // Optionally, also ensure search is reset if a detail view is dismissed
-                            // searchActive = false
-                            // viewModel.updateSearchQuery("")
-                        },
-                        sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope, // Pass the scope received by HomeScreen
-                        enableSharedTransition = true
-                    )
                 }
             }
         }
-    }
+        // We can also define a tertiary pane if needed, but not for this use case.
+    )
 }
-// Helper import, will be moved by IDE if not used explicitly but good for clarity
-// import androidx.compose.foundation.clickable
-
 // Top-level extension function
 fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
@@ -448,7 +308,6 @@ fun Context.findActivity(): Activity? = when (this) {
 fun HomeScreenCompactPreview() {
     AppTheme {
         HomeScreen(
-            onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
             sharedTransitionScope = null, // Pass null for preview
@@ -462,7 +321,6 @@ fun HomeScreenCompactPreview() {
 fun HomeScreenMediumPreview() {
     AppTheme {
         HomeScreen(
-            onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Medium,
             sharedTransitionScope = null, // Pass null for preview
@@ -476,7 +334,6 @@ fun HomeScreenMediumPreview() {
 fun HomeScreenExpandedPreview() {
     AppTheme {
         HomeScreen(
-            onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Expanded,
             sharedTransitionScope = null, // Pass null for preview
