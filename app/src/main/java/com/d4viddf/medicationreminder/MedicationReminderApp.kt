@@ -1,7 +1,7 @@
 package com.d4viddf.medicationreminder.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -14,22 +14,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarState // Ensure this is present
 // import androidx.compose.material3.rememberTopAppBarState // Comment out or remove
-import androidx.compose.runtime.remember
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.d4viddf.medicationreminder.ui.components.AppHorizontalFloatingToolbar
 import com.d4viddf.medicationreminder.ui.components.AppNavigationRail
 import com.d4viddf.medicationreminder.ui.screens.Screen
 import android.util.Log
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.res.stringResource
-import com.d4viddf.medicationreminder.R // Assuming R class is available for string resources
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class) // Required for TopAppBarDefaults scroll behaviors
 @Composable
 fun MedicationReminderApp(
@@ -54,8 +46,6 @@ fun MedicationReminderApp(
 
         Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome")
 
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(remember { TopAppBarState(0f, 0f, 0f) })
-
 
         // Simplified logic for showing navigation elements
         val showNavElements = !hideAllMainChrome
@@ -77,7 +67,7 @@ fun MedicationReminderApp(
                     AppNavigation(
                         navController = navController,
                         widthSizeClass = widthSizeClass,
-                        paddingValues = PaddingValues(), // No padding from a parent scaffold
+                        // No padding from a parent scaffold
                         isMainScaffold = false, // Does not use this app's main scaffold
                         modifier = Modifier.fillMaxSize() // Ensure AppNavigation fills its space
                     )
@@ -102,11 +92,11 @@ fun MedicationReminderApp(
                         }
                     },
                     floatingActionButtonPosition = FabPosition.Center
-                ) { innerPadding ->
+                ) {
                     AppNavigation(
                         navController = navController,
                         widthSizeClass = widthSizeClass,
-                        paddingValues = innerPadding, // Pass padding from this scaffold
+                        // Pass padding from this scaffold
                         // isMainScaffold is true if this Scaffold is effectively the main one for the content
                         isMainScaffold = true,
                         modifier = Modifier.fillMaxSize() // Ensure AppNavigation uses the padding

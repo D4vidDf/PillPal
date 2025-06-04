@@ -66,13 +66,13 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable
 fun HomeScreen(
-    onAddMedicationClick: () -> Unit,
+    modifier: Modifier = Modifier, // This modifier comes from NavHost, potentially with padding
     onMedicationClick: (Int) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
     viewModel: MedicationViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier // This modifier comes from NavHost, potentially with padding
+
 ) {
     val medications by viewModel.medications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -269,7 +269,7 @@ fun HomeScreen(
             val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.contentKey
             if (selectedMedicationIdForDetail != null) {
                 MedicationDetailsScreen(
-                    medicationId = selectedMedicationIdForDetail as Int,
+                    medicationId = selectedMedicationIdForDetail,
                     onNavigateBack = {
                         coroutineScope.launch {
                             scaffoldNavigator.navigateBack()
@@ -284,7 +284,6 @@ fun HomeScreen(
                     // the one from AppNavigation. Since shared elements are off, this is less critical.
                     // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
                     animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
-                    enableSharedTransition = false,
                     isHostedInPane = true // Added parameter
                 )
             } else {
@@ -309,7 +308,6 @@ fun Context.findActivity(): Activity? = when (this) {
 fun HomeScreenCompactPreview() {
     AppTheme {
         HomeScreen(
-            onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
             sharedTransitionScope = null, // Pass null for preview
@@ -323,7 +321,6 @@ fun HomeScreenCompactPreview() {
 fun HomeScreenMediumPreview() {
     AppTheme {
         HomeScreen(
-            onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Medium,
             sharedTransitionScope = null, // Pass null for preview
@@ -337,7 +334,6 @@ fun HomeScreenMediumPreview() {
 fun HomeScreenExpandedPreview() {
     AppTheme {
         HomeScreen(
-            onAddMedicationClick = {},
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Expanded,
             sharedTransitionScope = null, // Pass null for preview

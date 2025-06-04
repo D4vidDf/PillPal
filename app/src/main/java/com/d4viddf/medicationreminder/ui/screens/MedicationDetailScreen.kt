@@ -1,7 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
-// ScheduleItem will be local, so no import from components
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,8 +51,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -84,7 +80,6 @@ fun MedicationDetailsScreen(
     onNavigateBack: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    enableSharedTransition: Boolean, // Added new parameter
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
@@ -167,7 +162,7 @@ fun MedicationDetailsScreen(
                                     )
                                 }
                             }
-                        } else {}
+                        }
                     },
                     actions = {
                         // Original Box structure for the Edit button
@@ -224,7 +219,7 @@ fun MedicationDetailsScreen(
                                     with(sharedTransitionScope) { // Use with(scope)
                                         Modifier.sharedElement(
                                             rememberSharedContentState(key = "medication-background-${medicationId}"),
-                                            animatedVisibilityScope!!
+                                            animatedVisibilityScope
                                         )
                                     }
                                 } else Modifier
@@ -343,7 +338,7 @@ fun MedicationDetailsScreen(
                                 vertical = 8.dp
                             ), thickness = 3.dp, color = MaterialTheme.colorScheme.onBackground
                         )
-                        futureRemindersStarted = isHostedInPane
+                        futureRemindersStarted = true
                     }
                     ScheduleItem(
                         time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
@@ -432,7 +427,6 @@ fun MedicationDetailsScreenPreview() {
             onNavigateBack = {},
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
-            enableSharedTransition = false,
             isHostedInPane = false,
             // Added for preview
         )
