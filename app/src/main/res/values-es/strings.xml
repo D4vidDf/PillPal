@@ -229,6 +229,8 @@
     <string name="onboarding_logo_content_description">Logo de la Aplicación</string>
     <!-- Step 1 title uses onboarding_welcome_title -->
     <!-- Step 1 description uses onboarding_welcome_subtitle -->
+    <string name="onboarding_step1_pager_title">Empezando</string>
+    <string name="onboarding_step1_pager_desc">Aquí tienes un recorrido rápido de lo que puedes hacer y los permisos que necesitaremos para que tu experiencia sea fluida.</string>
     <string name="onboarding_step2_notifications_title">Habilitar Notificaciones</string>
     <string name="onboarding_step2_notifications_desc">Las notificaciones son esenciales para enviarte recordatorios de medicación a tiempo. Por favor, concede el permiso para asegurar que nunca olvides una dosis.</string>
     <string name="onboarding_step3_exact_alarm_title">Permitir Alarmas Exactas</string>
@@ -236,6 +238,8 @@
     <string name="onboarding_step4_finish_title">¡Todo Listo!</string>
     <string name="onboarding_step4_finish_desc">Gracias por configurar todos los permisos necesarios. Ya estás listo/a para usar Recordatorio de Medicación al máximo.</string>
     <string name="onboarding_grant_permission_button">Conceder Permiso</string>
+    <string name="onboarding_permission_granted_button">Permiso Concedido</string>
     <string name="next_button_text">Siguiente</string>
     <string name="done_button_text">Hecho</string>
+    <string name="previous_button_text">Anterior</string>
 </resources>

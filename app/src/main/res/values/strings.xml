@@ -251,8 +251,9 @@
 
     <!-- Onboarding Screen (New Pager Flow) -->
     <string name="onboarding_logo_content_description">App Logo</string>
-    <!-- Step 1 title uses onboarding_welcome_title -->
-    <!-- Step 1 description uses onboarding_welcome_subtitle -->
+    <!-- Step 1 title/desc are now specific to the pager's first page -->
+    <string name="onboarding_step1_pager_title">Getting Started</string>
+    <string name="onboarding_step1_pager_desc">Here’s a quick tour of what you can do and the permissions we’ll need to make your experience seamless.</string>
     <string name="onboarding_step2_notifications_title">Enable Notifications</string>
     <string name="onboarding_step2_notifications_desc">Notifications are essential for sending you medication reminders on time. Please grant permission to ensure you never miss a dose.</string>
     <string name="onboarding_step3_exact_alarm_title">Allow Exact Alarms</string>
@@ -260,6 +261,8 @@
     <string name="onboarding_step4_finish_title">You\'re All Set!</string>
     <string name="onboarding_step4_finish_desc">Thanks for setting up all the necessary permissions. You\'re now ready to use Medication Reminder to its full potential.</string>
     <string name="onboarding_grant_permission_button">Grant Permission</string>
+    <string name="onboarding_permission_granted_button">Permission Granted</string>
     <string name="next_button_text">Next</string>
     <string name="done_button_text">Done</string>
+    <string name="previous_button_text">Previous</string>
 </resources>

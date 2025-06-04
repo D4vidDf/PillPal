@@ -218,6 +218,8 @@
     <string name="onboarding_logo_content_description">Logotip de l\'Aplicació</string>
     <!-- Step 1 title uses onboarding_welcome_title -->
     <!-- Step 1 description uses onboarding_welcome_subtitle -->
+    <string name="onboarding_step1_pager_title">Començant</string>
+    <string name="onboarding_step1_pager_desc">Aquí tens un recorregut ràpid del que pots fer i els permisos que necessitarem perquè la teva experiència sigui fluida.</string>
     <string name="onboarding_step2_notifications_title">Activa les Notificacions</string>
     <string name="onboarding_step2_notifications_desc">Les notificacions són essencials per enviar-te recordatoris de medicació a temps. Si us plau, concedeix el permís per assegurar que mai no oblidis una dosi.</string>
     <string name="onboarding_step3_exact_alarm_title">Permet Alarmes Exactes</string>
@@ -225,6 +227,8 @@
     <string name="onboarding_step4_finish_title">Tot a Punt!</string>
     <string name="onboarding_step4_finish_desc">Gràcies per configurar tots els permisos necessaris. Ja estàs a punt per utilitzar Recordatori de Medicació al màxim.</string>
     <string name="onboarding_grant_permission_button">Concedir Permís</string>
+    <string name="onboarding_permission_granted_button">Permís Concedit</string>
     <string name="next_button_text">Següent</string>
     <string name="done_button_text">Fet</string>
+    <string name="previous_button_text">Anterior</string>
 </resources>

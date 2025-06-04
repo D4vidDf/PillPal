@@ -20,6 +20,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import org.junit.Before // For @Before setup
+import androidx.test.core.app.ApplicationProvider // For context
 
 // Minimal configuration for Robolectric to work with Compose
 @RunWith(RobolectricTestRunner::class)
@@ -30,18 +32,24 @@ class OnboardingScreenTest {
     val composeTestRule = createComposeRule()
 
     // Expected English strings
-    private val welcomeTitle = "Welcome to Medication Reminder!" // Used for step 1 title
-    private val welcomeSubtitle = "Let's get you set up." // Used for step 1 desc
-    // private val stepsPlaceholder = "[Placeholder for Onboarding Steps]" // No longer directly visible initially
-    // private val permissionsPlaceholder = "[Placeholder for Permission Settings]" // No longer directly visible initially
-    private val welcomeAreaPaneDescription = "Welcome message area"
-    // private val stepsPermissionsPaneDescription = "Onboarding steps and permissions area" // This might need re-evaluation as the right pane now hosts the pager
+    private val welcomeTitle = "Welcome to Medication Reminder!" // Main title, outside pager
     private val logoContentDescription = "App Logo"
     private val nextButtonText = "Next"
+    private val previousButtonText = "Previous" // New
+    private val step1PagerTitle = "Getting Started" // New: Title for first pager item
+    private val step1PagerDesc = "Here’s a quick tour of what you can do and the permissions we’ll need to make your experience seamless." // New: Desc for first pager item
 
+
+    @Before
+    fun setup() {
+        // Common setup for providing NavController and Context for OnboardingScreen
+        // This avoids repeating it in setScreenSize if OnboardingScreen is the direct content.
+        // However, setScreenSize re-sets content, so it's better there or pass NavController.
+        // Let's keep it in setScreenSize for now as it re-invokes setContent.
+    }
 
     // Helper to set screen size for tests
-    private fun setScreenSize(widthDp: Int, heightDp: Int, isTablet: Boolean = false) {
+    private fun setScreenSize(widthDp: Int, heightDp: Int) {
         val density = Density(density = 1f, fontScale = 1f)
         val configuration = android.content.res.Configuration().apply {
             screenWidthDp = widthDp
@@ -49,10 +57,19 @@ class OnboardingScreenTest {
         }
 
         composeTestRule.setContent {
-            // For previews/tests, LocalContext.current might not be a ComponentActivity.
-            // Providing a mock or simple Activity if PermissionUtils doesn't strictly need ComponentActivity methods.
-            // However, OnboardingScreen now expects NavController.
             val navController = rememberNavController()
+            // Use ApplicationProvider for a generic context suitable for most UI tests not needing Activity specifics.
+            val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+            // OnboardingScreen expects a ComponentActivity. For tests not directly calling activity methods,
+            // a simple cast might work if not interacting with lifecycle-dependent parts.
+            // Or, use Robolectric to create a dummy activity.
+            // For now, assuming PermissionUtils calls are what need ComponentActivity, and they aren't directly tested here.
+            // The preview code used `currentContext as? ComponentActivity ?: ComponentActivity()`.
+            // Let's use a TestActivity if needed, or ensure context is ComponentActivity.
+            // For simplicity, if LocalContext.current in test is not ComponentActivity, this may fail if cast is strict.
+            val activity = context as? ComponentActivity ?: ComponentActivity()
+
+
             CompositionLocalProvider(
                 LocalConfiguration provides configuration,
                 LocalDensity provides density,
@@ -62,9 +79,7 @@ class OnboardingScreenTest {
                     override val doubleTapMinTimeMillis: Long = 40
                     override val touchSlop: Float = 16f
                 },
-                // Provide a basic Activity context for the test if needed by underlying code
-                // This might need to be a mock ComponentActivity if PermissionUtils is strict
-                LocalContext provides androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+                LocalContext provides activity // Provide activity context
             ) {
                 OnboardingScreen(navController = navController)
             }
@@ -72,51 +87,44 @@ class OnboardingScreenTest {
     }
 
     @Test
-    fun onboardingScreen_phoneLayout_isDisplayed_onSmallScreen_withContentDescriptions() {
+    fun onboardingScreen_phoneLayout_initialDisplayCorrect() {
         setScreenSize(widthDp = 360, heightDp = 640)
 
+        // Check logo
         composeTestRule.onNodeWithContentDescription(logoContentDescription).assertIsDisplayed()
 
-        // These texts are part of the main layout on phone, not inside pager's first page by current design
-        // The pager itself contains steps starting from step1_title/desc
-        // Actually, the main welcome title is outside, the pager contains all steps including the first one.
-        composeTestRule.onNodeWithText(welcomeTitle).assertIsDisplayed() // Main title
+        // Check main title (outside pager)
+        composeTestRule.onNodeWithText(welcomeTitle).assertIsDisplayed()
         composeTestRule.onNodeWithContentDescription(welcomeTitle).assertIsDisplayed()
 
-        // The first page of the pager will contain the first step's content.
-        // (R.string.onboarding_step1_title which is onboarding_welcome_title,
-        // and R.string.onboarding_step1_desc which is onboarding_welcome_subtitle)
-        // So checking for welcomeSubtitle which is part of the first page of the pager.
-        // To be very precise, we should check for the title *within* the pager's first page.
-        // However, since welcomeTitle is also the title of the first page, this is a bit complex to distinguish.
-        // For now, let's assume the main title check is sufficient for the "Welcome" text.
-        // The description of the first step (welcomeSubtitle) should be findable.
-        composeTestRule.onNodeWithText(welcomeSubtitle, useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithContentDescription(welcomeSubtitle, useUnmergedTree = true).assertIsDisplayed()
+        // Check content of the first pager item
+        composeTestRule.onNodeWithText(step1PagerTitle, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(step1PagerTitle, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText(step1PagerDesc, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(step1PagerDesc, useUnmergedTree = true).assertIsDisplayed()
 
+        // Check navigation buttons
         composeTestRule.onNodeWithText(nextButtonText).assertIsDisplayed()
+        composeTestRule.onNodeWithText(previousButtonText).assertDoesNotExist() // Previous not on first page
     }
 
     @Test
-    fun onboardingScreen_tabletLayout_isDisplayed_onLargeScreen_withContentDescriptions() {
-        setScreenSize(widthDp = 720, heightDp = 1280, isTablet = true)
+    fun onboardingScreen_tabletLayout_initialDisplayCorrect() {
+        setScreenSize(widthDp = 720, heightDp = 1280)
 
-        // Left Pane
-        composeTestRule.onNodeWithContentDescription(welcomeAreaPaneDescription).assertIsDisplayed()
-        composeTestRule.onNodeWithContentDescription(logoContentDescription, useUnmergedTree = true).assertIsDisplayed() // Logo is inside left pane
-        composeTestRule.onNodeWithText(welcomeTitle, useUnmergedTree = true).assertIsDisplayed() // Main title in left pane
+        // Left Pane: Logo and Main Title
+        composeTestRule.onNodeWithContentDescription(logoContentDescription, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText(welcomeTitle, useUnmergedTree = true).assertIsDisplayed() // Main title
         composeTestRule.onNodeWithContentDescription(welcomeTitle, useUnmergedTree = true).assertIsDisplayed()
 
-        // Right Pane hosts the pager. The content of the first page should be visible.
-        // The first page uses R.string.onboarding_step1_title (== welcomeTitle) and R.string.onboarding_step1_desc (== welcomeSubtitle)
-        // The title of the first page (welcomeTitle) should be visible.
-        // Since welcomeTitle is also in the left pane, we need to be careful.
-        // Let's check for the description (welcomeSubtitle) in the right pane (pager area).
-        composeTestRule.onNodeWithText(welcomeSubtitle, useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithContentDescription(welcomeSubtitle, useUnmergedTree = true).assertIsDisplayed()
-        // We could also check for the right pane's own content description if it had one,
-        // but stepsPermissionsPaneDescription was for the old layout. The new right pane is just a Column hosting the pager.
+        // Right Pane: Pager with first item content
+        composeTestRule.onNodeWithText(step1PagerTitle, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(step1PagerTitle, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText(step1PagerDesc, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(step1PagerDesc, useUnmergedTree = true).assertIsDisplayed()
 
+        // Check navigation buttons
         composeTestRule.onNodeWithText(nextButtonText).assertIsDisplayed()
+        composeTestRule.onNodeWithText(previousButtonText).assertDoesNotExist() // Previous not on first page
     }
 }
