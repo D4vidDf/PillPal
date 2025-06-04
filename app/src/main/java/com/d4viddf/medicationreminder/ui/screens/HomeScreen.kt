@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3AdaptiveApi::class)
 package com.d4viddf.medicationreminder.ui.screens
 
 import android.annotation.SuppressLint
@@ -43,12 +43,10 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.layout.NavigableAdaptivePaneScaffold
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
-import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
-import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.layout.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -89,9 +87,9 @@ fun HomeScreen(
     val searchResults by viewModel.searchResults.collectAsState()
     // var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) } // Will be managed by scaffoldNavigator
 
-    val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator<Int>() // Use Int for medication ID or Any?
+    val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>() // Use Int? for nullable medication ID
     val mainMedicationListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope() // For general coroutines, also for scaffold nav
 
     // Local state for SearchBar active state
     var searchActive by rememberSaveable { mutableStateOf(false) }
@@ -114,18 +112,20 @@ fun HomeScreen(
 
     val medicationListClickHandler: (Int) -> Unit = { medicationId ->
         // When a medication is clicked, whether from main list or search results,
-        // deactivate search and clear query to return to normal view.
         searchActive = false
-        viewModel.updateSearchQuery("") // Clear search query
-        if (widthSizeClass == WindowWidthSizeClass.Compact || !scaffoldNavigator.canNavigate(ListDetailPaneScaffoldRole.Detail)) {
-            onMedicationClick(medicationId) // Full screen navigation
+        viewModel.updateSearchQuery("")
+
+        if (widthSizeClass == WindowWidthSizeClass.Compact) {
+            onMedicationClick(medicationId) // Full screen navigation via NavController
         } else {
-            // Show in detail pane
-            scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
+            // Show in detail pane using scaffoldNavigator
+            coroutineScope.launch {
+                scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
+            }
         }
     }
 
-    NavigableAdaptivePaneScaffold(
+    NavigableListDetailPaneScaffold(
         modifier = modifier.fillMaxSize(),
         navigator = scaffoldNavigator,
         // Define the primary pane (list)
@@ -247,17 +247,16 @@ fun HomeScreen(
                     MedicationList(
                         medications = medications,
                         onItemClick = { medication, index ->
-                            // Check if we should navigate full screen (compact) or show in detail pane
-                           if (widthSizeClass == WindowWidthSizeClass.Compact || !scaffoldNavigator.canNavigate(ListDetailPaneScaffoldRole.Detail)) {
-                                if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                    coroutineScope.launch {
-                                        mainMedicationListState.animateScrollToItem(index)
-                                        medicationListClickHandler(medication.id)
-                                    }
-                                } else {
-                                    medicationListClickHandler(medication.id)
+                            // medicationListClickHandler already has the logic for Compact vs Large screen.
+                            // It also handles the coroutine for scaffoldNavigator.
+                            // For compact, we might want to scroll before full navigation.
+                            if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                coroutineScope.launch {
+                                    mainMedicationListState.animateScrollToItem(index)
+                                    medicationListClickHandler(medication.id) // Will call onMedicationClick
                                 }
-                            } else { // Medium/Expanded, show in detail pane
+                            } else {
+                                // Handles both scaffold navigation (with its own coroutine) and compact (direct call)
                                 medicationListClickHandler(medication.id)
                             }
                         },
@@ -279,9 +278,11 @@ fun HomeScreen(
             val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.content
             if (selectedMedicationIdForDetail != null) {
                 MedicationDetailsScreen(
-                    medicationId = selectedMedicationIdForDetail,
+                    medicationId = selectedMedicationIdForDetail, // This should be Int, navigator is Int?
                     onNavigateBack = {
-                        scaffoldNavigator.navigateBack()
+                        coroutineScope.launch {
+                            scaffoldNavigator.navigateBack()
+                        }
                     },
                     // Pass null for sharedTransitionScope as shared element transitions are not typically used
                     // when displaying details in a secondary pane. The AnimatedPane handles its own animations.
