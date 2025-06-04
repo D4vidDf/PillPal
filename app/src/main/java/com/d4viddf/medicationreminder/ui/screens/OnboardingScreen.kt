@@ -92,6 +92,10 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
     val logoSize = 120.dp
     val logoBackgroundSize = 150.dp
 
+    // Hoist the string resource call
+    val welcomeTitleString = stringResource(R.string.onboarding_welcome_title)
+    val appSubtitleString = stringResource(R.string.onboarding_welcome_app_subtitle) // Assuming this might also need a CD later
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,17 +120,21 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = stringResource(R.string.onboarding_welcome_title),
+            text = welcomeTitleString, // Use hoisted variable
             style = MaterialTheme.typography.displaySmall,
             textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
+            // Corrected semantics:
+            modifier = Modifier.semantics { contentDescription = welcomeTitleString } // Use hoisted variable
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.onboarding_welcome_app_subtitle),
+            text = appSubtitleString, // Use hoisted variable
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp) // Add some horizontal padding for subtitle
+            modifier = Modifier.padding(horizontal = 16.dp)
+            // If this Text also needs a content description, it should follow the same pattern:
+            // val appSubtitleDesc = stringResource(R.string.onboarding_welcome_app_subtitle)
+            // modifier = Modifier.padding(horizontal = 16.dp).semantics { contentDescription = appSubtitleDesc }
         )
         Spacer(modifier = Modifier.height(48.dp))
         Button(
@@ -225,8 +233,11 @@ fun OnboardingTabletLayout(
     navController: NavHostController,
     activity: ComponentActivity
 ) {
-    val welcomePaneDesc = stringResource(R.string.onboarding_pane_welcome_area_description)
-    val coroutineScope = rememberCoroutineScope()
+    // Ensure these are defined at the start of the composable
+    val welcomeTitleText = stringResource(R.string.onboarding_welcome_title)
+    val welcomePaneDesc = stringResource(R.string.onboarding_pane_welcome_area_description) // For the left pane's Column
+
+    val coroutineScope = rememberCoroutineScope() // Already present
     val logoSize = 120.dp
     val logoBackgroundSize = 150.dp
 
@@ -254,13 +265,14 @@ fun OnboardingTabletLayout(
                 )
             }
             Text(
-                text = stringResource(R.string.onboarding_welcome_title),
+                text = welcomeTitleText, // Use hoisted variable
                 style = MaterialTheme.typography.displaySmall,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
+                // Corrected semantics for the Text:
+                modifier = Modifier.semantics { contentDescription = welcomeTitleText } // Use hoisted variable
             )
         }
-        Column(
+        Column( // Right Pane
             modifier = Modifier.weight(1f).fillMaxHeight().padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
