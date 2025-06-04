@@ -291,7 +291,8 @@ fun HomeScreen(
                     // the one from AppNavigation. Since shared elements are off, this is less critical.
                     // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
                     animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
-                    enableSharedTransition = false
+                    enableSharedTransition = false,
+                    isHostedInPane = true // Added parameter
                 )
             } else {
                 // Placeholder when no medication is selected in detail pane (medium/expanded screens)
