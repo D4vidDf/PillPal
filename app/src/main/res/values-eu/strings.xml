@@ -216,14 +216,14 @@
 
     <!-- Onboarding Screen (New Pager Flow) -->
     <string name="onboarding_logo_content_description">Aplikazioaren Logoa</string>
-    <!-- Step 1 title uses onboarding_welcome_title -->
-    <!-- Step 1 description uses onboarding_welcome_subtitle -->
     <string name="onboarding_step1_pager_title">Hasten</string>
     <string name="onboarding_step1_pager_desc">Hona hemen egin dezakezunaren eta zure esperientzia arina izateko beharko ditugun baimenen ibilbide azkar bat.</string>
     <string name="onboarding_step2_notifications_title">Gaitu Jakinarazpenak</string>
     <string name="onboarding_step2_notifications_desc">Jakinarazpenak ezinbestekoak dira medikazio-oroigarriak garaiz bidaltzeko. Mesedez, eman baimena dosi bat inoiz ez ahazteko.</string>
     <string name="onboarding_step3_exact_alarm_title">Baimendu Alarma Zehatzak</string>
     <string name="onboarding_step3_exact_alarm_desc">Zure oroigarriak zehatzak eta puntualak direla ziurtatzeko, aplikazioa aktibo ez dagoenean ere, alarma zehatzak programatzeko baimena behar dugu.</string>
+    <string name="onboarding_step_fullscreen_title">Gaitu Pantaila Osoko Jakinarazpenak</string>
+    <string name="onboarding_step_fullscreen_desc">Oroigarri kritikoetarako, pantaila osoko jakinarazpenak baimentzeak berehala ikusten dituzula ziurtatzen du, nahiz eta zure gailua blokeatuta egon edo beste aplikazio bat erabiltzen ari zaren.</string>
     <string name="onboarding_step4_finish_title">Dena Prest!</string>
     <string name="onboarding_step4_finish_desc">Eskerrik asko beharrezko baimen guztiak konfiguratzeagatik. Medikazio Oroigarria erabat erabiltzeko prest zaude.</string>
     <string name="onboarding_grant_permission_button">Baimena Eman</string>
@@ -231,4 +231,6 @@
     <string name="next_button_text">Hurrengoa</string>
     <string name="done_button_text">Eginda</string>
     <string name="previous_button_text">Aurrekoa</string>
+    <string name="start_onboarding_button_text">Hasi Sarrera</string>
+    <string name="onboarding_welcome_app_subtitle">Zure osasun laguna medikazio-oroigarri puntualetarako.</string>
 </resources>

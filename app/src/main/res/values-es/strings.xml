@@ -227,14 +227,14 @@
 
     <!-- Onboarding Screen (New Pager Flow) -->
     <string name="onboarding_logo_content_description">Logo de la Aplicación</string>
-    <!-- Step 1 title uses onboarding_welcome_title -->
-    <!-- Step 1 description uses onboarding_welcome_subtitle -->
     <string name="onboarding_step1_pager_title">Empezando</string>
     <string name="onboarding_step1_pager_desc">Aquí tienes un recorrido rápido de lo que puedes hacer y los permisos que necesitaremos para que tu experiencia sea fluida.</string>
     <string name="onboarding_step2_notifications_title">Habilitar Notificaciones</string>
     <string name="onboarding_step2_notifications_desc">Las notificaciones son esenciales para enviarte recordatorios de medicación a tiempo. Por favor, concede el permiso para asegurar que nunca olvides una dosis.</string>
     <string name="onboarding_step3_exact_alarm_title">Permitir Alarmas Exactas</string>
     <string name="onboarding_step3_exact_alarm_desc">Para asegurar que tus recordatorios sean precisos y puntuales, incluso cuando la aplicación no está activa, necesitamos permiso para programar alarmas exactas.</string>
+    <string name="onboarding_step_fullscreen_title">Habilitar Notificaciones a Pantalla Completa</string>
+    <string name="onboarding_step_fullscreen_desc">Para recordatorios críticos, permitir notificaciones a pantalla completa asegura que los veas inmediatamente, incluso si tu dispositivo está bloqueado o estás usando otra aplicación.</string>
     <string name="onboarding_step4_finish_title">¡Todo Listo!</string>
     <string name="onboarding_step4_finish_desc">Gracias por configurar todos los permisos necesarios. Ya estás listo/a para usar Recordatorio de Medicación al máximo.</string>
     <string name="onboarding_grant_permission_button">Conceder Permiso</string>
@@ -242,4 +242,6 @@
     <string name="next_button_text">Siguiente</string>
     <string name="done_button_text">Hecho</string>
     <string name="previous_button_text">Anterior</string>
+    <string name="start_onboarding_button_text">Iniciar Introducción</string>
+    <string name="onboarding_welcome_app_subtitle">Tu compañero de salud para recordatorios de medicación puntuales.</string>
 </resources>
