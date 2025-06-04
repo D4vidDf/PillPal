@@ -49,7 +49,7 @@ fun AppNavigation(
             modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier) // Apply incoming modifier and then conditional padding
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
-                OnboardingScreen()
+                OnboardingScreen(navController = navController) // Pass the navController
             }
             composable(Screen.Home.route) {
                 // `this` is an AnimatedVisibilityScope

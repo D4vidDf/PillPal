@@ -206,11 +206,25 @@
     <string name="medication_type_inhaler_image_description">Icona de inhalador</string>
     <string name="medication_type_other_image_description">Icona de medicamento</string>
 
-    <!-- Onboarding Screen -->
+    <!-- Onboarding Screen (Original) -->
     <string name="onboarding_welcome_title">Benvido/a a Lembrete de Medicación!</string>
     <string name="onboarding_welcome_subtitle">Imos configuralo.</string>
     <string name="onboarding_steps_placeholder">[Espazo reservado para Pasos de Introdución]</string>
     <string name="onboarding_permissions_placeholder">[Espazo reservado para Configuración de Permisos]</string>
     <string name="onboarding_pane_welcome_area_description">Área da mensaxe de benvida</string>
     <string name="onboarding_pane_steps_permissions_area_description">Área de pasos de introdución e permisos</string>
+
+    <!-- Onboarding Screen (New Pager Flow) -->
+    <string name="onboarding_logo_content_description">Logo da Aplicación</string>
+    <!-- Step 1 title uses onboarding_welcome_title -->
+    <!-- Step 1 description uses onboarding_welcome_subtitle -->
+    <string name="onboarding_step2_notifications_title">Activar Notificacións</string>
+    <string name="onboarding_step2_notifications_desc">As notificacións son esenciais para enviarche recordatorios de medicación a tempo. Por favor, concede o permiso para asegurar que nunca esquezas unha dose.</string>
+    <string name="onboarding_step3_exact_alarm_title">Permitir Alarmas Exactas</string>
+    <string name="onboarding_step3_exact_alarm_desc">Para asegurar que os teus recordatorios sexan precisos e puntuais, mesmo cando a aplicación non está activa, necesitamos permiso para programar alarmas exactas.</string>
+    <string name="onboarding_step4_finish_title">Todo Preparado!</string>
+    <string name="onboarding_step4_finish_desc">Grazas por configurar todos os permisos necesarios. Xa estás listo/a para usar Lembrete de Medicación ao máximo.</string>
+    <string name="onboarding_grant_permission_button">Conceder Permiso</string>
+    <string name="next_button_text">Seguinte</string>
+    <string name="done_button_text">Feito</string>
 </resources>

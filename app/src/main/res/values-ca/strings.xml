@@ -206,11 +206,25 @@
     <string name="medication_type_inhaler_image_description">CA: Inhaler icon</string>
     <string name="medication_type_other_image_description">CA: Medication icon</string>
 
-    <!-- Onboarding Screen -->
+    <!-- Onboarding Screen (Original) -->
     <string name="onboarding_welcome_title">Benvingut/da a Recordatori de Medicació!</string>
     <string name="onboarding_welcome_subtitle">Configurem-ho.</string>
     <string name="onboarding_steps_placeholder">[Espai reservat per a Passos d\'Introducció]</string>
     <string name="onboarding_permissions_placeholder">[Espai reservat per a Configuració de Permisos]</string>
     <string name="onboarding_pane_welcome_area_description">Àrea de missatge de benvinguda</string>
     <string name="onboarding_pane_steps_permissions_area_description">Àrea de passos d\'introducció i permisos</string>
+
+    <!-- Onboarding Screen (New Pager Flow) -->
+    <string name="onboarding_logo_content_description">Logotip de l\'Aplicació</string>
+    <!-- Step 1 title uses onboarding_welcome_title -->
+    <!-- Step 1 description uses onboarding_welcome_subtitle -->
+    <string name="onboarding_step2_notifications_title">Activa les Notificacions</string>
+    <string name="onboarding_step2_notifications_desc">Les notificacions són essencials per enviar-te recordatoris de medicació a temps. Si us plau, concedeix el permís per assegurar que mai no oblidis una dosi.</string>
+    <string name="onboarding_step3_exact_alarm_title">Permet Alarmes Exactes</string>
+    <string name="onboarding_step3_exact_alarm_desc">Per assegurar que els teus recordatoris siguin precisos i puntuals, fins i tot quan l\'aplicació no està activa, necessitem permís per programar alarmes exactes.</string>
+    <string name="onboarding_step4_finish_title">Tot a Punt!</string>
+    <string name="onboarding_step4_finish_desc">Gràcies per configurar tots els permisos necessaris. Ja estàs a punt per utilitzar Recordatori de Medicació al màxim.</string>
+    <string name="onboarding_grant_permission_button">Concedir Permís</string>
+    <string name="next_button_text">Següent</string>
+    <string name="done_button_text">Fet</string>
 </resources>
