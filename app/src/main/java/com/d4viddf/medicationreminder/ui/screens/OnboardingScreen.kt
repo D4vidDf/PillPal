@@ -1,7 +1,6 @@
-// Updated OnboardingScreen.kt
 package com.d4viddf.medicationreminder.ui.screens
 
-import android.app.Activity // Keep for potential future use with context if needed directly
+import android.app.Activity // Keep this if it was there
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -37,41 +36,35 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.utils.PermissionUtils // Assuming PermissionUtils is correctly located
+import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
 
-enum class PermissionType { NOTIFICATION, EXACT_ALARM, FULL_SCREEN_INTENT }
+// enum class PermissionType { NOTIFICATION, EXACT_ALARM, FULL_SCREEN_INTENT } // Already defined
 
-data class OnboardingStepContent(
-    val titleResId: Int,
-    val descriptionResId: Int,
-    val permissionType: PermissionType? = null
-)
+// data class OnboardingStepContent( // Already defined
+//     val titleResId: Int,
+//     val descriptionResId: Int,
+//     val permissionType: PermissionType? = null
+// )
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnboardingScreen(navController: NavHostController) { // Added navController
+fun OnboardingScreen(navController: NavHostController) {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
 
     val onboardingSteps = listOf(
-        OnboardingStepContent(R.string.onboarding_step1_title, R.string.onboarding_step1_desc),
+        // Corrected this line:
+        OnboardingStepContent(R.string.onboarding_welcome_title, R.string.onboarding_welcome_subtitle),
         OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, PermissionType.NOTIFICATION),
         OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc, PermissionType.EXACT_ALARM),
-        // Optional: Add a step for FULL_SCREEN_INTENT if deemed necessary for onboarding
-        // OnboardingStepContent(R.string.onboarding_step_fullscreen_title, R.string.onboarding_step_fullscreen_desc, PermissionType.FULL_SCREEN_INTENT),
         OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc)
     )
     val pagerState = rememberPagerState { onboardingSteps.size }
 
-    // It's generally safer to obtain the activity context where it's directly needed or pass it down
-    // For preview purposes and direct use, this is okay for now.
     val currentContext = LocalContext.current
     val activity = currentContext as? ComponentActivity ?: run {
-        // Fallback or error for preview if context is not a ComponentActivity
-        // This should ideally not happen in a real app scenario if the entry point is an Activity
-        // For preview, we might need a more robust way or accept it might not fully work for permission dialogues
-        if (currentContext is Activity) currentContext as ComponentActivity else ComponentActivity() // Dummy for preview if all else fails
+        if (currentContext is Activity) currentContext as ComponentActivity else ComponentActivity()
     }
 
 
@@ -87,8 +80,8 @@ fun OnboardingScreen(navController: NavHostController) { // Added navController
 fun OnboardingPhoneLayout(
     pagerState: PagerState,
     steps: List<OnboardingStepContent>,
-    navController: NavHostController, // Added
-    activity: ComponentActivity // Added
+    navController: NavHostController,
+    activity: ComponentActivity
 ) {
     val welcomeTitleText = stringResource(R.string.onboarding_welcome_title)
     val logoContentDesc = stringResource(R.string.onboarding_logo_content_description)
@@ -144,8 +137,8 @@ fun OnboardingPhoneLayout(
 fun OnboardingTabletLayout(
     pagerState: PagerState,
     steps: List<OnboardingStepContent>,
-    navController: NavHostController, // Added
-    activity: ComponentActivity // Added
+    navController: NavHostController,
+    activity: ComponentActivity
 ) {
     val welcomeTitleText = stringResource(R.string.onboarding_welcome_title)
     val welcomePaneDesc = stringResource(R.string.onboarding_pane_welcome_area_description)
@@ -240,21 +233,21 @@ fun OnboardingStepPage(step: OnboardingStepContent, activity: ComponentActivity)
     }
 }
 
-// Previews - Need to pass NavController. Can use rememberNavController for preview.
 @OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true, name = "Phone Onboarding")
 @Composable
 fun OnboardingScreenPhonePreview() {
-    val navController = rememberNavController() // For preview
+    val navController = rememberNavController()
     val currentContext = LocalContext.current
-    val activity = currentContext as? ComponentActivity ?: ComponentActivity() // Simplified for preview
+    val activity = currentContext as? ComponentActivity ?: ComponentActivity()
 
+    // Corrected dummySteps:
     val dummySteps = listOf(
-        OnboardingStepContent(R.string.onboarding_step1_title, R.string.onboarding_step1_desc, PermissionType.NOTIFICATION),
-        OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc)
+        OnboardingStepContent(R.string.onboarding_welcome_title, R.string.onboarding_welcome_subtitle, PermissionType.NOTIFICATION),
+        OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc)
     )
     val pagerState = rememberPagerState { dummySteps.size }
-    MaterialTheme {
+    MaterialTheme { // Added MaterialTheme wrapper for preview
         OnboardingPhoneLayout(pagerState, dummySteps, navController, activity)
     }
 }
@@ -263,16 +256,17 @@ fun OnboardingScreenPhonePreview() {
 @Preview(showBackground = true, name = "Tablet Onboarding", device = "spec:width=1280dp,height=800dp,dpi=240")
 @Composable
 fun OnboardingScreenTabletPreview() {
-    val navController = rememberNavController() // For preview
+    val navController = rememberNavController()
     val currentContext = LocalContext.current
-    val activity = currentContext as? ComponentActivity ?: ComponentActivity() // Simplified for preview
+    val activity = currentContext as? ComponentActivity ?: ComponentActivity()
 
+    // Corrected dummySteps:
     val dummySteps = listOf(
-        OnboardingStepContent(R.string.onboarding_step1_title, R.string.onboarding_step1_desc, PermissionType.EXACT_ALARM),
-        OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc)
+        OnboardingStepContent(R.string.onboarding_welcome_title, R.string.onboarding_welcome_subtitle, PermissionType.EXACT_ALARM),
+        OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc)
     )
     val pagerState = rememberPagerState { dummySteps.size }
-    MaterialTheme {
+    MaterialTheme { // Added MaterialTheme wrapper for preview
         OnboardingTabletLayout(pagerState, dummySteps, navController, activity)
     }
 }
