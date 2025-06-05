@@ -2,4 +2,17 @@
 <resources>
 
     <style name="Theme.MedicationReminder" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen's background color -->
+        <item name="windowSplashScreenBackground">@color/white</item>
+
+        <!-- Set the splash screen's icon. -->
+        <!-- Use windowSplashScreenAnimatedIcon to allow for animation on API 31+ -->
+        <!-- For API < 31, windowSplashScreenAnimatedIcon will behave like windowSplashScreenIcon -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+
+        <!-- Set the theme that will be applied to the Activity after the splash screen. -->
+        <item name="postSplashScreenTheme">@style/Theme.MedicationReminder</item>
+    </style>
 </resources>

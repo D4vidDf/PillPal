@@ -14,6 +14,8 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.os.LocaleListCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen // Added
+import androidx.lifecycle.lifecycleScope // Added
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.utils.PermissionUtils // Added import
@@ -23,8 +25,11 @@ import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.ui.MedicationReminderApp
 import com.d4viddf.medicationreminder.workers.TestSimpleWorker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow // Added
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update // Added
+import kotlinx.coroutines.launch // Added (though lifecycleScope.launch is specific)
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -42,15 +47,33 @@ class MainActivity : ComponentActivity() {
     }
     // Tracks the locale tag this Activity instance last successfully applied or attempted to apply.
     private var localeTagSetByThisInstance: String? = null
+    private val isLoadingOnboardingStatus = MutableStateFlow(true)
 
     @SuppressLint("FlowOperatorInvokedInComposition")
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen() // Before super.onCreate()
+
         enableEdgeToEdge() // Added this line
         super.onCreate(savedInstanceState)
 
         // Initialize PermissionUtils
         PermissionUtils.init(this)
+
+        // Logic to set isLoadingOnboardingStatus (new)
+        lifecycleScope.launch {
+            Log.d(TAG_MAIN_ACTIVITY, "Waiting for onboarding status from DataStore...")
+            userPreferencesRepository.onboardingCompletedFlow.first() // Wait for the first emission
+            Log.d(TAG_MAIN_ACTIVITY, "Onboarding status loaded.")
+            isLoadingOnboardingStatus.update { false } // Set to false once loaded
+        }
+
+        // Set the condition for the splash screen (new)
+        splashScreen.setKeepOnScreenCondition {
+            val isLoading = isLoadingOnboardingStatus.value
+            Log.d(TAG_MAIN_ACTIVITY, "setKeepOnScreenCondition check: isLoading = $isLoading")
+            isLoading
+        }
 
         // Step 1: Fetch the stored language preference.
         // Your UserPreferencesRepository defaults to system language if DataStore is empty/key not found.
@@ -110,10 +133,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // Collect the actual onboarding status here, once isLoadingOnboardingStatus is false.
+            val finalOnboardingCompletedState by userPreferencesRepository.onboardingCompletedFlow
+                .collectAsState(initial = false) // Default to false for initial route calculation
+
             MedicationReminderApp(
                 themePreference = themePreference,
                 widthSizeClass = windowSizeClass.widthSizeClass,
-                userPreferencesRepository = userPreferencesRepository // Add this line
+                userPreferencesRepository = userPreferencesRepository,
+                onboardingCompleted = finalOnboardingCompletedState // Pass the loaded boolean
             )
         }
     }

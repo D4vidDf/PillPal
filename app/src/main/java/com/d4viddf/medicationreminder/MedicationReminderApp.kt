@@ -6,13 +6,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState // Added import
+import androidx.compose.runtime.collectAsState // Still needed for navBackStackEntryAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment // Added
-import androidx.compose.foundation.layout.Box // Added
-import androidx.compose.material3.CircularProgressIndicator // Added
+// import androidx.compose.ui.Alignment // Removed
+// import androidx.compose.foundation.layout.Box // Removed
+// import androidx.compose.material3.CircularProgressIndicator // Removed
 import androidx.navigation.compose.rememberNavController
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Added import
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Still needed for OnboardingScreen
 import com.d4viddf.medicationreminder.ui.screens.AppNavigation
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.material3.Scaffold
@@ -32,21 +32,21 @@ import android.util.Log
 fun MedicationReminderApp(
     themePreference: String,
     widthSizeClass: WindowWidthSizeClass,
-    userPreferencesRepository: UserPreferencesRepository // Add this parameter
+    userPreferencesRepository: UserPreferencesRepository, // Keep this for OnboardingScreen
+    onboardingCompleted: Boolean // Add this, make it non-null
 ) {
-    val onboardingStatus by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = null)
+    // val onboardingStatus by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = null) // REMOVE THIS
+    // if (onboardingStatus == null) { // REMOVE THIS BLOCK
+    //     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    //         CircularProgressIndicator()
+    //     }
+    // } else { // REMOVE THIS BLOCK's if/else structure, keep the 'else' part's content.
 
-    if (onboardingStatus == null) {
-        // Display a loading indicator, centered
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else {
-        // Once loaded, determine startRoute and proceed with AppTheme and AppNavigation
-        val startRoute = if (onboardingStatus == true) Screen.Home.route else Screen.Onboarding.route
+    // This logic will now be at the top level inside MedicationReminderApp, after parameters
+    val startRoute = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
 
-        AppTheme(themePreference = themePreference) {
-            val navController = rememberNavController()
+    AppTheme(themePreference = themePreference) {
+        val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
