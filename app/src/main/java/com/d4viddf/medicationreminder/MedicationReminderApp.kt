@@ -41,6 +41,7 @@ fun MedicationReminderApp(
         val hideAllMainChrome = currentRoute in listOf(
             Screen.Settings.route,
             Screen.AddMedication.route,
+            Screen.AddMedicationChoice.route, // Added this line
             Screen.Onboarding.route // Add Onboarding here
         ) || currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
 
@@ -60,7 +61,7 @@ fun MedicationReminderApp(
                         onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
                         onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
                         onSettingsClick = { navController.navigate(Screen.Settings.route) }, // Removed popUpTo for settings
-                        onAddClick = { navController.navigate(Screen.AddMedication.route) }, // Removed popUpTo for add
+                        onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // Changed here
                         currentRoute = currentRoute
                     )
                     // AppNavigation for large screens does not need a Scaffold with TopAppBar from here,
@@ -87,7 +88,7 @@ fun MedicationReminderApp(
                                 onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
                                 onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
                                 onSettingsClick = { navController.navigate(Screen.Settings.route) },
-                                onAddClick = { navController.navigate(Screen.AddMedication.route) },
+                                onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // Changed here
                                 currentRoute = currentRoute
                             )
                         }

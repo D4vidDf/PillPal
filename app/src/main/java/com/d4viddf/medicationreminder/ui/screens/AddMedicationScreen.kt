@@ -17,12 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration // To get screen width if not using WindowSizeClass directly for this
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 // import androidx.compose.ui.platform.LocalContext // Only if child components truly need it
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added import
+import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // Preferred
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.work.Data
@@ -55,6 +58,18 @@ fun AddMedicationScreen(
     medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
+    // ... existing states ...
+    val windowSizeClass = LocalWindowSizeClass.current // Get the window size class
+    val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // Determine if it's a tablet
+
+    val stepDetailsList = listOf(
+        StepDetails(1, stringResource(R.string.step_title_medication_name), R.drawable.ic_pill_placeholder),
+        StepDetails(2, stringResource(R.string.step_title_type_color), R.drawable.ic_palette), // Use new icon
+        StepDetails(3, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory), // Use new icon
+        StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time), // Use new icon
+        StepDetails(5, stringResource(R.string.step_title_summary), R.drawable.ic_check_circle) // Use new icon
+    )
+
     var currentStep by rememberSaveable { mutableStateOf(0) }
     var progress by rememberSaveable { mutableStateOf(0f) }
     var selectedTypeId by rememberSaveable { mutableStateOf(1) }
@@ -223,27 +238,49 @@ fun AddMedicationScreen(
                     }
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                    .then(if (isTablet) Modifier.widthIn(max = 300.dp) else Modifier.fillMaxWidth()) // Apply conditional width
+                    .padding(16.dp) // Keep overall padding
                     .padding(WindowInsets.navigationBars.asPaddingValues())
                     .height(60.dp),
                 shape = MaterialTheme.shapes.extraLarge,
-                enabled = medicationName.isNotBlank() && (currentStep != 2 || (packageSize.isNotBlank() && packageSize.toIntOrNull() != null)) // Add more validation
+                enabled = medicationName.isNotBlank() && (currentStep != 2 || (packageSize.isNotBlank() && packageSize.toIntOrNull() != null))
             ) {
                 Text(if (currentStep == 4) stringResource(id = com.d4viddf.medicationreminder.R.string.confirm) else stringResource(id = com.d4viddf.medicationreminder.R.string.next))
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(WindowInsets.safeDrawing.asPaddingValues())
-        ) {
-            when (currentStep) {
-                0 -> {
-                    MedicationNameInput(
+        if (isTablet) {
+            Row(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    // .verticalScroll(scrollState) // Vertical scroll might need to be applied to individual columns if they overflow
+                    .padding(WindowInsets.safeDrawing.asPaddingValues())
+            ) {
+                // Left Column (Steps Indicator)
+                Column(
+                    modifier = Modifier
+                        .weight(0.3f) // Adjust weight as needed
+                        .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 16.dp) // Adjusted padding
+                        .fillMaxHeight() // Ensure it takes full height for the line connectors
+                    // .verticalScroll(rememberScrollState()) // Removed as the indicator itself should manage its height or be non-scrolling if designed to fit
+                ) {
+                    AddMedicationStepsIndicator(
+                        currentStep = currentStep,
+                        totalSteps = stepDetailsList.size,
+                        stepDetails = stepDetailsList
+                    )
+                }
+
+                // Right Column (Content based on currentStep)
+                Column(
+                    modifier = Modifier
+                        .weight(0.7f) // Adjust weight as needed
+                        .padding(16.dp)
+                        .verticalScroll(scrollState) // Existing scrollState for content
+                ) {
+                    CurrentStepContent( // Extracted the when block into a new Composable
+                        currentStep = currentStep,
                         medicationName = medicationName,
                         onMedicationNameChange = { medicationName = it },
                         onMedicationSelected = { result ->
@@ -252,42 +289,24 @@ fun AddMedicationScreen(
                                 medicationName = result.name
                                 dosage = result.dosage ?: ""
                             }
-                        }
-                    )
-                }
-                1 -> {
-                    Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 500.dp)) {
-                        MedicationTypeSelector(
-                            selectedTypeId = selectedTypeId,
-                            onTypeSelected = { selectedTypeId = it },
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                            selectedColor = selectedColor
-                        )
-                        ColorSelector(
-                            selectedColor = selectedColor,
-                            onColorSelected = { selectedColor = it },
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                        )
-                    }
-                }
-                2 -> {
-                    MedicationDosagePackageDateInput(
+                        },
                         selectedTypeId = selectedTypeId,
-                        dosage = dosage, onDosageChange = { dosage = it },
-                        packageSize = packageSize, onPackageSizeChange = { packageSize = it },
+                        onTypeSelected = { selectedTypeId = it },
+                        selectedColor = selectedColor,
+                        onColorSelected = { selectedColor = it },
+                        dosage = dosage,
+                        onDosageChange = { dosage = it },
+                        packageSize = packageSize,
+                        onPackageSizeChange = { packageSize = it },
                         medicationSearchResult = medicationSearchResult,
                         startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                         onStartDateSelected = { startDate = it },
                         endDate = if (endDate.isBlank()) selectEndDatePlaceholder else endDate,
-                        onEndDateSelected = { endDate = it }
-                    )
-                }
-                3 -> {
-                    FrequencySelector(
-                        selectedFrequency = frequency,
+                        onEndDateSelected = { endDate = it },
+                        frequency = frequency,
                         onFrequencySelected = { newFrequency ->
                             frequency = newFrequency
-                            // Reset states when frequency changes to avoid carrying over inappropriate data
+                            // Reset states logic...
                             if (newFrequency != FrequencyType.ONCE_A_DAY) {
                                 onceADayTime = null
                                 selectedDays = emptyList()
@@ -296,8 +315,8 @@ fun AddMedicationScreen(
                                 selectedTimes = emptyList()
                             }
                             if (newFrequency != FrequencyType.INTERVAL) {
-                                intervalHours = 1 // Reset to default
-                                intervalMinutes = 0 // Reset to default
+                                intervalHours = 1
+                                intervalMinutes = 0
                                 intervalStartTime = null
                                 intervalEndTime = null
                             }
@@ -315,29 +334,199 @@ fun AddMedicationScreen(
                         intervalStartTime = intervalStartTime,
                         onIntervalStartTimeSelected = { intervalStartTime = it },
                         intervalEndTime = intervalEndTime,
-                        onIntervalEndTimeSelected = { intervalEndTime = it }
-                    )
-                }
-                4 -> {
-                    val summaryStartDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate
-                    val summaryEndDate = if (endDate.isBlank()) selectEndDatePlaceholder else endDate
-                    MedicationSummary(
-                        typeId = selectedTypeId, medicationName = medicationName, color = selectedColor.backgroundColor,
-                        dosage = dosage, packageSize = packageSize, frequency = frequency,
-                        startDate = summaryStartDate, endDate = summaryEndDate,
-                        onceADayTime = onceADayTime,
-                        selectedTimes = selectedTimes,
-                        intervalHours = intervalHours,
-                        intervalMinutes = intervalMinutes,
-                        intervalStartTime = intervalStartTime,
-                        intervalEndTime = intervalEndTime,
-                        selectedDays = selectedDays
+                        onIntervalEndTimeSelected = { intervalEndTime = it },
+                        selectStartDatePlaceholder = selectStartDatePlaceholder,
+                        selectEndDatePlaceholder = selectEndDatePlaceholder
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    ColorSelector(selectedColor = selectedColor, onColorSelected = { selectedColor = it }) // ColorSelector doesn't depend on frequency string
                 }
             }
+        } else {
+            // Phone layout (existing Column structure)
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(WindowInsets.safeDrawing.asPaddingValues())
+            ) {
+                CurrentStepContent( // Use the extracted Composable here too
+                    currentStep = currentStep,
+                    medicationName = medicationName,
+                    onMedicationNameChange = { medicationName = it },
+                    onMedicationSelected = { result ->
+                        medicationSearchResult = result
+                        if (result != null) {
+                            medicationName = result.name
+                            dosage = result.dosage ?: ""
+                        }
+                    },
+                    selectedTypeId = selectedTypeId,
+                    onTypeSelected = { selectedTypeId = it },
+                    selectedColor = selectedColor,
+                    onColorSelected = { selectedColor = it },
+                    dosage = dosage,
+                    onDosageChange = { dosage = it },
+                    packageSize = packageSize,
+                    onPackageSizeChange = { packageSize = it },
+                    medicationSearchResult = medicationSearchResult,
+                    startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
+                    onStartDateSelected = { startDate = it },
+                    endDate = if (endDate.isBlank()) selectEndDatePlaceholder else endDate,
+                    onEndDateSelected = { endDate = it },
+                    frequency = frequency,
+                    onFrequencySelected = { newFrequency ->
+                        frequency = newFrequency
+                        // Reset states logic...
+                        if (newFrequency != FrequencyType.ONCE_A_DAY) {
+                            onceADayTime = null
+                            selectedDays = emptyList()
+                        }
+                        if (newFrequency != FrequencyType.MULTIPLE_TIMES_A_DAY) {
+                            selectedTimes = emptyList()
+                        }
+                        if (newFrequency != FrequencyType.INTERVAL) {
+                            intervalHours = 1
+                            intervalMinutes = 0
+                            intervalStartTime = null
+                            intervalEndTime = null
+                        }
+                    },
+                    selectedDays = selectedDays,
+                    onDaysSelected = { selectedDays = it },
+                    onceADayTime = onceADayTime,
+                    onOnceADayTimeSelected = { onceADayTime = it },
+                    selectedTimes = selectedTimes,
+                    onTimesSelected = { selectedTimes = it },
+                    intervalHours = intervalHours,
+                    onIntervalHoursChanged = { intervalHours = it },
+                    intervalMinutes = intervalMinutes,
+                    onIntervalMinutesChanged = { intervalMinutes = it },
+                    intervalStartTime = intervalStartTime,
+                    onIntervalStartTimeSelected = { intervalStartTime = it },
+                    intervalEndTime = intervalEndTime,
+                    onIntervalEndTimeSelected = { intervalEndTime = it },
+                    selectStartDatePlaceholder = selectStartDatePlaceholder,
+                    selectEndDatePlaceholder = selectEndDatePlaceholder
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CurrentStepContent(
+    currentStep: Int,
+    medicationName: String,
+    onMedicationNameChange: (String) -> Unit,
+    onMedicationSelected: (MedicationSearchResult?) -> Unit,
+    selectedTypeId: Int,
+    onTypeSelected: (Int) -> Unit,
+    selectedColor: MedicationColor,
+    onColorSelected: (MedicationColor) -> Unit,
+    dosage: String,
+    onDosageChange: (String) -> Unit,
+    packageSize: String,
+    onPackageSizeChange: (String) -> Unit,
+    medicationSearchResult: MedicationSearchResult?,
+    startDate: String,
+    onStartDateSelected: (String) -> Unit,
+    endDate: String,
+    onEndDateSelected: (String) -> Unit,
+    frequency: FrequencyType,
+    onFrequencySelected: (FrequencyType) -> Unit,
+    selectedDays: List<Int>,
+    onDaysSelected: (List<Int>) -> Unit,
+    onceADayTime: LocalTime?,
+    onOnceADayTimeSelected: (LocalTime?) -> Unit,
+    selectedTimes: List<LocalTime>,
+    onTimesSelected: (List<LocalTime>) -> Unit,
+    intervalHours: Int,
+    onIntervalHoursChanged: (Int) -> Unit,
+    intervalMinutes: Int,
+    onIntervalMinutesChanged: (Int) -> Unit,
+    intervalStartTime: LocalTime?,
+    onIntervalStartTimeSelected: (LocalTime?) -> Unit,
+    intervalEndTime: LocalTime?,
+    onIntervalEndTimeSelected: (LocalTime?) -> Unit,
+    // Add placeholders passed from parent
+    selectStartDatePlaceholder: String,
+    selectEndDatePlaceholder: String
+) {
+    when (currentStep) {
+        0 -> {
+            MedicationNameInput(
+                medicationName = medicationName,
+                onMedicationNameChange = onMedicationNameChange,
+                onMedicationSelected = onMedicationSelected
+            )
+        }
+        1 -> {
+             Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 500.dp)) {
+                MedicationTypeSelector(
+                    selectedTypeId = selectedTypeId,
+                    onTypeSelected = onTypeSelected,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    selectedColor = selectedColor
+                )
+                ColorSelector(
+                    selectedColor = selectedColor,
+                    onColorSelected = onColorSelected,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                )
+            }
+        }
+        2 -> {
+            MedicationDosagePackageDateInput(
+                selectedTypeId = selectedTypeId,
+                dosage = dosage, onDosageChange = onDosageChange,
+                packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
+                medicationSearchResult = medicationSearchResult,
+                startDate = startDate, // Pass the potentially placeholder-containing state
+                onStartDateSelected = onStartDateSelected,
+                endDate = endDate, // Pass the potentially placeholder-containing state
+                onEndDateSelected = onEndDateSelected
+            )
+        }
+        3 -> {
+            FrequencySelector(
+                selectedFrequency = frequency,
+                onFrequencySelected = onFrequencySelected,
+                selectedDays = selectedDays,
+                onDaysSelected = onDaysSelected,
+                onceADayTime = onceADayTime,
+                onOnceADayTimeSelected = onOnceADayTimeSelected,
+                selectedTimes = selectedTimes,
+                onTimesSelected = onTimesSelected,
+                intervalHours = intervalHours,
+                onIntervalHoursChanged = onIntervalHoursChanged,
+                intervalMinutes = intervalMinutes,
+                onIntervalMinutesChanged = onIntervalMinutesChanged,
+                intervalStartTime = intervalStartTime,
+                onIntervalStartTimeSelected = onIntervalStartTimeSelected,
+                intervalEndTime = intervalEndTime,
+                onIntervalEndTimeSelected = onIntervalEndTimeSelected
+            )
+        }
+        4 -> {
+            // Ensure placeholders are correctly passed if MedicationSummary uses them
+            val summaryStartDate = if (startDate == selectStartDatePlaceholder) "" else startDate
+            val summaryEndDate = if (endDate == selectEndDatePlaceholder) "" else endDate
+            MedicationSummary(
+                typeId = selectedTypeId, medicationName = medicationName, color = selectedColor.backgroundColor,
+                dosage = dosage, packageSize = packageSize, frequency = frequency,
+                startDate = summaryStartDate, endDate = summaryEndDate, // Use resolved values
+                onceADayTime = onceADayTime,
+                selectedTimes = selectedTimes,
+                intervalHours = intervalHours,
+                intervalMinutes = intervalMinutes,
+                intervalStartTime = intervalStartTime,
+                intervalEndTime = intervalEndTime,
+                selectedDays = selectedDays
+            )
             Spacer(modifier = Modifier.height(16.dp))
+            ColorSelector(selectedColor = selectedColor, onColorSelected = onColorSelected)
         }
     }
 }

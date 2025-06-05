@@ -268,4 +268,19 @@
     <string name="previous_button_text">Previous</string>
     <string name="start_onboarding_button_text">Start Onboarding</string>
     <string name="onboarding_welcome_app_subtitle">Your health companion for timely medication reminders.</string>
+
+    <!-- AddMedicationChoiceScreen -->
+    <string name="add_medication_choice_title">Add Medication</string>
+    <string name="add_medication_camera_button">Use Camera</string>
+    <string name="add_medication_camera_button_desc">Use camera to identify medication</string>
+    <string name="add_medication_search_button">Search for Medication</string>
+    <string name="add_medication_search_button_desc">Search for medication by name</string>
+
+    <!-- AddMedicationStepsIndicator -->
+    <string name="step_completed">Step completed</string>
+    <string name="step_title_medication_name">Name</string>
+    <string name="step_title_type_color">Type &amp; Color</string>
+    <string name="step_title_dosage_package">Dosage &amp; Package</string>
+    <string name="step_title_frequency">Frequency</string>
+    <string name="step_title_summary">Summary</string>
 </resources>

@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
+import com.d4viddf.medicationreminder.ui.components.MedicationSearchResultCard // New import
+import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // New import
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // New import
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -34,6 +37,8 @@ fun MedicationNameInput(
     modifier: Modifier = Modifier,
     viewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
+    val windowSizeClass = LocalWindowSizeClass.current // New line
+    val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // New line
     val coroutineScope = rememberCoroutineScope()
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }
@@ -99,19 +104,19 @@ fun MedicationNameInput(
         // Scrollable list of search results
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth().heightIn(max = 200.dp)
-
+                .fillMaxWidth()
+                .then(
+                    if (isTablet) Modifier.fillMaxHeight() else Modifier.heightIn(min = 100.dp, max = 300.dp) // Conditional height
+                )
         ) {
-            items(searchResults) { result ->
-                Text(
-                    text = result.name,
-                    modifier = Modifier
-                        .clickable {
-                            onMedicationSelected(result)
-                            viewModel.clearSearchResults()
-                            focusManager.clearFocus() // Hide the keyboard when an option is selected
-                        }
-                        .padding(4.dp)
+            items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance
+                MedicationSearchResultCard(
+                    medicationResult = result,
+                    onClick = {
+                        onMedicationSelected(result)
+                        viewModel.clearSearchResults()
+                        focusManager.clearFocus()
+                    }
                 )
             }
         }
