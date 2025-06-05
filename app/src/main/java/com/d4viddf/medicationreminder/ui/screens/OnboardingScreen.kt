@@ -38,6 +38,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.activity.compose.rememberLauncherForActivityResult // Added
+import androidx.activity.result.contract.ActivityResultContracts // Added
+import android.Manifest // Added
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -206,7 +209,15 @@ fun OnboardingPhoneLayout(
                     .fillMaxWidth()
                     .weight(1f)
             ) { pageIndex ->
-                OnboardingStepPage(step = steps[pageIndex], activity = activity)
+                OnboardingStepPage(
+                    step = steps[pageIndex],
+                    activity = activity,
+                    onNotificationPermissionResult = if (steps[pageIndex].permissionType == PermissionType.NOTIFICATION) {
+                        { granted -> isNotificationPermissionCurrentlyGranted = granted }
+                    } else {
+                        null
+                    }
+                )
             }
             Row(
                 modifier = Modifier
@@ -360,21 +371,36 @@ fun OnboardingTabletLayout(
 }
 
 @Composable
-fun OnboardingStepPage(step: OnboardingStepContent, activity: ComponentActivity) {
+fun OnboardingStepPage(
+    step: OnboardingStepContent,
+    activity: ComponentActivity,
+    onNotificationPermissionResult: ((Boolean) -> Unit)? = null // Add this
+) {
     val title = stringResource(id = step.titleResId)
     val description = stringResource(id = step.descriptionResId)
     val context = LocalContext.current
     var isPermissionGranted by remember { mutableStateOf(false) }
     var buttonTextResId by remember { mutableStateOf(R.string.onboarding_grant_permission_button) }
 
-    var localPermissionCheckTrigger by remember { mutableStateOf(0) }
+    // var localPermissionCheckTrigger by remember { mutableStateOf(0) } // Removed
 
-    LaunchedEffect(localPermissionCheckTrigger, step.permissionType) {
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (step.permissionType == PermissionType.NOTIFICATION) {
+                isPermissionGranted = isGranted
+                buttonTextResId = if (isGranted) R.string.onboarding_permission_granted_button else R.string.onboarding_grant_permission_button
+                onNotificationPermissionResult?.invoke(isGranted) // Add this line
+            }
+        }
+    )
+
+    LaunchedEffect(step.permissionType) { // Removed localPermissionCheckTrigger
         if (step.permissionType != null) {
             val permissionString = when (step.permissionType) {
-                PermissionType.NOTIFICATION -> if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) android.Manifest.permission.POST_NOTIFICATIONS else null
-                PermissionType.EXACT_ALARM -> if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) android.Manifest.permission.SCHEDULE_EXACT_ALARM else null
-                PermissionType.FULL_SCREEN_INTENT -> android.Manifest.permission.USE_FULL_SCREEN_INTENT
+                PermissionType.NOTIFICATION -> if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else null
+                PermissionType.EXACT_ALARM -> if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) Manifest.permission.SCHEDULE_EXACT_ALARM else null
+                PermissionType.FULL_SCREEN_INTENT -> Manifest.permission.USE_FULL_SCREEN_INTENT
             }
             if (permissionString != null) {
                 isPermissionGranted = if (step.permissionType == PermissionType.EXACT_ALARM && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -416,11 +442,16 @@ fun OnboardingStepPage(step: OnboardingStepContent, activity: ComponentActivity)
                 onClick = {
                     if (!isPermissionGranted) {
                         when (step.permissionType) {
-                            PermissionType.NOTIFICATION -> PermissionUtils.requestPostNotificationPermission(activity)
+                            PermissionType.NOTIFICATION -> {
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                                // For older SDKs, isPermissionGranted should be true via LaunchedEffect, so this path isn't taken.
+                            }
                             PermissionType.EXACT_ALARM -> PermissionUtils.checkAndRequestExactAlarmPermission(activity)
-                            PermissionType.FULL_SCREEN_INTENT -> PermissionUtils.checkAndRequestFullScreenIntentPermission(activity)
+                            PermissionType.FULL_SCREEN_INTENT -> PermissionUtils.checkAndRequestFullScreenIntentPermission(activity) // This typically doesn't have a system dialog.
                         }
-                        localPermissionCheckTrigger++
+                        // REMOVE: localPermissionCheckTrigger++
                     }
                 },
                 shape = MaterialTheme.shapes.medium,
@@ -455,12 +486,24 @@ fun OnboardingScreenPhonePagerPreview() {
     val pagerState = rememberPagerState { dummySteps.size }
     MaterialTheme {
         // Previewing OnboardingPhoneLayout directly as OnboardingScreen now requires the repository
+        // For the OnboardingStepPage call inside this preview's OnboardingPhoneLayout,
+        // we need to simulate its structure or simplify.
+        // The actual OnboardingPhoneLayout now passes a conditional lambda.
+        // For simplicity in preview, we'll assume the HorizontalPager inside OnboardingPhoneLayout
+        // will call OnboardingStepPage with onNotificationPermissionResult = null.
+        // This means we don't need to change OnboardingStepPage's call *within the preview's Pager* explicitly here,
+        // as the preview directly calls OnboardingPhoneLayout.
+        // The critical part is that OnboardingPhoneLayout itself correctly passes the lambda.
+        // If we were previewing OnboardingStepPage directly, we'd pass null.
         OnboardingPhoneLayout(
             pagerState = pagerState,
             steps = dummySteps,
             navController = navController,
             activity = activity,
-            userPreferencesRepository = dummyUserPreferencesRepository
+            userPreferencesRepository = dummyUserPreferencesRepository // This is for OnboardingPhoneLayout
+            // The HorizontalPager inside OnboardingPhoneLayout will call OnboardingStepPage.
+            // We rely on the actual implementation of OnboardingPhoneLayout to correctly pass
+            // the lambda or null to OnboardingStepPage.
         )
     }
 }
@@ -472,7 +515,6 @@ fun OnboardingScreenTabletPreview() {
     val navController = rememberNavController()
     val currentContext = LocalContext.current
     val activity = currentContext as? ComponentActivity ?: ComponentActivity()
-    // Dummy UserPreferencesRepository for preview
     val dummyUserPreferencesRepository = UserPreferencesRepository(currentContext)
     val dummySteps = listOf(
         OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc),
@@ -483,13 +525,12 @@ fun OnboardingScreenTabletPreview() {
     )
     val pagerState = rememberPagerState { dummySteps.size }
     MaterialTheme {
-        // Previewing OnboardingTabletLayout directly
         OnboardingTabletLayout(
-            pagerState,
-            dummySteps,
-            navController,
-            activity,
-            dummyUserPreferencesRepository
+            pagerState = pagerState, // Corrected: pagerState was passed first
+            steps = dummySteps,
+            navController = navController,
+            activity = activity,
+            userPreferencesRepository = dummyUserPreferencesRepository // This is for OnboardingTabletLayout
         )
     }
 }
