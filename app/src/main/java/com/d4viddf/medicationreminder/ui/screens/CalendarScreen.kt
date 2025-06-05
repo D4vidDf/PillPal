@@ -191,22 +191,27 @@ fun CalendarScreen(
                 // However, reacting to `totalWidthPx > 0` is also a common pattern.
                 // Let's refine this to ensure it runs once when width is properly available.
 
-                // Using a remembered flag to ensure one-time initialization for scrolling to today.
-                var initialScrollDone by remember { mutableStateOf(false) }
+                var hasWidthForInitialScroll by remember { mutableStateOf(false) }
 
-                LaunchedEffect(totalWidthPx) { // Reacts when totalWidthPx changes
+                // This LaunchedEffect updates the calendarState's view width whenever it changes.
+                LaunchedEffect(totalWidthPx) {
                     if (totalWidthPx > 0) {
-                        // This part updates the view dimensions in calendarState.
-                        // It's okay for this to run if the width changes (e.g., rotation).
+                        Log.d("CalendarScreen", "Updating calendarState view width to: $totalWidthPx")
                         calendarState.updateView(newWidth = totalWidthPx)
-
-                        // This part should ideally run only once when the component is first ready.
-                        if (!initialScrollDone) {
-                            // coroutineScope.launch { // LaunchedEffect provides a CoroutineScope
-                            calendarState.scrollToDate(LocalDate.now())
-                            // }
-                            initialScrollDone = true
+                        if (!hasWidthForInitialScroll) { // Check if we haven't marked width as ready for initial scroll
+                            hasWidthForInitialScroll = true // Mark it as ready
                         }
+                    }
+                }
+
+                // This LaunchedEffect performs the initial scroll to today.
+                // It runs once when hasWidthForInitialScroll becomes true.
+                LaunchedEffect(hasWidthForInitialScroll) {
+                    if (hasWidthForInitialScroll) {
+                        Log.d("CalendarScreen", "Performing initial scroll to today.")
+                        // coroutineScope.launch { // LaunchedEffect provides its own CoroutineScope
+                        calendarState.scrollToDate(LocalDate.now())
+                        // }
                     }
                 }
                 Column(Modifier.fillMaxSize()) { // This Column allows stacking DaysRow and later MedicationRows
