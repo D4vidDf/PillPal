@@ -183,34 +183,24 @@ class ScheduleCalendarState(
         return Pair(width, offsetX)
     }
 
-    suspend fun scrollToDate(date: LocalDate, targetOffsetFraction: Float = 0.5f) {
-        if (composableWidthPx <= 0) return // Avoid division by zero or issues if width isn't set
+    suspend fun scrollToDate(date: LocalDate, targetOffsetFraction: Float = 0.5f, initialSnap: Boolean = false) { // Added initialSnap
+        if (composableWidthPx <= 0) return
 
-        // Calculate the target pixel offset from the start of the view
-        // For example, if targetOffsetFraction is 0.5f, this is the center pixel.
         val targetPixelOffsetInView = composableWidthPx * targetOffsetFraction
-
-        // Convert this pixel offset to a duration in seconds from the start of the visible view.
-        // secondsPerPixel = viewSpanSeconds / composableWidthPx
-        // So, durationInSeconds = targetPixelOffsetInView * secondsPerPixel
         val secondsFromViewStartToTargetPixel = (targetPixelOffsetInView * (viewSpanSeconds.toFloat() / composableWidthPx.toFloat())).roundToLong()
-
-        // Calculate the number of seconds from referenceDateTime to the start of the target date.
-        val targetDateStartSecondsFromReference = ChronoUnit.SECONDS.between(referenceDateTime, date.atStartOfDay())
-
-        // The new secondsOffset should be such that the targetDate is positioned correctly.
-        // If secondsOffset = X, then view starts at referenceDateTime.plusSeconds(X).
-        // We want: referenceDateTime.plusSeconds(X).plusSeconds(secondsFromViewStartToTargetPixel) == date.atStartOfDay()
-        // So: X + secondsFromViewStartToTargetPixel = targetDateStartSecondsFromReference
-        // Which means: X = targetDateStartSecondsFromReference - secondsFromViewStartToTargetPixel
+        val targetDateStartSecondsFromReference = ChronoUnit.SECONDS.between(referenceDateTime, date.atTime(12, 0))
         val newSecondsOffset = targetDateStartSecondsFromReference - secondsFromViewStartToTargetPixel
 
-        // Animate to the new offset
-        // You might want to adjust the animation spec (e.g., durationMillis)
-        secondsOffset.animateTo(
-            targetValue = newSecondsOffset,
-            animationSpec = tween(durationMillis = 300) // Or another AnimationSpec like spring()
-        )
+        secondsOffset.stop() // Add this line to stop ongoing animations
+
+        if (initialSnap) {
+            secondsOffset.snapTo(newSecondsOffset)
+        } else {
+            secondsOffset.animateTo(
+                targetValue = newSecondsOffset,
+                animationSpec = tween(durationMillis = 300)
+            )
+        }
         // After animation, if you have onDateRangeChanged, you might call it:
         // onDateRangeChanged(startDateTime, endDateTime)
     }

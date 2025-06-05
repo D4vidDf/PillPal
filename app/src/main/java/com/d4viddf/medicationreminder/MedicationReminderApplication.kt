@@ -80,7 +80,7 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
 
         workManager.enqueueUniquePeriodicWork(
             "DailyReminderRefreshWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.REPLACE,
             dailyRefreshWorkRequest
         )
         val hoursUntilRun = TimeUnit.MILLISECONDS.toHours(delayUntilNextRun)

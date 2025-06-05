@@ -26,6 +26,7 @@ class UserPreferencesRepository @Inject constructor(
         val SELECTED_LANGUAGE_KEY = stringPreferencesKey("selected_language_tag")
         val SELECTED_THEME_KEY = stringPreferencesKey("selected_theme_key")
         val SELECTED_NOTIFICATION_SOUND_URI_KEY = stringPreferencesKey("selected_notification_sound_uri")
+        val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
     }
 
     val languageTagFlow: Flow<String> = context.dataStore.data
@@ -43,6 +44,24 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setLanguageTag(tag: String) {
         context.dataStore.edit { preferences ->
             preferences[SELECTED_LANGUAGE_KEY] = tag
+        }
+    }
+
+    val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[ONBOARDING_COMPLETED_KEY] ?: false // Default to false if not set
+        }
+
+    suspend fun updateOnboardingCompleted(completed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[ONBOARDING_COMPLETED_KEY] = completed
         }
     }
 

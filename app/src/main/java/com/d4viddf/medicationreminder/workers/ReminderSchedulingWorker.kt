@@ -50,6 +50,7 @@ class ReminderSchedulingWorker constructor(
             if (isDailyRefresh) {
                 Log.d(TAG, "Performing daily refresh for all active medications.")
                 val allMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
+                Log.i(TAG, "Daily refresh: Found ${allMedications.size} medications to process.")
                 if (allMedications.isEmpty()) {
                     Log.i(TAG, "No medications found for daily refresh.")
                 }
@@ -101,6 +102,8 @@ class ReminderSchedulingWorker constructor(
         val schedule: MedicationSchedule? = medicationScheduleRepository.getSchedulesForMedication(medication.id)
             .firstOrNull()?.firstOrNull()
 
+        Log.d(funcTag, "Processing medication: ${medication.name} (ID: ${medication.id}) with schedule ID: ${schedule?.id}")
+
         if (schedule == null) {
             Log.w(funcTag, "No schedule found. Cannot schedule next reminder.")
             return
@@ -139,6 +142,7 @@ class ReminderSchedulingWorker constructor(
         }
 
         // 2. Fetch Existing Future Untaken Reminders
+        Log.d(funcTag, "Fetching existing future untaken reminders for medication ID: ${medication.id}.")
         val existingFutureRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
             medication.id, now.format(storableDateTimeFormatter)
         ).firstOrNull() ?: emptyList()
@@ -213,6 +217,7 @@ class ReminderSchedulingWorker constructor(
                             Log.d(funcTag, "Pre-reminder time for reminderId ${reminderWithActualId.id} is in the past ($preReminderTargetTimeMillis). Skipping pre-reminder.")
                         }
                     }
+                    Log.i(funcTag, "Successfully scheduled main and pre-reminder (if applicable) for reminder ID ${reminderWithActualId.id} at $idealDateTime.")
                 } catch (e: IllegalStateException) {
                     Log.e(funcTag, "ALARM LIMIT EXCEPTION for reminder ID ${reminderWithActualId.id}: ${e.message}", e)
                 } catch (e: Exception) {
@@ -229,6 +234,7 @@ class ReminderSchedulingWorker constructor(
                 Log.i(funcTag, "Cleaning up stale reminder. DateTime: $dateTime, ExistingReminderId: ${existingReminder.id}.")
                 notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingReminder.id)
                 medicationReminderRepository.deleteReminderById(existingReminder.id)
+                Log.i(funcTag, "Successfully cancelled and deleted stale reminder ID ${existingReminder.id} for datetime $dateTime.")
             }
         }
         Log.i(funcTag, "Reminder scheduling/synchronization complete.")

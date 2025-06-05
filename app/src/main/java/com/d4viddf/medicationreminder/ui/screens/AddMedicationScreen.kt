@@ -376,8 +376,8 @@ fun AddMedicationScreen(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
+                    .fillMaxHeight()
                     .verticalScroll(scrollState)
-                    .padding(WindowInsets.safeDrawing.asPaddingValues())
             ) {
                 CurrentStepContent( // Use the extracted Composable here too
                     currentStep = currentStep,
@@ -439,7 +439,6 @@ fun AddMedicationScreen(
                         selectEndDatePlaceholder = selectEndDatePlaceholder,
                         isTablet = isTablet // Pass isTablet here
                 )
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -494,9 +493,9 @@ private fun CurrentStepContent(
                 Modifier.fillMaxHeight()
             } else if (isLandscape) {
                 // More constrained height for phone landscape to avoid conflict with TextField & outer scroll
-                Modifier.heightIn(max = 120.dp) // Adjusted from 100dp to give a bit more space
+                Modifier.heightIn(max = 300.dp) // Adjusted from 100dp to give a bit more space
             } else { // Phone Portrait
-                Modifier.heightIn(min = 100.dp, max = 220.dp) // Adjusted from 200dp
+                Modifier.heightIn(min = 200.dp, max = 600.dp) // Adjusted from 200dp
             }
 
             MedicationNameInput(
@@ -507,7 +506,7 @@ private fun CurrentStepContent(
             )
         }
         1 -> {
-             Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 500.dp)) {
+             Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 600.dp)) {
                 MedicationTypeSelector(
                     selectedTypeId = selectedTypeId,
                     onTypeSelected = onTypeSelected,

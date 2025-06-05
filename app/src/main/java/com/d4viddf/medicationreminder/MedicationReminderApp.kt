@@ -6,8 +6,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState // Still needed for navBackStackEntryAsState
 import androidx.compose.ui.Modifier
+// import androidx.compose.ui.Alignment // Removed
+// import androidx.compose.foundation.layout.Box // Removed
+// import androidx.compose.material3.CircularProgressIndicator // Removed
 import androidx.navigation.compose.rememberNavController
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Still needed for OnboardingScreen
 import com.d4viddf.medicationreminder.ui.screens.AppNavigation
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.material3.Scaffold
@@ -26,85 +31,94 @@ import android.util.Log
 @Composable
 fun MedicationReminderApp(
     themePreference: String,
-    widthSizeClass: WindowWidthSizeClass
+    widthSizeClass: WindowWidthSizeClass,
+    userPreferencesRepository: UserPreferencesRepository, // Keep this for OnboardingScreen
+    onboardingCompleted: Boolean // Add this, make it non-null
 ) {
+    // val onboardingStatus by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = null) // REMOVE THIS
+    // if (onboardingStatus == null) { // REMOVE THIS BLOCK
+    //     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    //         CircularProgressIndicator()
+    //     }
+    // } else { // REMOVE THIS BLOCK's if/else structure, keep the 'else' part's content.
+
+    // This logic will now be at the top level inside MedicationReminderApp, after parameters
+    val startRoute = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+
     AppTheme(themePreference = themePreference) {
         val navController = rememberNavController()
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
 
-        // Determine if the current screen is a "main" screen that should show common navigation elements
-        val isMainScreen = currentRoute in listOf(Screen.Home.route, Screen.Calendar.route, Screen.Profile.route)
+            // Determine if the current screen is a "main" screen that should show common navigation elements
+            val isMainScreen = currentRoute in listOf(Screen.Home.route, Screen.Calendar.route, Screen.Profile.route)
 
-        // Specific routes that should not show the main navigation (Scaffold with FAB or NavRail)
-        // This now more clearly defines when to hide all main chrome.
-        val hideAllMainChrome = currentRoute in listOf(
-            Screen.Settings.route,
-            Screen.AddMedication.route,
-            Screen.AddMedicationChoice.route, // Added this line
-            Screen.Onboarding.route // Add Onboarding here
-        ) || currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
-
-
-        Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome")
+            // Specific routes that should not show the main navigation (Scaffold with FAB or NavRail)
+            val hideAllMainChrome = currentRoute in listOf(
+                Screen.Settings.route,
+                Screen.AddMedication.route,
+                Screen.AddMedicationChoice.route, // Added this line
+                Screen.Onboarding.route // Add Onboarding here
+            ) || currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
 
 
-        // Simplified logic for showing navigation elements
-        val showNavElements = !hideAllMainChrome
+            Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome, startRoute: $startRoute")
 
-        Surface(modifier = Modifier.fillMaxSize()) {
-            if (showNavElements && widthSizeClass != WindowWidthSizeClass.Compact) {
-                // Large screens: Use Row with NavigationRail
-                Row(modifier = Modifier.fillMaxSize()) {
-                    AppNavigationRail(
-                        onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
-                        onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
-                        onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
-                        onSettingsClick = { navController.navigate(Screen.Settings.route) }, // Removed popUpTo for settings
-                        onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // Changed here
-                        currentRoute = currentRoute
-                    )
-                    // AppNavigation for large screens does not need a Scaffold with TopAppBar from here,
-                    // individual screens might have their own if needed.
-                    AppNavigation(
-                        navController = navController,
-                        widthSizeClass = widthSizeClass,
-                        // No padding from a parent scaffold
-                        isMainScaffold = false, // Does not use this app's main scaffold
-                        modifier = Modifier.fillMaxSize() // Ensure AppNavigation fills its space
-                    )
-                }
-            } else {
-                // Compact screens OR screens where main navigation is hidden (but not all chrome)
-                // TopAppBar and associated scrollBehavior are removed from this Scaffold.
-                Scaffold(
-                    modifier = Modifier, // Removed nestedScroll as TopAppBar is removed
-                    topBar = {}, // TopAppBar removed
-                    floatingActionButton = {
-                        // Show FAB only on main screens in compact mode
-                        if (isMainScreen && widthSizeClass == WindowWidthSizeClass.Compact) {
-                            AppHorizontalFloatingToolbar(
-                                onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
-                                onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
-                                onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
-                                onSettingsClick = { navController.navigate(Screen.Settings.route) },
-                                onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // Changed here
-                                currentRoute = currentRoute
-                            )
-                        }
-                    },
-                    floatingActionButtonPosition = FabPosition.Center
-                ) {
-                    AppNavigation(
-                        navController = navController,
-                        widthSizeClass = widthSizeClass,
-                        // Pass padding from this scaffold
-                        // isMainScaffold is true if this Scaffold is effectively the main one for the content
-                        isMainScaffold = true,
-                        modifier = Modifier.fillMaxSize() // Ensure AppNavigation uses the padding
-                    )
+
+            // Simplified logic for showing navigation elements
+            val showNavElements = !hideAllMainChrome
+
+            Surface(modifier = Modifier.fillMaxSize()) {
+                if (showNavElements && widthSizeClass != WindowWidthSizeClass.Compact) {
+                    // Large screens: Use Row with NavigationRail
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        AppNavigationRail(
+                            onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
+                            onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
+                            onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
+                            onSettingsClick = { navController.navigate(Screen.Settings.route) }, // Removed popUpTo for settings
+                            onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // Changed here
+                            currentRoute = currentRoute
+                        )
+                        AppNavigation(
+                            navController = navController,
+                            widthSizeClass = widthSizeClass,
+                            isMainScaffold = false,
+                            modifier = Modifier.fillMaxSize(),
+                            userPreferencesRepository = userPreferencesRepository,
+                            startDestinationRoute = startRoute // Pass determined startRoute
+                        )
+                    }
+                } else {
+                    // Compact screens OR screens where main navigation is hidden (but not all chrome)
+                    Scaffold(
+                        modifier = Modifier,
+                        topBar = {},
+                        floatingActionButton = {
+                            if (isMainScreen && widthSizeClass == WindowWidthSizeClass.Compact) {
+                                AppHorizontalFloatingToolbar(
+                                    onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
+                                    onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
+                                    onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
+                                    onSettingsClick = { navController.navigate(Screen.Settings.route) },
+                                    onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) },
+                                    currentRoute = currentRoute
+                                )
+                            }
+                        },
+                        floatingActionButtonPosition = FabPosition.Center
+                    ) {
+                        AppNavigation(
+                            navController = navController,
+                            widthSizeClass = widthSizeClass,
+                            isMainScaffold = true,
+                            modifier = Modifier.fillMaxSize(),
+                            userPreferencesRepository = userPreferencesRepository,
+                            startDestinationRoute = startRoute // Pass determined startRoute
+                        )
+                    }
                 }
             }
         }
     }
-}
+

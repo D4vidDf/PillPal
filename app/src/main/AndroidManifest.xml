@@ -32,7 +32,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.MedicationReminder">
+            android:theme="@style/Theme.App.Starting"> <!-- Changed this line -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
