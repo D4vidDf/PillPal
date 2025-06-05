@@ -10,8 +10,8 @@ import androidx.compose.animation.SharedTransitionLayout // Added
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue // Added
-import androidx.compose.runtime.collectAsState // Added
+// import androidx.compose.runtime.getValue // Removed
+// import androidx.compose.runtime.collectAsState // Removed
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController // Corrected order
 import androidx.navigation.NavType // Added import
@@ -43,18 +43,18 @@ fun AppNavigation(
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     isMainScaffold: Boolean, // Added parameter
-    // onboardingCompleted: Boolean // Removed this parameter
-    userPreferencesRepository: UserPreferencesRepository // Add this
+    userPreferencesRepository: UserPreferencesRepository, // Still needed for OnboardingScreen
+    startDestinationRoute: String // Add this new parameter
 ) {
     SharedTransitionLayout { // `this` is SharedTransitionScope
         val currentSharedTransitionScope = this // Capture SharedTransitionScope
 
-        val onboardingCompleted by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = false)
-        val startDestination = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+        // val onboardingCompleted by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = false) // REMOVE
+        // val startDestination = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route // REMOVE
 
         NavHost(
             navController = navController,
-            startDestination = startDestination, // Use the dynamic startDestination
+            startDestination = startDestinationRoute, // USE THE PARAMETER HERE
             modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier) // Apply incoming modifier and then conditional padding
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
