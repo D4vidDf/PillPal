@@ -290,11 +290,21 @@ fun AddMedicationScreen(
                 }
 
                 // Right Column (Content based on currentStep)
-                Column(
-                    modifier = Modifier
-                        .weight(0.7f) // Adjust weight as needed
+                val rightColumnModifier = if (currentStep == 0) { // Step 0 is MedicationNameInput with LazyColumn
+                    Modifier
+                        .weight(0.7f)
                         .padding(16.dp)
-                        .verticalScroll(scrollState) // Existing scrollState for content
+                        // NO verticalScroll for step 0 on tablet, LazyColumn in MedicationNameInput will handle scroll
+                        .fillMaxHeight() // Ensure this column takes up available height for LazyColumn to fill
+                } else {
+                    Modifier
+                        .weight(0.7f)
+                        .padding(16.dp)
+                        .verticalScroll(scrollState) // Existing scrollState for other steps
+                }
+
+                Column(
+                    modifier = rightColumnModifier
                 ) {
                     CurrentStepContent( // Extracted the when block into a new Composable
                         currentStep = currentStep,
