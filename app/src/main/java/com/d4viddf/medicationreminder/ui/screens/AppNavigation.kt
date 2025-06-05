@@ -22,6 +22,7 @@ import com.d4viddf.medicationreminder.ui.screens.OnboardingScreen // Added impor
 sealed class Screen(val route: String) {
     object Home : Screen("home")
     object AddMedication : Screen("addMedication")
+    object AddMedicationChoice : Screen("addMedicationChoice") // New line
     object MedicationDetails : Screen("medicationDetails/{id}?enableSharedTransition={enableSharedTransition}") {
         fun createRoute(id: Int, enableSharedTransition: Boolean = true) = "medicationDetails/$id?enableSharedTransition=$enableSharedTransition"
     }
@@ -64,10 +65,19 @@ fun AppNavigation(
                     animatedVisibilityScope = this // Pass scope
                 )
             }
+            composable(Screen.AddMedicationChoice.route) { // New entry
+                AddMedicationChoiceScreen(
+                    onSearchMedication = { navController.navigate(Screen.AddMedication.route) },
+                    onUseCamera = { /* Functionality to be added later */ },
+                    onClose = { navController.popBackStack() } // Add this line
+                )
+            }
             composable(Screen.AddMedication.route) {
                 // `this` is an AnimatedVisibilityScope
-                AddMedicationScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                com.d4viddf.medicationreminder.ui.screens.AddMedicationScreen(
+                    // onNavigateBack = { navController.popBackStack() }, // Remove this
+                    navController = navController, // Add this
+                    widthSizeClass = widthSizeClass // Pass the widthSizeClass
                     // No animatedVisibilityScope passed
                 )
             }

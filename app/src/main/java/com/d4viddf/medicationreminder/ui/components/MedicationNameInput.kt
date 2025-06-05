@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
+import com.d4viddf.medicationreminder.ui.components.MedicationSearchResultCard // New import
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // New import
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -31,9 +33,12 @@ fun MedicationNameInput(
     medicationName: String,
     onMedicationNameChange: (String) -> Unit,
     onMedicationSelected: (MedicationSearchResult?) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier, // This is for the whole component
+    searchResultsListModifier: Modifier = Modifier, // New parameter for the LazyColumn
     viewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
+    // val windowSizeClass = LocalWindowSizeClass.current // REMOVE THIS
+    // val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // REMOVE THIS
     val coroutineScope = rememberCoroutineScope()
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }
@@ -99,19 +104,18 @@ fun MedicationNameInput(
         // Scrollable list of search results
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth().heightIn(max = 200.dp)
-
+                .fillMaxWidth() // This can stay if the LazyColumn should always be full width
+                .fillMaxHeight()
+                .then(searchResultsListModifier) // Apply the passed modifier
         ) {
-            items(searchResults) { result ->
-                Text(
-                    text = result.name,
-                    modifier = Modifier
-                        .clickable {
-                            onMedicationSelected(result)
-                            viewModel.clearSearchResults()
-                            focusManager.clearFocus() // Hide the keyboard when an option is selected
-                        }
-                        .padding(4.dp)
+            items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance
+                MedicationSearchResultCard(
+                    medicationResult = result,
+                    onClick = {
+                        onMedicationSelected(result)
+                        viewModel.clearSearchResults()
+                        focusManager.clearFocus()
+                    }
                 )
             }
         }
@@ -134,8 +138,8 @@ fun MedicationNameInputPreview() {
         MedicationNameInput(
             medicationName = "Ibuprofen",
             onMedicationNameChange = {},
-            onMedicationSelected = {}
-            // ViewModel will use its default hiltViewModel() which will likely result in empty searchResults for preview
+            onMedicationSelected = {},
+            searchResultsListModifier = Modifier.heightIn(max = 200.dp) // Provide a default for preview
         )
     }
 }
