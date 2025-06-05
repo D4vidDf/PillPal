@@ -112,12 +112,12 @@
     <string name="medication_progress_display_title">Progress</string>
     <string name="medication_detail_no_reminders_today">There are no reminders for today.</string>
     <!-- New strings for MedicationDetailScreen -->
-    <string name="content_desc_add_past_dose">Add past medication dose</string>
-    <string name="dialog_add_past_dose_title">Add Past Dose</string>
-    <string name="label_medication_name_in_dialog">Medication Name</string>
-    <string name="button_select_date">Select Date</string>
-    <string name="button_save_dose">Save Dose</string>
-    <string name="dialog_select_time_title">Select Time</string>
+    <string name="content_desc_add_past_dose" translatable="false">Add past medication dose</string>
+    <string name="dialog_add_past_dose_title" translatable="false">Add Past Dose</string>
+    <string name="label_medication_name_in_dialog" translatable="false">Medication Name</string>
+    <string name="button_select_date" translatable="false">Select Date</string>
+    <string name="button_save_dose" translatable="false">Save Dose</string>
+    <string name="dialog_select_time_title" translatable="false">Select Time</string>
 
 
     <!-- Settings Screen (New) -->
@@ -130,16 +130,16 @@
     <string name="settings_notification_sound_label">Notification Sound</string>
     <string name="settings_notification_sound_default">Default</string>
     <string name="settings_notification_sound_unknown">Unknown Sound</string>
-    <string name="settings_volume_label">Volume Control</string>
-    <string name="volume_up_content_description">Volume Up</string>
-    <string name="volume_off_content_description">Volume Off</string>
+    <string name="settings_volume_label" translatable="false">Volume Control</string>
+    <string name="volume_up_content_description" translatable="false">Volume Up</string>
+    <string name="volume_off_content_description" translatable="false">Volume Off</string>
 
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Notifications</string>
-    <string name="notification_channel_reminder_name">Medication Reminders</string>
-    <string name="notification_channel_reminder_description">Notifications for medication intake reminders</string>
-    <string name="notification_channel_prereminder_name">Pre-Medication Reminders</string>
-    <string name="notification_channel_prereminder_description">Notifications that appear before medication is due.</string>
+    <string name="notification_channel_reminder_name" translatable="false">Medication Reminders</string>
+    <string name="notification_channel_reminder_description" translatable="false">Notifications for medication intake reminders</string>
+    <string name="notification_channel_prereminder_name" translatable="false">Pre-Medication Reminders</string>
+    <string name="notification_channel_prereminder_description" translatable="false">Notifications that appear before medication is due.</string>
 
 
     <!-- Day initialisms for medication summary -->
@@ -221,29 +221,29 @@
     <string name="prereminder_text_about_time">It\'s about time!</string>
     <string name="prereminder_action_taken">Taken</string>
 
-    <string name="content_description_tick_mark">Confirmation tick</string>
-    <string name="notification_actions_more_options">More options</string>
-    <string name="split_button_state_expanded">Expanded</string>
-    <string name="split_button_state_collapsed">Collapsed</string>
+    <string name="content_description_tick_mark" translatable="false">Confirmation tick</string>
+    <string name="notification_actions_more_options" translatable="false">More options</string>
+    <string name="split_button_state_expanded" translatable="false">Expanded</string>
+    <string name="split_button_state_collapsed" translatable="false">Collapsed</string>
 
     <string name="time_hr_min">%1$d hr %2$d min</string>
     <string name="time_hr">%1$d hr</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
-    <string name="search_medications_placeholder">Search medications...</string>
-    <string name="search_icon_content_description">Search</string>
-    <string name="microphone_icon_content_description">Voice search</string>
-    <string name="speech_prompt_text">Speak now...</string>
+    <string name="search_medications_placeholder" translatable="false">Search medications...</string>
+    <string name="search_icon_content_description" translatable="false">Search</string>
+    <string name="microphone_icon_content_description" translatable="false">Voice search</string>
+    <string name="speech_prompt_text" translatable="false">Speak now...</string>
 
     <!-- Calendar Screen Strings -->
-    <string name="select_date">Select Date</string>
-    <string name="previous_month">Previous Month</string>
-    <string name="next_month">Next Month</string>
-    <string name="no_medications_scheduled_for_this_month">No medications scheduled for this month.</string>
+    <string name="select_date" translatable="false">Select Date</string>
+    <string name="previous_month" translatable="false">Previous Month</string>
+    <string name="next_month" translatable="false">Next Month</string>
+    <string name="no_medications_scheduled_for_this_month" translatable="false">No medications scheduled for this month.</string>
 
     <!-- Onboarding Screen (Original) -->
-    <string name="onboarding_welcome_title">Welcome to Medication Reminder!</string>
-    <string name="onboarding_welcome_subtitle">Let's get you set up.</string>
+    <string name="onboarding_welcome_title">Welcome to PillPal!</string>
+    <string name="onboarding_welcome_subtitle">Let\'s get you set up.</string>
     <string name="onboarding_steps_placeholder">[Placeholder for Onboarding Steps]</string>
     <string name="onboarding_permissions_placeholder">[Placeholder for Permission Settings]</string>
     <string name="onboarding_pane_welcome_area_description">Welcome message area</string>

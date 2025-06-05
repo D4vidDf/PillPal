@@ -24,9 +24,12 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -87,6 +90,7 @@ fun OnboardingScreen(navController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WelcomePageContent(onStartClick: () -> Unit) {
     val logoSize = 120.dp
@@ -104,11 +108,11 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(logoBackgroundSize)
-                .background(color = MaterialTheme.colorScheme.secondaryContainer, shape = CircleShape),
+                .background(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialShapes.Sunny.toShape()),
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                 contentDescription = stringResource(R.string.onboarding_logo_content_description),
                 modifier = Modifier.size(logoSize)
             )
@@ -224,7 +228,7 @@ fun OnboardingPhoneLayout(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnboardingTabletLayout(
     pagerState: PagerState,
@@ -249,6 +253,7 @@ fun OnboardingTabletLayout(
     }
 
     val welcomePaneDesc = stringResource(R.string.onboarding_pane_welcome_area_description)
+    val welcomeTitle= stringResource(R.string.onboarding_welcome_title)
     val logoSize = 120.dp
     val logoBackgroundSize = 150.dp
 
@@ -265,12 +270,11 @@ fun OnboardingTabletLayout(
             Box(
                 modifier = Modifier
                     .size(logoBackgroundSize)
-                    .padding(bottom = 24.dp)
-                    .background(color = MaterialTheme.colorScheme.secondaryContainer, shape = CircleShape),
+                    .background(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialShapes.Pentagon.toShape()),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                     contentDescription = stringResource(R.string.onboarding_logo_content_description),
                     modifier = Modifier.size(logoSize)
                 )
@@ -279,7 +283,7 @@ fun OnboardingTabletLayout(
                 text = stringResource(R.string.onboarding_welcome_title),
                 style = MaterialTheme.typography.displaySmall,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { contentDescription = stringResource(R.string.onboarding_welcome_title) }
+                modifier = Modifier.semantics { contentDescription = welcomeTitle }
             )
         }
         Column(
@@ -478,6 +482,3 @@ fun OnboardingScreenTabletPreview() {
     val pagerState = rememberPagerState { dummySteps.size }
     MaterialTheme { OnboardingTabletLayout(pagerState, dummySteps, navController, activity) }
 }
-
-"}`
-)

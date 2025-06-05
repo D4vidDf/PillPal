@@ -207,7 +207,7 @@
     <string name="medication_type_other_image_description">CA: Medication icon</string>
 
     <!-- Onboarding Screen (Original) -->
-    <string name="onboarding_welcome_title">Benvingut/da a Recordatori de Medicació!</string>
+    <string name="onboarding_welcome_title">Benvingut/da a PillPal!</string>
     <string name="onboarding_welcome_subtitle">Configurem-ho.</string>
     <string name="onboarding_steps_placeholder">[Espai reservat per a Passos d\'Introducció]</string>
     <string name="onboarding_permissions_placeholder">[Espai reservat per a Configuració de Permisos]</string>

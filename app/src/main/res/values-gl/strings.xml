@@ -207,7 +207,7 @@
     <string name="medication_type_other_image_description">Icona de medicamento</string>
 
     <!-- Onboarding Screen (Original) -->
-    <string name="onboarding_welcome_title">Benvido/a a Lembrete de Medicación!</string>
+    <string name="onboarding_welcome_title">Benvido/a a PillPal!</string>
     <string name="onboarding_welcome_subtitle">Imos configuralo.</string>
     <string name="onboarding_steps_placeholder">[Espazo reservado para Pasos de Introdución]</string>
     <string name="onboarding_permissions_placeholder">[Espazo reservado para Configuración de Permisos]</string>

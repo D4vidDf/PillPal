@@ -207,7 +207,7 @@
     <string name="medication_type_other_image_description">EU: Medication icon</string>
 
     <!-- Onboarding Screen (Original) -->
-    <string name="onboarding_welcome_title">Ongi etorri Medikazio Oroigarrira!</string>
+    <string name="onboarding_welcome_title">Ongi etorri PillPal!</string>
     <string name="onboarding_welcome_subtitle">Konfigura dezagun.</string>
     <string name="onboarding_steps_placeholder">[Sarrera Urratsen leku-marka]</string>
     <string name="onboarding_permissions_placeholder">[Baimenen Konfigurazioaren leku-marka]</string>
