@@ -44,7 +44,7 @@ fun MedicationTypeSelector(
     } else {
         // The incoming modifier (which includes .height(400.dp)) is applied to this Column.
         Column(
-            modifier = modifier, // This Column now has the fixed height (e.g., 400dp)
+            modifier = modifier.fillMaxHeight(), // This Column now has the fixed height (e.g., 400dp)
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
