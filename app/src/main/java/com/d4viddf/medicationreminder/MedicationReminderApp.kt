@@ -6,8 +6,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState // Added import
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Added import
 import com.d4viddf.medicationreminder.ui.screens.AppNavigation
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.material3.Scaffold
@@ -26,8 +28,11 @@ import android.util.Log
 @Composable
 fun MedicationReminderApp(
     themePreference: String,
-    widthSizeClass: WindowWidthSizeClass
+    widthSizeClass: WindowWidthSizeClass,
+    userPreferencesRepository: UserPreferencesRepository // Add this parameter
 ) {
+    // val onboardingCompleted by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = false) // Removed: This will be collected in AppNavigation
+
     AppTheme(themePreference = themePreference) {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -71,7 +76,9 @@ fun MedicationReminderApp(
                         widthSizeClass = widthSizeClass,
                         // No padding from a parent scaffold
                         isMainScaffold = false, // Does not use this app's main scaffold
-                        modifier = Modifier.fillMaxSize() // Ensure AppNavigation fills its space
+                        modifier = Modifier.fillMaxSize(), // Ensure AppNavigation fills its space
+                        // onboardingCompleted = onboardingCompleted // Removed
+                        userPreferencesRepository = userPreferencesRepository // Pass repository
                     )
                 }
             } else {
@@ -101,7 +108,9 @@ fun MedicationReminderApp(
                         // Pass padding from this scaffold
                         // isMainScaffold is true if this Scaffold is effectively the main one for the content
                         isMainScaffold = true,
-                        modifier = Modifier.fillMaxSize() // Ensure AppNavigation uses the padding
+                        modifier = Modifier.fillMaxSize(), // Ensure AppNavigation uses the padding
+                        // onboardingCompleted = onboardingCompleted // Removed
+                        userPreferencesRepository = userPreferencesRepository // Pass repository
                     )
                 }
             }

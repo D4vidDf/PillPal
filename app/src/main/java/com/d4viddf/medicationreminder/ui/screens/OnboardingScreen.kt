@@ -53,6 +53,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Added
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
 
@@ -66,7 +67,10 @@ data class OnboardingStepContent(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnboardingScreen(navController: NavHostController) {
+fun OnboardingScreen(
+    navController: NavHostController,
+    userPreferencesRepository: UserPreferencesRepository // Add this
+) {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
 
@@ -84,9 +88,21 @@ fun OnboardingScreen(navController: NavHostController) {
     }
 
     if (screenWidthDp >= 600) {
-        OnboardingTabletLayout(pagerState = pagerState, steps = onboardingSteps, navController = navController, activity = activity)
+        OnboardingTabletLayout(
+            pagerState = pagerState,
+            steps = onboardingSteps,
+            navController = navController,
+            activity = activity,
+            userPreferencesRepository = userPreferencesRepository
+        )
     } else {
-        OnboardingPhoneLayout(pagerState = pagerState, steps = onboardingSteps, navController = navController, activity = activity)
+        OnboardingPhoneLayout(
+            pagerState = pagerState,
+            steps = onboardingSteps,
+            navController = navController,
+            activity = activity,
+            userPreferencesRepository = userPreferencesRepository
+        )
     }
 }
 
@@ -150,7 +166,8 @@ fun OnboardingPhoneLayout(
     pagerState: PagerState,
     steps: List<OnboardingStepContent>,
     navController: NavHostController,
-    activity: ComponentActivity
+    activity: ComponentActivity,
+    userPreferencesRepository: UserPreferencesRepository // Add this
 ) {
     var showWelcomePage by rememberSaveable { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
@@ -215,6 +232,7 @@ fun OnboardingPhoneLayout(
                             if (pagerState.currentPage < steps.size - 1) {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             } else {
+                                userPreferencesRepository.updateOnboardingCompleted(true) // Add this line
                                 navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
                             }
                         }
@@ -234,7 +252,8 @@ fun OnboardingTabletLayout(
     pagerState: PagerState,
     steps: List<OnboardingStepContent>,
     navController: NavHostController,
-    activity: ComponentActivity
+    activity: ComponentActivity,
+    userPreferencesRepository: UserPreferencesRepository // Add this
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -326,6 +345,7 @@ fun OnboardingTabletLayout(
                             if (pagerState.currentPage < steps.size - 1) {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             } else {
+                                userPreferencesRepository.updateOnboardingCompleted(true) // Add this line
                                 navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
                             }
                         }
@@ -412,7 +432,9 @@ fun OnboardingStepPage(step: OnboardingStepContent, activity: ComponentActivity)
 
 @Preview(showBackground = true, name = "Phone Onboarding Welcome")
 @Composable
-fun OnboardingScreenPhoneWelcomePreview() { MaterialTheme { WelcomePageContent(onStartClick = {}) } }
+fun OnboardingScreenPhoneWelcomePreview() {
+    MaterialTheme { WelcomePageContent(onStartClick = {}) }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true, name = "Phone Onboarding Pager")
@@ -421,6 +443,8 @@ fun OnboardingScreenPhonePagerPreview() {
     val navController = rememberNavController()
     val currentContext = LocalContext.current
     val activity = currentContext as? ComponentActivity ?: ComponentActivity()
+    // Dummy UserPreferencesRepository for preview
+    val dummyUserPreferencesRepository = UserPreferencesRepository(currentContext)
     val dummySteps = listOf(
         OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc),
         OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, PermissionType.NOTIFICATION),
@@ -430,38 +454,14 @@ fun OnboardingScreenPhonePagerPreview() {
     )
     val pagerState = rememberPagerState { dummySteps.size }
     MaterialTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) { pageIndex ->
-                OnboardingStepPage(step = dummySteps[pageIndex], activity = activity)
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = {},
-                    shape = MaterialTheme.shapes.extraLarge,
-                    modifier = Modifier.height(50.dp)
-                ) {
-                    Text(text = stringResource(R.string.next_button_text))
-                }
-            }
-        }
+        // Previewing OnboardingPhoneLayout directly as OnboardingScreen now requires the repository
+        OnboardingPhoneLayout(
+            pagerState = pagerState,
+            steps = dummySteps,
+            navController = navController,
+            activity = activity,
+            userPreferencesRepository = dummyUserPreferencesRepository
+        )
     }
 }
 
@@ -472,6 +472,8 @@ fun OnboardingScreenTabletPreview() {
     val navController = rememberNavController()
     val currentContext = LocalContext.current
     val activity = currentContext as? ComponentActivity ?: ComponentActivity()
+    // Dummy UserPreferencesRepository for preview
+    val dummyUserPreferencesRepository = UserPreferencesRepository(currentContext)
     val dummySteps = listOf(
         OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc),
         OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, PermissionType.NOTIFICATION),
@@ -480,5 +482,14 @@ fun OnboardingScreenTabletPreview() {
         OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc)
     )
     val pagerState = rememberPagerState { dummySteps.size }
-    MaterialTheme { OnboardingTabletLayout(pagerState, dummySteps, navController, activity) }
+    MaterialTheme {
+        // Previewing OnboardingTabletLayout directly
+        OnboardingTabletLayout(
+            pagerState,
+            dummySteps,
+            navController,
+            activity,
+            dummyUserPreferencesRepository
+        )
+    }
 }

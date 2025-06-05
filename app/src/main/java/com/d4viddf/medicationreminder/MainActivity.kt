@@ -112,7 +112,8 @@ class MainActivity : ComponentActivity() {
 
             MedicationReminderApp(
                 themePreference = themePreference,
-                widthSizeClass = windowSizeClass.widthSizeClass
+                widthSizeClass = windowSizeClass.widthSizeClass,
+                userPreferencesRepository = userPreferencesRepository // Add this line
             )
         }
     }
