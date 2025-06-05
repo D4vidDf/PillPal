@@ -8,6 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Box // Added
+import androidx.compose.foundation.layout.fillMaxSize // Added
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -47,7 +49,7 @@ class MainActivity : ComponentActivity() {
     }
     // Tracks the locale tag this Activity instance last successfully applied or attempted to apply.
     private var localeTagSetByThisInstance: String? = null
-    private val isLoadingOnboardingStatus = MutableStateFlow(true)
+    private val onboardingStatusHolder = MutableStateFlow<Boolean?>(null)
 
     @SuppressLint("FlowOperatorInvokedInComposition")
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -60,18 +62,18 @@ class MainActivity : ComponentActivity() {
         // Initialize PermissionUtils
         PermissionUtils.init(this)
 
-        // Logic to set isLoadingOnboardingStatus (new)
+        // Logic to set isLoadingOnboardingStatus (new) -> onboardingStatusHolder
         lifecycleScope.launch {
             Log.d(TAG_MAIN_ACTIVITY, "Waiting for onboarding status from DataStore...")
-            userPreferencesRepository.onboardingCompletedFlow.first() // Wait for the first emission
-            Log.d(TAG_MAIN_ACTIVITY, "Onboarding status loaded.")
-            isLoadingOnboardingStatus.update { false } // Set to false once loaded
+            val status = userPreferencesRepository.onboardingCompletedFlow.first()
+            Log.d(TAG_MAIN_ACTIVITY, "Onboarding status loaded: $status")
+            onboardingStatusHolder.value = status
         }
 
         // Set the condition for the splash screen (new)
         splashScreen.setKeepOnScreenCondition {
-            val isLoading = isLoadingOnboardingStatus.value
-            Log.d(TAG_MAIN_ACTIVITY, "setKeepOnScreenCondition check: isLoading = $isLoading")
+            val isLoading = onboardingStatusHolder.value == null
+            Log.d(TAG_MAIN_ACTIVITY, "setKeepOnScreenCondition check: isLoading = $isLoading (status is null: ${onboardingStatusHolder.value == null})")
             isLoading
         }
 
@@ -109,40 +111,40 @@ class MainActivity : ComponentActivity() {
         WorkManager.getInstance(applicationContext).enqueue(testWorkRequest)
 
         setContent {
-            val windowSizeClass = calculateWindowSizeClass(this)
-            val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
+            val loadedOnboardingCompletedStatus by onboardingStatusHolder.collectAsState()
 
-            val userPreferenceTagFromFlow by userPreferencesRepository.languageTagFlow
-                .distinctUntilChanged()
-                .collectAsState(initial = storedLocaleTag)
+            if (loadedOnboardingCompletedStatus != null) {
+                val windowSizeClass = calculateWindowSizeClass(this)
+                val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
+                val userPreferenceTagFromFlow by userPreferencesRepository.languageTagFlow
+                    .distinctUntilChanged()
+                    .collectAsState(initial = storedLocaleTag)
 
-            LaunchedEffect(userPreferenceTagFromFlow) {
-                Log.d("MainActivity", "LanguageEffect: DataStore emitted '$userPreferenceTagFromFlow'. Locale last set by this instance: '$localeTagSetByThisInstance'.")
-
-                // Critical check: Only act if the preference from DataStore has genuinely changed
-                // from what this Activity instance last knew it set.
-                if (userPreferenceTagFromFlow != localeTagSetByThisInstance) {
-                    Log.i("MainActivity", "LanguageEffect: User preference changed in DataStore to '$userPreferenceTagFromFlow'. Last set by this instance was '$localeTagSetByThisInstance'. Applying and Recreating.")
-
-                    val newLocaleList = LocaleListCompat.forLanguageTags(userPreferenceTagFromFlow)
-                    AppCompatDelegate.setApplicationLocales(newLocaleList)
-                    localeTagSetByThisInstance = userPreferenceTagFromFlow // Update tracker
-                    recreate() // Recreate to apply the new language setting
-                } else {
-                    Log.d("MainActivity", "LanguageEffect: DataStore value '$userPreferenceTagFromFlow' matches what was last set by this instance ('$localeTagSetByThisInstance'). No action needed from LaunchedEffect.")
+                LaunchedEffect(userPreferenceTagFromFlow) {
+                    Log.d(TAG_MAIN_ACTIVITY, "LanguageEffect: DataStore emitted '$userPreferenceTagFromFlow'. Locale last set by this instance: '$localeTagSetByThisInstance'.")
+                    if (userPreferenceTagFromFlow != localeTagSetByThisInstance) {
+                        Log.i(TAG_MAIN_ACTIVITY, "LanguageEffect: User preference changed in DataStore to '$userPreferenceTagFromFlow'. Last set by this instance was '$localeTagSetByThisInstance'. Applying and Recreating.")
+                        val newLocaleList = LocaleListCompat.forLanguageTags(userPreferenceTagFromFlow)
+                        AppCompatDelegate.setApplicationLocales(newLocaleList)
+                        localeTagSetByThisInstance = userPreferenceTagFromFlow
+                        recreate()
+                    } else {
+                        Log.d(TAG_MAIN_ACTIVITY, "LanguageEffect: DataStore value '$userPreferenceTagFromFlow' matches what was last set by this instance ('$localeTagSetByThisInstance'). No action needed from LaunchedEffect.")
+                    }
                 }
+
+                MedicationReminderApp(
+                    themePreference = themePreference,
+                    widthSizeClass = windowSizeClass.widthSizeClass,
+                    userPreferencesRepository = userPreferencesRepository,
+                    onboardingCompleted = loadedOnboardingCompletedStatus!! // Use non-null asserted value
+                )
+            } else {
+                // While onboardingStatusHolder.value is null (splash screen is showing),
+                // compose a minimal placeholder.
+                Box(modifier = Modifier.fillMaxSize())
+                Log.d(TAG_MAIN_ACTIVITY, "setContent: onboardingStatusHolder is null, showing placeholder Box.")
             }
-
-            // Collect the actual onboarding status here, once isLoadingOnboardingStatus is false.
-            val finalOnboardingCompletedState by userPreferencesRepository.onboardingCompletedFlow
-                .collectAsState(initial = false) // Default to false for initial route calculation
-
-            MedicationReminderApp(
-                themePreference = themePreference,
-                widthSizeClass = windowSizeClass.widthSizeClass,
-                userPreferencesRepository = userPreferencesRepository,
-                onboardingCompleted = finalOnboardingCompletedState // Pass the loaded boolean
-            )
         }
     }
     // Removed checkAndRequestFullScreenIntentPermission

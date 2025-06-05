@@ -188,7 +188,7 @@ class ScheduleCalendarState(
 
         val targetPixelOffsetInView = composableWidthPx * targetOffsetFraction
         val secondsFromViewStartToTargetPixel = (targetPixelOffsetInView * (viewSpanSeconds.toFloat() / composableWidthPx.toFloat())).roundToLong()
-        val targetDateStartSecondsFromReference = ChronoUnit.SECONDS.between(referenceDateTime, date.atStartOfDay())
+        val targetDateStartSecondsFromReference = ChronoUnit.SECONDS.between(referenceDateTime, date.atTime(12, 0))
         val newSecondsOffset = targetDateStartSecondsFromReference - secondsFromViewStartToTargetPixel
 
         secondsOffset.stop() // Add this line to stop ongoing animations
