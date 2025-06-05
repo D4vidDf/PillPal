@@ -145,7 +145,7 @@ fun CalendarScreen(
 
 
                 coroutineScope.launch { // Added: launch a coroutine
-                    calendarState.scrollToDate(newDate)
+                    calendarState.scrollToDate(newDate, initialSnap = false)
                 }
                 showDatePickerDialog = false
             },
@@ -210,7 +210,7 @@ fun CalendarScreen(
                     if (hasWidthForInitialScroll) {
                         Log.d("CalendarScreen", "Performing initial scroll to today.")
                         // coroutineScope.launch { // LaunchedEffect provides its own CoroutineScope
-                        calendarState.scrollToDate(LocalDate.now())
+                        calendarState.scrollToDate(LocalDate.now(), initialSnap = true)
                         // }
                     }
                 }
