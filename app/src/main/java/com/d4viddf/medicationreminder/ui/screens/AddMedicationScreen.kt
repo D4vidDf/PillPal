@@ -54,13 +54,13 @@ import java.util.*
 @Composable
 fun AddMedicationScreen(
     onNavigateBack: () -> Unit,
+    widthSizeClass: WindowWidthSizeClass, // Add this parameter
     medicationViewModel: MedicationViewModel = hiltViewModel(),
     medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
-    // ... existing states ...
-    val windowSizeClass = LocalWindowSizeClass.current // Get the window size class
-    val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // Determine if it's a tablet
+    // val windowSizeClass = LocalWindowSizeClass.current // REMOVE THIS
+    val isTablet = widthSizeClass >= WindowWidthSizeClass.Medium // Ensure this uses the parameter
 
     val stepDetailsList = listOf(
         StepDetails(1, stringResource(R.string.step_title_medication_name), R.drawable.ic_pill_placeholder),
@@ -336,7 +336,8 @@ fun AddMedicationScreen(
                         intervalEndTime = intervalEndTime,
                         onIntervalEndTimeSelected = { intervalEndTime = it },
                         selectStartDatePlaceholder = selectStartDatePlaceholder,
-                        selectEndDatePlaceholder = selectEndDatePlaceholder
+                        selectEndDatePlaceholder = selectEndDatePlaceholder,
+                        isTablet = isTablet // Pass isTablet here
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -407,7 +408,8 @@ fun AddMedicationScreen(
                     intervalEndTime = intervalEndTime,
                     onIntervalEndTimeSelected = { intervalEndTime = it },
                     selectStartDatePlaceholder = selectStartDatePlaceholder,
-                    selectEndDatePlaceholder = selectEndDatePlaceholder
+                        selectEndDatePlaceholder = selectEndDatePlaceholder,
+                        isTablet = isTablet // Pass isTablet here
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -452,14 +454,21 @@ private fun CurrentStepContent(
     onIntervalEndTimeSelected: (LocalTime?) -> Unit,
     // Add placeholders passed from parent
     selectStartDatePlaceholder: String,
-    selectEndDatePlaceholder: String
+    selectEndDatePlaceholder: String,
+    isTablet: Boolean // Add this
 ) {
     when (currentStep) {
         0 -> {
+            val searchResultsListModifier = if (isTablet) {
+                Modifier.fillMaxHeight()
+            } else {
+                Modifier.heightIn(min = 100.dp, max = 300.dp)
+            }
             MedicationNameInput(
                 medicationName = medicationName,
                 onMedicationNameChange = onMedicationNameChange,
-                onMedicationSelected = onMedicationSelected
+                onMedicationSelected = onMedicationSelected,
+                searchResultsListModifier = searchResultsListModifier
             )
         }
         1 -> {
@@ -535,7 +544,10 @@ private fun CurrentStepContent(
 @Composable
 fun AddMedicationScreenPreview() {
     AppTheme {
-        AddMedicationScreen(onNavigateBack = {})
+        AddMedicationScreen(
+            onNavigateBack = {},
+            widthSizeClass = WindowWidthSizeClass.Compact // Provide a default for preview
+        )
     }
 }
 

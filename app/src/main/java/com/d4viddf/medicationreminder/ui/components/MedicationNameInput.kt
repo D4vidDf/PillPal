@@ -34,11 +34,12 @@ fun MedicationNameInput(
     medicationName: String,
     onMedicationNameChange: (String) -> Unit,
     onMedicationSelected: (MedicationSearchResult?) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier, // This is for the whole component
+    searchResultsListModifier: Modifier = Modifier, // New parameter for the LazyColumn
     viewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
-    val windowSizeClass = LocalWindowSizeClass.current // New line
-    val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // New line
+    // val windowSizeClass = LocalWindowSizeClass.current // REMOVE THIS
+    // val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // REMOVE THIS
     val coroutineScope = rememberCoroutineScope()
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }
@@ -104,10 +105,8 @@ fun MedicationNameInput(
         // Scrollable list of search results
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (isTablet) Modifier.fillMaxHeight() else Modifier.heightIn(min = 100.dp, max = 300.dp) // Conditional height
-                )
+                .fillMaxWidth() // This can stay if the LazyColumn should always be full width
+                .then(searchResultsListModifier) // Apply the passed modifier
         ) {
             items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance
                 MedicationSearchResultCard(
@@ -139,8 +138,8 @@ fun MedicationNameInputPreview() {
         MedicationNameInput(
             medicationName = "Ibuprofen",
             onMedicationNameChange = {},
-            onMedicationSelected = {}
-            // ViewModel will use its default hiltViewModel() which will likely result in empty searchResults for preview
+            onMedicationSelected = {},
+            searchResultsListModifier = Modifier.heightIn(max = 200.dp) // Provide a default for preview
         )
     }
 }

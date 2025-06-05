@@ -75,7 +75,8 @@ fun AppNavigation(
             composable(Screen.AddMedication.route) {
                 // `this` is an AnimatedVisibilityScope
                 com.d4viddf.medicationreminder.ui.screens.addmedication.AddMedicationScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    widthSizeClass = widthSizeClass // Pass the widthSizeClass
                     // No animatedVisibilityScope passed
                 )
             }
