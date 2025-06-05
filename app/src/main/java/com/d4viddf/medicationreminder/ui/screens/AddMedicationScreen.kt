@@ -30,6 +30,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added 
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController // Add this import
+import androidx.navigation.compose.rememberNavController
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder

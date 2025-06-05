@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Divider

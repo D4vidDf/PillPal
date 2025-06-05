@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import com.d4viddf.medicationreminder.ui.components.MedicationSearchResultCard // New import
-import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // New import
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // New import
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -106,6 +105,7 @@ fun MedicationNameInput(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth() // This can stay if the LazyColumn should always be full width
+                .fillMaxHeight()
                 .then(searchResultsListModifier) // Apply the passed modifier
         ) {
             items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance

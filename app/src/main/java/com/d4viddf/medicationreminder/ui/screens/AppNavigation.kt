@@ -17,7 +17,6 @@ import androidx.navigation.compose.NavHost // Corrected order
 import androidx.navigation.compose.composable // Corrected order
 import androidx.navigation.navArgument // Added import
 import com.d4viddf.medicationreminder.ui.screens.OnboardingScreen // Added import for OnboardingScreen
-import com.d4viddf.medicationreminder.ui.screens.addmedication.AddMedicationScreen // Added import for AddMedicationScreen
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {

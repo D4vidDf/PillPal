@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMedicationChoiceScreen(
     onSearchMedication: () -> Unit,
