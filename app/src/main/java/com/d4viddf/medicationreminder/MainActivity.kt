@@ -76,10 +76,10 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationHelper.createNotificationChannels(this)
         }
-        // Use PermissionUtils for permission checks
-        PermissionUtils.requestPostNotificationPermission(this)
-        PermissionUtils.checkAndRequestExactAlarmPermission(this)
-        PermissionUtils.checkAndRequestFullScreenIntentPermission(this)
+        // REMOVE THESE LINES:
+        // PermissionUtils.requestPostNotificationPermission(this)
+        // PermissionUtils.checkAndRequestExactAlarmPermission(this)
+        // PermissionUtils.checkAndRequestFullScreenIntentPermission(this)
 
 
         val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build()

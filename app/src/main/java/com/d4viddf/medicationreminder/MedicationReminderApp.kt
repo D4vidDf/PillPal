@@ -40,7 +40,8 @@ fun MedicationReminderApp(
         // This now more clearly defines when to hide all main chrome.
         val hideAllMainChrome = currentRoute in listOf(
             Screen.Settings.route,
-            Screen.AddMedication.route
+            Screen.AddMedication.route,
+            Screen.Onboarding.route // Add Onboarding here
         ) || currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
 
 
