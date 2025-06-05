@@ -2,6 +2,8 @@ package com.d4viddf.medicationreminder.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,12 +17,21 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 @Composable
 fun AddMedicationChoiceScreen(
     onSearchMedication: () -> Unit,
-    onUseCamera: () -> Unit // Will be disabled for now
+    onUseCamera: () -> Unit, // Will be disabled for now
+    onClose: () -> Unit // Add this parameter
 ) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(id = R.string.add_medication_choice_title)) } // TODO: Add this string resource
+                title = { Text(stringResource(id = R.string.add_medication_choice_title)) },
+                actions = { // Add actions parameter
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(id = R.string.close) // Assuming R.string.close exists or add it
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -71,6 +82,10 @@ fun AddMedicationChoiceScreen(
 @Composable
 fun AddMedicationChoiceScreenPreview() {
     AppTheme {
-        AddMedicationChoiceScreen(onSearchMedication = {}, onUseCamera = {})
+        AddMedicationChoiceScreen(
+            onSearchMedication = {},
+            onUseCamera = {},
+            onClose = {} // Add this
+        )
     }
 }

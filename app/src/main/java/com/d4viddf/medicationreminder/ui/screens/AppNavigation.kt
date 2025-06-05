@@ -69,13 +69,15 @@ fun AppNavigation(
             composable(Screen.AddMedicationChoice.route) { // New entry
                 AddMedicationChoiceScreen(
                     onSearchMedication = { navController.navigate(Screen.AddMedication.route) },
-                    onUseCamera = { /* Functionality to be added later */ }
+                    onUseCamera = { /* Functionality to be added later */ },
+                    onClose = { navController.popBackStack() } // Add this line
                 )
             }
             composable(Screen.AddMedication.route) {
                 // `this` is an AnimatedVisibilityScope
-                com.d4viddf.medicationreminder.ui.screens.addmedication.AddMedicationScreen(
-                    onNavigateBack = { navController.popBackStack() },
+                com.d4viddf.medicationreminder.ui.screens.AddMedicationScreen(
+                    // onNavigateBack = { navController.popBackStack() }, // Remove this
+                    navController = navController, // Add this
                     widthSizeClass = widthSizeClass // Pass the widthSizeClass
                     // No animatedVisibilityScope passed
                 )

@@ -17,7 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration // To get screen width if not using WindowSizeClass directly for this
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration // For Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 // import androidx.compose.ui.platform.LocalContext // Only if child components truly need it
@@ -25,9 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added import
-import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // Preferred
+// import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // Preferred -> No longer needed here
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController // Add this import
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -53,8 +55,9 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMedicationScreen(
-    onNavigateBack: () -> Unit,
-    widthSizeClass: WindowWidthSizeClass, // Add this parameter
+    // onNavigateBack: () -> Unit, // Remove this
+    navController: NavHostController, // Add this
+    widthSizeClass: WindowWidthSizeClass,
     medicationViewModel: MedicationViewModel = hiltViewModel(),
     medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
@@ -144,11 +147,20 @@ fun AddMedicationScreen(
                             Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
                         }
                     } else {
-                        Spacer(Modifier.width(48.dp))
+                        // If on step 0, this back button could also navigate back past the choice screen
+                        // Or simply pop AddMedicationScreen, leading to AddMedicationChoiceScreen
+                        // For consistency with the close button, let's make it pop AddMedicationScreen only.
+                        // The user would then be on AddMedicationChoiceScreen and can use its new close button.
+                         IconButton(onClick = { navController.popBackStack() }) { // Pops AddMedicationScreen
+                             Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
+                         }
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = {
+                        // This should take us back to the screen before AddMedicationChoiceScreen
+                         navController.popBackStack(Screen.AddMedicationChoice.route, inclusive = true)
+                    }) {
                         Icon(Icons.Rounded.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.close))
                     }
                 }
@@ -233,7 +245,12 @@ fun AddMedicationScreen(
                                     )
                                 }
                             }
-                            onNavigateBack()
+                            // onNavigateBack() // Remove this line
+
+                            // New navigation logic:
+                            // Pop AddMedicationScreen AND AddMedicationChoiceScreen from the back stack.
+                            // This effectively returns to the screen that was active before AddMedicationChoiceScreen.
+                            navController.popBackStack(Screen.AddMedicationChoice.route, inclusive = true)
                         }
                     }
                 },
@@ -459,11 +476,18 @@ private fun CurrentStepContent(
 ) {
     when (currentStep) {
         0 -> {
+            val configuration = LocalConfiguration.current
+            val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
             val searchResultsListModifier = if (isTablet) {
                 Modifier.fillMaxHeight()
-            } else {
-                Modifier.heightIn(min = 100.dp, max = 300.dp)
+            } else if (isLandscape) {
+                // More constrained height for phone landscape to avoid conflict with TextField & outer scroll
+                Modifier.heightIn(max = 120.dp) // Adjusted from 100dp to give a bit more space
+            } else { // Phone Portrait
+                Modifier.heightIn(min = 100.dp, max = 220.dp) // Adjusted from 200dp
             }
+
             MedicationNameInput(
                 medicationName = medicationName,
                 onMedicationNameChange = onMedicationNameChange,
@@ -545,7 +569,8 @@ private fun CurrentStepContent(
 fun AddMedicationScreenPreview() {
     AppTheme {
         AddMedicationScreen(
-            onNavigateBack = {},
+            // onNavigateBack = {}, // Remove
+            navController = rememberNavController(), // Add
             widthSizeClass = WindowWidthSizeClass.Compact // Provide a default for preview
         )
     }
