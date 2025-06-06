@@ -1,17 +1,10 @@
 package com.d4viddf.medicationreminder.ui.screens
 
-// Removed ExperimentalSharedTransitionApi from here as it's now file-level (or it might be kept if other specific experimental APIs are used later)
-// For this task, specifically moving the SharedTransition one.
-// Keeping it is fine if it's the only experimental API. If there were others, this specific one would be part of the file-level.
-// Let's assume it's fine to just have the file-level one for this API.
-// import androidx.compose.animation.ExperimentalSharedTransitionApi // Added - This line can be removed if no other composable in this file needs it individually
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout // Added
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-// import androidx.compose.runtime.getValue // Removed
-// import androidx.compose.runtime.collectAsState // Removed
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController // Corrected order
 import androidx.navigation.NavType // Added import
@@ -19,7 +12,6 @@ import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Ad
 import androidx.navigation.compose.NavHost // Corrected order
 import androidx.navigation.compose.composable // Corrected order
 import androidx.navigation.navArgument // Added import
-import com.d4viddf.medicationreminder.ui.screens.OnboardingScreen // Added import for OnboardingScreen
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -85,7 +77,7 @@ fun AppNavigation(
             }
             composable(Screen.AddMedication.route) {
                 // `this` is an AnimatedVisibilityScope
-                com.d4viddf.medicationreminder.ui.screens.AddMedicationScreen(
+                AddMedicationScreen(
                     // onNavigateBack = { navController.popBackStack() }, // Remove this
                     navController = navController, // Add this
                     widthSizeClass = widthSizeClass // Pass the widthSizeClass

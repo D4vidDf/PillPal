@@ -10,20 +10,24 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+// MedicationColor import removed if no longer needed
 import com.d4viddf.medicationreminder.ui.components.ProgressDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
+// Removed duplicate DateTimeFormatter
+// Removed duplicate DateTimeParseException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,7 +37,7 @@ class MedicationViewModel @Inject constructor(
     private val scheduleRepository: MedicationScheduleRepository
 ) : ViewModel() {
 
-    private val _medications = MutableStateFlow<List<Medication>>(emptyList())
+    private val _medications = MutableStateFlow<List<Medication>>(emptyList()) // This will hold the unfiltered list directly
     val medications: StateFlow<List<Medication>> = _medications.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
@@ -56,15 +60,14 @@ class MedicationViewModel @Inject constructor(
     private fun observeMedications() {
         viewModelScope.launch {
             medicationRepository.getAllMedications().collect { medications ->
-                _medications.value = medications
-                // Note: Filtering logic is now in observeSearchQueryAndMedications
+                _medications.value = medications // Directly update _medications
             }
         }
     }
 
     private fun observeSearchQueryAndMedications() {
         viewModelScope.launch {
-            combine(_searchQuery, _medications) { query, medications ->
+            combine(_searchQuery, _medications) { query, medications -> // _medications is now the unfiltered list
                 if (query.isBlank()) {
                     emptyList() // Return empty list if query is blank
                 } else {

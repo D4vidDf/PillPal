@@ -106,7 +106,7 @@ fun MedicationTypeItemPreview() {
             MedicationTypeItem(
                 type = sampleMedicationTypes[0],
                 isSelected = true,
-                selectedColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_PINK,
+                selectedColor = MedicationColor.LIGHT_PINK,
                 cornerRadius = RoundedCornerShape(8.dp),
                 onClick = {}
             )
@@ -119,7 +119,7 @@ fun MedicationTypeItemPreview() {
 fun MedicationTypeSelectorPreview() {
     AppTheme { // Changed to AppTheme
         val selectedTypeId = 1
-        val selectedColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_PINK
+        val selectedColor = MedicationColor.LIGHT_PINK
 
         // Replicating MedicationTypeSelector's layout for preview purposes
         // without using the actual ViewModel-dependent composable.

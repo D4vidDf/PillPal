@@ -4,6 +4,7 @@ package com.d4viddf.medicationreminder.ui.screens
 // Icons for TopAppBar were removed, but CalendarToday is still needed
 
 import android.util.Log
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -24,10 +25,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
-import androidx.compose.animation.SharedTransitionScope // Added import
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -91,9 +88,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-
-// Constant for DayCell width, used in CalendarScreen and Previews - may become obsolete or used differently
-private val dayWidthForCalendar = 48.dp
 
 @OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable

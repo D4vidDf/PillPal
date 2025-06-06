@@ -3,7 +3,6 @@ package com.d4viddf.medicationreminder.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -48,12 +46,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.d4viddf.medicationreminder.R // Import R class
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.FrequencyType
 import java.time.LocalTime
-import com.d4viddf.medicationreminder.ui.components.TimePickerDialog // Added import for the shared component
 import java.time.format.DateTimeFormatter
 
 // Ensure other Material 3 imports like androidx.compose.material3.Text,

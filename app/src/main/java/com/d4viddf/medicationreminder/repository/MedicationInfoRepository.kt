@@ -1,6 +1,8 @@
-package com.d4viddf.medicationreminder.data
+package com.d4viddf.medicationreminder.repository
 
-import MedicationSearchResult
+import com.d4viddf.medicationreminder.data.MedicationSearchResult
+import com.d4viddf.medicationreminder.data.MedicationInfo
+import com.d4viddf.medicationreminder.data.MedicationInfoDao
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject

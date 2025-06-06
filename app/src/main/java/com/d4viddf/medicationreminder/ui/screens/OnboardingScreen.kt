@@ -1,10 +1,15 @@
 package com.d4viddf.medicationreminder.ui.screens
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlarmManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
@@ -33,14 +37,11 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.activity.compose.rememberLauncherForActivityResult // Added
-import androidx.activity.result.contract.ActivityResultContracts // Added
-import android.Manifest // Added
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -56,7 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Added
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
 
@@ -185,7 +186,7 @@ fun OnboardingPhoneLayout(
                 val currentStep = steps[currentStepIndex]
                 if (currentStep.permissionType == PermissionType.NOTIFICATION) {
                     isNotificationPermissionCurrentlyGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                        ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
                     } else { true }
                 } else { isNotificationPermissionCurrentlyGranted = true } // Enable for non-notification steps
             } else { isNotificationPermissionCurrentlyGranted = true } // Enable if steps list is somehow exceeded
@@ -370,6 +371,7 @@ fun OnboardingTabletLayout(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun OnboardingStepPage(
     step: OnboardingStepContent,

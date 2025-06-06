@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
-// import androidx.compose.material3.WavyProgressIndicatorDefaults // No es estrictamente necesario si defines todo manualmente
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -153,7 +152,7 @@ fun MedicationProgressDisplayPreview() {
                 progressFraction = 0.5f,
                 displayText = "5 / 10"
             ),
-            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.GREEN,
+            colorScheme = MedicationColor.GREEN,
             indicatorSizeDp = 200.dp
         )
     }

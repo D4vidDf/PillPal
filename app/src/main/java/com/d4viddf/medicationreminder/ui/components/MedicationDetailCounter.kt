@@ -1,10 +1,17 @@
 package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider // Importar VerticalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,7 +28,6 @@ import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
@@ -47,7 +53,7 @@ fun CounterItemPreview() {
         CounterItem(
             value = "250mg",
             label = "Dose",
-            valueColor = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_ORANGE.onBackgroundColor
+            valueColor = MedicationColor.LIGHT_ORANGE.onBackgroundColor
         )
     }
 }
@@ -58,7 +64,7 @@ fun CounterItemPreview() {
 fun MedicationDetailCountersPreview() {
     com.d4viddf.medicationreminder.ui.theme.AppTheme(dynamicColor = false) {
         MedicationDetailCounters(
-            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_ORANGE,
+            colorScheme = MedicationColor.LIGHT_ORANGE,
             medication = Medication(
                 id = 1,
                 name = "Amoxicillin",
@@ -74,7 +80,7 @@ fun MedicationDetailCountersPreview() {
             ),
             schedule = MedicationSchedule(
                 medicationId = 1,
-                scheduleType = com.d4viddf.medicationreminder.data.ScheduleType.AS_NEEDED, // Consistent with AS_NEEDED
+                scheduleType = ScheduleType.AS_NEEDED, // Consistent with AS_NEEDED
                 daysOfWeek = null, // Consistent with emptyList()
                 specificTimes = null, // AS_NEEDED might not have specific times
                 intervalHours = 0, // Default for AS_NEEDED
@@ -175,7 +181,7 @@ fun MedicationDetailCounters(
                     if (total >= 0) "$total" to strDurationTotalDays else null
                 }
                 pEndDate != null && !pEndDate.isBefore(today) -> {
-                    val ref = if (pStartDate != null && pStartDate.isAfter(today)) pStartDate else today
+                    val ref = today
                     if (pEndDate.isBefore(ref)) return@remember null to null
                     val remaining = ChronoUnit.DAYS.between(ref, pEndDate) + 1
                     if (remaining >= 0) "$remaining" to strDurationRemainingDays else null
