@@ -21,6 +21,8 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
     @Inject // Hilt inyectará una instancia de CustomWorkerFasctory (si su constructor es @Inject o tiene un @Provides)
     lateinit var customWorkerFactory: CustomWorkerFasctory
 
+    private var originalUncaughtExceptionHandler: Thread.UncaughtExceptionHandler? = null
+
     override val workManagerConfiguration: Configuration
         get() {
             Log.i("MedicationReminderApp", "WorkManager CONFIGURATION GETTER CALLED. Using CustomWorkerFasctory: $customWorkerFactory")
@@ -36,6 +38,15 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        originalUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            Log.e("MedGlobalExceptionHandler", "FATAL UNCAUGHT EXCEPTION on thread ${thread.name}", throwable)
+            // Here you could add more detailed logging, like device info, app version, etc.
+            // It's crucial to call the original handler to ensure the system processes the crash.
+            originalUncaughtExceptionHandler?.uncaughtException(thread, throwable)
+        }
+
         Log.d("MedicationReminderApp", "Application onCreate called.")
 
         // Hilt inyecta customWorkerFactory aquí
@@ -53,7 +64,9 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
     }
 
     private fun setupDailyReminderRefreshWorker() {
+        Log.d("MedicationReminderApp", "Attempting to get WorkManager instance.")
         val workManager = WorkManager.getInstance(applicationContext)
+        Log.d("MedicationReminderApp", "Successfully got WorkManager instance: $workManager")
 
         val data = Data.Builder()
             .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)

@@ -55,6 +55,7 @@ class ReminderSchedulingWorker constructor(
                     Log.i(TAG, "No medications found for daily refresh.")
                 }
                 allMedications.forEach { medication ->
+                    Log.d(TAG, "Daily refresh: Processing medication ID: ${medication.id}, Name: ${medication.name}")
                     val medicationEndDate = medication.endDate?.let { LocalDate.parse(it, ReminderCalculator.dateStorableFormatter) }
                     if (medicationEndDate == null || !LocalDate.now().isAfter(medicationEndDate)) {
                         scheduleNextReminderForMedication(medication)
@@ -65,7 +66,7 @@ class ReminderSchedulingWorker constructor(
                 }
             } else if (medicationIdInput != -1) {
                 medicationRepository.getMedicationById(medicationIdInput)?.let { medication ->
-                    Log.d(TAG, "Processing specific medication ID: ${medication.id}")
+                    Log.i(TAG, "Specific scheduling: Processing medication ID: ${medication.id}, Name: ${medication.name}")
                     scheduleNextReminderForMedication(medication)
                 } ?: Log.e(TAG, "Medication not found for ID: $medicationIdInput for specific scheduling.")
             } else {
