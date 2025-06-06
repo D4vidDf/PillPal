@@ -3,7 +3,6 @@ package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-// import androidx.compose.material3.MaterialTheme // May become unused
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,15 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-// import androidx.compose.animation.AnimatedVisibilityScope // No longer needed for text sharedElement
 import androidx.compose.animation.ExperimentalSharedTransitionApi // Keep for file-level OptIn if other shared elements exist, or remove if truly unused file-wide
-// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
-// import androidx.compose.animation.SharedTransitionScope // No longer needed for text sharedElement
-// import androidx.compose.animation.core.FastOutSlowInEasing // No longer needed for text sharedElement
-// import androidx.compose.animation.core.keyframes // No longer needed
-// import androidx.compose.animation.core.tween // No longer needed for text sharedElement
 
-// Removed OptIn from here
 @Composable
 fun MedicationDetailHeader(
     medicationId: Int,
@@ -91,7 +83,7 @@ fun MedicationDetailHeaderPreview() {
             medicationName = "Amoxicillin Trihydrate Suspension",
             medicationDosage = "250mg / 5ml",
             medicationImageUrl = null, // Or a sample image URL
-            colorScheme = com.d4viddf.medicationreminder.ui.colors.MedicationColor.LIGHT_BLUE
+            colorScheme = MedicationColor.LIGHT_BLUE
             // sharedTransitionScope = null, // Removed
             // animatedVisibilityScope = null // Removed
         )

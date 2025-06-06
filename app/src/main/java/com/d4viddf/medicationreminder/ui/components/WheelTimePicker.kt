@@ -28,7 +28,6 @@ import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import java.time.LocalTime
 import kotlin.math.absoluteValue
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WheelTimePicker(
     modifier: Modifier = Modifier,

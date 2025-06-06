@@ -1,3 +1,5 @@
+package com.d4viddf.medicationreminder.data
+
 import android.os.Parcel
 import android.os.Parcelable
 

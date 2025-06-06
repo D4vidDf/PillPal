@@ -2,7 +2,7 @@
 
 package com.d4viddf.medicationreminder.ui.components
 
-import MedicationSearchResult
+import com.d4viddf.medicationreminder.data.MedicationSearchResult
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll // Import for sheet content scroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,9 +74,9 @@ fun MedicationDosagePackageDateInput(
     // Pre-resolve PillFraction display values
     // The 'pillFractionDisplayValues' using context = null was part of an intermediate step and is not needed.
     // 'resolvedPillFractionDisplayValues' is the correct one.
-    val resolvedPillFractionDisplayValues = PillFraction.values().map {
+    val resolvedPillFractionDisplayValues = PillFraction.entries.associate {
         it to PillFraction.displayValue(it) // Call the composable function directly
-    }.toMap()
+    }
 
 
     Column(
@@ -116,7 +115,7 @@ fun MedicationDosagePackageDateInput(
                             else -> strDosageTapToSet
                         }
                     }
-                } ?: strDosageTapToSet
+                }
             }
 
             Column(

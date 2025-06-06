@@ -1,7 +1,6 @@
 package com.d4viddf.medicationreminder.ui.components
 
-import MedicationSearchResult
-import androidx.compose.foundation.clickable
+import com.d4viddf.medicationreminder.data.MedicationSearchResult
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,8 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
-import com.d4viddf.medicationreminder.ui.components.MedicationSearchResultCard // New import
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // New import
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -37,8 +34,7 @@ fun MedicationNameInput(
     searchResultsListModifier: Modifier = Modifier, // New parameter for the LazyColumn
     viewModel: MedicationInfoViewModel = hiltViewModel()
 ) {
-    // val windowSizeClass = LocalWindowSizeClass.current // REMOVE THIS
-    // val isTablet = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium // REMOVE THIS
+
     val coroutineScope = rememberCoroutineScope()
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }

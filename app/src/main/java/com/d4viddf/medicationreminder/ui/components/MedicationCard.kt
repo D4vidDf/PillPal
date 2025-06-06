@@ -22,7 +22,6 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-// import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
 
 // Removed OptIn from here as it's now file-level

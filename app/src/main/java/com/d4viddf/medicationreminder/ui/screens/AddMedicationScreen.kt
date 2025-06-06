@@ -1,6 +1,6 @@
 package com.d4viddf.medicationreminder.ui.screens
 
-import MedicationSearchResult
+import com.d4viddf.medicationreminder.data.MedicationSearchResult
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,7 +16,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration // For Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.ui.platform.LocalContext
@@ -51,7 +50,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate // Added import
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
