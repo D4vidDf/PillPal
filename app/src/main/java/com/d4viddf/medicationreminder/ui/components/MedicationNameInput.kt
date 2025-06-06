@@ -45,6 +45,12 @@ fun MedicationNameInput(
     val focusManager = LocalFocusManager.current
     var selectedMedicationNRegistro by remember { mutableStateOf<String?>(null) }
 
+    val displayedResults = if (selectedMedicationNRegistro != null) {
+        searchResults.filter { it.nregistro == selectedMedicationNRegistro }
+    } else {
+        searchResults
+    }
+
     Column(modifier = modifier.padding(16.dp)) {
         Text(
             text = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_input_title),
@@ -110,17 +116,16 @@ fun MedicationNameInput(
                 .fillMaxHeight()
                 .then(searchResultsListModifier) // Apply the passed modifier
         ) {
-            items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance
-                val isSelected = selectedMedicationNRegistro == result.nregistro
+            items(displayedResults, key = { it.nregistro ?: it.name }) { result -> // Use displayedResults
+                val isSelected = selectedMedicationNRegistro == result.nregistro // This logic remains important
                 MedicationSearchResultCard(
                     medicationResult = result,
                     onClick = {
                         onMedicationSelected(result)
-                        selectedMedicationNRegistro = result.nregistro // Set the selected item here
-                        // viewModel.clearSearchResults() // DO NOT clear results, allow selection to be visible
+                        // selectedMedicationNRegistro = result.nregistro // Already selected if list is filtered, no change needed
                         focusManager.clearFocus()
                     },
-                    isSelected = isSelected // Pass the calculated boolean
+                    isSelected = isSelected // isSelected will always be true if selectedMedicationNRegistro is not null
                 )
             }
         }

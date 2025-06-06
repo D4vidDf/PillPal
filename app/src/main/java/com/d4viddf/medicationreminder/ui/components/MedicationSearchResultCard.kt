@@ -43,7 +43,7 @@ fun MedicationSearchResultCard(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = if (isSelected) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer) // Changed for better visibility
         } else {
             CardDefaults.cardColors() // Default colors
         }
