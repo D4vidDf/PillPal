@@ -23,9 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage // Import Coil
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.d4viddf.medicationreminder.R // For placeholder drawable
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
@@ -52,12 +52,11 @@ fun MedicationSearchResultCard(
             // Using Coil's AsyncImage for future integration
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    // .data(medicationResult.imageUrl) // This will be uncommented/updated with actual image URL
-                    .data(null) // For now, no actual image URL
+                    .data(medicationResult.imageUrl) // Use the actual image URL
                     .crossfade(true)
                     .build(),
-                placeholder = painterResource(R.drawable.ic_pill_placeholder), // TODO: Add ic_pill_placeholder.xml drawable
-                error = painterResource(R.drawable.ic_pill_placeholder), // Show same placeholder on error
+                placeholder = painterResource(R.drawable.ic_pill_placeholder),
+                error = painterResource(R.drawable.ic_pill_placeholder),
                 contentDescription = medicationResult.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -72,15 +71,17 @@ fun MedicationSearchResultCard(
                 Text(
                     text = medicationResult.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    // fontWeight = FontWeight.Bold, // fontWeight is part of titleMedium by default
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                // You can add more details from MedicationSearchResult if needed
-                // For example: medicationResult.form, medicationResult.strength etc.
-                // if (medicationResult.dosage != null) {
-                // Text(text = medicationResult.dosage, style = MaterialTheme.typography.bodyMedium)
-                // }
+                Spacer(Modifier.height(4.dp)) // Spacer for visual separation
+                Text(
+                    text = medicationResult.labtitular ?: "Unknown Laboratory", // Display labtitular
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -90,7 +91,6 @@ fun MedicationSearchResultCard(
 @Composable
 fun MedicationSearchResultCardPreview() {
     AppTheme {
-        // Assuming MedicationSearchResult has a constructor like this for preview
         val sampleResult = MedicationSearchResult(
             name = "Aspirin 100mg Tablets (Sample)",
             description = "For pain relief",
@@ -100,11 +100,11 @@ fun MedicationSearchResultCardPreview() {
             dosage = "1 tablet",
             documentUrls = emptyList(),
             nregistro = "12345",
-            labtitular = "Sample Pharma",
+            labtitular = "Sample Pharma Inc.", // Updated labtitular
             comercializado = true,
             requiereReceta = false,
             generico = true
-            // imageUrl = null // Add if your data class has it
+            imageUrl = "https://example.com/aspirin_image.jpg" // Added sample image URL
         )
         MedicationSearchResultCard(medicationResult = sampleResult, onClick = {})
     }
