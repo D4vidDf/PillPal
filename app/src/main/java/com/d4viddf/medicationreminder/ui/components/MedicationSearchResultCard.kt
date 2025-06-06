@@ -103,8 +103,8 @@ fun MedicationSearchResultCardPreview() {
             labtitular = "Sample Pharma Inc.", // Updated labtitular
             comercializado = true,
             requiereReceta = false,
-            generico = true
-            imageUrl = "https://example.com/aspirin_image.jpg" // Added sample image URL
+            generico = true, // Added missing comma
+            imageUrl = "https://example.com/aspirin_image.jpg"
         )
         MedicationSearchResultCard(medicationResult = sampleResult, onClick = {})
     }
