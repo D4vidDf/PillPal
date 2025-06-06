@@ -10,6 +10,7 @@ import android.speech.RecognizerIntent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -126,7 +127,13 @@ fun HomeScreen(
             // `this` is ThreePaneScaffoldPaneScope
             Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                 SearchBar(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
+                    modifier = if (searchActive) {
+                        Modifier.fillMaxSize()
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    },
                     inputField = {
                         SearchBarDefaults.InputField(
                             query = currentSearchQuery,
@@ -198,7 +205,9 @@ fun HomeScreen(
                     val searchResultsListState = rememberLazyListState()
                     LazyColumn(
                         state = searchResultsListState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface)
                     ) {
                         itemsIndexed(searchResults, key = { _, med -> med.id }) { index, medication ->
                             Card(
