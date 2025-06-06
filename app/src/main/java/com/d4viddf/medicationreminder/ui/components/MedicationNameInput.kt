@@ -43,6 +43,13 @@ fun MedicationNameInput(
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }
     val focusManager = LocalFocusManager.current
+    var explicitlySelectedItem by remember { mutableStateOf<MedicationSearchResult?>(null) }
+
+    val displayedResults = if (explicitlySelectedItem != null) {
+        listOf(explicitlySelectedItem!!) // Create a list containing only the chosen item
+    } else {
+        searchResults // Otherwise, show results from the current search query
+    }
 
     Column(modifier = modifier.padding(16.dp)) {
         Text(
@@ -55,14 +62,15 @@ fun MedicationNameInput(
         // OutlinedTextField for medication name
         OutlinedTextField(
             value = medicationName,
-            onValueChange = {
-                onMedicationNameChange(it)
-                isInputValid = it.isNotEmpty()
+            onValueChange = { newQuery ->
+                onMedicationNameChange(newQuery)
+                isInputValid = newQuery.isNotEmpty()
+                explicitlySelectedItem = null // Clear the "chosen" item state
 
                 // Only search if the input is at least 3 characters long
-                if (it.length >= 3) {
+                if (newQuery.length >= 3) {
                     coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.searchMedication(it)
+                        viewModel.searchMedication(newQuery)
                     }
                 } else {
                     // Clear search results if the input is less than 3 characters
@@ -86,7 +94,12 @@ fun MedicationNameInput(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = { onMedicationNameChange("") }) {
+                IconButton(onClick = {
+                    onMedicationNameChange("")       // Update parent's state for medicationName
+                    explicitlySelectedItem = null    // Directly clear the chosen item state
+                    viewModel.clearSearchResults() // Directly clear results in ViewModel
+                    focusManager.clearFocus()
+                }) {
                     Icon(Icons.Default.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_clear_search_acc))
                 }
             },
@@ -108,14 +121,16 @@ fun MedicationNameInput(
                 .fillMaxHeight()
                 .then(searchResultsListModifier) // Apply the passed modifier
         ) {
-            items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance
+            items(displayedResults, key = { it.nregistro ?: it.name }) { result -> // Use displayedResults
+                val isSelected = explicitlySelectedItem?.nregistro == result.nregistro && explicitlySelectedItem != null
                 MedicationSearchResultCard(
                     medicationResult = result,
                     onClick = {
-                        onMedicationSelected(result)
-                        viewModel.clearSearchResults()
+                        onMedicationSelected(result) // Propagates to parent, updates medicationName text field
+                        explicitlySelectedItem = result // Store the chosen item object
                         focusManager.clearFocus()
-                    }
+                    },
+                    isSelected = isSelected
                 )
             }
         }

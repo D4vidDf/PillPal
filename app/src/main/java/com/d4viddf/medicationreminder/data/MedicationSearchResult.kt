@@ -13,7 +13,8 @@ data class MedicationSearchResult(
     val labtitular: String?,
     val comercializado: Boolean,
     val requiereReceta: Boolean,
-    val generico: Boolean
+    val generico: Boolean,
+    val imageUrl: String?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -27,7 +28,8 @@ data class MedicationSearchResult(
         parcel.readString(),
         parcel.readByte() != 0.toByte(), // Corrected line
         parcel.readByte() != 0.toByte(), // Corrected line
-        parcel.readByte() != 0.toByte()  // Corrected line
+        parcel.readByte() != 0.toByte(),  // Corrected line
+        parcel.readString()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -43,6 +45,7 @@ data class MedicationSearchResult(
         parcel.writeByte(if (comercializado) 1.toByte() else 0.toByte()) // Corrected line
         parcel.writeByte(if (requiereReceta) 1.toByte() else 0.toByte()) // Corrected line
         parcel.writeByte(if (generico) 1.toByte() else 0.toByte()) // Corrected line
+        parcel.writeString(imageUrl)
     }
 
     override fun describeContents(): Int {
