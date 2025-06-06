@@ -32,6 +32,7 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 fun MedicationSearchResultCard(
     medicationResult: MedicationSearchResult,
     onClick: () -> Unit,
+    isSelected: Boolean, // New parameter
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -40,7 +41,12 @@ fun MedicationSearchResultCard(
             .padding(vertical = 4.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = if (isSelected) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        } else {
+            CardDefaults.cardColors() // Default colors
+        }
     ) {
         Row(
             modifier = Modifier
@@ -103,9 +109,19 @@ fun MedicationSearchResultCardPreview() {
             labtitular = "Sample Pharma Inc.", // Updated labtitular
             comercializado = true,
             requiereReceta = false,
-            generico = true, // Added missing comma
+            generico = true,
             imageUrl = "https://example.com/aspirin_image.jpg"
         )
-        MedicationSearchResultCard(medicationResult = sampleResult, onClick = {})
+        MedicationSearchResultCard(
+            medicationResult = sampleResult,
+            onClick = {},
+            isSelected = false // Added isSelected for preview
+        )
+        Spacer(Modifier.height(8.dp)) // Spacer for second preview
+        MedicationSearchResultCard(
+            medicationResult = sampleResult.copy(name = "Aspirin 100mg (Selected)"),
+            onClick = {},
+            isSelected = true // Added isSelected for preview (selected state)
+        )
     }
 }

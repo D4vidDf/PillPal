@@ -43,6 +43,7 @@ fun MedicationNameInput(
     val searchResults by viewModel.medicationSearchResults.collectAsState()
     var isInputValid by remember { mutableStateOf(true) }
     val focusManager = LocalFocusManager.current
+    var selectedMedicationNRegistro by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = modifier.padding(16.dp)) {
         Text(
@@ -58,6 +59,7 @@ fun MedicationNameInput(
             onValueChange = {
                 onMedicationNameChange(it)
                 isInputValid = it.isNotEmpty()
+                selectedMedicationNRegistro = null // Reset selection on new query
 
                 // Only search if the input is at least 3 characters long
                 if (it.length >= 3) {
@@ -109,13 +111,16 @@ fun MedicationNameInput(
                 .then(searchResultsListModifier) // Apply the passed modifier
         ) {
             items(searchResults, key = { it.nregistro ?: it.name }) { result -> // Added a key for better performance
+                val isSelected = selectedMedicationNRegistro == result.nregistro
                 MedicationSearchResultCard(
                     medicationResult = result,
                     onClick = {
                         onMedicationSelected(result)
-                        viewModel.clearSearchResults()
+                        selectedMedicationNRegistro = result.nregistro // Set the selected item here
+                        // viewModel.clearSearchResults() // DO NOT clear results, allow selection to be visible
                         focusManager.clearFocus()
-                    }
+                    },
+                    isSelected = isSelected // Pass the calculated boolean
                 )
             }
         }
