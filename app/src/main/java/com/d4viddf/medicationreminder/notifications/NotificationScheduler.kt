@@ -34,7 +34,9 @@ class NotificationScheduler @Inject constructor() {
         nextDoseTimeForHelperMillis: Long?,
         actualScheduledTimeMillis: Long
     ) {
+        Log.d(TAG, "Attempting to get AlarmManager instance for scheduleNotification.")
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        Log.d(TAG, "Successfully got AlarmManager instance for scheduleNotification: $alarmManager")
         val reminderTimeForLog = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(actualScheduledTimeMillis), ZoneId.systemDefault())
 
         Log.i(TAG, "Attempting to schedule MAIN reminder for ID: ${reminder.id} ($medicationName) at $reminderTimeForLog")
@@ -58,6 +60,7 @@ class NotificationScheduler @Inject constructor() {
             }
         }
 
+        Log.v(TAG, "MAIN Intent for scheduling: ${intent}, Extras: ${intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"})")
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         } else {
@@ -103,7 +106,9 @@ class NotificationScheduler @Inject constructor() {
         Log.i(TAG, "Attempting to schedule PRE-REMINDER service trigger for main reminder ID: ${reminder.id} ($medicationName) to trigger at $preReminderTimeForLog")
 
 
+        Log.d(TAG, "Attempting to get AlarmManager instance for schedulePreReminderServiceTrigger.")
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        Log.d(TAG, "Successfully got AlarmManager instance for schedulePreReminderServiceTrigger: $alarmManager")
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
             action = ReminderBroadcastReceiver.ACTION_TRIGGER_PRE_REMINDER_SERVICE
             putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminder.id)
@@ -111,6 +116,7 @@ class NotificationScheduler @Inject constructor() {
             putExtra(ReminderBroadcastReceiver.EXTRA_MEDICATION_NAME, medicationName)
         }
 
+        Log.v(TAG, "PRE-REMINDER Intent for scheduling: ${intent}, Extras: ${intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"})")
         val preReminderRequestCode = reminder.id + PreReminderForegroundService.PRE_REMINDER_NOTIFICATION_ID_OFFSET
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -135,12 +141,15 @@ class NotificationScheduler @Inject constructor() {
     }
 
     private fun cancelMainReminderAlarm(context: Context, reminderId: Int) {
+        Log.d(TAG, "Attempting to get AlarmManager instance for cancelMainReminderAlarm.")
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        Log.d(TAG, "Successfully got AlarmManager instance for cancelMainReminderAlarm: $alarmManager")
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
             action = ReminderBroadcastReceiver.ACTION_SHOW_REMINDER
             // Important: The intent used to create the PendingIntent must match the one used to cancel it.
             // If extras were added when creating, they might be needed here too, but usually action and request code are key.
         }
+        Log.v(TAG, "MAIN Intent for cancellation: ${intent}")
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         } else {
@@ -158,15 +167,18 @@ class NotificationScheduler @Inject constructor() {
                 Log.e(TAG, "Error cancelling MAIN alarm for reminder ID $reminderId", e)
             }
         } else {
-            Log.w(TAG, "No MAIN AlarmManager alarm found to cancel for reminder ID: $reminderId (request code: $reminderId)")
+            Log.w(TAG, "No MAIN AlarmManager alarm found to cancel for reminder ID: $reminderId (request code: $reminderId). Intent used for lookup: $intent")
         }
     }
 
     private fun cancelPreReminderServiceAlarm(context: Context, reminderId: Int) {
+        Log.d(TAG, "Attempting to get AlarmManager instance for cancelPreReminderServiceAlarm.")
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        Log.d(TAG, "Successfully got AlarmManager instance for cancelPreReminderServiceAlarm: $alarmManager")
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
             action = ReminderBroadcastReceiver.ACTION_TRIGGER_PRE_REMINDER_SERVICE
         }
+        Log.v(TAG, "PRE-REMINDER Intent for cancellation: ${intent}")
         val preReminderRequestCode = reminderId + PreReminderForegroundService.PRE_REMINDER_NOTIFICATION_ID_OFFSET
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
@@ -184,7 +196,7 @@ class NotificationScheduler @Inject constructor() {
                 Log.e(TAG, "Error cancelling PRE-REMINDER alarm for original reminder ID $reminderId (request code: $preReminderRequestCode)", e)
             }
         } else {
-            Log.w(TAG, "No Pre-Reminder Service alarm found to cancel for original reminderId $reminderId (request Code: $preReminderRequestCode)")
+            Log.w(TAG, "No Pre-Reminder Service alarm found to cancel for original reminderId $reminderId (request Code: $preReminderRequestCode). Intent used for lookup: $intent")
         }
     }
 
