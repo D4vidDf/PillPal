@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -126,11 +128,18 @@ fun HomeScreen(
         listPane = { // Changed from primaryPane
             // `this` is ThreePaneScaffoldPaneScope
             Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-                SearchBar(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = currentSearchQuery,
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), // Padding for the whole row
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SearchBar(
+                        modifier = Modifier.weight(1f)
+                            // Horizontal padding for SearchBar itself:
+                            .padding(start = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp,
+                                     end = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 4.dp),
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                query = currentSearchQuery,
                             onQueryChange = { viewModel.updateSearchQuery(it) },
                             onSearch = {
                                 searchActive = false
@@ -195,9 +204,10 @@ fun HomeScreen(
                             viewModel.updateSearchQuery("")
                         }
                     }
-                ) { // Search results content
-                    val searchResultsListState = rememberLazyListState()
-                    LazyColumn(
+                    // Removed the direct content lambda from here, it's part of the SearchBar call
+                    ) { // Search results content (content for when SearchBar is expanded)
+                        val searchResultsListState = rememberLazyListState()
+                        LazyColumn(
                         state = searchResultsListState,
                         modifier = Modifier
                             .fillMaxSize()
@@ -258,11 +268,25 @@ fun HomeScreen(
                             }
                         }
                     }
-                }
+                    } // End of SearchBar's own content lambda
+
+                    IconButton(
+                        onClick = { Log.d("HomeScreen", "Filter button clicked") },
+                        modifier = Modifier.padding(start = 4.dp, end = 16.dp) // End padding for the screen edge
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.FilterList,
+                            contentDescription = stringResource(id = R.string.filter_medications_button_description)
+                        )
+                    }
+                } // End of Row
 
                 if (!searchActive) {
-                    val topAppBarHeight = 84.dp // Approx height for SearchBar
-                    val listToShow = if (currentSearchQuery.isBlank()) medications else searchResults
+                    // val topAppBarHeight = 84.dp // Approx height for SearchBar + FilterButton Row
+                    // This might need adjustment if the Row's height is different from original SearchBar height
+                    val topContentHeight = 72.dp // Estimated height of the Row (SearchBar + Button), includes 8.dp vertical padding * 2 for Row + SearchBar's typical inner height.
+                                                // SearchBar default height is 56.dp. Row adds 8+8=16.dp vertical padding. So 56+16=72.dp
+                    val listToShow = if (currentSearchQuery.isBlank()) medications else searchResults // searchResults should be empty if query is blank due to ViewModel logic
                     MedicationList(
                         medications = listToShow,
                         onItemClick = { medication, index ->
@@ -285,7 +309,7 @@ fun HomeScreen(
                         sharedTransitionScope = sharedTransitionScope,
                         animatedVisibilityScope = animatedVisibilityScope,
                         modifier = Modifier.fillMaxSize(),
-                        bottomContentPadding = if (widthSizeClass == WindowWidthSizeClass.Compact) topAppBarHeight else 0.dp,
+                        bottomContentPadding = if (widthSizeClass == WindowWidthSizeClass.Compact) topContentHeight else 0.dp,
                         listState = mainMedicationListState
                     )
                 }
