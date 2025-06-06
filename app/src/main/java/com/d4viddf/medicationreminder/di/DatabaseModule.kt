@@ -71,6 +71,7 @@ object DatabaseModule {
                 }
             })
             .addMigrations(MIGRATION_2_3) // Add this line
+            .fallbackToDestructiveMigration() // Added this line
             .build()
     }
 
