@@ -68,9 +68,9 @@ fun MedicationNameInput(
                 explicitlySelectedItem = null // Clear the "chosen" item state
 
                 // Only search if the input is at least 3 characters long
-                if (it.length >= 3) {
+                if (newQuery.length >= 3) {
                     coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.searchMedication(it)
+                        viewModel.searchMedication(newQuery)
                     }
                 } else {
                     // Clear search results if the input is less than 3 characters
