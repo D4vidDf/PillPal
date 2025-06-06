@@ -26,6 +26,7 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 // import androidx.compose.animation.LocalSharedTransitionScope // To be removed
 import androidx.compose.animation.SharedTransitionScope // Already present
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -148,31 +149,40 @@ fun HomeScreen(
                                 )
                             },
                             trailingIcon = {
-                                val localContext = LocalContext.current
-                                IconButton(onClick = {
-                                    val activity = localContext.findActivity()
-                                    if (activity != null) {
-                                        PermissionUtils.requestRecordAudioPermission(
-                                            activity = activity,
-                                            onAlreadyGranted = {
-                                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                                    putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
-                                                }
-                                                speechRecognitionLauncher.launch(intent)
-                                            },
-                                            onRationaleNeeded = {
-                                                Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed.")
-                                            }
+                                if (currentSearchQuery.isNotBlank()) {
+                                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Clear,
+                                            contentDescription = stringResource(id = R.string.clear_search_query_button_description)
                                         )
-                                    } else {
-                                        Log.e("HomeScreen", "Could not find Activity context.")
                                     }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Mic,
-                                        contentDescription = stringResource(id = R.string.microphone_icon_content_description)
-                                    )
+                                } else {
+                                    val localContext = LocalContext.current
+                                    IconButton(onClick = {
+                                        val activity = localContext.findActivity()
+                                        if (activity != null) {
+                                            PermissionUtils.requestRecordAudioPermission(
+                                                activity = activity,
+                                                onAlreadyGranted = {
+                                                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                                        putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
+                                                    }
+                                                    speechRecognitionLauncher.launch(intent)
+                                                },
+                                                onRationaleNeeded = {
+                                                    Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed.")
+                                                }
+                                            )
+                                        } else {
+                                            Log.e("HomeScreen", "Could not find Activity context.")
+                                        }
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Mic,
+                                            contentDescription = stringResource(id = R.string.microphone_icon_content_description)
+                                        )
+                                    }
                                 }
                             },
                         )
@@ -213,11 +223,16 @@ fun HomeScreen(
                                         } else Modifier
                                     )
                             ) {
-                                Text(
-                                    text = medication.name,
+                                Column(
                                     modifier = Modifier
+                                        .fillMaxWidth()
                                         .padding(16.dp)
-                                        .then(
+                                ) {
+                                    Text(
+                                        text = medication.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.then(
                                             if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
                                                 with(sharedTransitionScope) {
                                                     Modifier.sharedElement(
@@ -226,9 +241,17 @@ fun HomeScreen(
                                                     )
                                                 }
                                             } else Modifier
-                                        ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                        )
+                                    )
+                                    if (!medication.dosage.isNullOrBlank()) {
+                                        Text(
+                                            text = medication.dosage,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -236,8 +259,9 @@ fun HomeScreen(
 
                 if (!searchActive) {
                     val topAppBarHeight = 84.dp // Approx height for SearchBar
+                    val listToShow = if (currentSearchQuery.isBlank()) medications else searchResults
                     MedicationList(
-                        medications = medications,
+                        medications = listToShow,
                         onItemClick = { medication, index ->
                             // medicationListClickHandler already has the logic for Compact vs Large screen.
                             // It also handles the coroutine for scaffoldNavigator.
