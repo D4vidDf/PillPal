@@ -127,13 +127,7 @@ fun HomeScreen(
             // `this` is ThreePaneScaffoldPaneScope
             Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                 SearchBar(
-                    modifier = if (searchActive) {
-                        Modifier.fillMaxSize()
-                    } else {
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
                     inputField = {
                         SearchBarDefaults.InputField(
                             query = currentSearchQuery,
