@@ -10,7 +10,7 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+// MedicationColor import removed if no longer needed
 import com.d4viddf.medicationreminder.ui.components.ProgressDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +37,7 @@ class MedicationViewModel @Inject constructor(
     private val scheduleRepository: MedicationScheduleRepository
 ) : ViewModel() {
 
-    private val _allMedicationsFromRepo = MutableStateFlow<List<Medication>>(emptyList()) // Renamed for clarity, holds all meds
-    private val _medications = MutableStateFlow<List<Medication>>(emptyList()) // This will hold the filtered list
+    private val _medications = MutableStateFlow<List<Medication>>(emptyList()) // This will hold the unfiltered list directly
     val medications: StateFlow<List<Medication>> = _medications.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
@@ -53,86 +52,22 @@ class MedicationViewModel @Inject constructor(
     private val _searchResults = MutableStateFlow<List<Medication>>(emptyList())
     val searchResults: StateFlow<List<Medication>> = _searchResults.asStateFlow()
 
-    // Color Filter
-    private val _selectedColorFilter = MutableStateFlow<MedicationColor?>(null)
-    val selectedColorFilter: StateFlow<MedicationColor?> = _selectedColorFilter.asStateFlow()
-
-    // Date Range Filter (Pair of nullable start and end LocalDates)
-    private val _selectedDateRangeFilter = MutableStateFlow<Pair<LocalDate?, LocalDate?>?>(null)
-    val selectedDateRangeFilter: StateFlow<Pair<LocalDate?, LocalDate?>?> = _selectedDateRangeFilter.asStateFlow()
-
     init {
-        // TEMPORARY: Set a default filter for testing
-        _selectedColorFilter.value = MedicationColor.BLUE
-
-        observeMedications() // Populates _allMedicationsFromRepo
-        setupCombinedMedicationFiltering() // Applies filters to populate _medications
-        observeSearchQueryAndMedications() // Searches on the filtered _medications
+        observeMedications()
+        observeSearchQueryAndMedications()
     }
 
     private fun observeMedications() {
         viewModelScope.launch {
-            medicationRepository.getAllMedications().collect { meds ->
-                _allMedicationsFromRepo.value = meds
-            }
-        }
-    }
-
-    private fun setupCombinedMedicationFiltering() {
-        viewModelScope.launch {
-            combine(
-                _allMedicationsFromRepo,
-                selectedColorFilter,
-                selectedDateRangeFilter
-            ) { allMeds, colorFilter, dateRangeFilter ->
-                var filtered = allMeds
-
-                // Apply Color Filter
-                colorFilter?.let { selectedColor ->
-                    // IMPORTANT ASSUMPTION: Medication.color stores a string that can be matched to MedicationColor.colorName.
-                    // This could be the enum's .name or a specific hex string if MedicationColor.colorName is a hex.
-                    // For this example, we assume Medication.color directly matches selectedColor.colorName.
-                    filtered = filtered.filter { medication ->
-                        medication.color == selectedColor.colorName
-                    }
-                }
-
-                // Apply Date Range Filter
-                dateRangeFilter?.let { (startDateFilter, endDateFilter) ->
-                    filtered = filtered.filter { medication ->
-                        try {
-                            val medStartDateString = medication.startDate
-                            if (medStartDateString.isNullOrBlank()) {
-                                // Decide behavior for medications without a start date:
-                                // true: include them (they pass the date filter by default)
-                                // false: exclude them if any date filter is active
-                                // For now, let's assume if a date filter is active, meds without dates are excluded.
-                                false
-                            } else {
-                                // Assuming medication.startDate is stored in ISO_LOCAL_DATE format e.g., "2023-10-26"
-                                val medStartDate = LocalDate.parse(medStartDateString, DateTimeFormatter.ISO_LOCAL_DATE)
-
-                                val afterOrOnStartDate = startDateFilter?.let { medStartDate.isAfter(it) || medStartDate.isEqual(it) } ?: true
-                                val beforeOrOnEndDate = endDateFilter?.let { medStartDate.isBefore(it) || medStartDate.isEqual(it) } ?: true // Using medStartDate for endDate comparison as per original snippet
-
-                                afterOrOnStartDate && beforeOrOnEndDate
-                            }
-                        } catch (e: DateTimeParseException) {
-                            Log.e("MedicationViewModel", "Error parsing medication start date: ${medication.startDate}", e)
-                            false // Exclude if date is unparseable
-                        }
-                    }
-                }
-                filtered // This is the result of all filters
-            }.collect { resultingMedications ->
-                _medications.value = resultingMedications // _medications now holds the combined filtered list
+            medicationRepository.getAllMedications().collect { medications ->
+                _medications.value = medications // Directly update _medications
             }
         }
     }
 
     private fun observeSearchQueryAndMedications() {
         viewModelScope.launch {
-            combine(_searchQuery, _medications) { query, medications -> // _medications is now the already filtered list
+            combine(_searchQuery, _medications) { query, medications -> // _medications is now the unfiltered list
                 if (query.isBlank()) {
                     emptyList() // Return empty list if query is blank
                 } else {
@@ -259,24 +194,6 @@ class MedicationViewModel @Inject constructor(
         // ... lógica anterior que calculaba el progreso general del tratamiento o paquete ...
     }
     */
-
-    fun updateColorFilter(color: MedicationColor?) {
-        _selectedColorFilter.value = color
-    }
-
-    fun updateDateRangeFilter(startDate: LocalDate?, endDate: LocalDate?) {
-        if (startDate == null && endDate == null) {
-            _selectedDateRangeFilter.value = null
-        } else {
-            _selectedDateRangeFilter.value = Pair(startDate, endDate)
-        }
-    }
-
-    fun clearFilters() {
-        _selectedColorFilter.value = null
-        _selectedDateRangeFilter.value = null
-        // Potentially trigger a re-evaluation of the medication list if not already reactive
-    }
 
     suspend fun insertMedication(medication: Medication): Int {
         return withContext(Dispatchers.IO) {

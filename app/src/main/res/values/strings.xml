@@ -234,7 +234,6 @@
     <string name="search_icon_content_description" translatable="false">Search</string>
     <string name="clear_search_query_button_description">Clear search query</string>
     <string name="microphone_icon_content_description" translatable="false">Voice search</string>
-    <string name="filter_medications_button_description">Filter medications</string>
     <string name="speech_prompt_text" translatable="false">Speak now...</string>
 
     <!-- Calendar Screen Strings -->
