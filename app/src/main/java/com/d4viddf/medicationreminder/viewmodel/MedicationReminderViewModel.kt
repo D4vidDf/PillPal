@@ -119,52 +119,143 @@ class MedicationReminderViewModel @Inject constructor(
 
     // Function to Fetch Today's Reminders for a specific medication
     fun loadTodaySchedule(medicationId: Int) {
+        val funcTag = "loadTodaySchedule[MedId:$medicationId]"
+        Log.d("MedReminderVM", "$funcTag: Starting to load today's schedule.")
+
         viewModelScope.launch(Dispatchers.IO) {
             val medication = medicationRepository.getMedicationById(medicationId)
             if (medication == null) {
-                Log.w("MedReminderVM", "loadTodaySchedule: Medication with ID $medicationId not found.")
+                Log.w("MedReminderVM", "$funcTag: Medication not found.")
                 _todayScheduleItems.value = emptyList()
                 return@launch
             }
+            Log.d("MedReminderVM", "$funcTag: Medication found: ${medication.name}")
 
             val schedules = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()
             if (schedules.isNullOrEmpty()) {
-                Log.i("MedReminderVM", "loadTodaySchedule: No schedules found for medication ID $medicationId.")
-                _todayScheduleItems.value = emptyList()
-                return@launch
+                Log.i("MedReminderVM", "$funcTag: No schedules found for medication.")
+                // Even if no schedules, there might be ad-hoc taken doses, so proceed but calculatedItemsMap will be empty.
+            } else {
+                Log.d("MedReminderVM", "$funcTag: Found ${schedules.size} schedule(s).")
             }
 
-            val existingReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-            val allTodayScheduleItems = mutableListOf<TodayScheduleItem>()
             val today = LocalDate.now()
-            val currentTime = LocalTime.now()
+            val currentTime = LocalTime.now() // For isPast calculation
+            val calculatedItemsMap = mutableMapOf<LocalTime, TodayScheduleItem>()
+            val adHocItems = mutableListOf<TodayScheduleItem>()
 
-            schedules.forEach { schedule ->
-                // Strategy 1: Deduplicate reminder times from ReminderCalculator for a single schedule
-                val distinctReminderDateTimesToday = ReminderCalculator.calculateReminderDateTimes(medication, schedule, today).distinct()
-                Log.d("MedReminderVM", "Medication: ${medication.name}, Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}, Calculated DTs for today: ${distinctReminderDateTimesToday.size} (after distinct)")
-
-                distinctReminderDateTimesToday.forEach { reminderDateTime ->
-                    val reminderTimeStr = reminderDateTime.format(ReminderCalculator.storableDateTimeFormatter)
-                    val existingReminder = existingReminders.find { it.medicationId == medicationId && it.reminderTime == reminderTimeStr }
-
-                    val scheduleItem = TodayScheduleItem(
-                        id = "${medicationId}_${schedule.id}_${reminderDateTime.toLocalTime().toNanoOfDay()}",
-                        medicationName = medication.name,
-                        time = reminderDateTime.toLocalTime(),
-                        isPast = currentTime.isAfter(reminderDateTime.toLocalTime()),
-                        isTaken = existingReminder?.isTaken ?: false,
-                        underlyingReminderId = existingReminder?.id?.toLong() ?: 0L, // Use existing reminder ID or 0L
-                        medicationScheduleId = schedule.id // Populate the new field
-                    )
-                    allTodayScheduleItems.add(scheduleItem)
+            // Determine lastTakenOnTodayTime for ReminderCalculator
+            var lastTakenOnTodayTime: LocalTime? = null
+            val mostRecentTakenDbReminder = reminderRepository.getMostRecentTakenReminder(medicationId)
+            if (mostRecentTakenDbReminder?.takenAt != null) {
+                try {
+                    val takenAtDateTime = LocalDateTime.parse(mostRecentTakenDbReminder.takenAt, storableDateTimeFormatter)
+                    if (takenAtDateTime.toLocalDate().isEqual(today)) {
+                        lastTakenOnTodayTime = takenAtDateTime.toLocalTime()
+                        Log.i("MedReminderVM", "$funcTag: Last taken dose on today was at $lastTakenOnTodayTime (from Reminder ID: ${mostRecentTakenDbReminder.id})")
+                    }
+                } catch (e: Exception) {
+                    Log.e("MedReminderVM", "$funcTag: Error parsing takenAt for mostRecentTakenDbReminder (ID: ${mostRecentTakenDbReminder.id}, TakenAt: ${mostRecentTakenDbReminder.takenAt})", e)
                 }
             }
 
-            // Strategy 2: Deduplicate the final list of TodayScheduleItem objects
-            val uniqueTodayScheduleItems = allTodayScheduleItems.toSet().toList()
-            _todayScheduleItems.value = uniqueTodayScheduleItems.sortedBy { it.time }
-            Log.d("MedReminderVM", "Updated TodayScheduleItems for medId: $medicationId with ${uniqueTodayScheduleItems.size} unique items.")
+            // 1. Create TodayScheduleItem objects from all calculated times for today
+            schedules?.forEach { schedule ->
+                Log.d("MedReminderVM", "$funcTag: Calculating reminders for Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}")
+                val calculatedDateTimesToday = ReminderCalculator.calculateReminderDateTimes(medication, schedule, today, lastTakenOnTodayTime)
+                Log.d("MedReminderVM", "$funcTag: Schedule ID ${schedule.id} produced ${calculatedDateTimesToday.size} calculated times for today (using lastTakenOnTodayTime: $lastTakenOnTodayTime).")
+
+                calculatedDateTimesToday.forEach { reminderDateTime ->
+                    val reminderTime = reminderDateTime.toLocalTime()
+                    if (!calculatedItemsMap.containsKey(reminderTime)) { // Avoid overwriting if multiple schedules have same time
+                        val scheduleItem = TodayScheduleItem(
+                            id = "${medicationId}_${schedule.id}_${reminderTime.toNanoOfDay()}", // Unique enough for map keying
+                            medicationName = medication.name,
+                            time = reminderTime,
+                            isPast = currentTime.isAfter(reminderTime),
+                            isTaken = false, // Initially false
+                            underlyingReminderId = 0L, // Default, will be updated if DB record found
+                            medicationScheduleId = schedule.id, // Link to the schedule that generated it
+                            takenAt = null
+                        )
+                        calculatedItemsMap[reminderTime] = scheduleItem
+                        Log.d("MedReminderVM", "$funcTag: Added calculated item for time $reminderTime from SchedID ${schedule.id}")
+                    } else {
+                        Log.d("MedReminderVM", "$funcTag: Calculated time $reminderTime from SchedID ${schedule.id} already exists in map (from another schedule). Skipping.")
+                    }
+                }
+            }
+            Log.i("MedReminderVM", "$funcTag: Finished processing calculated items. Map size: ${calculatedItemsMap.size}")
+
+            // 2. Fetch all actual MedicationReminder DB records for the medication (filter for today in Kotlin)
+            val allDbReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+            Log.d("MedReminderVM", "$funcTag: Fetched ${allDbReminders.size} total DB reminders for MedId $medicationId.")
+
+            val todayDbReminders = allDbReminders.filter { reminder ->
+                val reminderDate = try { LocalDateTime.parse(reminder.reminderTime, storableDateTimeFormatter).toLocalDate() } catch (e: Exception) { null }
+                val takenDate = reminder.takenAt?.let { try { LocalDateTime.parse(it, storableDateTimeFormatter).toLocalDate() } catch (e: Exception) { null } }
+                reminderDate?.isEqual(today) == true || takenDate?.isEqual(today) == true
+            }
+            Log.i("MedReminderVM", "$funcTag: Filtered to ${todayDbReminders.size} DB reminders relevant for today.")
+
+            // 3. Iterate these DB records and update the map or add to ad-hoc list
+            todayDbReminders.forEach { dbReminder ->
+                val reminderTimeFromDb = try { LocalDateTime.parse(dbReminder.reminderTime, storableDateTimeFormatter).toLocalTime() } catch (e: Exception) { null }
+                val takenAtTimeFromDb = dbReminder.takenAt?.let { try { LocalDateTime.parse(it, storableDateTimeFormatter).toLocalTime() } catch (e: Exception) { null } }
+
+                // Determine the primary time for this DB entry (taken time if available and taken, otherwise scheduled time)
+                val displayTime: LocalTime? = if (dbReminder.isTaken && takenAtTimeFromDb != null) {
+                    takenAtTimeFromDb
+                } else {
+                    reminderTimeFromDb
+                }
+                Log.d("MedReminderVM", "$funcTag: Processing DB Reminder ID ${dbReminder.id}. IsTaken: ${dbReminder.isTaken}, SchedTime: $reminderTimeFromDb, TakenAtTime: $takenAtTimeFromDb. Effective displayTime: $displayTime")
+
+
+                if (displayTime != null) {
+                    if (calculatedItemsMap.containsKey(displayTime)) {
+                        val existingItem = calculatedItemsMap[displayTime]!!
+                        Log.d("MedReminderVM", "$funcTag: DB Reminder ID ${dbReminder.id} matches calculated slot at $displayTime. Updating item.")
+                        calculatedItemsMap[displayTime] = existingItem.copy(
+                            isTaken = dbReminder.isTaken,
+                            underlyingReminderId = dbReminder.id.toLong(),
+                            // medicationScheduleId could be different if manually logged against a different schedule, prefer original from calculation
+                            takenAt = if (dbReminder.isTaken) dbReminder.takenAt else null, // Store the actual takenAt string
+                            isPast = currentTime.isAfter(displayTime) // Re-evaluate isPast based on displayTime
+                        )
+                    } else {
+                        // This is an ad-hoc reminder (e.g., manually added past dose not matching any calculated slot for today)
+                        Log.d("MedReminderVM", "$funcTag: DB Reminder ID ${dbReminder.id} at $displayTime is ad-hoc (not in calculated map).")
+                        adHocItems.add(
+                            TodayScheduleItem(
+                                id = "adhoc_${medicationId}_${dbReminder.id}",
+                                medicationName = medication.name,
+                                time = displayTime,
+                                isPast = currentTime.isAfter(displayTime),
+                                isTaken = dbReminder.isTaken,
+                                underlyingReminderId = dbReminder.id.toLong(),
+                                medicationScheduleId = dbReminder.medicationScheduleId ?: 0, // Use actual if available, else 0/null
+                                takenAt = dbReminder.takenAt
+                            )
+                        )
+                    }
+                } else {
+                     Log.w("MedReminderVM", "$funcTag: DB Reminder ID ${dbReminder.id} could not determine a valid displayTime. ReminderTime: ${dbReminder.reminderTime}, TakenAt: ${dbReminder.takenAt}. Skipping.")
+                }
+            }
+            Log.i("MedReminderVM", "$funcTag: Finished processing DB reminders. Ad-hoc items count: ${adHocItems.size}")
+
+            // 4. Combine, sort, and update StateFlow
+            val combinedList = (calculatedItemsMap.values + adHocItems).distinctBy {
+                // Create a composite key for distinctness, considering time and taken status primarily for UI representation
+                // If an item was calculated and then matched with a taken DB record, it's one item.
+                // Ad-hoc items are distinct by their original reminder ID.
+                if (it.id.startsWith("adhoc_")) it.id else "${it.time}_${it.isTaken}"
+            }.sortedBy { it.time }
+
+            Log.i("MedReminderVM", "$funcTag: Combined list size before final sort/distinct: ${calculatedItemsMap.values.size + adHocItems.size}, after distinctBy and sort: ${combinedList.size}.")
+            _todayScheduleItems.value = combinedList
+            Log.d("MedReminderVM", "$funcTag: Successfully updated _todayScheduleItems. Final items: ${combinedList.joinToString { it.time.toString() + " (T:" + it.isTaken + ")" }}")
         }
     }
 

@@ -19,8 +19,11 @@ object ReminderCalculator {
     fun calculateReminderDateTimes(
         medication: Medication,
         schedule: MedicationSchedule,
-        targetDate: LocalDate // The specific date for which to calculate reminders
+        targetDate: LocalDate, // The specific date for which to calculate reminders
+        lastTakenOnDate: LocalTime? = null // New parameter for Type A adjustment
     ): List<LocalDateTime> {
+        val funcTag = "calculateReminderDateTimes[MedID: ${medication.id}, SchedID: ${schedule.id}, Date: $targetDate]"
+        Log.d("ReminderCalculator", "$funcTag: Called with lastTakenOnDate: $lastTakenOnDate")
         val reminders = mutableListOf<LocalDateTime>()
 
         // Check if medication is active on the targetDate
@@ -98,25 +101,44 @@ object ReminderCalculator {
                     }
                 } ?: LocalTime.MAX
 
-                Log.d("ReminderCalculator", "Calculating Type A for $targetDate, start: $actualDailyStart, end: $actualDailyEnd, interval: $totalIntervalMinutes min, scheduleId: ${schedule.id}")
+                Log.d("ReminderCalculator", "$funcTag: Type A interval. actualDailyStart: $actualDailyStart, actualDailyEnd: $actualDailyEnd, interval: $totalIntervalMinutes min.")
 
-                var loopTime = actualDailyStart
-                var iterations = 0
-                // Using the static MAX_ITERATIONS as defined in previous versions for consistency of this safeguard's behavior.
-                // A dynamic one like `(24 * 60 / totalIntervalMinutes.coerceAtLeast(1)) + 5` could also be used
-                // if very fine-grained control per interval length is desired for the safeguard.
-                val MAX_ITERATIONS_PER_DAY = (24 * 60) + 5
+                var loopStartAnchorTime = actualDailyStart
+                if (lastTakenOnDate != null) {
+                    Log.i("ReminderCalculator", "$funcTag: lastTakenOnDate is provided: $lastTakenOnDate.")
+                    val potentialStartTimeAfterTaken = lastTakenOnDate.plusMinutes(totalIntervalMinutes.toLong())
+                    Log.d("ReminderCalculator", "$funcTag: potentialStartTimeAfterTaken from lastTakenOnDate: $potentialStartTimeAfterTaken")
 
-                while (iterations < MAX_ITERATIONS_PER_DAY) {
-                    // Primary condition: if loopTime has passed actualDailyEnd, stop.
-                    // This is especially important if actualDailyEnd is not LocalTime.MAX.
-                    if (loopTime.isAfter(actualDailyEnd)) {
-                        Log.d("ReminderCalculatorLoop", "Iter ${iterations}: loopTime $loopTime is after actualDailyEnd $actualDailyEnd. Breaking. ScheduleId: ${schedule.id}")
-                        break
+                    if (!potentialStartTimeAfterTaken.isAfter(actualDailyEnd) && !potentialStartTimeAfterTaken.isBefore(actualDailyStart)) {
+                        loopStartAnchorTime = potentialStartTimeAfterTaken
+                        Log.i("ReminderCalculator", "$funcTag: Adjusted loopStartAnchorTime to $loopStartAnchorTime based on lastTakenOnDate.")
+                    } else if (potentialStartTimeAfterTaken.isBefore(actualDailyStart)) {
+                        // If the next interval from lastTaken is before the window, but lastTaken was valid,
+                        // the next dose should still be at the window start.
+                        loopStartAnchorTime = actualDailyStart
+                        Log.i("ReminderCalculator", "$funcTag: potentialStartTimeAfterTaken is before window. Using actualDailyStart ($actualDailyStart) as loopStartAnchorTime.")
+                    } else { // potentialStartTimeAfterTaken is after actualDailyEnd
+                        Log.i("ReminderCalculator", "$funcTag: potentialStartTimeAfterTaken ($potentialStartTimeAfterTaken) is after actualDailyEnd ($actualDailyEnd). No reminders for this day from lastTakenOnDate.")
+                        return emptyList() // No reminders possible for this day based on last taken.
                     }
+                } else {
+                    Log.d("ReminderCalculator", "$funcTag: No lastTakenOnDate provided. Using actualDailyStart ($actualDailyStart) as loopStartAnchorTime.")
+                }
 
+                if (loopStartAnchorTime.isAfter(actualDailyEnd)) {
+                     Log.i("ReminderCalculator", "$funcTag: loopStartAnchorTime ($loopStartAnchorTime) is already after actualDailyEnd ($actualDailyEnd). No reminders to generate.")
+                     return emptyList()
+                }
+
+                var loopTime = loopStartAnchorTime
+                var iterations = 0
+                val MAX_ITERATIONS_PER_DAY = (24 * 60 / totalIntervalMinutes.coerceAtLeast(1)) + 5 // Dynamic safeguard based on interval
+
+                Log.d("ReminderCalculator", "$funcTag: Starting Type A loop. loopTime: $loopTime, actualDailyEnd: $actualDailyEnd")
+
+                while (iterations < MAX_ITERATIONS_PER_DAY && !loopTime.isAfter(actualDailyEnd)) {
                     reminders.add(LocalDateTime.of(targetDate, loopTime))
-                    Log.d("ReminderCalculatorLoop", "Iter ${iterations}: Added: ${LocalDateTime.of(targetDate, loopTime)}, scheduleId: ${schedule.id}")
+                    Log.d("ReminderCalculatorLoop", "$funcTag Iter ${iterations}: Added: ${LocalDateTime.of(targetDate, loopTime)}")
 
                     val nextLoopTimeCandidate = loopTime.plusMinutes(totalIntervalMinutes.toLong())
 
@@ -320,11 +342,19 @@ object ReminderCalculator {
                 Log.i("ReminderCalculator", "Daily Repeating Interval (Type A) detected for Med ID: ${medication.id}, Schedule ID: ${schedule.id}")
                 var currentDateIter = periodStartDate
                 while (!currentDateIter.isAfter(periodEndDate)) {
-                    // Call the existing calculateReminderDateTimes for each day
-                    // Pass schedule with parsedIntervalStartTime to ensure it's used
-                    val scheduleForDailyCalc = schedule.copy(intervalStartTime = parsedIntervalStartTime.format(timeStorableFormatter))
-                    val dailyTimes = calculateReminderDateTimes(medication, scheduleForDailyCalc, currentDateIter)
+                    // Call calculateReminderDateTimes for each day, passing lastTakenOnDate if applicable
+                    val lastTakenOnCurrentDateIter: LocalTime? = if (lastTakenDateTime != null && lastTakenDateTime.toLocalDate().isEqual(currentDateIter)) {
+                        Log.d("ReminderCalculator", "generateRemindersForPeriod: Passing lastTakenDateTime.toLocalTime() (${lastTakenDateTime.toLocalTime()}) for date $currentDateIter to calculateReminderDateTimes.")
+                        lastTakenDateTime.toLocalTime()
+                    } else {
+                        null
+                    }
+                    // Ensure parsedIntervalStartTime (which defines this as Type A) is correctly passed if not null
+                    val scheduleForDailyCalc = if(parsedIntervalStartTime != null) schedule.copy(intervalStartTime = parsedIntervalStartTime.format(timeStorableFormatter)) else schedule
+
+                    val dailyTimes = calculateReminderDateTimes(medication, scheduleForDailyCalc, currentDateIter, lastTakenOnCurrentDateIter)
                     if (dailyTimes.isNotEmpty()) {
+                        Log.d("ReminderCalculator", "generateRemindersForPeriod: For $currentDateIter (Type A), got dailyTimes: ${dailyTimes.map { it.toLocalTime() }} using lastTakenOnDate: $lastTakenOnCurrentDateIter")
                         allRemindersResult.getOrPut(currentDateIter) { mutableListOf() }
                             .addAll(dailyTimes.map { it.toLocalTime() })
                     }
@@ -335,7 +365,8 @@ object ReminderCalculator {
             Log.d("ReminderCalculator", "generateRemindersForPeriod for non-INTERVAL schedule type: ${schedule.scheduleType}. Med ID: ${medication.id}")
             var currentDateIter = periodStartDate
             while (!currentDateIter.isAfter(periodEndDate)) {
-                val dailyTimes = calculateReminderDateTimes(medication, schedule, currentDateIter)
+                // For non-INTERVAL types, lastTakenOnDate is not applicable for calculateReminderDateTimes's current logic
+                val dailyTimes = calculateReminderDateTimes(medication, schedule, currentDateIter, null)
                 if (dailyTimes.isNotEmpty()) {
                     allRemindersResult.getOrPut(currentDateIter) { mutableListOf() }
                         .addAll(dailyTimes.map { it.toLocalTime() })
