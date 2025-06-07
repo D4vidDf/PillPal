@@ -9,5 +9,6 @@ data class TodayScheduleItem(
     val isPast: Boolean,
     var isTaken: Boolean,
     val underlyingReminderId: Long, // ID of the MedicationReminder DB record, if one exists
-    val medicationScheduleId: Int   // ID of the MedicationSchedule that generated this item
+    val medicationScheduleId: Int,   // ID of the MedicationSchedule that generated this item
+    val takenAt: String? // Timestamp for when the dose was actually taken
 )
