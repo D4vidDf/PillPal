@@ -141,11 +141,24 @@ class SettingsViewModel @Inject constructor(
         } else {
             try {
                 val uri = Uri.parse(uriString)
+                // It's RingtoneManager.getRingtone that can throw, or accessing title on a null ringtone
                 val ringtone = RingtoneManager.getRingtone(application, uri)
-                ringtone?.getTitle(application) ?: application.getString(R.string.settings_notification_sound_unknown)
+                ringtone?.getTitle(application) ?: application.getString(R.string.settings_notification_sound_unknown) // Fallback if title is null
+            } catch (fnfe: java.io.FileNotFoundException) {
+                val errorMessage = "File not found for ringtone URI: $uriString"
+                Log.e("SettingsViewModel", errorMessage, fnfe)
+                FileLogger.log("SettingsViewModelError", errorMessage, fnfe)
+                "Unknown or Invalid Sound" // User-friendly message
+            } catch (se: SecurityException) {
+                val errorMessage = "Security exception accessing ringtone URI: $uriString"
+                Log.e("SettingsViewModel", errorMessage, se)
+                FileLogger.log("SettingsViewModelError", errorMessage, se)
+                "Unknown or Invalid Sound"
             } catch (e: Exception) {
-                Log.e("SettingsViewModel", "Error getting ringtone title", e)
-                application.getString(R.string.settings_notification_sound_unknown)
+                val errorMessage = "Error getting ringtone title for URI: $uriString"
+                Log.e("SettingsViewModel", errorMessage, e)
+                FileLogger.log("SettingsViewModelError", errorMessage, e)
+                "Unknown or Invalid Sound"
             }
         }
     }
