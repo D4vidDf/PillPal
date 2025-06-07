@@ -33,6 +33,12 @@ interface MedicationReminderDao {
     @Query("SELECT * FROM medication_reminder WHERE medicationId = :medicationId AND isTaken = 0 AND reminderTime > :currentTimeIsoString")
     fun getFutureUntakenRemindersForMedication(medicationId: Int, currentTimeIsoString: String): Flow<List<MedicationReminder>>
 
+    @Query("SELECT * FROM medication_reminder WHERE medicationId = :medicationId AND reminderTime BETWEEN :startTime AND :endTime")
+    suspend fun getRemindersForMedicationInWindow(medicationId: Int, startTime: String, endTime: String): List<MedicationReminder>
+
     @Query("DELETE FROM medication_reminder WHERE id = :reminderId")
     suspend fun deleteReminderById(reminderId: Int)
+
+    @Query("SELECT * FROM medication_reminder WHERE medicationId = :medicationId AND isTaken = 1 ORDER BY takenAt DESC LIMIT 1")
+    suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder?
 }

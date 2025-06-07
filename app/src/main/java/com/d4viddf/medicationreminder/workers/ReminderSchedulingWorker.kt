@@ -131,10 +131,10 @@ class ReminderSchedulingWorker constructor(
 
         if (calculationWindowEndDate.isBefore(effectiveSearchStartDateTime.toLocalDate())) {
             Log.i(funcTag, "Calculation window end ($calculationWindowEndDate) is before effective start (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule.")
-            val existingFutureRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
+            val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication( // Name changed for clarity
                 medication.id, now.format(storableDateTimeFormatter)
             ).firstOrNull() ?: emptyList()
-            existingFutureRemindersDb.forEach { staleReminder ->
+            existingFutureUntakenRemindersDb.forEach { staleReminder -> // Changed variable name
                 Log.d(funcTag, "Medication period ended or invalid: Cleaning up stale reminder ID ${staleReminder.id}")
                 notificationScheduler.cancelAllAlarmsForReminder(applicationContext, staleReminder.id)
                 medicationReminderRepository.deleteReminderById(staleReminder.id)
@@ -142,22 +142,53 @@ class ReminderSchedulingWorker constructor(
             return
         }
 
-        // 2. Fetch Existing Future Untaken Reminders
-        Log.d(funcTag, "Fetching existing future untaken reminders for medication ID: ${medication.id}.")
-        val existingFutureRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
-            medication.id, now.format(storableDateTimeFormatter)
-        ).firstOrNull() ?: emptyList()
-        val existingFutureRemindersMap = existingFutureRemindersDb.associateBy {
+        // 2. Fetch ALL Existing Reminders for the defined period (taken and untaken)
+        Log.d(funcTag, "Fetching all existing reminders for medication ID: ${medication.id} within window: $effectiveSearchStartDateTime to $calculationWindowEndDate.")
+        val allExistingRemindersForPeriod = medicationReminderRepository.getRemindersForMedicationInWindow(
+            medication.id,
+            effectiveSearchStartDateTime.format(storableDateTimeFormatter),
+            calculationWindowEndDate.atTime(23, 59, 59).format(storableDateTimeFormatter) // End of day for calculationWindowEndDate
+        )
+        val allExistingRemindersForPeriodMap = allExistingRemindersForPeriod.associateBy {
             try { LocalDateTime.parse(it.reminderTime, storableDateTimeFormatter) } catch (e: Exception) { null }
         }.filterKeys { it != null } as Map<LocalDateTime, MedicationReminder>
-        Log.d(funcTag, "Found ${existingFutureRemindersMap.size} existing future untaken reminders.")
+        Log.d(funcTag, "Found ${allExistingRemindersForPeriodMap.size} existing reminders (taken and untaken) in the period.")
+
+        // Fetch Existing Future Untaken Reminders (still needed for stale cleanup logic)
+        Log.d(funcTag, "Fetching existing future untaken reminders for medication ID: ${medication.id} for stale cleanup.")
+        val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
+            medication.id, now.format(storableDateTimeFormatter)
+        ).firstOrNull() ?: emptyList()
+        val existingFutureUntakenRemindersMap = existingFutureUntakenRemindersDb.associateBy { // Name changed for clarity
+            try { LocalDateTime.parse(it.reminderTime, storableDateTimeFormatter) } catch (e: Exception) { null }
+        }.filterKeys { it != null } as Map<LocalDateTime, MedicationReminder>
+        Log.d(funcTag, "Found ${existingFutureUntakenRemindersMap.size} existing future untaken reminders (for stale cleanup).")
 
 
         // 3. Get Ideal Reminders for the period
+        var lastTakenForIntervalCalc: LocalDateTime? = null
+        if (schedule.scheduleType == ScheduleType.INTERVAL) {
+            val mostRecentTakenReminder = medicationReminderRepository.getMostRecentTakenReminder(medication.id)
+            if (mostRecentTakenReminder?.takenAt != null) {
+                try {
+                    lastTakenForIntervalCalc = LocalDateTime.parse(mostRecentTakenReminder.takenAt, storableDateTimeFormatter)
+                    Log.i(funcTag, "Found most recent taken dose at $lastTakenForIntervalCalc for interval calculation (Med ID: ${medication.id}, Reminder ID: ${mostRecentTakenReminder.id})")
+                } catch (e: Exception) {
+                    Log.e(funcTag, "Error parsing takenAt for most recent taken reminder (Med ID: ${medication.id}, Reminder ID: ${mostRecentTakenReminder.id}, TakenAt: ${mostRecentTakenReminder.takenAt})", e)
+                }
+            } else {
+                Log.d(funcTag, "No recent taken dose found with valid takenAt time for interval calculation (Med ID: ${medication.id})")
+            }
+        }
+
         val calculatedRemindersMap = ReminderCalculator.generateRemindersForPeriod(
-            medication, schedule, effectiveSearchStartDateTime.toLocalDate(), calculationWindowEndDate
+            medication,
+            schedule,
+            effectiveSearchStartDateTime.toLocalDate(),
+            calculationWindowEndDate,
+            lastTakenForIntervalCalc // Pass the last taken date time, or null
         )
-        Log.d(funcTag, "CalculatedRemindersMap from ReminderCalculator: ${calculatedRemindersMap.mapValues { entry -> entry.value.map { it.toString() } }}")
+        Log.d(funcTag, "CalculatedRemindersMap from ReminderCalculator (lastTaken: $lastTakenForIntervalCalc): ${calculatedRemindersMap.mapValues { entry -> entry.value.map { it.toString() } }}")
 
         val idealFutureDateTimesSet = mutableSetOf<LocalDateTime>()
         calculatedRemindersMap.forEach { (date, times) ->
@@ -181,7 +212,10 @@ class ReminderSchedulingWorker constructor(
 
         // 4. Schedule New/Missing Reminders
         sortedIdealFutureDateTimes.forEachIndexed { index, idealDateTime ->
-            if (!existingFutureRemindersMap.containsKey(idealDateTime)) {
+            val existingReminderForThisTime = allExistingRemindersForPeriodMap[idealDateTime]
+
+            if (existingReminderForThisTime == null) {
+                // No reminder exists in DB for this ideal time, schedule a new one
                 val reminderObjectToInsert = MedicationReminder(
                     medicationId = medication.id,
                     medicationScheduleId = schedule.id,
@@ -189,7 +223,7 @@ class ReminderSchedulingWorker constructor(
                     isTaken = false, takenAt = null, notificationId = null
                 )
                 val actualReminderIdFromDb = medicationReminderRepository.insertReminder(reminderObjectToInsert)
-                Log.i(funcTag, "Scheduling new reminder for idealDateTime: $idealDateTime, actualReminderIdFromDb: $actualReminderIdFromDb")
+                Log.i(funcTag, "Scheduling NEW reminder for idealDateTime: $idealDateTime, actualReminderIdFromDb: $actualReminderIdFromDb")
                 val reminderWithActualId = reminderObjectToInsert.copy(id = actualReminderIdFromDb.toInt())
 
                 val actualScheduledTimeMillis = idealDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -218,24 +252,30 @@ class ReminderSchedulingWorker constructor(
                             Log.d(funcTag, "Pre-reminder time for reminderId ${reminderWithActualId.id} is in the past ($preReminderTargetTimeMillis). Skipping pre-reminder.")
                         }
                     }
-                    Log.i(funcTag, "Successfully scheduled main and pre-reminder (if applicable) for reminder ID ${reminderWithActualId.id} at $idealDateTime.")
+                    Log.i(funcTag, "Successfully scheduled main and pre-reminder (if applicable) for NEW reminder ID ${reminderWithActualId.id} at $idealDateTime.")
                 } catch (e: IllegalStateException) {
-                    Log.e(funcTag, "ALARM LIMIT EXCEPTION for reminder ID ${reminderWithActualId.id}: ${e.message}", e)
+                    Log.e(funcTag, "ALARM LIMIT EXCEPTION for new reminder ID ${reminderWithActualId.id}: ${e.message}", e)
                 } catch (e: Exception) {
-                    Log.e(funcTag, "Generic error scheduling alarm for reminder ID ${reminderWithActualId.id}", e)
+                    Log.e(funcTag, "Generic error scheduling alarm for new reminder ID ${reminderWithActualId.id}", e)
                 }
             } else {
-                Log.d(funcTag, "Ideal reminder at $idealDateTime already exists (ID: ${existingFutureRemindersMap[idealDateTime]?.id}). Skipping scheduling.")
+                // A reminder already exists for this ideal time
+                if (existingReminderForThisTime.isTaken) {
+                    Log.i(funcTag, "Ideal reminder at $idealDateTime already exists and IS TAKEN (ID: ${existingReminderForThisTime.id}). Doing nothing.")
+                } else {
+                    Log.i(funcTag, "Ideal reminder at $idealDateTime already exists and IS NOT TAKEN (ID: ${existingReminderForThisTime.id}). Doing nothing, should be already scheduled.")
+                }
             }
         }
 
-        // 5. Cleanup Stale Reminders
-        existingFutureRemindersMap.forEach { (dateTime, existingReminder) ->
+        // 5. Cleanup Stale Reminders (using existingFutureUntakenRemindersMap)
+        // This logic remains the same, ensuring only UNTAKEN reminders that are no longer ideal are removed.
+        existingFutureUntakenRemindersMap.forEach { (dateTime, existingUntakenReminder) -> // Variable name changed for clarity
             if (!idealFutureDateTimesSet.contains(dateTime)) {
-                Log.i(funcTag, "Cleaning up stale reminder. DateTime: $dateTime, ExistingReminderId: ${existingReminder.id}.")
-                notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingReminder.id)
-                medicationReminderRepository.deleteReminderById(existingReminder.id)
-                Log.i(funcTag, "Successfully cancelled and deleted stale reminder ID ${existingReminder.id} for datetime $dateTime.")
+                Log.i(funcTag, "Cleaning up STALE UNTAKEN reminder. DateTime: $dateTime, ExistingReminderId: ${existingUntakenReminder.id}.")
+                notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingUntakenReminder.id)
+                medicationReminderRepository.deleteReminderById(existingUntakenReminder.id)
+                Log.i(funcTag, "Successfully cancelled and deleted STALE UNTAKEN reminder ID ${existingUntakenReminder.id} for datetime $dateTime.")
             }
         }
         Log.i(funcTag, "Reminder scheduling/synchronization complete.")

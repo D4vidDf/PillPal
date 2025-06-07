@@ -108,7 +108,8 @@ fun AddPastMedicationDialog(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            dialogSelectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                            // Correctly interpret the millis from DatePicker as UTC
+                            dialogSelectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
                         }
                         showDatePicker = false
                     }

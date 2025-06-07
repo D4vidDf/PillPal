@@ -19,7 +19,7 @@ import androidx.room.PrimaryKey
 data class MedicationReminder(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val medicationId: Int,
-    val medicationScheduleId: Int,
+    val medicationScheduleId: Int?, // Changed to nullable Int
     val reminderTime: String,
     val isTaken: Boolean = false,
     val takenAt: String?,          // Timestamp for when the dose was taken
