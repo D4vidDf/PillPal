@@ -61,4 +61,11 @@ class MedicationReminderRepository @Inject constructor(
         return medicationReminderDao.getFutureUntakenRemindersForMedication(medicationId, currentTimeIsoString)
     }
 
+    suspend fun getRemindersForMedicationInWindow(medicationId: Int, startTime: String, endTime: String): List<MedicationReminder> {
+        return medicationReminderDao.getRemindersForMedicationInWindow(medicationId, startTime, endTime)
+    }
+
+    suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder? {
+        return medicationReminderDao.getMostRecentTakenReminder(medicationId)
+    }
 }

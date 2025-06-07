@@ -220,6 +220,10 @@ class MedicationReminderViewModel @Inject constructor(
                     loadTodaySchedule(medicationId) // Refresh the list if the added dose was for today
                     Log.d("MedReminderVM", "Refreshed today's schedule after adding past medication for today.")
                 }
+                // Successfully inserted past medication taken, now trigger worker
+                triggerNextReminderScheduling(medicationId)
+                Log.i("MedReminderVM", "Triggered ReminderSchedulingWorker for medId: $medicationId after adding past taken dose.")
+
             } catch (e: Exception) {
                 Log.e("MedReminderVM", "Error inserting past medication taken for medId: $medicationId", e)
                 // Optionally, communicate error to UI
@@ -267,6 +271,18 @@ class MedicationReminderViewModel @Inject constructor(
                     reminderRepository.insertReminder(newReminder)
                     Log.d("MedReminderVM", "Created and marked new reminder as taken for item: $itemId.")
                 }
+
+                // After successfully marking as taken (either update or insert)
+                val medication = medicationRepository.getMedicationById(medicationId)
+                val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() }
+
+                if (schedule?.scheduleType == com.d4viddf.medicationreminder.data.ScheduleType.INTERVAL) {
+                    triggerNextReminderScheduling(medicationId)
+                    Log.i("MedReminderVM", "Triggered ReminderSchedulingWorker for medId: $medicationId after marking as taken (interval schedule). ItemId: $itemId")
+                } else {
+                    Log.d("MedReminderVM", "Did not trigger ReminderSchedulingWorker for medId: $medicationId. Schedule type is not INTERVAL or schedule/medication not found. ItemId: $itemId, ScheduleType: ${schedule?.scheduleType}")
+                }
+
             } else { // Unmarking as taken
                 if (reminderInDb != null) {
                     val updatedReminder = reminderInDb.copy(

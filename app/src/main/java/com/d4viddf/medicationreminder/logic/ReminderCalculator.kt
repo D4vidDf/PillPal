@@ -149,7 +149,8 @@ object ReminderCalculator {
         medication: Medication,
         schedule: MedicationSchedule,
         periodStartDate: LocalDate,
-        periodEndDate: LocalDate
+        periodEndDate: LocalDate,
+        lastTakenDateTime: LocalDateTime? = null // New optional parameter
     ): Map<LocalDate, List<LocalTime>> {
         val allRemindersResult = mutableMapOf<LocalDate, MutableList<LocalTime>>()
 
@@ -191,41 +192,97 @@ object ReminderCalculator {
                 }
 
                 val currentDateTime = LocalDateTime.now()
-                val anchorDateTime: LocalDateTime = if (medicationStartDateOnly.isEqual(currentDateTime.toLocalDate())) {
-                    Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Medication start date is today. Anchoring to currentDateTime: $currentDateTime")
-                    currentDateTime
+                var anchorDateTime: LocalDateTime
+
+                if (lastTakenDateTime != null) {
+                    Log.i("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, lastTakenDateTime is provided: $lastTakenDateTime")
+                    val nextReminderAfterTaken = lastTakenDateTime.plusMinutes(totalIntervalMinutes.toLong())
+                    Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, calculated nextReminderAfterTaken: $nextReminderAfterTaken")
+
+                    // Ensure anchor is not before medication start date
+                    val medicationStartAtDay = medicationStartDateOnly.atStartOfDay()
+                    anchorDateTime = if (nextReminderAfterTaken.isBefore(medicationStartAtDay)) {
+                        Log.w("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, nextReminderAfterTaken ($nextReminderAfterTaken) is before medication start date ($medicationStartAtDay). Using medication start date as anchor.")
+                        medicationStartAtDay
+                    } else {
+                        nextReminderAfterTaken
+                    }
+                    Log.i("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Using lastTakenDateTime. Adjusted anchorDateTime: $anchorDateTime")
                 } else {
-                    Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Medication start date is not today ($medicationStartDateOnly). Anchoring to start of day: ${medicationStartDateOnly.atStartOfDay()}")
-                    medicationStartDateOnly.atStartOfDay()
+                    // Original logic if lastTakenDateTime is null
+                    anchorDateTime = if (medicationStartDateOnly.isEqual(currentDateTime.toLocalDate()) && !currentDateTime.toLocalTime().isBefore(LocalTime.MIN.plusSeconds(1))) { // Ensure current time is not midnight start
+                         // If med start is today, AND current time is not effectively 00:00 (implying we want to start from now, not from a historical 00:00)
+                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is today. Anchoring to currentDateTime: $currentDateTime")
+                        currentDateTime
+                    } else {
+                        // If med start is in the past, or it's today but effectively very early (e.g. worker runs at 00:01 for a med starting today)
+                        // then anchor to the start of the medication day.
+                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is not today ($medicationStartDateOnly) or it is today but very early. Anchoring to start of medication day: ${medicationStartDateOnly.atStartOfDay()}")
+                        medicationStartDateOnly.atStartOfDay()
+                    }
+                    Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, No lastTaken. Original anchor logic. Final anchorDateTime = $anchorDateTime")
                 }
-                Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, final anchorDateTime = $anchorDateTime")
+
+
+                // Ensure anchorDateTime is not in the future beyond what's sensible for calculation start.
+                // If the calculated anchor (especially from lastTaken) is way past the current time,
+                // it might be more logical to start calculations from 'now' if 'now' is later than medication start.
+                // However, the current primary logic is to respect lastTakenDateTime's projection.
+                // A secondary check: if anchorDateTime is before 'now' but medication started earlier, 'now' could be a floor.
+                val effectiveCalculationStartAnchor = if (anchorDateTime.isBefore(currentDateTime) && medicationStartDateOnly.isBefore(currentDateTime.toLocalDate())) {
+                    // If the anchor (potentially from an old lastTaken) is in the past, and med started in past,
+                    // we should start generating from 'now' to avoid historical reminders, but only if 'now' is after the original anchor.
+                    // This ensures that if lastTaken results in an anchor in the future, we use that.
+                    // If lastTaken results in an anchor in the past, we advance it to 'now' (if 'now' is also past medication start)
+                    if (currentDateTime.isAfter(anchorDateTime)) {
+                         Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Anchor $anchorDateTime was in past. Med started in past. Advancing anchor to currentDateTime: $currentDateTime for generation start.")
+                         currentDateTime
+                    } else {
+                         anchorDateTime
+                    }
+                } else {
+                  anchorDateTime
+                }
+                // Re-assign anchorDateTime to the potentially adjusted one for clarity in subsequent logs
+                anchorDateTime = effectiveCalculationStartAnchor
+                Log.i("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, final effective anchorDateTime for generation = $anchorDateTime")
+
 
                 val parsedMedicationEndDate: LocalDate? = medication.endDate?.let {
                     try { LocalDate.parse(it, dateStorableFormatter) } catch (e: Exception) { null }
                 }
 
-                var currentReminderTime = anchorDateTime
+                var currentReminderTime = anchorDateTime // Start generating from the determined anchorDateTime
                 val allGeneratedDateTimes = mutableListOf<LocalDateTime>()
                 val MAX_CONTINUOUS_ITERATIONS = 10000 // Safeguard: Max 10,000 reminders in raw sequence
                 var continuousIterations = 0
                 val longStopDate = periodStartDate.plusYears(5) // Long-stop safeguard for loop
 
-                Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Starting generation from $anchorDateTime. Interval: $totalIntervalMinutes mins. MedEndDate: $parsedMedicationEndDate. Period: $periodStartDate to $periodEndDate.")
+                Log.i("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Starting generation from $currentReminderTime (derived from anchorDateTime). Interval: $totalIntervalMinutes mins. MedEndDate: $parsedMedicationEndDate. Period: $periodStartDate to $periodEndDate.")
 
                 while (continuousIterations++ < MAX_CONTINUOUS_ITERATIONS) {
                     if (continuousIterations <= 5) { // Log first 5 generated currentReminderTime values
-                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime = $currentReminderTime")
+                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime candidate = $currentReminderTime")
                     }
-                    allGeneratedDateTimes.add(currentReminderTime)
+
+                    // Add reminder candidate if it's not before the medication start date's time (anchor could be med start day 00:00)
+                    // and also not before the overall periodStartDate (though subsequent filtering handles periodStartDate)
+                    // This initial check ensures we don't add times from before the medication was supposed to start if anchor was adjusted.
+                    if (!currentReminderTime.isBefore(medicationStartDateOnly.atStartOfDay())) {
+                         allGeneratedDateTimes.add(currentReminderTime)
+                    } else {
+                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime candidate $currentReminderTime is before medication start day ${medicationStartDateOnly.atStartOfDay()}. Skipping add.")
+                    }
+
                     val oldTimeForCheck = currentReminderTime
                     currentReminderTime = currentReminderTime.plusMinutes(totalIntervalMinutes.toLong())
 
                     if (currentReminderTime == oldTimeForCheck) { // Robustness for zero interval that might pass initial check
-                        Log.e("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, currentTime did not advance. Aborting. Interval: $totalIntervalMinutes.")
+                        Log.e("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, currentReminderTime did not advance. Aborting. Interval: $totalIntervalMinutes.")
                         break
                     }
                     if (parsedMedicationEndDate != null && currentReminderTime.toLocalDate().isAfter(parsedMedicationEndDate)) {
-                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, currentReminderTime ($currentReminderTime) is after medication end date ($parsedMedicationEndDate). Stopping generation.")
+                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, next currentReminderTime ($currentReminderTime) would be after medication end date ($parsedMedicationEndDate). Stopping generation.")
                         break
                     }
                     if (currentReminderTime.toLocalDate().isAfter(longStopDate)) {
@@ -240,11 +297,19 @@ object ReminderCalculator {
                     val reminderDate = dt.toLocalDate()
                     if (!reminderDate.isBefore(periodStartDate) && !reminderDate.isAfter(periodEndDate)) {
                         if (parsedMedicationEndDate == null || !reminderDate.isAfter(parsedMedicationEndDate)) {
-                            // Also ensure it's not before the medication's actual start date (already handled by anchorDateTime start)
-                            if (!reminderDate.isBefore(anchorDateTime.toLocalDate())) {
-                                allRemindersResult.getOrPut(reminderDate) { mutableListOf() }
-                                    .add(dt.toLocalTime())
-                                filteredRemindersCount++
+                    // Ensure reminder is not before the medication's actual start date on that day.
+                    // The primary anchorDateTime logic should handle the starting point correctly,
+                    // but this is a safeguard for the generated list.
+                    if (!dt.toLocalDate().isBefore(medicationStartDateOnly)) {
+                         if (!dt.isBefore(anchorDateTime) || dt.toLocalDate().isAfter(anchorDateTime.toLocalDate())) { // Accept if on same day but at/after anchor time, or any time on subsequent days
+                            allRemindersResult.getOrPut(reminderDate) { mutableListOf() }
+                                .add(dt.toLocalTime())
+                            filteredRemindersCount++
+                        } else {
+                             Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Filtering out $dt as it's before effective anchor time $anchorDateTime on the same day.")
+                        }
+                    } else {
+                        Log.d("ReminderCalculator", "Continuous Interval: Med ID ${medication.id}, Filtering out $dt as it's before medication start date $medicationStartDateOnly.")
                             }
                         }
                     }
