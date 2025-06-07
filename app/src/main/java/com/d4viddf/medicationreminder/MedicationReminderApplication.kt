@@ -98,6 +98,6 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
         )
         val hoursUntilRun = TimeUnit.MILLISECONDS.toHours(delayUntilNextRun)
         val minutesUntilRun = TimeUnit.MILLISECONDS.toMinutes(delayUntilNextRun) % 60
-        Log.i("MedicationReminderApp", "Enqueued DailyReminderRefreshWorker to run in approx ${hoursUntilRun}h ${minutesUntilRun}m (using CustomFactory).")
+        Log.i("MedicationReminderApp", "Enqueued ReminderSchedulingWorker (as DailyReminderRefreshWorker) to run in approx ${hoursUntilRun}h ${minutesUntilRun}m (using CustomFactory).")
     }
 }
