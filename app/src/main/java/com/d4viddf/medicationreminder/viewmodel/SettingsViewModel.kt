@@ -136,26 +136,46 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun getNotificationSoundName(uriString: String?): String {
+        val initialMessage = "getNotificationSoundName called with URI: $uriString"
+        Log.d("SettingsViewModel", initialMessage)
+        FileLogger.log("SettingsViewModel", initialMessage)
+
         return if (uriString.isNullOrEmpty()) {
             application.getString(R.string.settings_notification_sound_default)
         } else {
             try {
-                val uri = Uri.parse(uriString)
-                // It's RingtoneManager.getRingtone that can throw, or accessing title on a null ringtone
+                val parseAttemptMessage = "Attempting to parse URI: $uriString"
+                Log.d("SettingsViewModel", parseAttemptMessage)
+                FileLogger.log("SettingsViewModel", parseAttemptMessage)
+
+                val uri = Uri.parse(uriString) // This must be inside the try block
                 val ringtone = RingtoneManager.getRingtone(application, uri)
-                ringtone?.getTitle(application) ?: application.getString(R.string.settings_notification_sound_unknown) // Fallback if title is null
+
+                if (ringtone == null) {
+                    val nullRingtoneMessage = "RingtoneManager.getRingtone returned null for URI: $uriString"
+                    Log.w("SettingsViewModel", nullRingtoneMessage)
+                    FileLogger.log("SettingsViewModelWarn", nullRingtoneMessage)
+                    "Unknown or Invalid Sound"
+                } else {
+                    ringtone.getTitle(application) ?: run {
+                        val nullTitleMessage = "Ringtone title is null for URI: $uriString"
+                        Log.w("SettingsViewModel", nullTitleMessage)
+                        FileLogger.log("SettingsViewModelWarn", nullTitleMessage)
+                        "Unknown or Invalid Sound"
+                    }
+                }
             } catch (fnfe: java.io.FileNotFoundException) {
                 val errorMessage = "File not found for ringtone URI: $uriString"
                 Log.e("SettingsViewModel", errorMessage, fnfe)
                 FileLogger.log("SettingsViewModelError", errorMessage, fnfe)
-                "Unknown or Invalid Sound" // User-friendly message
+                "Unknown or Invalid Sound"
             } catch (se: SecurityException) {
                 val errorMessage = "Security exception accessing ringtone URI: $uriString"
                 Log.e("SettingsViewModel", errorMessage, se)
                 FileLogger.log("SettingsViewModelError", errorMessage, se)
                 "Unknown or Invalid Sound"
-            } catch (e: Exception) {
-                val errorMessage = "Error getting ringtone title for URI: $uriString"
+            } catch (e: Exception) { // Catch any other exceptions from Uri.parse or getTitle
+                val errorMessage = "Error processing ringtone URI: $uriString"
                 Log.e("SettingsViewModel", errorMessage, e)
                 FileLogger.log("SettingsViewModelError", errorMessage, e)
                 "Unknown or Invalid Sound"
