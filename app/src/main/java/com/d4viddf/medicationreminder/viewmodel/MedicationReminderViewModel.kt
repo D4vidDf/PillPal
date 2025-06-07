@@ -331,70 +331,122 @@ class MedicationReminderViewModel @Inject constructor(
                 return@launch
             }
 
-            val reminderDateTime = LocalDateTime.of(LocalDate.now(), todayItem.time)
-            val reminderTimeStr = reminderDateTime.format(ReminderCalculator.storableDateTimeFormatter)
-            // Attempt to find existing reminder by medicationId and exact time string.
-            // This might require a new DAO method: getReminderByMedicationIdAndExactTimeString(medId: Int, timeStr: String)
-            // For now, we fetch all and filter, which is less efficient but works with current repo methods.
-            val existingReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-            var reminderInDb = existingReminders.find { it.reminderTime == reminderTimeStr && it.medicationId == medicationId }
+            val funcTag = "updateReminderStatus[MedId:$medicationId, ItemId:$itemId, IsTaken:$isTaken]"
+            Log.d("MedReminderVM", "$funcTag: Starting update.")
+
+            var reminderInDb: MedicationReminder? = null
+
+            if (todayItem.underlyingReminderId != 0L) {
+                Log.d("MedReminderVM", "$funcTag: Attempting to find reminder by underlyingReminderId: ${todayItem.underlyingReminderId}.")
+                reminderInDb = reminderRepository.getReminderById(todayItem.underlyingReminderId.toInt())
+                if (reminderInDb == null) {
+                    Log.w("MedReminderVM", "$funcTag: Failed to find reminder by underlyingReminderId: ${todayItem.underlyingReminderId} even though it was non-zero. This might indicate a stale UI item.")
+                    // It's possible the item was deleted elsewhere. loadTodaySchedule will refresh UI.
+                    // For now, we might not be able to proceed with this specific update if the DB record is gone.
+                    // However, if we are marking as TAKEN, we might still want to create a new record if the old one vanished.
+                } else {
+                    Log.d("MedReminderVM", "$funcTag: Found reminder by ID: ${reminderInDb.id}.")
+                }
+            }
 
             if (isTaken) {
-                if (reminderInDb != null) {
-                    // Update existing reminder
+                // Determine the correct date and time to record
+                val timeFromListItem = todayItem.time // This is LocalTime
+                val dateToRecord = LocalDate.now()    // Use current date for "taken now" action
+                val dateTimeToRecord = LocalDateTime.of(dateToRecord, timeFromListItem)
+                val dateTimeToRecordStr = dateTimeToRecord.format(storableDateTimeFormatter)
+                Log.d("MedReminderVM", "$funcTag: Determined dateTimeToRecordStr: $dateTimeToRecordStr for marking as taken.")
+
+                if (reminderInDb != null) { // Found by ID
+                    Log.d("MedReminderVM", "$funcTag: Marking reminder (ID: ${reminderInDb.id}) as TAKEN. Original reminderTime: ${reminderInDb.reminderTime}, New takenAt: $dateTimeToRecordStr")
                     val updatedReminder = reminderInDb.copy(
                         isTaken = true,
-                        takenAt = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter)
+                        takenAt = dateTimeToRecordStr // Use determined dateTimeToRecordStr
                     )
                     reminderRepository.updateReminder(updatedReminder)
-                    Log.d("MedReminderVM", "Marked existing reminder (ID: ${reminderInDb.id}) as taken for item: $itemId.")
-                } else {
-                    // Create new reminder
-                    val newReminder = MedicationReminder(
-                        id = 0, // Auto-generated
-                        medicationId = medicationId,
-                        medicationScheduleId = todayItem.medicationScheduleId,
-                        reminderTime = reminderTimeStr,
-                        isTaken = true,
-                        takenAt = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter),
-                        notificationId = null // Or manage if notifications are linked
-                    )
-                    reminderRepository.insertReminder(newReminder)
-                    Log.d("MedReminderVM", "Created and marked new reminder as taken for item: $itemId.")
+                    Log.d("MedReminderVM", "$funcTag: Reminder (ID: ${reminderInDb.id}) successfully marked as taken.")
+                } else { // Not found by ID (or ID was 0L, or it vanished)
+                    Log.d("MedReminderVM", "$funcTag: Reminder not found by ID (underlyingId: ${todayItem.underlyingReminderId}). Attempting time-based lookup or creating new.")
+
+                    // Time-based search should use the original scheduled time from todayItem to find an UNTAKEN slot
+                    val scheduledTimeForSearch = LocalDateTime.of(dateToRecord, todayItem.time).format(storableDateTimeFormatter)
+
+                    val existingRemindersForTime = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+                    // Try to find an existing UNTAKEN reminder at the item's time slot for today
+                    val reminderByTime = existingRemindersForTime.find {
+                        val rt = try { LocalDateTime.parse(it.reminderTime, storableDateTimeFormatter) } catch (e:Exception) { null }
+                        rt?.toLocalDate()?.isEqual(dateToRecord) == true && rt?.toLocalTime()?.equals(todayItem.time) == true && !it.isTaken && it.medicationId == medicationId
+                    }
+
+                    if (reminderByTime != null) {
+                        Log.d("MedReminderVM", "$funcTag: Found UNTAKEN reminder by time (ID: ${reminderByTime.id}, Time: ${reminderByTime.reminderTime}). Marking as TAKEN with takenAt: $dateTimeToRecordStr.")
+                        val updatedReminder = reminderByTime.copy(
+                            isTaken = true,
+                            takenAt = dateTimeToRecordStr // Use determined dateTimeToRecordStr
+                        )
+                        reminderRepository.updateReminder(updatedReminder)
+                        Log.d("MedReminderVM", "$funcTag: Reminder (ID: ${reminderByTime.id}) successfully marked as taken via time-based search.")
+                    } else {
+                        Log.d("MedReminderVM", "$funcTag: No existing UNTAKEN reminder found by ID or time. Creating NEW reminder as TAKEN. ReminderTime & TakenAt: $dateTimeToRecordStr")
+                        val newReminder = MedicationReminder(
+                            id = 0, // Auto-generated
+                            medicationId = medicationId,
+                            // Ensure medicationScheduleId is null if todayItem.medicationScheduleId is 0 (placeholder for no schedule)
+                            medicationScheduleId = todayItem.medicationScheduleId.let { if (it == 0) null else it },
+                            reminderTime = dateTimeToRecordStr, // NEW reminder's scheduled time is the taken time
+                            isTaken = true,
+                            takenAt = dateTimeToRecordStr,      // Also recorded as takenAt
+                            notificationId = null // Manage if needed
+                        )
+                        reminderRepository.insertReminder(newReminder)
+                        Log.d("MedReminderVM", "$funcTag: Successfully created and marked NEW reminder as taken.")
+                    }
                 }
 
-                // After successfully marking as taken (either update or insert)
+                // After successfully marking as taken (either update or insert), check for interval schedule
                 val medication = medicationRepository.getMedicationById(medicationId)
+                val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() }
+
+                val medication = medicationRepository.getMedicationById(medicationId) // Refetch for schedule type check
                 val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() }
 
                 if (schedule?.scheduleType == com.d4viddf.medicationreminder.data.ScheduleType.INTERVAL) {
                     triggerNextReminderScheduling(medicationId)
-                    Log.i("MedReminderVM", "Triggered ReminderSchedulingWorker for medId: $medicationId after marking as taken (interval schedule). ItemId: $itemId")
+                    Log.i("MedReminderVM", "$funcTag: Triggered ReminderSchedulingWorker for interval schedule.")
                 } else {
-                    Log.d("MedReminderVM", "Did not trigger ReminderSchedulingWorker for medId: $medicationId. Schedule type is not INTERVAL or schedule/medication not found. ItemId: $itemId, ScheduleType: ${schedule?.scheduleType}")
+                    Log.d("MedReminderVM", "$funcTag: Did not trigger ReminderSchedulingWorker. Schedule type is not INTERVAL (${schedule?.scheduleType}) or schedule/medication not found.")
                 }
 
-            } else { // Unmarking as taken
-                if (reminderInDb != null) {
+            } else { // Unmarking as taken (isTaken = false)
+                if (reminderInDb != null) { // Found by ID, this is the preferred path
+                    Log.d("MedReminderVM", "$funcTag: Marking reminder (ID: ${reminderInDb.id}) as NOT taken.")
                     val updatedReminder = reminderInDb.copy(
                         isTaken = false,
                         takenAt = null
+                        // Consider if notificationId should be reset or managed here if alarms need rescheduling for untaken doses.
+                        // For now, just clearing taken status.
                     )
                     reminderRepository.updateReminder(updatedReminder)
-                    Log.d("MedReminderVM", "Marked existing reminder (ID: ${reminderInDb.id}) as NOT taken for item: $itemId.")
+                    Log.d("MedReminderVM", "$funcTag: Reminder (ID: ${reminderInDb.id}) successfully marked as NOT taken.")
                 } else {
-                    // This case implies an inconsistency or an attempt to unmark a conceptual reminder that was never saved.
-                    Log.w("MedReminderVM", "Attempted to unmark a reminder that doesn't exist in DB. ItemId: $itemId, MedId: $medicationId, Time: $reminderDateTime")
-                    // Optionally, if a TodayScheduleItem can be "taken" conceptually without a DB record yet,
-                    // and then untaken, we might not need to do anything here if it was never in DB.
-                    // However, our current loadTodaySchedule implies underlyingReminderId would be 0L if not in DB.
-                    // If underlyingReminderId is not 0L, it means it *should* exist.
+                    // If underlyingReminderId was 0 or lookup by ID failed.
+                    // It's less common to "untake" something that wasn't concretely in the DB via ID.
+                    // A time-based fallback here might be risky if it affects a different underlying reminder
+                    // that happens to share a time slot but wasn't the one represented by todayItem.
+                    // If todayItem.underlyingReminderId was 0L, it means it was purely conceptual or its DB record was lost.
+                    // If it was non-zero but not found, it's an inconsistency.
                     if (todayItem.underlyingReminderId != 0L) {
-                         Log.e("MedReminderVM", "Inconsistency: Tried to unmark item $itemId with underlyingReminderId ${todayItem.underlyingReminderId} but not found in DB via time match.")
+                        Log.e("MedReminderVM", "$funcTag: Attempted to unmark item with underlyingReminderId ${todayItem.underlyingReminderId}, but it was not found in DB. No action taken for unmarking.")
+                    } else {
+                        Log.w("MedReminderVM", "$funcTag: Attempted to unmark item ${todayItem.id} which had no (or zero) underlyingReminderId. No action taken in DB.")
                     }
+                    // No actual DB update occurs in this specific 'else' branch for unmarking, as we couldn't find the target by ID.
                 }
+                // Note: Unlike marking as taken, we generally don't trigger rescheduling for un-taking an interval med,
+                // as the "last taken" is still the previous one. If this behavior needs to change, logic could be added here.
             }
-            // Refresh the entire list to ensure isTaken status and underlyingReminderId are up-to-date,
+
+            // Refresh the list to show the new status.
             // especially if a new reminder was inserted (which gets a new ID).
             loadTodaySchedule(medicationId)
             Log.d("MedReminderVM", "Refreshed today's schedule after updating status for item: $itemId.")
