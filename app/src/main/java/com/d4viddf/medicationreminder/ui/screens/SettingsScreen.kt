@@ -48,7 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.d4viddf.medicationreminder.BuildConfig
+// import com.d4viddf.medicationreminder.BuildConfig // Removed import
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
@@ -277,33 +277,31 @@ fun SettingsScreen(
                 }
             )
 
-            // Developer Options Section (Conditional)
-            if (BuildConfig.DEBUG) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Developer Options", // Consider using stringResource
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = {
-                        viewModel.restartDailyWorker()
-                        Toast.makeText(context, "Daily worker restart initiated.", Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Restart Daily Worker")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { /* TODO: Call ViewModel */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Share App Logs")
-                }
-                Spacer(modifier = Modifier.height(16.dp)) // Ensure padding at the bottom
+            // Developer Options Section (Now always visible)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Developer Options", // Consider using stringResource
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = {
+                    viewModel.restartDailyWorker()
+                    Toast.makeText(context, "Daily worker restart initiated.", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Restart Daily Worker")
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { /* TODO: Call ViewModel */ },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Share App Logs")
+            }
+            Spacer(modifier = Modifier.height(16.dp)) // Ensure padding at the bottom
         }
     }
 }
