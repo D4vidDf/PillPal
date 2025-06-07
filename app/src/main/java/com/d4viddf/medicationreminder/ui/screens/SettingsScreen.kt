@@ -55,7 +55,7 @@ import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import androidx.compose.material3.OutlinedButton
 import android.widget.Toast
 import androidx.compose.runtime.LaunchedEffect // Import LaunchedEffect
-import android.content.Intent // Import Intent
+// import android.content.Intent // Duplicate removed
 import android.util.Log // Import Log for error logging in LaunchedEffect
 import kotlin.math.roundToInt
 
@@ -112,7 +112,7 @@ fun SettingsScreen(
     }
 
     LaunchedEffect(Unit) { // Keyed on Unit to run once and keep collecting
-        viewModel.shareRequest.collect { intent ->
+        viewModel.shareRequest.collect { intent: android.content.Intent -> // Explicitly typed intent
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
@@ -261,8 +261,8 @@ fun SettingsScreen(
             NotificationSoundSettingItem(
                 soundName = viewModel.getNotificationSoundName(currentNotificationSoundUri),
                 onClick = {
-                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
+                    val intent = android.content.Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply { // Qualified Intent
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
                         putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
                         putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
                         putExtra(

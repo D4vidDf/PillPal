@@ -12,8 +12,9 @@ import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.services.PreReminderForegroundService
-import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
+import com.d4viddf.medicationreminder.utils.FileLogger
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import com.d4viddf.medicationreminder.data.MedicationReminder // Import MedicationReminder
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -120,7 +121,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 scope.launch {
                     var notificationSoundUri: String? = null
-                    var reminder: com.d4viddf.medicationreminder.data.Reminder? = null
+                    var reminder: com.d4viddf.medicationreminder.data.MedicationReminder? = null // Changed type here
                     var medicationColorHex: String? = null
                     var medicationTypeName: String? = null
                     try {
