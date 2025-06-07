@@ -9,6 +9,7 @@ import android.util.Log
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
 import com.d4viddf.medicationreminder.services.PreReminderForegroundService
+import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -39,15 +40,20 @@ class NotificationScheduler @Inject constructor() {
         nextDoseTimeForHelperMillis: Long?,
         actualScheduledTimeMillis: Long
     ) {
-        Log.d(TAG, "scheduleNotification called with: reminder.id=${reminder.id}, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelperMillis=${formatMillisToDateTimeString(nextDoseTimeForHelperMillis)} (${nextDoseTimeForHelperMillis ?: "null"}), actualScheduledTimeMillis=${formatMillisToDateTimeString(actualScheduledTimeMillis)} ($actualScheduledTimeMillis)")
+        val initialLog = "scheduleNotification called with: reminder.id=${reminder.id}, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelperMillis=${formatMillisToDateTimeString(nextDoseTimeForHelperMillis)} (${nextDoseTimeForHelperMillis ?: "null"}), actualScheduledTimeMillis=${formatMillisToDateTimeString(actualScheduledTimeMillis)} ($actualScheduledTimeMillis)"
+        Log.d(TAG, initialLog)
+        FileLogger.log(TAG, initialLog)
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        // val reminderTimeForLog = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(actualScheduledTimeMillis), ZoneId.systemDefault()) // Replaced by helper
 
-        Log.i(TAG, "Attempting to schedule MAIN reminder for ID: ${reminder.id} ('$medicationName') at ${formatMillisToDateTimeString(actualScheduledTimeMillis)}")
+        val attemptScheduleLog = "Attempting to schedule MAIN reminder for ID: ${reminder.id} ('$medicationName') at ${formatMillisToDateTimeString(actualScheduledTimeMillis)}"
+        Log.i(TAG, attemptScheduleLog)
+        FileLogger.log(TAG, attemptScheduleLog)
 
         if (actualScheduledTimeMillis < System.currentTimeMillis()) {
-            Log.w(TAG, "Skipping past MAIN reminder for '$medicationName' (ID: ${reminder.id}) - Scheduled: ${formatMillisToDateTimeString(actualScheduledTimeMillis)}")
+            val skipLog = "Skipping past MAIN reminder for '$medicationName' (ID: ${reminder.id}) - Scheduled: ${formatMillisToDateTimeString(actualScheduledTimeMillis)}"
+            Log.w(TAG, skipLog)
+            FileLogger.log(TAG, skipLog)
             return
         }
 
@@ -63,33 +69,46 @@ class NotificationScheduler @Inject constructor() {
             }
         }
         val intentExtrasString = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"
-        Log.d(TAG, "MAIN Intent created: action=${intent.action}, extras=[$intentExtrasString]")
+        val intentCreatedLog = "MAIN Intent created: action=${intent.action}, extras=[$intentExtrasString]"
+        Log.d(TAG, intentCreatedLog)
+        FileLogger.log(TAG, intentCreatedLog)
 
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         } else {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
-        // Using reminder.id as the request code for the main reminder's PendingIntent
         val pendingIntent = PendingIntent.getBroadcast(context, reminder.id, intent, pendingIntentFlags)
-        Log.d(TAG, "MAIN PendingIntent created: request_code=${reminder.id}")
+        val piCreatedLog = "MAIN PendingIntent created: request_code=${reminder.id}"
+        Log.d(TAG, piCreatedLog)
+        FileLogger.log(TAG, piCreatedLog)
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (alarmManager.canScheduleExactAlarms()) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, actualScheduledTimeMillis, pendingIntent)
-                    Log.i(TAG, "MAIN alarm set via setExactAndAllowWhileIdle for ID ${reminder.id} at ${formatMillisToDateTimeString(actualScheduledTimeMillis)}")
+                    val setExactLog = "MAIN alarm set via setExactAndAllowWhileIdle for ID ${reminder.id} at ${formatMillisToDateTimeString(actualScheduledTimeMillis)}"
+                    Log.i(TAG, setExactLog)
+                    FileLogger.log(TAG, setExactLog)
                 } else {
-                    Log.w(TAG, "Cannot schedule exact MAIN alarms for ID ${reminder.id}. Scheduling inexact using setWindow.")
+                    val cannotScheduleLog = "Cannot schedule exact MAIN alarms for ID ${reminder.id}. Scheduling inexact using setWindow."
+                    Log.w(TAG, cannotScheduleLog)
+                    FileLogger.log(TAG, cannotScheduleLog)
                     alarmManager.setWindow(AlarmManager.RTC_WAKEUP, actualScheduledTimeMillis - TimeUnit.MINUTES.toMillis(1), TimeUnit.MINUTES.toMillis(2), pendingIntent)
-                    Log.i(TAG, "MAIN alarm set via setWindow for ID ${reminder.id} around ${formatMillisToDateTimeString(actualScheduledTimeMillis)}")
+                    val setWindowLog = "MAIN alarm set via setWindow for ID ${reminder.id} around ${formatMillisToDateTimeString(actualScheduledTimeMillis)}"
+                    Log.i(TAG, setWindowLog)
+                    FileLogger.log(TAG, setWindowLog)
                 }
             } else {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, actualScheduledTimeMillis, pendingIntent)
-                Log.i(TAG, "MAIN alarm set via setExactAndAllowWhileIdle (legacy) for ID ${reminder.id} at ${formatMillisToDateTimeString(actualScheduledTimeMillis)}")
+                val setExactLegacyLog = "MAIN alarm set via setExactAndAllowWhileIdle (legacy) for ID ${reminder.id} at ${formatMillisToDateTimeString(actualScheduledTimeMillis)}"
+                Log.i(TAG, setExactLegacyLog)
+                FileLogger.log(TAG, setExactLegacyLog)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error scheduling MAIN alarm for reminder ID ${reminder.id}", e)
+            val errorLog = "Error scheduling MAIN alarm for reminder ID ${reminder.id}"
+            Log.e(TAG, errorLog, e)
+            FileLogger.log(TAG, errorLog, e)
         }
     }
 
@@ -100,16 +119,20 @@ class NotificationScheduler @Inject constructor() {
         medicationName: String
     ) {
         val preReminderTimeMillis = actualMainReminderTimeMillis - TimeUnit.MINUTES.toMillis(ReminderSchedulingWorker.PRE_REMINDER_OFFSET_MINUTES)
-        Log.d(TAG, "schedulePreReminderServiceTrigger called with: reminder.id=${reminder.id}, actualMainReminderTimeMillis=${formatMillisToDateTimeString(actualMainReminderTimeMillis)} ($actualMainReminderTimeMillis), medicationName='$medicationName'. Calculated preReminderTimeMillis=${formatMillisToDateTimeString(preReminderTimeMillis)} ($preReminderTimeMillis)")
-
-        // val preReminderTimeForLog = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(preReminderTimeMillis), ZoneId.systemDefault()) // Replaced by helper
+        val initialPreLog = "schedulePreReminderServiceTrigger called with: reminder.id=${reminder.id}, actualMainReminderTimeMillis=${formatMillisToDateTimeString(actualMainReminderTimeMillis)} ($actualMainReminderTimeMillis), medicationName='$medicationName'. Calculated preReminderTimeMillis=${formatMillisToDateTimeString(preReminderTimeMillis)} ($preReminderTimeMillis)"
+        Log.d(TAG, initialPreLog)
+        FileLogger.log(TAG, initialPreLog)
 
         if (preReminderTimeMillis < System.currentTimeMillis()) {
-            Log.d(TAG, "Pre-reminder time for reminderId ${reminder.id} (${formatMillisToDateTimeString(preReminderTimeMillis)}) is in the past. Skipping pre-reminder scheduling.")
+            val skipPreLog = "Pre-reminder time for reminderId ${reminder.id} (${formatMillisToDateTimeString(preReminderTimeMillis)}) is in the past. Skipping pre-reminder scheduling."
+            Log.d(TAG, skipPreLog)
+            FileLogger.log(TAG, skipPreLog)
             return
         }
 
-        Log.i(TAG, "Attempting to schedule PRE-REMINDER service trigger for main reminder ID: ${reminder.id} ('$medicationName') to trigger at ${formatMillisToDateTimeString(preReminderTimeMillis)}")
+        val attemptSchedulePreLog = "Attempting to schedule PRE-REMINDER service trigger for main reminder ID: ${reminder.id} ('$medicationName') to trigger at ${formatMillisToDateTimeString(preReminderTimeMillis)}"
+        Log.i(TAG, attemptSchedulePreLog)
+        FileLogger.log(TAG, attemptSchedulePreLog)
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
@@ -118,11 +141,15 @@ class NotificationScheduler @Inject constructor() {
             putExtra(ReminderBroadcastReceiver.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, actualMainReminderTimeMillis)
             putExtra(ReminderBroadcastReceiver.EXTRA_MEDICATION_NAME, medicationName)
         }
-        val intentExtrasString = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"
-        Log.d(TAG, "PRE-REMINDER Intent created: action=${intent.action}, extras=[$intentExtrasString]")
+        val intentExtrasPreString = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"
+        val intentPreCreatedLog = "PRE-REMINDER Intent created: action=${intent.action}, extras=[$intentExtrasPreString]"
+        Log.d(TAG, intentPreCreatedLog)
+        FileLogger.log(TAG, intentPreCreatedLog)
 
         val preReminderRequestCode = reminder.id + PreReminderForegroundService.PRE_REMINDER_NOTIFICATION_ID_OFFSET
-        Log.d(TAG, "PRE-REMINDER preReminderRequestCode: $preReminderRequestCode")
+        val preReqCodeLog = "PRE-REMINDER preReminderRequestCode: $preReminderRequestCode"
+        Log.d(TAG, preReqCodeLog)
+        FileLogger.log(TAG, preReqCodeLog)
 
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -130,32 +157,39 @@ class NotificationScheduler @Inject constructor() {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
         val pendingIntent = PendingIntent.getBroadcast(context, preReminderRequestCode, intent, pendingIntentFlags)
-        Log.d(TAG, "PRE-REMINDER PendingIntent created for original reminder ID: ${reminder.id} (request_code: $preReminderRequestCode)")
+        val piPreCreatedLog = "PRE-REMINDER PendingIntent created for original reminder ID: ${reminder.id} (request_code: $preReminderRequestCode)"
+        Log.d(TAG, piPreCreatedLog)
+        FileLogger.log(TAG, piPreCreatedLog)
 
         try {
-            var setMethodUsed = "setExact" // Default for older versions or when exact alarms are off
+            var setMethodUsed = "setExact"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
                 setMethodUsed = "setExactAndAllowWhileIdle"
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // setExactAndAllowWhileIdle is API 23, setExact is API 19
-                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent) // Prefer this if available and exact not scheduleable by S+
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
                  setMethodUsed = "setExactAndAllowWhileIdle (fallback for S+ no permission or pre-S)"
-            }
-             else { // API < M
+            } else {
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
             }
-            Log.i(TAG, "PRE-REMINDER alarm set via $setMethodUsed for original reminderId ${reminder.id} at ${formatMillisToDateTimeString(preReminderTimeMillis)} (request_code: $preReminderRequestCode)")
+            val setPreAlarmLog = "PRE-REMINDER alarm set via $setMethodUsed for original reminderId ${reminder.id} at ${formatMillisToDateTimeString(preReminderTimeMillis)} (request_code: $preReminderRequestCode)"
+            Log.i(TAG, setPreAlarmLog)
+            FileLogger.log(TAG, setPreAlarmLog)
         } catch (e: Exception) {
-            Log.e(TAG, "Error scheduling PRE-REMINDER alarm for original reminderId ${reminder.id} (request_code: $preReminderRequestCode)", e)
+            val errorPreLog = "Error scheduling PRE-REMINDER alarm for original reminderId ${reminder.id} (request_code: $preReminderRequestCode)"
+            Log.e(TAG, errorPreLog, e)
+            FileLogger.log(TAG, errorPreLog, e)
         }
     }
 
     private fun cancelMainReminderAlarm(context: Context, reminderId: Int) {
-        Log.d(TAG, "cancelMainReminderAlarm called for reminderId: $reminderId")
+        val cancelMainLog = "cancelMainReminderAlarm called for reminderId: $reminderId"
+        Log.d(TAG, cancelMainLog)
+        FileLogger.log(TAG, cancelMainLog)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
             action = ReminderBroadcastReceiver.ACTION_SHOW_REMINDER
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId) // Added EXTRA_REMINDER_ID
+            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId)
         }
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
@@ -165,26 +199,36 @@ class NotificationScheduler @Inject constructor() {
         val pendingIntent = PendingIntent.getBroadcast(context, reminderId, intent, pendingIntentFlags)
 
         if (pendingIntent != null) {
-            Log.d(TAG, "MAIN PendingIntent found for reminderId: $reminderId. Attempting cancellation.")
+            val piFoundLog = "MAIN PendingIntent found for reminderId: $reminderId. Attempting cancellation."
+            Log.d(TAG, piFoundLog)
+            FileLogger.log(TAG, piFoundLog)
             try {
                 alarmManager.cancel(pendingIntent)
                 pendingIntent.cancel()
-                Log.i(TAG, "Cancelled MAIN alarm for reminder ID: $reminderId (request_code: $reminderId)")
+                val cancelledLog = "Cancelled MAIN alarm for reminder ID: $reminderId (request_code: $reminderId)"
+                Log.i(TAG, cancelledLog)
+                FileLogger.log(TAG, cancelledLog)
             } catch (e: Exception) {
-                Log.e(TAG, "Error cancelling MAIN alarm for reminder ID $reminderId", e)
+                val errorCancelLog = "Error cancelling MAIN alarm for reminder ID $reminderId"
+                Log.e(TAG, errorCancelLog, e)
+                FileLogger.log(TAG, errorCancelLog, e)
             }
         } else {
-            Log.w(TAG, "No MAIN PendingIntent found to cancel for reminder ID: $reminderId (request_code: $reminderId). Intent used for lookup: action=${intent.action}, extras=[${ReminderBroadcastReceiver.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set.")
+            val noPiLog = "No MAIN PendingIntent found to cancel for reminder ID: $reminderId (request_code: $reminderId). Intent used for lookup: action=${intent.action}, extras=[${ReminderBroadcastReceiver.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
+            Log.w(TAG, noPiLog)
+            FileLogger.log(TAG, noPiLog)
         }
     }
 
     private fun cancelPreReminderServiceAlarm(context: Context, reminderId: Int) {
         val preReminderRequestCode = reminderId + PreReminderForegroundService.PRE_REMINDER_NOTIFICATION_ID_OFFSET
-        Log.d(TAG, "cancelPreReminderServiceAlarm called for original reminderId: $reminderId (preReminderRequestCode: $preReminderRequestCode)")
+        val cancelPreLog = "cancelPreReminderServiceAlarm called for original reminderId: $reminderId (preReminderRequestCode: $preReminderRequestCode)"
+        Log.d(TAG, cancelPreLog)
+        FileLogger.log(TAG, cancelPreLog)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
             action = ReminderBroadcastReceiver.ACTION_TRIGGER_PRE_REMINDER_SERVICE
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId) // Added EXTRA_REMINDER_ID
+            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId)
         }
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
@@ -194,21 +238,31 @@ class NotificationScheduler @Inject constructor() {
         val pendingIntent = PendingIntent.getBroadcast(context, preReminderRequestCode, intent, pendingIntentFlags)
 
         if (pendingIntent != null) {
-            Log.d(TAG, "PRE-REMINDER PendingIntent found for request_code: $preReminderRequestCode. Attempting cancellation.")
+            val piPreFoundLog = "PRE-REMINDER PendingIntent found for request_code: $preReminderRequestCode. Attempting cancellation."
+            Log.d(TAG, piPreFoundLog)
+            FileLogger.log(TAG, piPreFoundLog)
             try{
                 alarmManager.cancel(pendingIntent)
                 pendingIntent.cancel()
-                Log.i(TAG, "Cancelled PRE-REMINDER alarm for original reminderId $reminderId (request_code: $preReminderRequestCode)")
+                val cancelledPreLog = "Cancelled PRE-REMINDER alarm for original reminderId $reminderId (request_code: $preReminderRequestCode)"
+                Log.i(TAG, cancelledPreLog)
+                FileLogger.log(TAG, cancelledPreLog)
             } catch (e: Exception) {
-                Log.e(TAG, "Error cancelling PRE-REMINDER alarm for original reminder ID $reminderId (request_code: $preReminderRequestCode)", e)
+                val errorCancelPreLog = "Error cancelling PRE-REMINDER alarm for original reminder ID $reminderId (request_code: $preReminderRequestCode)"
+                Log.e(TAG, errorCancelPreLog, e)
+                FileLogger.log(TAG, errorCancelPreLog, e)
             }
         } else {
-            Log.w(TAG, "No PRE-REMINDER PendingIntent found to cancel for original reminderId $reminderId (request_code: $preReminderRequestCode). Intent used for lookup: action=${intent.action}, extras=[${ReminderBroadcastReceiver.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set.")
+            val noPiPreLog = "No PRE-REMINDER PendingIntent found to cancel for original reminderId $reminderId (request_code: $preReminderRequestCode). Intent used for lookup: action=${intent.action}, extras=[${ReminderBroadcastReceiver.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
+            Log.w(TAG, noPiPreLog)
+            FileLogger.log(TAG, noPiPreLog)
         }
     }
 
     fun cancelAllAlarmsForReminder(context: Context, reminderId: Int) {
-        Log.i(TAG, "cancelAllAlarmsForReminder called for reminderId: $reminderId")
+        val cancelAllLog = "cancelAllAlarmsForReminder called for reminderId: $reminderId"
+        Log.i(TAG, cancelAllLog)
+        FileLogger.log(TAG, cancelAllLog)
         cancelMainReminderAlarm(context, reminderId)
         cancelPreReminderServiceAlarm(context, reminderId)
 
@@ -230,9 +284,13 @@ class NotificationScheduler @Inject constructor() {
             } else {
                 context.startService(stopServiceIntent)
             }
-            Log.d(TAG, "Sent stop intent to PreReminderForegroundService for reminderId: $reminderId")
+            val stopIntentLog = "Sent stop intent to PreReminderForegroundService for reminderId: $reminderId"
+            Log.d(TAG, stopIntentLog)
+            FileLogger.log(TAG, stopIntentLog)
         } catch (e: Exception) {
-            Log.e(TAG, "Error trying to send stop intent to PreReminderForegroundService for reminderId $reminderId: ${e.message}")
+            val errorStopIntentLog = "Error trying to send stop intent to PreReminderForegroundService for reminderId $reminderId: ${e.message}"
+            Log.e(TAG, errorStopIntentLog, e)
+            FileLogger.log(TAG, errorStopIntentLog, e)
         }
     }
 }

@@ -21,14 +21,30 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.work.WorkManager
+import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.Data
+import com.d4viddf.medicationreminder.utils.FileLogger
+import java.util.concurrent.TimeUnit
+import java.util.Calendar
+import androidx.core.content.FileProvider
+import android.content.Intent
+import java.io.File
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val application: Application // Inject Application and store to use contentResolver
+    private val application: Application
 ) : ViewModel() {
 
     private val audioManager = application.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+    private val _shareRequest = MutableSharedFlow<Intent>(replay = 0, extraBufferCapacity = 1)
+    val shareRequest = _shareRequest.asSharedFlow()
 
     // Volume Control
     private val _currentVolume = MutableStateFlow(0)
@@ -130,6 +146,99 @@ class SettingsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Error getting ringtone title", e)
                 application.getString(R.string.settings_notification_sound_unknown)
+            }
+        }
+    }
+
+    fun restartDailyWorker() {
+        viewModelScope.launch {
+            val initialLog = "Initiating DailyReminderRefreshWorker restart..."
+            Log.i("SettingsViewModel", initialLog)
+            FileLogger.log("SettingsViewModel", initialLog)
+            val workManager = WorkManager.getInstance(application)
+
+            // Cancel the existing worker
+            workManager.cancelUniqueWork("DailyReminderRefreshWorker")
+            val cancelLog = "Cancelled existing DailyReminderRefreshWorker."
+            Log.i("SettingsViewModel", cancelLog)
+            FileLogger.log("SettingsViewModel", cancelLog)
+
+            // Re-enqueue the worker
+            val data = Data.Builder()
+                .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)
+                .build()
+
+            val currentTimeMillis = System.currentTimeMillis()
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = currentTimeMillis
+                add(Calendar.DAY_OF_YEAR, 1)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 1)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val delayUntilNextRun = calendar.timeInMillis - currentTimeMillis
+
+            val dailyRefreshWorkRequest = PeriodicWorkRequestBuilder<ReminderSchedulingWorker>(
+                1, TimeUnit.DAYS
+            )
+                .setInputData(data)
+                .setInitialDelay(delayUntilNextRun, TimeUnit.MILLISECONDS)
+                .addTag("DailyReminderRefreshWorker") // Ensure the tag is consistent if used elsewhere for querying
+                .build()
+
+            workManager.enqueueUniquePeriodicWork(
+                "DailyReminderRefreshWorker", // This name must match the one used for cancellation
+                ExistingPeriodicWorkPolicy.REPLACE, // REPLACE ensures the new worker replaces the old one if somehow not cancelled properly
+                dailyRefreshWorkRequest
+            )
+
+            val hoursUntilRun = TimeUnit.MILLISECONDS.toHours(delayUntilNextRun)
+            val minutesUntilRun = TimeUnit.MILLISECONDS.toMinutes(delayUntilNextRun) % 60
+            val enqueueLog = "Enqueued new DailyReminderRefreshWorker to run in approx ${hoursUntilRun}h ${minutesUntilRun}m. Delay: $delayUntilNextRun ms."
+            Log.i("SettingsViewModel", enqueueLog)
+            FileLogger.log("SettingsViewModel", enqueueLog)
+            // Optionally, emit an event here for UI feedback (e.g., Toast)
+        }
+    }
+
+    fun shareAppLogs() {
+        viewModelScope.launch {
+            FileLogger.log("SettingsViewModel", "shareAppLogs called")
+            Log.i("SettingsViewModel", "Initiating app logs sharing...")
+            try {
+                val logDir = File(application.cacheDir, "logs")
+                val logFile = File(logDir, "app_log.txt")
+
+                if (logFile.exists()) {
+                    val contentUri = FileProvider.getUriForFile(
+                        application,
+                        "${application.packageName}.fileprovider",
+                        logFile
+                    )
+
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_STREAM, contentUri)
+                        putExtra(Intent.EXTRA_SUBJECT, "Medication Reminder App Logs")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    val chooser = Intent.createChooser(shareIntent, "Share App Logs")
+                    _shareRequest.tryEmit(chooser)
+                    FileLogger.log("SettingsViewModel", "Log share intent emitted.")
+                    Log.i("SettingsViewModel", "Log share intent emitted.")
+                } else {
+                    FileLogger.log("SettingsViewModelError", "Log file not found for sharing.")
+                    Log.e("SettingsViewModel", "Log file not found for sharing.")
+                    // Optionally, emit a different event/state to inform UI (e.g., Toast "Log file not found")
+                    // For now, just logging. A simple Toast could be:
+                    // _toastEvents.tryEmit("Log file not found.")
+                }
+            } catch (e: Exception) {
+                FileLogger.log("SettingsViewModelError", "Error preparing log share intent", e)
+                Log.e("SettingsViewModel", "Error preparing log share intent", e)
+                // _toastEvents.tryEmit("Error sharing logs: ${e.message}")
             }
         }
     }

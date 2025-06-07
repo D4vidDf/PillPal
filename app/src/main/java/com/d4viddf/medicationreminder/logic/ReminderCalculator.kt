@@ -4,6 +4,7 @@ import android.util.Log // Added for logging
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
+import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -23,7 +24,9 @@ object ReminderCalculator {
         targetDate: LocalDate, // The specific date for which to calculate reminders
         lastTakenOnDate: LocalTime? = null // New parameter for Type A adjustment
     ): List<LocalDateTime> {
-        Log.d(TAG, "calculateReminderDateTimes called with: medication.id=${medication.id}, medication.name='${medication.name}', schedule.id=${schedule.id}, schedule.scheduleType=${schedule.scheduleType}, targetDate=$targetDate, lastTakenOnDate=$lastTakenOnDate")
+        val initialLogMsg = "calculateReminderDateTimes called with: medication.id=${medication.id}, medication.name='${medication.name}', schedule.id=${schedule.id}, schedule.scheduleType=${schedule.scheduleType}, targetDate=$targetDate, lastTakenOnDate=$lastTakenOnDate"
+        Log.d(TAG, initialLogMsg)
+        FileLogger.log(TAG, initialLogMsg)
         val reminders = mutableListOf<LocalDateTime>()
 
         // Check if medication is active on the targetDate
@@ -76,7 +79,9 @@ object ReminderCalculator {
 
                 // Stricter check for totalIntervalMinutes
                 if (totalIntervalMinutes <= 0) {
-                    Log.e(TAG, "calculateReminderDateTimes: Invalid totalIntervalMinutes (<=0) for medication ID: ${medication.id}, schedule ID: ${schedule.id}. Interval: $intervalHours hrs, $intervalMinutes mins.")
+                    val errorMsg = "calculateReminderDateTimes: Invalid totalIntervalMinutes (<=0) for medication ID: ${medication.id}, schedule ID: ${schedule.id}. Interval: $intervalHours hrs, $intervalMinutes mins."
+                    Log.e(TAG, errorMsg)
+                    FileLogger.log(TAG, errorMsg) // Log error to file
                     return emptyList() // Return empty list if interval is non-positive
                 }
 
@@ -93,60 +98,88 @@ object ReminderCalculator {
                 // If intervalStartTime is missing for a Type A, default to MIN, but this might indicate a data setup issue.
                 val actualDailyStart = parsedDailyStartTimeStr?.takeIf { it.isNotBlank() }?.let {
                     try { LocalTime.parse(it, timeStorableFormatter) } catch (e: Exception) {
-                        Log.e(TAG, "calculateReminderDateTimes: Error parsing actualDailyStart: $it for Type A. Defaulting to MIN. Med ID: ${medication.id}", e)
+                        val errorMsg = "calculateReminderDateTimes: Error parsing actualDailyStart: $it for Type A. Defaulting to MIN. Med ID: ${medication.id}"
+                        Log.e(TAG, errorMsg, e)
+                        FileLogger.log(TAG, errorMsg, e)
                         LocalTime.MIN
                     }
                 } ?: LocalTime.MIN
 
                 val actualDailyEnd = parsedDailyEndTimeStr?.takeIf { it.isNotBlank() }?.let {
                     try { LocalTime.parse(it, timeStorableFormatter) } catch (e: Exception) {
-                        Log.e(TAG, "calculateReminderDateTimes: Error parsing actualDailyEnd: $it for Type A. Defaulting to MAX. Med ID: ${medication.id}", e)
+                        val errorMsg = "calculateReminderDateTimes: Error parsing actualDailyEnd: $it for Type A. Defaulting to MAX. Med ID: ${medication.id}"
+                        Log.e(TAG, errorMsg, e)
+                        FileLogger.log(TAG, errorMsg, e)
                         LocalTime.MAX
                     }
                 } ?: LocalTime.MAX
 
-                Log.d(TAG, "calculateReminderDateTimes: Type A interval. totalIntervalMinutes=$totalIntervalMinutes, actualDailyStart=$actualDailyStart, actualDailyEnd=$actualDailyEnd")
+                val typeAIntervalLog = "calculateReminderDateTimes: Type A interval. totalIntervalMinutes=$totalIntervalMinutes, actualDailyStart=$actualDailyStart, actualDailyEnd=$actualDailyEnd"
+                Log.d(TAG, typeAIntervalLog)
+                FileLogger.log(TAG, typeAIntervalLog)
 
                 var loopStartAnchorTime = actualDailyStart
                 if (lastTakenOnDate != null) {
-                    Log.i(TAG, "calculateReminderDateTimes: lastTakenOnDate is provided: $lastTakenOnDate.")
+                    val lastTakenLog = "calculateReminderDateTimes: lastTakenOnDate is provided: $lastTakenOnDate."
+                    Log.i(TAG, lastTakenLog)
+                    FileLogger.log(TAG, lastTakenLog)
                     val potentialStartTimeAfterTaken = lastTakenOnDate.plusMinutes(totalIntervalMinutes.toLong())
-                    Log.d(TAG, "calculateReminderDateTimes: potentialStartTimeAfterTaken from lastTakenOnDate: $potentialStartTimeAfterTaken")
+                    val potentialStartLog = "calculateReminderDateTimes: potentialStartTimeAfterTaken from lastTakenOnDate: $potentialStartTimeAfterTaken"
+                    Log.d(TAG, potentialStartLog)
+                    FileLogger.log(TAG, potentialStartLog)
 
                     if (!potentialStartTimeAfterTaken.isAfter(actualDailyEnd) && !potentialStartTimeAfterTaken.isBefore(actualDailyStart)) {
                         loopStartAnchorTime = potentialStartTimeAfterTaken
-                        Log.i(TAG, "calculateReminderDateTimes: Adjusted loopStartAnchorTime to $loopStartAnchorTime based on lastTakenOnDate.")
+                        val adjustedLoopStartLog = "calculateReminderDateTimes: Adjusted loopStartAnchorTime to $loopStartAnchorTime based on lastTakenOnDate."
+                        Log.i(TAG, adjustedLoopStartLog)
+                        FileLogger.log(TAG, adjustedLoopStartLog)
                     } else if (potentialStartTimeAfterTaken.isBefore(actualDailyStart)) {
-                        // If the next interval from lastTaken is before the window, but lastTaken was valid,
-                        // the next dose should still be at the window start.
                         loopStartAnchorTime = actualDailyStart
-                        Log.i(TAG, "calculateReminderDateTimes: potentialStartTimeAfterTaken is before window. Using actualDailyStart ($actualDailyStart) as loopStartAnchorTime.")
+                        val beforeWindowLog = "calculateReminderDateTimes: potentialStartTimeAfterTaken is before window. Using actualDailyStart ($actualDailyStart) as loopStartAnchorTime."
+                        Log.i(TAG, beforeWindowLog)
+                        FileLogger.log(TAG, beforeWindowLog)
                     } else { // potentialStartTimeAfterTaken is after actualDailyEnd
-                        Log.i(TAG, "calculateReminderDateTimes: potentialStartTimeAfterTaken ($potentialStartTimeAfterTaken) is after actualDailyEnd ($actualDailyEnd). No reminders for this day from lastTakenOnDate.")
-                        Log.d(TAG, "calculateReminderDateTimes: Returning reminders: $reminders")
-                        return emptyList() // No reminders possible for this day based on last taken.
+                        val afterActualEndLog = "calculateReminderDateTimes: potentialStartTimeAfterTaken ($potentialStartTimeAfterTaken) is after actualDailyEnd ($actualDailyEnd). No reminders for this day from lastTakenOnDate."
+                        Log.i(TAG, afterActualEndLog)
+                        FileLogger.log(TAG, afterActualEndLog)
+                        val returnRemindersLog = "calculateReminderDateTimes: Returning reminders: $reminders"
+                        Log.d(TAG, returnRemindersLog)
+                        FileLogger.log(TAG, returnRemindersLog)
+                        return emptyList()
                     }
                 } else {
-                    Log.d(TAG, "calculateReminderDateTimes: No lastTakenOnDate provided. Using actualDailyStart ($actualDailyStart) as loopStartAnchorTime.")
+                    val noLastTakenLog = "calculateReminderDateTimes: No lastTakenOnDate provided. Using actualDailyStart ($actualDailyStart) as loopStartAnchorTime."
+                    Log.d(TAG, noLastTakenLog)
+                    FileLogger.log(TAG, noLastTakenLog)
                 }
-                Log.d(TAG, "calculateReminderDateTimes: Determined loopStartAnchorTime: $loopStartAnchorTime")
+                val determinedLoopStartLog = "calculateReminderDateTimes: Determined loopStartAnchorTime: $loopStartAnchorTime"
+                Log.d(TAG, determinedLoopStartLog)
+                FileLogger.log(TAG, determinedLoopStartLog)
 
                 if (loopStartAnchorTime.isAfter(actualDailyEnd)) {
-                     Log.i(TAG, "calculateReminderDateTimes: loopStartAnchorTime ($loopStartAnchorTime) is already after actualDailyEnd ($actualDailyEnd). No reminders to generate.")
-                     Log.d(TAG, "calculateReminderDateTimes: Returning reminders: $reminders")
+                     val loopStartAfterEndLog = "calculateReminderDateTimes: loopStartAnchorTime ($loopStartAnchorTime) is already after actualDailyEnd ($actualDailyEnd). No reminders to generate."
+                     Log.i(TAG, loopStartAfterEndLog)
+                     FileLogger.log(TAG, loopStartAfterEndLog)
+                     val returnRemindersLog2 = "calculateReminderDateTimes: Returning reminders: $reminders"
+                     Log.d(TAG, returnRemindersLog2)
+                     FileLogger.log(TAG, returnRemindersLog2)
                      return emptyList()
                 }
 
                 var loopTime = loopStartAnchorTime
                 var iterations = 0
-                val MAX_ITERATIONS_PER_DAY = (24 * 60 / totalIntervalMinutes.coerceAtLeast(1)) + 5 // Dynamic safeguard based on interval
+                val MAX_ITERATIONS_PER_DAY = (24 * 60 / totalIntervalMinutes.coerceAtLeast(1)) + 5
 
-                Log.d(TAG, "calculateReminderDateTimes: Starting Type A loop. loopTime: $loopTime, actualDailyEnd: $actualDailyEnd")
+                val startLoopLog = "calculateReminderDateTimes: Starting Type A loop. loopTime: $loopTime, actualDailyEnd: $actualDailyEnd"
+                Log.d(TAG, startLoopLog)
+                FileLogger.log(TAG, startLoopLog)
 
                 while (iterations < MAX_ITERATIONS_PER_DAY && !loopTime.isAfter(actualDailyEnd)) {
                     val reminderToAdd = LocalDateTime.of(targetDate, loopTime)
                     reminders.add(reminderToAdd)
-                    Log.d(TAG, "calculateReminderDateTimes: Loop iteration $iterations: loopTime=$loopTime, Added reminder: $reminderToAdd")
+                    val loopIterLog = "calculateReminderDateTimes: Loop iteration $iterations: loopTime=$loopTime, Added reminder: $reminderToAdd"
+                    Log.d(TAG, loopIterLog)
+                    FileLogger.log(TAG, loopIterLog)
 
                     val nextLoopTimeCandidate = loopTime.plusMinutes(totalIntervalMinutes.toLong())
 
@@ -154,7 +187,9 @@ object ReminderCalculator {
                     // AND actualDailyEnd was not LocalTime.MAX (meaning a specific end time was set for the day), then stop.
                     // This prevents reminders from spilling into the next conceptual day if a specific end time was set.
                     if (nextLoopTimeCandidate.isBefore(loopTime) && actualDailyEnd != LocalTime.MAX) {
-                        Log.d(TAG, "calculateReminderDateTimes: Iter ${iterations}: nextLoopTimeCandidate $nextLoopTimeCandidate is before loopTime $loopTime, and actualDailyEnd $actualDailyEnd is not MAX. Breaking. ScheduleId: ${schedule.id}")
+                        val breakLog = "calculateReminderDateTimes: Iter ${iterations}: nextLoopTimeCandidate $nextLoopTimeCandidate is before loopTime $loopTime, and actualDailyEnd $actualDailyEnd is not MAX. Breaking. ScheduleId: ${schedule.id}"
+                        Log.d(TAG, breakLog)
+                        FileLogger.log(TAG, breakLog)
                         break
                     }
 
@@ -172,7 +207,9 @@ object ReminderCalculator {
                 // Handled by user taking it when needed.
             }
         }
-        Log.d(TAG, "calculateReminderDateTimes: Returning reminders: $reminders")
+        val finalReturnLog = "calculateReminderDateTimes: Returning reminders: $reminders"
+        Log.d(TAG, finalReturnLog)
+        FileLogger.log(TAG, finalReturnLog)
         return reminders.sorted()
     }
 
@@ -183,45 +220,63 @@ object ReminderCalculator {
         periodEndDate: LocalDate,
         lastTakenDateTime: LocalDateTime? = null // New optional parameter
     ): Map<LocalDate, List<LocalTime>> {
-        Log.d(TAG, "generateRemindersForPeriod called with: medication.id=${medication.id}, medication.name='${medication.name}', schedule.id=${schedule.id}, schedule.scheduleType=${schedule.scheduleType}, periodStartDate=$periodStartDate, periodEndDate=$periodEndDate, lastTakenDateTime=$lastTakenDateTime")
+        val initialGenLog = "generateRemindersForPeriod called with: medication.id=${medication.id}, medication.name='${medication.name}', schedule.id=${schedule.id}, schedule.scheduleType=${schedule.scheduleType}, periodStartDate=$periodStartDate, periodEndDate=$periodEndDate, lastTakenDateTime=$lastTakenDateTime"
+        Log.d(TAG, initialGenLog)
+        FileLogger.log(TAG, initialGenLog)
         val allRemindersResult = mutableMapOf<LocalDate, MutableList<LocalTime>>()
 
         if (schedule.scheduleType == ScheduleType.INTERVAL) {
-            Log.d(TAG, "generateRemindersForPeriod: Processing INTERVAL schedule. Med ID: ${medication.id}, Schedule ID: ${schedule.id}")
+            val intervalProcessingLog = "generateRemindersForPeriod: Processing INTERVAL schedule. Med ID: ${medication.id}, Schedule ID: ${schedule.id}"
+            Log.d(TAG, intervalProcessingLog)
+            FileLogger.log(TAG, intervalProcessingLog)
 
             val parsedIntervalStartTime: LocalTime? = try {
                 if (schedule.intervalStartTime.isNullOrBlank()) null
                 else LocalTime.parse(schedule.intervalStartTime, timeStorableFormatter)
             } catch (e: Exception) {
-                Log.e(TAG, "generateRemindersForPeriod: Error parsing intervalStartTime: ${schedule.intervalStartTime}. Treating as null. Med ID: ${medication.id}", e)
+                val parseErrorMsg = "generateRemindersForPeriod: Error parsing intervalStartTime: ${schedule.intervalStartTime}. Treating as null. Med ID: ${medication.id}"
+                Log.e(TAG, parseErrorMsg, e)
+                FileLogger.log(TAG, parseErrorMsg, e)
                 null
             }
 
             if (parsedIntervalStartTime == null) { // Type B: Continuous Interval
-                Log.i(TAG, "generateRemindersForPeriod: Continuous Interval (Type B) detected. Med ID: ${medication.id}, Schedule ID: ${schedule.id}")
+                val typeBLog = "generateRemindersForPeriod: Continuous Interval (Type B) detected. Med ID: ${medication.id}, Schedule ID: ${schedule.id}"
+                Log.i(TAG, typeBLog)
+                FileLogger.log(TAG, typeBLog)
 
                 val intervalHours = schedule.intervalHours ?: 0
                 val intervalMinutes = schedule.intervalMinutes ?: 0
                 val totalIntervalMinutes = (intervalHours * 60) + intervalMinutes
 
                 if (totalIntervalMinutes <= 0) {
-                    Log.e(TAG, "generateRemindersForPeriod: Continuous Interval: Invalid totalIntervalMinutes (<=0) for Med ID: ${medication.id}. Interval: $intervalHours hrs, $intervalMinutes mins.")
+                    val invalidIntervalMsg = "generateRemindersForPeriod: Continuous Interval: Invalid totalIntervalMinutes (<=0) for Med ID: ${medication.id}. Interval: $intervalHours hrs, $intervalMinutes mins."
+                    Log.e(TAG, invalidIntervalMsg)
+                    FileLogger.log(TAG, invalidIntervalMsg)
                     return emptyMap()
                 }
-                Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: totalIntervalMinutes=$totalIntervalMinutes")
+                val totalIntervalMinLog = "generateRemindersForPeriod: Continuous Interval: totalIntervalMinutes=$totalIntervalMinutes"
+                Log.d(TAG, totalIntervalMinLog)
+                FileLogger.log(TAG, totalIntervalMinLog)
 
 
                 val medicationActualStartDateStr = medication.startDate
-                Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medicationActualStartDateStr=$medicationActualStartDateStr")
+                val medStartDateStrLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medicationActualStartDateStr=$medicationActualStartDateStr"
+                Log.d(TAG, medStartDateStrLog)
+                FileLogger.log(TAG, medStartDateStrLog)
                 if (medicationActualStartDateStr.isNullOrBlank()) {
-                    Log.e(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Medication start date is null/blank. Cannot proceed.")
+                    val blankStartDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Medication start date is null/blank. Cannot proceed."
+                    Log.e(TAG, blankStartDateLog)
+                    FileLogger.log(TAG, blankStartDateLog)
                     return emptyMap()
                 }
 
                 val medicationStartDateOnly: LocalDate = try {
                     LocalDate.parse(medicationActualStartDateStr, dateStorableFormatter)
                 } catch (e: Exception) {
-                    Log.e(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Error parsing medication start date string: $medicationActualStartDateStr.", e)
+                    val parseErrorDateStr = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Error parsing medication start date string: $medicationActualStartDateStr."
+                    Log.e(TAG, parseErrorDateStr, e)
+                    FileLogger.log(TAG, parseErrorDateStr, e)
                     return emptyMap()
                 }
 
@@ -229,47 +284,48 @@ object ReminderCalculator {
                 var anchorDateTime: LocalDateTime
 
                 if (lastTakenDateTime != null) {
-                    Log.i(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, lastTakenDateTime is provided: $lastTakenDateTime")
+                    val lastTakenContLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, lastTakenDateTime is provided: $lastTakenDateTime"
+                    Log.i(TAG, lastTakenContLog)
+                    FileLogger.log(TAG, lastTakenContLog)
                     val nextReminderAfterTaken = lastTakenDateTime.plusMinutes(totalIntervalMinutes.toLong())
-                    Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, calculated nextReminderAfterTaken: $nextReminderAfterTaken")
+                    val nextReminderLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, calculated nextReminderAfterTaken: $nextReminderAfterTaken"
+                    Log.d(TAG, nextReminderLog)
+                    FileLogger.log(TAG, nextReminderLog)
 
-                    // Ensure anchor is not before medication start date
                     val medicationStartAtDay = medicationStartDateOnly.atStartOfDay()
                     anchorDateTime = if (nextReminderAfterTaken.isBefore(medicationStartAtDay)) {
-                        Log.w(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, nextReminderAfterTaken ($nextReminderAfterTaken) is before medication start date ($medicationStartAtDay). Using medication start date as anchor.")
+                        val anchorAdjustLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, nextReminderAfterTaken ($nextReminderAfterTaken) is before medication start date ($medicationStartAtDay). Using medication start date as anchor."
+                        Log.w(TAG, anchorAdjustLog)
+                        FileLogger.log(TAG, anchorAdjustLog)
                         medicationStartAtDay
                     } else {
                         nextReminderAfterTaken
                     }
-                    Log.i(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using lastTakenDateTime. Adjusted anchorDateTime: $anchorDateTime")
+                    val adjustedAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using lastTakenDateTime. Adjusted anchorDateTime: $anchorDateTime"
+                    Log.i(TAG, adjustedAnchorLog)
+                    FileLogger.log(TAG, adjustedAnchorLog)
                 } else {
-                    // Original logic if lastTakenDateTime is null
-                    anchorDateTime = if (medicationStartDateOnly.isEqual(currentDateTime.toLocalDate()) && !currentDateTime.toLocalTime().isBefore(LocalTime.MIN.plusSeconds(1))) { // Ensure current time is not midnight start
-                         // If med start is today, AND current time is not effectively 00:00 (implying we want to start from now, not from a historical 00:00)
-                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is today. Anchoring to currentDateTime: $currentDateTime")
+                    anchorDateTime = if (medicationStartDateOnly.isEqual(currentDateTime.toLocalDate()) && !currentDateTime.toLocalTime().isBefore(LocalTime.MIN.plusSeconds(1))) {
+                        val anchorToCurrentLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is today. Anchoring to currentDateTime: $currentDateTime"
+                        Log.d(TAG, anchorToCurrentLog)
+                        FileLogger.log(TAG, anchorToCurrentLog)
                         currentDateTime
                     } else {
-                        // If med start is in the past, or it's today but effectively very early (e.g. worker runs at 00:01 for a med starting today)
-                        // then anchor to the start of the medication day.
-                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is not today ($medicationStartDateOnly) or it is today but very early. Anchoring to start of medication day: ${medicationStartDateOnly.atStartOfDay()}")
+                        val anchorToStartOfDayLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is not today ($medicationStartDateOnly) or it is today but very early. Anchoring to start of medication day: ${medicationStartDateOnly.atStartOfDay()}"
+                        Log.d(TAG, anchorToStartOfDayLog)
+                        FileLogger.log(TAG, anchorToStartOfDayLog)
                         medicationStartDateOnly.atStartOfDay()
                     }
-                    Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Original anchor logic. Final anchorDateTime = $anchorDateTime")
+                    val finalAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Original anchor logic. Final anchorDateTime = $anchorDateTime"
+                    Log.d(TAG, finalAnchorLog)
+                    FileLogger.log(TAG, finalAnchorLog)
                 }
 
-
-                // Ensure anchorDateTime is not in the future beyond what's sensible for calculation start.
-                // If the calculated anchor (especially from lastTaken) is way past the current time,
-                // it might be more logical to start calculations from 'now' if 'now' is later than medication start.
-                // However, the current primary logic is to respect lastTakenDateTime's projection.
-                // A secondary check: if anchorDateTime is before 'now' but medication started earlier, 'now' could be a floor.
                 val effectiveCalculationStartAnchor = if (anchorDateTime.isBefore(currentDateTime) && medicationStartDateOnly.isBefore(currentDateTime.toLocalDate())) {
-                    // If the anchor (potentially from an old lastTaken) is in the past, and med started in past,
-                    // we should start generating from 'now' to avoid historical reminders, but only if 'now' is after the original anchor.
-                    // This ensures that if lastTaken results in an anchor in the future, we use that.
-                    // If lastTaken results in an anchor in the past, we advance it to 'now' (if 'now' is also past medication start)
                     if (currentDateTime.isAfter(anchorDateTime)) {
-                         Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Anchor $anchorDateTime was in past. Med started in past. Advancing anchor to currentDateTime: $currentDateTime for generation start.")
+                         val advanceAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Anchor $anchorDateTime was in past. Med started in past. Advancing anchor to currentDateTime: $currentDateTime for generation start."
+                         Log.d(TAG, advanceAnchorLog)
+                         FileLogger.log(TAG, advanceAnchorLog)
                          currentDateTime
                     } else {
                          anchorDateTime
@@ -277,97 +333,118 @@ object ReminderCalculator {
                 } else {
                   anchorDateTime
                 }
-                // Re-assign anchorDateTime to the potentially adjusted one for clarity in subsequent logs
-                anchorDateTime = effectiveCalculationStartAnchor // Already logged as "final effective anchorDateTime"
-                Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, anchorDateTime=$anchorDateTime, effectiveCalculationStartAnchor=$effectiveCalculationStartAnchor")
+                anchorDateTime = effectiveCalculationStartAnchor
+                val finalEffectiveAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, anchorDateTime=$anchorDateTime, effectiveCalculationStartAnchor=$effectiveCalculationStartAnchor"
+                Log.d(TAG, finalEffectiveAnchorLog)
+                FileLogger.log(TAG, finalEffectiveAnchorLog)
 
 
                 val parsedMedicationEndDate: LocalDate? = medication.endDate?.let {
                     try { LocalDate.parse(it, dateStorableFormatter) } catch (e: Exception) { null }
                 }
 
-                var currentReminderTime = anchorDateTime // Start generating from the determined anchorDateTime
+                var currentReminderTime = anchorDateTime
                 val allGeneratedDateTimes = mutableListOf<LocalDateTime>()
-                val MAX_CONTINUOUS_ITERATIONS = 10000 // Safeguard: Max 10,000 reminders in raw sequence
+                val MAX_CONTINUOUS_ITERATIONS = 10000
                 var continuousIterations = 0
-                val longStopDate = periodStartDate.plusYears(5) // Long-stop safeguard for loop
+                val longStopDate = periodStartDate.plusYears(5)
 
-                Log.i(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Starting generation from $currentReminderTime (derived from anchorDateTime). Interval: $totalIntervalMinutes mins. MedEndDate: $parsedMedicationEndDate. Period: $periodStartDate to $periodEndDate.")
+                val startGenLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Starting generation from $currentReminderTime (derived from anchorDateTime). Interval: $totalIntervalMinutes mins. MedEndDate: $parsedMedicationEndDate. Period: $periodStartDate to $periodEndDate."
+                Log.i(TAG, startGenLog)
+                FileLogger.log(TAG, startGenLog)
 
                 while (continuousIterations++ < MAX_CONTINUOUS_ITERATIONS) {
-                    if (continuousIterations <= 5) { // Log first 5 generated currentReminderTime values
-                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime candidate = $currentReminderTime")
+                    if (continuousIterations <= 5) {
+                        val iterCandidateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime candidate = $currentReminderTime"
+                        Log.d(TAG, iterCandidateLog)
+                        FileLogger.log(TAG, iterCandidateLog)
                     }
 
-                    // Add reminder candidate if it's not before the medication start date's time (anchor could be med start day 00:00)
-                    // and also not before the overall periodStartDate (though subsequent filtering handles periodStartDate)
-                    // This initial check ensures we don't add times from before the medication was supposed to start if anchor was adjusted.
                     if (!currentReminderTime.isBefore(medicationStartDateOnly.atStartOfDay())) {
                          allGeneratedDateTimes.add(currentReminderTime)
                     } else {
-                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime candidate $currentReminderTime is before medication start day ${medicationStartDateOnly.atStartOfDay()}. Skipping add.")
+                        val skipAddLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Iteration $continuousIterations, currentReminderTime candidate $currentReminderTime is before medication start day ${medicationStartDateOnly.atStartOfDay()}. Skipping add."
+                        Log.d(TAG, skipAddLog)
+                        FileLogger.log(TAG, skipAddLog)
                     }
 
                     val oldTimeForCheck = currentReminderTime
                     currentReminderTime = currentReminderTime.plusMinutes(totalIntervalMinutes.toLong())
 
-                    if (currentReminderTime == oldTimeForCheck) { // Robustness for zero interval that might pass initial check
-                        Log.e(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, currentReminderTime did not advance. Aborting. Interval: $totalIntervalMinutes.")
+                    if (currentReminderTime == oldTimeForCheck) {
+                        val noAdvanceLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, currentReminderTime did not advance. Aborting. Interval: $totalIntervalMinutes."
+                        Log.e(TAG, noAdvanceLog)
+                        FileLogger.log(TAG, noAdvanceLog)
                         break
                     }
                     if (parsedMedicationEndDate != null && currentReminderTime.toLocalDate().isAfter(parsedMedicationEndDate)) {
-                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, next currentReminderTime ($currentReminderTime) would be after medication end date ($parsedMedicationEndDate). Stopping generation.")
+                        val afterEndDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, next currentReminderTime ($currentReminderTime) would be after medication end date ($parsedMedicationEndDate). Stopping generation."
+                        Log.d(TAG, afterEndDateLog)
+                        FileLogger.log(TAG, afterEndDateLog)
                         break
                     }
                     if (currentReminderTime.toLocalDate().isAfter(longStopDate)) {
-                        Log.w(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, generation exceeded 5 years from period start ($longStopDate). Aborting.")
+                        val exceedLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, generation exceeded 5 years from period start ($longStopDate). Aborting."
+                        Log.w(TAG, exceedLog)
+                        FileLogger.log(TAG, exceedLog)
                         break
                     }
                 }
-                Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Generated ${allGeneratedDateTimes.size} raw dateTimes. Now filtering for period. First 5 generated (if any): ${allGeneratedDateTimes.take(5)}")
+                val generatedRawLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Generated ${allGeneratedDateTimes.size} raw dateTimes. Now filtering for period. First 5 generated (if any): ${allGeneratedDateTimes.take(5)}"
+                Log.d(TAG, generatedRawLog)
+                FileLogger.log(TAG, generatedRawLog)
 
                 var filteredRemindersCount = 0
                 allGeneratedDateTimes.forEach { dt ->
                     val reminderDate = dt.toLocalDate()
                     if (!reminderDate.isBefore(periodStartDate) && !reminderDate.isAfter(periodEndDate)) {
                         if (parsedMedicationEndDate == null || !reminderDate.isAfter(parsedMedicationEndDate)) {
-                    // Ensure reminder is not before the medication's actual start date on that day.
-                    // The primary anchorDateTime logic should handle the starting point correctly,
-                    // but this is a safeguard for the generated list.
-                    if (!dt.toLocalDate().isBefore(medicationStartDateOnly)) {
-                         if (!dt.isBefore(anchorDateTime) || dt.toLocalDate().isAfter(anchorDateTime.toLocalDate())) { // Accept if on same day but at/after anchor time, or any time on subsequent days
-                            allRemindersResult.getOrPut(reminderDate) { mutableListOf() }
-                                .add(dt.toLocalTime())
-                            filteredRemindersCount++
-                        } else {
-                             Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Filtering out $dt as it's before effective anchor time $anchorDateTime on the same day.")
-                        }
-                    } else {
-                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Filtering out $dt as it's before medication start date $medicationStartDateOnly.")
+                            if (!dt.toLocalDate().isBefore(medicationStartDateOnly)) {
+                                 if (!dt.isBefore(anchorDateTime) || dt.toLocalDate().isAfter(anchorDateTime.toLocalDate())) {
+                                    allRemindersResult.getOrPut(reminderDate) { mutableListOf() }
+                                        .add(dt.toLocalTime())
+                                    filteredRemindersCount++
+                                } else {
+                                     val filterAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Filtering out $dt as it's before effective anchor time $anchorDateTime on the same day."
+                                     Log.d(TAG, filterAnchorLog)
+                                     FileLogger.log(TAG, filterAnchorLog)
+                                }
+                            } else {
+                                val filterStartDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Filtering out $dt as it's before medication start date $medicationStartDateOnly."
+                                Log.d(TAG, filterStartDateLog)
+                                FileLogger.log(TAG, filterStartDateLog)
                             }
                         }
                     }
                 }
-                Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Total allGeneratedDateTimes count: ${allGeneratedDateTimes.size}, Filtered reminders count for period $periodStartDate to $periodEndDate: $filteredRemindersCount.")
+                val finalFilterLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Total allGeneratedDateTimes count: ${allGeneratedDateTimes.size}, Filtered reminders count for period $periodStartDate to $periodEndDate: $filteredRemindersCount."
+                Log.d(TAG, finalFilterLog)
+                FileLogger.log(TAG, finalFilterLog)
 
             } else { // Type A: Daily Repeating Interval (intervalStartTime is present)
-                Log.i(TAG, "generateRemindersForPeriod: Daily Repeating Interval (Type A) detected. Med ID: ${medication.id}, Schedule ID: ${schedule.id}, parsedIntervalStartTime=$parsedIntervalStartTime")
+                val typeALogRepeating = "generateRemindersForPeriod: Daily Repeating Interval (Type A) detected. Med ID: ${medication.id}, Schedule ID: ${schedule.id}, parsedIntervalStartTime=$parsedIntervalStartTime"
+                Log.i(TAG, typeALogRepeating)
+                FileLogger.log(TAG, typeALogRepeating)
                 var currentDateIter = periodStartDate
                 while (!currentDateIter.isAfter(periodEndDate)) {
-                    // Call calculateReminderDateTimes for each day, passing lastTakenOnDate if applicable
                     val lastTakenOnCurrentDateIter: LocalTime? = if (lastTakenDateTime != null && lastTakenDateTime.toLocalDate().isEqual(currentDateIter)) {
-                        Log.d(TAG, "generateRemindersForPeriod (Type A loop): Passing lastTakenDateTime.toLocalTime() (${lastTakenDateTime.toLocalTime()}) for date $currentDateIter to calculateReminderDateTimes.")
+                        val passingLastTakenLog = "generateRemindersForPeriod (Type A loop): Passing lastTakenDateTime.toLocalTime() (${lastTakenDateTime.toLocalTime()}) for date $currentDateIter to calculateReminderDateTimes."
+                        Log.d(TAG, passingLastTakenLog)
+                        FileLogger.log(TAG, passingLastTakenLog)
                         lastTakenDateTime.toLocalTime()
                     } else {
                         null
                     }
-                    Log.d(TAG, "generateRemindersForPeriod (Type A loop): For date $currentDateIter, lastTakenOnCurrentDateIter being passed: $lastTakenOnCurrentDateIter")
-                    // Ensure parsedIntervalStartTime (which defines this as Type A) is correctly passed if not null
+                    val forDateLog = "generateRemindersForPeriod (Type A loop): For date $currentDateIter, lastTakenOnCurrentDateIter being passed: $lastTakenOnCurrentDateIter"
+                    Log.d(TAG, forDateLog)
+                    FileLogger.log(TAG, forDateLog)
                     val scheduleForDailyCalc = if(parsedIntervalStartTime != null) schedule.copy(intervalStartTime = parsedIntervalStartTime.format(timeStorableFormatter)) else schedule
 
                     val dailyTimes = calculateReminderDateTimes(medication, scheduleForDailyCalc, currentDateIter, lastTakenOnCurrentDateIter)
                     if (dailyTimes.isNotEmpty()) {
-                        Log.d(TAG, "generateRemindersForPeriod (Type A loop): For $currentDateIter, got dailyTimes: ${dailyTimes.map { it.toLocalTime() }} using lastTakenOnDate: $lastTakenOnCurrentDateIter")
+                        val gotDailyTimesLog = "generateRemindersForPeriod (Type A loop): For $currentDateIter, got dailyTimes: ${dailyTimes.map { it.toLocalTime() }} using lastTakenOnDate: $lastTakenOnCurrentDateIter"
+                        Log.d(TAG, gotDailyTimesLog)
+                        FileLogger.log(TAG, gotDailyTimesLog)
                         allRemindersResult.getOrPut(currentDateIter) { mutableListOf() }
                             .addAll(dailyTimes.map { it.toLocalTime() })
                     }
@@ -375,10 +452,11 @@ object ReminderCalculator {
                 }
             }
         } else { // Not ScheduleType.INTERVAL (DAILY, CUSTOM_ALARMS, etc.)
-            Log.d(TAG, "generateRemindersForPeriod: Processing non-INTERVAL schedule type: ${schedule.scheduleType}. Med ID: ${medication.id}")
+            val nonIntervalLog = "generateRemindersForPeriod: Processing non-INTERVAL schedule type: ${schedule.scheduleType}. Med ID: ${medication.id}"
+            Log.d(TAG, nonIntervalLog)
+            FileLogger.log(TAG, nonIntervalLog)
             var currentDateIter = periodStartDate
             while (!currentDateIter.isAfter(periodEndDate)) {
-                // For non-INTERVAL types, lastTakenOnDate is not applicable for calculateReminderDateTimes's current logic
                 val dailyTimes = calculateReminderDateTimes(medication, schedule, currentDateIter, null)
                 if (dailyTimes.isNotEmpty()) {
                     allRemindersResult.getOrPut(currentDateIter) { mutableListOf() }
@@ -388,7 +466,9 @@ object ReminderCalculator {
             }
         }
         val totalRemindersCount = allRemindersResult.values.sumOf { it.size }
-        Log.d(TAG, "generateRemindersForPeriod: Returning allRemindersResult. Number of days with reminders: ${allRemindersResult.keys.size}, Total number of reminders: $totalRemindersCount. Content: $allRemindersResult")
+        val returnAllLog = "generateRemindersForPeriod: Returning allRemindersResult. Number of days with reminders: ${allRemindersResult.keys.size}, Total number of reminders: $totalRemindersCount. Content: $allRemindersResult"
+        Log.d(TAG, returnAllLog)
+        FileLogger.log(TAG, returnAllLog)
         return allRemindersResult.mapValues { entry -> entry.value.distinct().sorted() }
     }
 }

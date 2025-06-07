@@ -45,12 +45,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview // Added import
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.d4viddf.medicationreminder.ui.theme.AppTheme // Added import for AppTheme in previews
+import com.d4viddf.medicationreminder.BuildConfig
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
+import androidx.compose.material3.OutlinedButton
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect // Import LaunchedEffect
+import android.content.Intent // Import Intent
+import android.util.Log // Import Log for error logging in LaunchedEffect
 import kotlin.math.roundToInt
 
 data class LanguageOption(val displayName: String, val tag: String)
@@ -64,12 +70,11 @@ fun SettingsScreen(
     val context = LocalContext.current
     val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
     val currentThemeKey by viewModel.currentTheme.collectAsState()
+    // Removed: val shareIntent by viewModel.shareIntentFlow.collectAsState(initial = null)
+    // We will collect shareRequest as a flow of events.
     val currentVolume by viewModel.currentVolume.collectAsState()
     val maxVolume by viewModel.maxVolume.collectAsState()
     val currentNotificationSoundUri by viewModel.currentNotificationSoundUri.collectAsState()
-    // The notificationSoundName is now updated whenever currentNotificationSoundUri changes,
-    // because getNotificationSoundName is called within the Composable that observes currentNotificationSoundUri.
-    // val notificationSoundName = viewModel.getNotificationSoundName(currentNotificationSoundUri) // This line can be removed or kept, it's fine either way.
 
     val ringtonePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -104,6 +109,19 @@ fun SettingsScreen(
     // The selectedThemeDisplayName is now derived from the ViewModel's currentThemeKey
     val selectedThemeDisplayName = remember(currentThemeKey, themeOptions) {
         themeOptions.find { it.second == currentThemeKey }?.first ?: themeOptions.first { it.second == com.d4viddf.medicationreminder.data.ThemeKeys.SYSTEM }.first
+    }
+
+    LaunchedEffect(Unit) { // Keyed on Unit to run once and keep collecting
+        viewModel.shareRequest.collect { intent ->
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Cannot share logs: No app available to handle this action.", Toast.LENGTH_LONG).show()
+                Log.e("SettingsScreen", "Error starting share intent activity", e)
+                // Optionally log to FileLogger as well if this is a critical failure to note
+                // com.d4viddf.medicationreminder.utils.FileLogger.log("SettingsScreenError", "Error starting share intent activity", e)
+            }
+        }
     }
 
     Scaffold(
@@ -258,6 +276,34 @@ fun SettingsScreen(
                     ringtonePickerLauncher.launch(intent)
                 }
             )
+
+            // Developer Options Section (Conditional)
+            if (BuildConfig.DEBUG) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Developer Options", // Consider using stringResource
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        viewModel.restartDailyWorker()
+                        Toast.makeText(context, "Daily worker restart initiated.", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Restart Daily Worker")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { /* TODO: Call ViewModel */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Share App Logs")
+                }
+                Spacer(modifier = Modifier.height(16.dp)) // Ensure padding at the bottom
+            }
         }
     }
 }

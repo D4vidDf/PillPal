@@ -12,6 +12,7 @@ import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.services.PreReminderForegroundService
+import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
@@ -70,10 +71,14 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "onReceive called. Action: ${intent?.action}, Extras: ${getIntentExtrasString(intent)}")
+        val initialLog = "onReceive called. Action: ${intent?.action}, Extras: ${getIntentExtrasString(intent)}"
+        Log.d(TAG, initialLog)
+        FileLogger.log(TAG, initialLog)
 
         if (context == null || intent == null) {
-            Log.e(TAG, "Context or Intent is null. Cannot process broadcast.")
+            val errorNullCtx = "Context or Intent is null. Cannot process broadcast."
+            Log.e(TAG, errorNullCtx)
+            FileLogger.log(TAG, errorNullCtx)
             return
         }
 
@@ -89,9 +94,12 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         when (intent.action) {
             ACTION_SHOW_REMINDER -> {
                 val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
-                if (reminderId == -1) { Log.e(TAG, "$ACTION_SHOW_REMINDER: Invalid reminderId. Aborting."); return }
-
-                // Stop PreReminderForegroundService if it was active for this reminder
+                if (reminderId == -1) {
+                    val invalidIdLog = "$ACTION_SHOW_REMINDER: Invalid reminderId. Aborting."
+                    Log.e(TAG, invalidIdLog)
+                    FileLogger.log(TAG, invalidIdLog)
+                    return
+                }
                 val stopServiceIntent = Intent(context, PreReminderForegroundService::class.java).apply {
                     this.action = PreReminderForegroundService.ACTION_STOP_PRE_REMINDER
                     putExtra(PreReminderForegroundService.EXTRA_SERVICE_REMINDER_ID, reminderId)
@@ -105,7 +113,9 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                 val nextDoseTimeMillisExtra = intent.getLongExtra(EXTRA_NEXT_DOSE_TIME_MILLIS, 0L)
                 val nextDoseTimeForHelper = if (nextDoseTimeMillisExtra > 0) nextDoseTimeMillisExtra else null
 
-                Log.i(TAG, "$ACTION_SHOW_REMINDER: Extracted: reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', actualReminderTime=${formatMillisToDateTimeString(actualReminderTimeMillis)}, isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}")
+                val extractedInfoLog = "$ACTION_SHOW_REMINDER: Extracted: reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', actualReminderTime=${formatMillisToDateTimeString(actualReminderTimeMillis)}, isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}"
+                Log.i(TAG, extractedInfoLog)
+                FileLogger.log(TAG, extractedInfoLog)
 
                 val pendingResult = goAsync()
                 scope.launch {
@@ -125,15 +135,23 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                                     val medicationType = localMedicationTypeRepository.getMedicationTypeById(actualTypeId)
                                     medicationTypeName = medicationType?.name
                                 }
-                                Log.d(TAG, "$ACTION_SHOW_REMINDER: Fetched details for notification: Color=$medicationColorHex, TypeName=$medicationTypeName for MedicationId=${medication.id}")
+                                val fetchedDetailsLog = "$ACTION_SHOW_REMINDER: Fetched details for notification: Color=$medicationColorHex, TypeName=$medicationTypeName for MedicationId=${medication.id}"
+                                Log.d(TAG, fetchedDetailsLog)
+                                FileLogger.log(TAG, fetchedDetailsLog)
                             } else {
-                                Log.w(TAG, "$ACTION_SHOW_REMINDER: Medication not found for ReminderId: $reminderId, MedicationId: ${reminder.medicationId}")
+                                val medNotFoundLog = "$ACTION_SHOW_REMINDER: Medication not found for ReminderId: $reminderId, MedicationId: ${reminder.medicationId}"
+                                Log.w(TAG, medNotFoundLog)
+                                FileLogger.log(TAG, medNotFoundLog)
                             }
                         } else {
-                            Log.w(TAG, "$ACTION_SHOW_REMINDER: Reminder not found for ID: $reminderId")
+                            val reminderNotFoundLog = "$ACTION_SHOW_REMINDER: Reminder not found for ID: $reminderId"
+                            Log.w(TAG, reminderNotFoundLog)
+                            FileLogger.log(TAG, reminderNotFoundLog)
                         }
 
-                        Log.d(TAG, "$ACTION_SHOW_REMINDER: Calling NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, notificationSoundUri=$notificationSoundUri, medicationColorHex=$medicationColorHex, medicationTypeName=$medicationTypeName")
+                        val callingNotificationLog = "$ACTION_SHOW_REMINDER: Calling NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, notificationSoundUri=$notificationSoundUri, medicationColorHex=$medicationColorHex, medicationTypeName=$medicationTypeName"
+                        Log.d(TAG, callingNotificationLog)
+                        FileLogger.log(TAG, callingNotificationLog)
                         NotificationHelper.showReminderNotification(
                             context, reminderId, medicationName, medicationDosage,
                             isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
@@ -142,13 +160,16 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                             medicationTypeName
                         )
                     } catch (e: Exception) {
-                        Log.e(TAG, "$ACTION_SHOW_REMINDER: Error in coroutine for ReminderId: $reminderId", e)
-                        // Fallback call might be needed if the primary fails before showing any notification
-                        Log.d(TAG, "$ACTION_SHOW_REMINDER: Fallback NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, null, null, null")
+                        val errorCoroutineLog = "$ACTION_SHOW_REMINDER: Error in coroutine for ReminderId: $reminderId"
+                        Log.e(TAG, errorCoroutineLog, e)
+                        FileLogger.log(TAG, errorCoroutineLog, e)
+                        val fallbackLog = "$ACTION_SHOW_REMINDER: Fallback NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, null, null, null"
+                        Log.d(TAG, fallbackLog)
+                        FileLogger.log(TAG, fallbackLog)
                         NotificationHelper.showReminderNotification(
                             context, reminderId, medicationName, medicationDosage,
                             isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
-                            null, null, null // Fallback with no sound/color/type
+                            null, null, null
                         )
                     } finally {
                         pendingResult.finish()
@@ -161,11 +182,15 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                 val actualScheduledTimeMillis = intent.getLongExtra(EXTRA_ACTUAL_REMINDER_TIME_MILLIS, -1L)
                 val medicationName = intent.getStringExtra(EXTRA_MEDICATION_NAME) ?: "Medication"
 
-                Log.i(TAG, "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Extracted: reminderId=$reminderId, actualScheduledTime=${formatMillisToDateTimeString(actualScheduledTimeMillis)}, medicationName='$medicationName'")
+                val extractedPreLog = "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Extracted: reminderId=$reminderId, actualScheduledTime=${formatMillisToDateTimeString(actualScheduledTimeMillis)}, medicationName='$medicationName'"
+                Log.i(TAG, extractedPreLog)
+                FileLogger.log(TAG, extractedPreLog)
 
                 if (reminderId != -1 && actualScheduledTimeMillis != -1L) {
                     if (actualScheduledTimeMillis < System.currentTimeMillis()){
-                        Log.w(TAG, "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Pre-reminder trigger for ID $reminderId, but actual scheduled time ${formatMillisToDateTimeString(actualScheduledTimeMillis)} is in the past. Not starting service.")
+                        val pastTimeLog = "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Pre-reminder trigger for ID $reminderId, but actual scheduled time ${formatMillisToDateTimeString(actualScheduledTimeMillis)} is in the past. Not starting service."
+                        Log.w(TAG, pastTimeLog)
+                        FileLogger.log(TAG, pastTimeLog)
                         return
                     }
 
@@ -175,15 +200,21 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                         putExtra(PreReminderForegroundService.EXTRA_SERVICE_MEDICATION_NAME, medicationName)
                     }
                     context.startForegroundService(serviceIntent)
-                    Log.i(TAG, "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Started PreReminderForegroundService for reminderId: $reminderId")
+                    val startedServiceLog = "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Started PreReminderForegroundService for reminderId: $reminderId"
+                    Log.i(TAG, startedServiceLog)
+                    FileLogger.log(TAG, startedServiceLog)
                 } else {
-                    Log.e(TAG, "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Invalid data. reminderId=$reminderId, actualScheduledTimeMillis=$actualScheduledTimeMillis. Cannot start service.")
+                    val invalidDataLog = "$ACTION_TRIGGER_PRE_REMINDER_SERVICE: Invalid data. reminderId=$reminderId, actualScheduledTimeMillis=$actualScheduledTimeMillis. Cannot start service."
+                    Log.e(TAG, invalidDataLog)
+                    FileLogger.log(TAG, invalidDataLog)
                 }
             }
 
             NotificationHelper.ACTION_MARK_AS_TAKEN -> {
                 val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
-                Log.i(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Received for reminderId=$reminderId")
+                val receivedMarkLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Received for reminderId=$reminderId"
+                Log.i(TAG, receivedMarkLog)
+                FileLogger.log(TAG, receivedMarkLog)
 
                 if (reminderId != -1) {
                     val pendingResult = goAsync()
@@ -192,26 +223,36 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                         try {
                             val reminder = localReminderRepository.getReminderById(reminderId)
                             if (reminder == null) {
-                                Log.e(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder with ID $reminderId not found.")
+                                val notFoundLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder with ID $reminderId not found."
+                                Log.e(TAG, notFoundLog)
+                                FileLogger.log(TAG, notFoundLog)
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                                 return@launch
                             }
                             medicationIdToReschedule = reminder.medicationId
-                            Log.d(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder found. medicationIdToReschedule=$medicationIdToReschedule")
+                            val foundMedIdLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder found. medicationIdToReschedule=$medicationIdToReschedule"
+                            Log.d(TAG, foundMedIdLog)
+                            FileLogger.log(TAG, foundMedIdLog)
 
                             if (reminder.isTaken) {
-                                Log.w(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId was already marked as taken.")
+                                val alreadyTakenLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId was already marked as taken."
+                                Log.w(TAG, alreadyTakenLog)
+                                FileLogger.log(TAG, alreadyTakenLog)
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             } else {
                                 val now = LocalDateTime.now()
-                                val nowString = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) // Ensure this matches DB format if critical, else just for logging
+                                val nowString = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                 localReminderRepository.markReminderAsTaken(reminderId, nowString)
-                                Log.i(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId marked as taken in DB at $nowString.")
+                                val markedTakenDbLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId marked as taken in DB at $nowString."
+                                Log.i(TAG, markedTakenDbLog)
+                                FileLogger.log(TAG, markedTakenDbLog)
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             }
 
                             medicationIdToReschedule?.let { medId ->
-                                Log.i(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Enqueuing ReminderSchedulingWorker for medication ID: $medId to schedule next reminder.")
+                                val enqueueLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Enqueuing ReminderSchedulingWorker for medication ID: $medId to schedule next reminder."
+                                Log.i(TAG, enqueueLog)
+                                FileLogger.log(TAG, enqueueLog)
                                 val workManager = WorkManager.getInstance(context.applicationContext)
                                 val data = Data.Builder()
                                     .putInt(ReminderSchedulingWorker.KEY_MEDICATION_ID, medId)
@@ -219,27 +260,41 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                                     .build()
                                 val scheduleNextWorkRequest = OneTimeWorkRequestBuilder<ReminderSchedulingWorker>()
                                     .setInputData(data)
-                                    .addTag("${ReminderSchedulingWorker.WORK_NAME_PREFIX}Next_${medId}") // Unique tag per medication
+                                    .addTag("${ReminderSchedulingWorker.WORK_NAME_PREFIX}Next_${medId}")
                                     .build()
                                 workManager.enqueueUniqueWork(
-                                    "${ReminderSchedulingWorker.WORK_NAME_PREFIX}NextScheduled_${medId}", // Unique work name
+                                    "${ReminderSchedulingWorker.WORK_NAME_PREFIX}NextScheduled_${medId}",
                                     ExistingWorkPolicy.REPLACE,
                                     scheduleNextWorkRequest
                                 )
-                                Log.d(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: ReminderSchedulingWorker enqueued for medId=$medId.")
-                            } ?: Log.w(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: medicationIdToReschedule is null, cannot enqueue worker.")
+                                val enqueuedDetailLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: ReminderSchedulingWorker enqueued for medId=$medId."
+                                Log.d(TAG, enqueuedDetailLog)
+                                FileLogger.log(TAG, enqueuedDetailLog)
+                            } ?: run {
+                                val nullMedIdLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: medicationIdToReschedule is null, cannot enqueue worker."
+                                Log.w(TAG, nullMedIdLog)
+                                FileLogger.log(TAG, nullMedIdLog)
+                            }
 
                         } catch (e: Exception) {
-                            Log.e(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Error processing for reminderId=$reminderId, medicationIdToReschedule=$medicationIdToReschedule", e)
+                            val errorProcessingLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Error processing for reminderId=$reminderId, medicationIdToReschedule=$medicationIdToReschedule"
+                            Log.e(TAG, errorProcessingLog, e)
+                            FileLogger.log(TAG, errorProcessingLog, e)
                         } finally {
                             pendingResult.finish()
                         }
                     }
                 } else {
-                    Log.e(TAG, "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Invalid reminderId (-1) received.")
+                    val invalidIdReceivedLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Invalid reminderId (-1) received."
+                    Log.e(TAG, invalidIdReceivedLog)
+                    FileLogger.log(TAG, invalidIdReceivedLog)
                 }
             }
-            else -> Log.w(TAG, "Received unhandled action: ${intent.action}")
+            else -> {
+                val unhandledActionLog = "Received unhandled action: ${intent.action}"
+                Log.w(TAG, unhandledActionLog)
+                FileLogger.log(TAG, unhandledActionLog)
+            }
         }
     }
 }
