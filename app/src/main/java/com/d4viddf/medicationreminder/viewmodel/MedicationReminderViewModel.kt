@@ -404,11 +404,10 @@ class MedicationReminderViewModel @Inject constructor(
                 }
 
                 // After successfully marking as taken (either update or insert), check for interval schedule
-                val medication = medicationRepository.getMedicationById(medicationId)
-                val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() }
+                val medication = medicationRepository.getMedicationById(medicationId) // KEEP this one
+                val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() } // KEEP this one
 
-                val medication = medicationRepository.getMedicationById(medicationId) // Refetch for schedule type check
-                val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() }
+                // REMOVE THE DUPLICATES that were here
 
                 if (schedule?.scheduleType == com.d4viddf.medicationreminder.data.ScheduleType.INTERVAL) {
                     triggerNextReminderScheduling(medicationId)
