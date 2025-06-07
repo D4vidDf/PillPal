@@ -5,10 +5,49 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class],
-    version = 3,
+    version = 4, // Incremented version
     exportSchema = false
 )
 abstract class MedicationDatabase : RoomDatabase() {
+
+    companion object {
+        val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // 1. Create new table with medicationScheduleId as nullable INTEGER
+                database.execSQL("""
+                    CREATE TABLE medication_reminder_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        medicationId INTEGER NOT NULL,
+                        medicationScheduleId INTEGER,
+                        reminderTime TEXT NOT NULL,
+                        isTaken INTEGER NOT NULL DEFAULT 0,
+                        takenAt TEXT,
+                        notificationId INTEGER,
+                        FOREIGN KEY(medicationId) REFERENCES medications(id) ON DELETE CASCADE,
+                        FOREIGN KEY(medicationScheduleId) REFERENCES medication_schedule(id) ON DELETE CASCADE
+                    )
+                """)
+
+                // 2. Copy data, converting 0 in medicationScheduleId to NULL
+                database.execSQL("""
+                    INSERT INTO medication_reminder_new (id, medicationId, medicationScheduleId, reminderTime, isTaken, takenAt, notificationId)
+                    SELECT id, medicationId, CASE WHEN medicationScheduleId = 0 THEN NULL ELSE medicationScheduleId END, reminderTime, isTaken, takenAt, notificationId
+                    FROM medication_reminder
+                """)
+
+                // 3. Drop old table
+                database.execSQL("DROP TABLE medication_reminder")
+
+                // 4. Rename new table to old table name
+                database.execSQL("ALTER TABLE medication_reminder_new RENAME TO medication_reminder")
+
+                // 5. Recreate indices (as they are dropped with the table)
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_medication_reminder_medicationId ON medication_reminder (medicationId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_medication_reminder_medicationScheduleId ON medication_reminder (medicationScheduleId)")
+            }
+        }
+    }
+
     abstract fun medicationDao(): MedicationDao
     abstract fun medicationTypeDao(): MedicationTypeDao
     abstract fun medicationScheduleDao(): MedicationScheduleDao
