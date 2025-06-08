@@ -9,7 +9,7 @@ interface MedicationReminderDao {
     suspend fun insertReminder(reminder: MedicationReminder): Long
 
     @Update
-    suspend fun updateReminder(reminder: MedicationReminder)
+    suspend fun updateReminder(reminder: MedicationReminder): Int // Changed to return Int
 
     @Delete
     suspend fun deleteReminder(reminder: MedicationReminder)

@@ -239,14 +239,23 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                                 val alreadyTakenLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId was already marked as taken."
                                 Log.w(TAG, alreadyTakenLog)
                                 FileLogger.log(TAG, alreadyTakenLog)
+                                // Still cancel alarms even if already marked taken, to ensure consistency if UI was out of sync
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             } else {
                                 val now = LocalDateTime.now()
                                 val nowString = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                localReminderRepository.markReminderAsTaken(reminderId, nowString)
-                                val markedTakenDbLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId marked as taken in DB at $nowString."
-                                Log.i(TAG, markedTakenDbLog)
-                                FileLogger.log(TAG, markedTakenDbLog)
+                                val updateSuccess = localReminderRepository.markReminderAsTaken(reminderId, nowString)
+                                if (updateSuccess) {
+                                    val markedTakenDbLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: Reminder ID $reminderId successfully marked as taken in DB at $nowString."
+                                    Log.i(TAG, markedTakenDbLog)
+                                    FileLogger.log(TAG, markedTakenDbLog)
+                                } else {
+                                    val markedTakenDbErrorLog = "${NotificationHelper.ACTION_MARK_AS_TAKEN}: FAILED to mark reminder ID $reminderId as taken in DB (update reported 0 rows affected or reminder not found)."
+                                    Log.e(TAG, markedTakenDbErrorLog)
+                                    FileLogger.log(TAG, markedTakenDbErrorLog)
+                                }
+                                // Always cancel alarms and attempt to schedule next, even if DB update failed,
+                                // to maintain user-facing behavior consistency. DB sync issues are logged.
                                 localNotificationScheduler.cancelAllAlarmsForReminder(context, reminderId)
                             }
 
