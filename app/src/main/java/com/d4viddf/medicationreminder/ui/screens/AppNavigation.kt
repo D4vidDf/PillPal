@@ -7,11 +7,12 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController // Corrected order
-import androidx.navigation.NavType // Added import
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Added
-import androidx.navigation.compose.NavHost // Corrected order
-import androidx.navigation.compose.composable // Corrected order
-import androidx.navigation.navArgument // Added import
+import androidx.navigation.NavType
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.d4viddf.medicationreminder.ui.screens.settings.ResponsiveSettingsScaffold // Add import
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -104,9 +105,10 @@ fun AppNavigation(
             }
             composable(Screen.Settings.route) {
                 // `this` is an AnimatedVisibilityScope
-                SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                    // No animatedVisibilityScope passed
+                ResponsiveSettingsScaffold(
+                    widthSizeClass = widthSizeClass, // Pass the available widthSizeClass
+                    navController = navController    // Pass the main NavController
+                    // SettingsViewModel will be obtained via hiltViewModel() within ResponsiveSettingsScaffold
                 )
             }
             composable(Screen.Calendar.route) {
