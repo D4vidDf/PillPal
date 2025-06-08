@@ -25,3 +25,42 @@ data class MedicationSchedule(
 enum class ScheduleType {
     DAILY, WEEKLY, INTERVAL, AS_NEEDED, CUSTOM_ALARMS
 }
+
+// Helper function to format schedule details for display
+fun MedicationSchedule.getFormattedSchedule(): String {
+    val timeFormatter = java.time.format.DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT)
+    return when (scheduleType) {
+        ScheduleType.DAILY -> {
+            val times = specificTimes?.split(",")?.joinToString { java.time.LocalTime.parse(it).format(timeFormatter) } ?: "N/A"
+            "Daily at $times"
+        }
+        ScheduleType.WEEKLY -> {
+            val days = daysOfWeek?.split(",")?.mapNotNull {
+                when (it.trim()) {
+                    "1" -> "Mon"
+                    "2" -> "Tue"
+                    "3" -> "Wed"
+                    "4" -> "Thu"
+                    "5" -> "Fri"
+                    "6" -> "Sat"
+                    "7" -> "Sun"
+                    else -> null
+                }
+            }?.joinToString() ?: "N/A"
+            val times = specificTimes?.split(",")?.joinToString { java.time.LocalTime.parse(it).format(timeFormatter) } ?: "N/A"
+            "Weekly on $days at $times"
+        }
+        ScheduleType.INTERVAL -> {
+            val start = intervalStartTime?.let { java.time.LocalTime.parse(it).format(timeFormatter) } ?: "N/A"
+            val end = intervalEndTime?.let { java.time.LocalTime.parse(it).format(timeFormatter) } ?: "N/A"
+            val hours = intervalHours ?: 0
+            val minutes = intervalMinutes ?: 0
+            "Every ${hours}h ${minutes}m from $start to $end"
+        }
+        ScheduleType.AS_NEEDED -> "As needed"
+        ScheduleType.CUSTOM_ALARMS -> { // Assuming CUSTOM_ALARMS is similar to DAILY/WEEKLY in terms of specificTimes
+            val times = specificTimes?.split(",")?.joinToString { java.time.LocalTime.parse(it).format(timeFormatter) } ?: "N/A"
+            "Custom alarms at $times"
+        }
+    }
+}

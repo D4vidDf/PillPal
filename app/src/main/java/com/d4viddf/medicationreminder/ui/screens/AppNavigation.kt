@@ -30,20 +30,35 @@ import androidx.compose.runtime.remember // For state
 import androidx.compose.runtime.setValue // For state
 
 // Define the routes for navigation
+
+const val MEDICATION_ID_ARG = "medicationId" // Common argument name
+
 sealed class Screen(val route: String) {
     object Home : Screen("home")
     object AddMedication : Screen("addMedication")
-    object AddMedicationChoice : Screen("addMedicationChoice") // New line
-    object MedicationDetails : Screen("medicationDetails/{id}?enableSharedTransition={enableSharedTransition}") {
+    object AddMedicationChoice : Screen("addMedicationChoice")
+    object MedicationDetails : Screen("medicationDetails/{$MEDICATION_ID_ARG}?enableSharedTransition={enableSharedTransition}") {
         fun createRoute(id: Int, enableSharedTransition: Boolean = true) = "medicationDetails/$id?enableSharedTransition=$enableSharedTransition"
     }
     object Settings : Screen("settings")
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
-    data object Onboarding : Screen("onboarding_screen") // Added Onboarding screen
+    data object Onboarding : Screen("onboarding_screen")
+
+    object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "all_schedules_screen/$medicationId"
+    }
+    object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "medication_history_screen/$medicationId"
+    }
+    object MedicationGraph : Screen("medication_graph_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "medication_graph_screen/$medicationId"
+    }
+    object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "medication_info_screen/$medicationId"
+    }
 }
 
-// Removed @OptIn(ExperimentalSharedTransitionApi::class) from here
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
@@ -105,7 +120,7 @@ fun AppNavigation(
                 arguments = listOf(navArgument("enableSharedTransition") { type = NavType.BoolType; defaultValue = true })
             ) { backStackEntry ->
                 // `this` is an AnimatedVisibilityScope
-                val medicationId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                val medicationId = backStackEntry.arguments?.getString(MEDICATION_ID_ARG)?.toIntOrNull()
                 val enableSharedTransition = backStackEntry.arguments?.getBoolean("enableSharedTransition") ?: true
                 if (medicationId != null) {
                     MedicationDetailsScreen(
@@ -113,8 +128,12 @@ fun AppNavigation(
                         onNavigateBack = { navController.popBackStack() },
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope
-                        isHostedInPane = false
-                        // Pass the new argument
+                        isHostedInPane = false,
+                        // Navigation callbacks for new screens from MedicationDetailScreen
+                        onNavigateToAllSchedules = { medId -> navController.navigate(Screen.AllSchedules.createRoute(medId)) },
+                        onNavigateToMedicationHistory = { medId -> navController.navigate(Screen.MedicationHistory.createRoute(medId)) },
+                        onNavigateToMedicationGraph = { medId -> navController.navigate(Screen.MedicationGraph.createRoute(medId)) },
+                        onNavigateToMedicationInfo = { medId -> navController.navigate(Screen.MedicationInfo.createRoute(medId)) }
                     )
                 }
             }
@@ -177,6 +196,51 @@ fun AppNavigation(
                 ProfileScreen(
                     onNavigateBack = { navController.popBackStack() }
                     // No animatedVisibilityScope passed
+                )
+            }
+
+            // Routes for the new screens
+            composable(
+                Screen.AllSchedules.route,
+                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+            ) { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                AllSchedulesScreen(
+                    medicationId = medicationId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                Screen.MedicationHistory.route,
+                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+            ) { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                MedicationHistoryScreen(
+                    medicationId = medicationId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                Screen.MedicationGraph.route,
+                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+            ) { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                MedicationGraphScreen(
+                    medicationId = medicationId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                Screen.MedicationInfo.route,
+                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+            ) { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                MedicationInfoScreen(
+                    medicationId = medicationId,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

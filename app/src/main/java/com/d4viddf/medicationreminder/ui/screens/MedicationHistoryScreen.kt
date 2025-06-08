@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -83,15 +84,49 @@ fun MedicationHistoryScreen(
         if (sortAscending) baseList.sortedBy { it.date } else baseList.sortedByDescending { it.date }
     }
 
+import com.d4viddf.medicationreminder.R // Added for R.string access
+
+// Placeholder data structure
+data class MedicationHistoryEntry(
+    val id: Int,
+    val date: LocalDate,
+    val timeTaken: LocalTime,
+    val medicationName: String // Could be useful context
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MedicationHistoryScreen(
+    medicationId: Int,
+    onNavigateBack: () -> Unit
+    // viewModel: MedicationHistoryViewModel = hiltViewModel() // Placeholder
+) {
+    // Placeholder states for filter/sort
+    var selectedDateRange by remember { mutableStateOf<Pair<LocalDate, LocalDate>?>(null) }
+    var sortAscending by remember { mutableStateOf(true) }
+
+    // Placeholder data
+    val historyEntries = remember(medicationId, sortAscending) {
+        val baseList = List(15) { index ->
+            MedicationHistoryEntry(
+                id = index,
+                date = LocalDate.now().minusDays(index.toLong()),
+                timeTaken = LocalTime.of((8 + index) % 24, (index * 13) % 60),
+                medicationName = "Medication $medicationId"
+            )
+        }
+        if (sortAscending) baseList.sortedBy { it.date } else baseList.sortedByDescending { it.date }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Medication History") }, // Hardcoded string
+                title = { Text(stringResource(id = R.string.medication_history_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back" // Hardcoded string
+                            contentDescription = stringResource(id = R.string.med_history_navigate_back_cd)
                         )
                     }
                 }
@@ -129,7 +164,7 @@ fun MedicationHistoryScreen(
             // History List
             if (historyEntries.isEmpty()) {
                 Text(
-                    "No history found for this medication.", // Hardcoded
+                    stringResource(id = R.string.med_history_no_history_found),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -160,7 +195,7 @@ fun FilterControls(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Filter by Date:", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
         OutlinedButton(
             onClick = { /* TODO: Show Date Range Picker Dialog */
                 // For now, let's simulate a selection
@@ -169,19 +204,19 @@ fun FilterControls(
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
-            Icon(Icons.Filled.CalendarToday, contentDescription = "Select Date", modifier = Modifier.size(18.dp))
+            Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd), modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 selectedDateRange?.let {
                     "${it.first.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))} - ${it.second.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))}"
-                } ?: "Select Range",
+                } ?: stringResource(id = R.string.med_history_filter_select_range_button),
                 fontSize = 12.sp
             )
         }
     }
     if (selectedDateRange != null) {
         OutlinedButton(onClick = onClearDateFilter, modifier = Modifier.fillMaxWidth()) {
-            Text("Clear Date Filter")
+            Text(stringResource(id = R.string.med_history_filter_clear_button))
         }
         Spacer(modifier = Modifier.height(8.dp))
     }
@@ -199,11 +234,11 @@ fun ActionControls(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        HistoryActionButton(icon = Icons.Filled.KeyboardArrowUp, text = "First", onClick = onGoToFirst)
-        HistoryActionButton(icon = Icons.Filled.KeyboardArrowDown, text = "Last", onClick = onGoToLast)
+        HistoryActionButton(icon = Icons.Filled.KeyboardArrowUp, text = stringResource(id = R.string.med_history_action_first), onClick = onGoToFirst)
+        HistoryActionButton(icon = Icons.Filled.KeyboardArrowDown, text = stringResource(id = R.string.med_history_action_last), onClick = onGoToLast)
         HistoryActionButton(
             icon = Icons.Filled.SortByAlpha, // Could use different icons for asc/desc
-            text = if (sortAscending) "Asc" else "Desc",
+            text = if (sortAscending) stringResource(id = R.string.med_history_sort_asc) else stringResource(id = R.string.med_history_sort_desc),
             onClick = onSortToggle
         )
     }
@@ -212,7 +247,7 @@ fun ActionControls(
 @Composable
 fun HistoryActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
     OutlinedButton(onClick = onClick, shape = RoundedCornerShape(8.dp)) {
-        Icon(icon, contentDescription = text, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription = text, modifier = Modifier.size(18.dp)) // Content description could be more specific if needed
         Spacer(modifier = Modifier.width(4.dp))
         Text(text, fontSize = 12.sp)
     }
@@ -243,7 +278,7 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Taken at: ${entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))}",
+                    text = stringResource(id = R.string.med_history_item_taken_at_prefix) + entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

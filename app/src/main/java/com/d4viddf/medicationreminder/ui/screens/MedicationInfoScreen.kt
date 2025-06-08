@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -77,15 +78,48 @@ fun MedicationInfoScreen(
         medicationInfo = MedicationFullInfo(nombreComercial = "Medicamento ID: $medicationId")
     }
 
+import com.d4viddf.medicationreminder.R // Added for R.string access
+
+// Placeholder data structure for medication info
+data class MedicationFullInfo(
+    val nombreComercial: String = "Medicamento Ejemplo",
+    val principioActivo: String = "Principio Activo Ejemplo",
+    val dosis: String = "10 mg",
+    val formaFarmaceutica: String = "Comprimido",
+    val viasDeAdministracion: List<String> = listOf("Oral"),
+    val laboratorioTitular: String = "Laboratorios Ficticios S.A.",
+    val estadoRegistro: String = "Autorizado",
+    val condicionesPrescripcion: String = "Con receta médica",
+    val prospectoUrl: String? = "https://example.com/prospecto",
+    val fichaTecnicaUrl: String? = "https://example.com/ficha_tecnica",
+    val imageUrl: String? = null // Placeholder for image
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MedicationInfoScreen(
+    medicationId: Int,
+    onNavigateBack: () -> Unit
+    // viewModel: MedicationInfoViewModel = hiltViewModel() // Placeholder
+) {
+    // In a real app, fetch this based on medicationId
+    var medicationInfo by remember { mutableStateOf<MedicationFullInfo?>(null) }
+
+    LaunchedEffect(medicationId) {
+        // Simulate data fetching
+        kotlinx.coroutines.delay(100) // Simulate network delay
+        medicationInfo = MedicationFullInfo(nombreComercial = "Medicamento ID: $medicationId")
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(medicationInfo?.nombreComercial ?: "Cargando...") },
+                title = { Text(medicationInfo?.nombreComercial ?: stringResource(id = R.string.loading_text)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back" // Hardcoded
+                            contentDescription = stringResource(id = R.string.med_info_navigate_back_cd)
                         )
                     }
                 }
@@ -95,7 +129,7 @@ fun MedicationInfoScreen(
         if (medicationInfo == null) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 // TODO: Replace with a proper CircularProgressIndicator later
-                Text("Cargando información del medicamento...")
+                Text(stringResource(id = R.string.med_info_loading_details))
             }
         } else {
             LazyColumn(
@@ -119,7 +153,7 @@ fun MedicationInfoScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Image,
-                            contentDescription = "Medication Image Placeholder",
+                            contentDescription = stringResource(id = R.string.med_info_image_placeholder_cd),
                             modifier = Modifier.size(100.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
@@ -134,13 +168,13 @@ fun MedicationInfoScreen(
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     LinkButton(
-                        text = "Ver Prospecto (PDF/Web)",
+                        text = stringResource(id = R.string.med_info_button_prospecto),
                         url = medicationInfo?.prospectoUrl,
                         icon = Icons.AutoMirrored.Filled.Subject
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     LinkButton(
-                        text = "Ver Ficha Técnica (PDF/Web)",
+                        text = stringResource(id = R.string.med_info_button_ficha_tecnica),
                         url = medicationInfo?.fichaTecnicaUrl,
                         icon = Icons.Filled.DocumentScanner
                     )
@@ -161,14 +195,14 @@ private fun InfoSectionCard(info: MedicationFullInfo) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            InfoRow(label = "Nombre comercial", value = info.nombreComercial)
-            InfoRow(label = "Principio activo", value = info.principioActivo)
-            InfoRow(label = "Dosis", value = info.dosis)
-            InfoRow(label = "Forma farmacéutica", value = info.formaFarmaceutica)
-            InfoRow(label = "Vías de administración", value = info.viasDeAdministracion.joinToString())
-            InfoRow(label = "Laboratorio titular", value = info.laboratorioTitular)
-            InfoRow(label = "Estado de registro", value = info.estadoRegistro, showDivider = false) // Last one, no divider
-            // InfoRow(label = "Condiciones de prescripción", value = info.condicionesPrescripcion, showDivider = false)
+            InfoRow(label = stringResource(id = R.string.med_info_label_nombre_comercial), value = info.nombreComercial)
+            InfoRow(label = stringResource(id = R.string.med_info_label_principio_activo), value = info.principioActivo)
+            InfoRow(label = stringResource(id = R.string.med_info_label_dosis), value = info.dosis)
+            InfoRow(label = stringResource(id = R.string.med_info_label_forma_farmaceutica), value = info.formaFarmaceutica)
+            InfoRow(label = stringResource(id = R.string.med_info_label_vias_administracion), value = info.viasDeAdministracion.joinToString())
+            InfoRow(label = stringResource(id = R.string.med_info_label_laboratorio_titular), value = info.laboratorioTitular)
+            InfoRow(label = stringResource(id = R.string.med_info_label_estado_registro), value = info.estadoRegistro, showDivider = false) // Last one, no divider
+            // InfoRow(label = stringResource(id = R.string.med_info_label_condiciones_prescripcion), value = info.condicionesPrescripcion, showDivider = false)
         }
     }
      Card(
@@ -179,7 +213,7 @@ private fun InfoSectionCard(info: MedicationFullInfo) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-             InfoRow(label = "Condiciones de prescripción", value = info.condicionesPrescripcion, showDivider = false)
+             InfoRow(label = stringResource(id = R.string.med_info_label_condiciones_prescripcion), value = info.condicionesPrescripcion, showDivider = false)
         }
      }
 }
@@ -195,7 +229,7 @@ private fun InfoRow(label: String, value: String?, showDivider: Boolean = true) 
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = value ?: "No disponible",
+            text = value ?: stringResource(id = R.string.med_info_value_not_available),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(start = 4.dp) // Slight indent for value
         )

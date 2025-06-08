@@ -93,7 +93,12 @@ fun MedicationDetailsScreen(
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
     medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(), // Added
-    isHostedInPane: Boolean
+    isHostedInPane: Boolean,
+    // Navigation callbacks
+    onNavigateToAllSchedules: (Int) -> Unit,
+    onNavigateToMedicationHistory: (Int) -> Unit,
+    onNavigateToMedicationGraph: (Int) -> Unit,
+    onNavigateToMedicationInfo: (Int) -> Unit
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
@@ -376,17 +381,182 @@ fun MedicationDetailsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Button(
-                                onClick = { /* TODO: Navigate to AllSchedulesScreen */ },
+                                onClick = { onNavigateToAllSchedules(medicationId) }, // Updated onClick
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(text = stringResource(id = R.string.show_more))
+                                Text(text = "Show More")
+                            }
+                        }
+                    }
+                }
+
+                // Medication History Card
+                item {
+                    Spacer(modifier = Modifier.height(16.dp)) // Add space before the card
+                    ElevatedCard(
+                        onClick = { onNavigateToMedicationHistory(medicationId) }, // Updated onClick
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 20.dp), // Increased vertical padding
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Filled.History,
+                                    contentDescription = null, // Decorative
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.size(12.dp))
+                                Text(
+                                    text = stringResource(id = R.string.medication_history_title), // Placeholder for actual string
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                contentDescription = null, // Decorative
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // Graphics Card
+                item {
+                    Spacer(modifier = Modifier.height(16.dp)) // Add space before the card
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.current_week_dosage_title), // Placeholder
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(150.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.1f),
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.bar_graph_placeholder), // Placeholder
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = { onNavigateToMedicationGraph(medicationId) }, // Updated onClick
+                                modifier = Modifier.align(Alignment.End),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Text(text = stringResource(id = R.string.view_more_stats)) // Placeholder
+                                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                                Icon(
+                                    imageVector = Icons.Filled.BarChart,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Medication Information Card
+                item {
+                    // Placeholder condition for showing the card
+                    val medicationInfoAvailable = medicationState?.typeId != null // Example: check if there's a typeId which might link to info
+                                                // In a real scenario, this would come from a ViewModel or medication object property
+
+                    if (medicationInfoAvailable) {
+                        Spacer(modifier = Modifier.height(16.dp)) // Add space before the card
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Info,
+                                        contentDescription = null, // Decorative
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.size(12.dp))
+                                    Text(
+                                        text = stringResource(id = R.string.medication_information_title), // Placeholder
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                                Text(
+                                    text = stringResource(id = R.string.medication_info_description_placeholder), // Placeholder
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(bottom = 12.dp)
+                                )
+                                Button(
+                                    onClick = { onNavigateToMedicationInfo(medicationId) }, // Updated onClick
+                                    modifier = Modifier.align(Alignment.End),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Text(text = stringResource(id = R.string.view_full_information)) // Placeholder
+                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.NavigateNext, // Re-using existing icon
+                                        contentDescription = null,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(48.dp)) // Espacio original antes de contadores
+                    Spacer(modifier = Modifier.height(48.dp)) // Existing spacer at the bottom
                 }
             }
         }
@@ -457,7 +627,10 @@ fun MedicationDetailsScreenPreview() {
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
             isHostedInPane = false,
-            // Added for preview
+            onNavigateToAllSchedules = {}, // Added for preview
+            onNavigateToMedicationHistory = {}, // Added for preview
+            onNavigateToMedicationGraph = {}, // Added for preview
+            onNavigateToMedicationInfo = {} // Added for preview
         )
     }
 }
