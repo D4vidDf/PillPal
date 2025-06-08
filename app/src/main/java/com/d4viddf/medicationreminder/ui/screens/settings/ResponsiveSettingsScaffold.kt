@@ -31,8 +31,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.foundation.layout.padding // Required for Modifier.padding
-import androidx.compose.foundation.layout.Column // Ensure Column is imported
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues // For new parameter
+import androidx.compose.runtime.LaunchedEffect // For observing route changes
+import androidx.navigation.compose.currentBackStackEntryAsState // For observing route changes
 
 // Define routes for sub-settings screens
 object SettingsDestinations {
@@ -48,18 +51,31 @@ fun ResponsiveSettingsScaffold(
     widthSizeClass: WindowWidthSizeClass,
     navController: NavController,
     settingsViewModel: SettingsViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier // New parameter
+    modifier: Modifier = Modifier,
+    updateTopBarActions: (titleResId: Int, backAction: () -> Unit) -> Unit, // New parameter
+    contentPadding: PaddingValues = PaddingValues(0.dp) // New parameter
 ) {
     val isTwoPane = widthSizeClass > WindowWidthSizeClass.Compact
-    var selectedCategoryRoute by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedCategoryRoute by rememberSaveable { mutableStateOf<String?>(SettingsDestinations.GENERAL) } // Default to General for two-pane
 
     // For single-pane layout, we use a local NavController
     val localSettingsNavController = rememberNavController()
 
     if (isTwoPane) {
         // Two-pane layout (tablet)
-        Column(modifier = modifier.fillMaxSize()) { // Applied modifier
-            TopAppBar(title = { Text(stringResource(id = R.string.settings_screen_title)) })
+        Column(modifier = modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.settings_screen_title)) },
+                navigationIcon = if (selectedCategoryRoute != null && selectedCategoryRoute != SettingsDestinations.GENERAL) { // Show back if detail is not the default general
+                    {
+                        IconButton(onClick = { selectedCategoryRoute = SettingsDestinations.GENERAL }) { // Navigate back to default/list
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
+                        }
+                    }
+                } else {
+                    null
+                }
+            )
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.width(300.dp).fillMaxHeight()) {
                     SettingsListScreen(
@@ -70,53 +86,67 @@ fun ResponsiveSettingsScaffold(
                     )
                 }
                 VerticalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                Box(modifier = Modifier.weight(1f)) { // Right pane
-                    if (selectedCategoryRoute == null) {
-                        GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
-                    } else {
-                        when (selectedCategoryRoute) {
-                            SettingsDestinations.GENERAL -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
-                            SettingsDestinations.SOUND -> SoundSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
-                            SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
-                        }
+                Box(modifier = Modifier.weight(1f)) {
+                    // selectedCategoryRoute is initialized to GENERAL, so this will always have a value.
+                    when (selectedCategoryRoute) {
+                        SettingsDestinations.GENERAL -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // No showTopAppBar, onNavigateBack is {}
+                        SettingsDestinations.SOUND -> SoundSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
+                        SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
+                        else -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // Fallback, though selectedCategoryRoute is non-null
                     }
                 }
             }
         }
     } else {
         // Single-pane layout (phone)
-        Scaffold(modifier = modifier) { innerPadding -> // Applied modifier and removed topBar
-            NavHost(
-                navController = localSettingsNavController,
-                startDestination = SettingsDestinations.LIST,
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                composable(SettingsDestinations.LIST) {
-                    SettingsListScreen(
-                        onNavigateToGeneral = { localSettingsNavController.navigate(SettingsDestinations.GENERAL) },
-                        onNavigateToSound = { localSettingsNavController.navigate(SettingsDestinations.SOUND) },
-                        onNavigateToDeveloper = { localSettingsNavController.navigate(SettingsDestinations.DEVELOPER) }
-                    )
+        // Scaffold removed, NavHost is now the root for this branch
+        val navBackStackEntry by localSettingsNavController.currentBackStackEntryAsState()
+        LaunchedEffect(navBackStackEntry) {
+            val currentRoute = navBackStackEntry?.destination?.route
+            when (currentRoute) {
+                SettingsDestinations.LIST -> {
+                    updateTopBarActions(R.string.settings_screen_title) { navController.popBackStack() }
                 }
-                composable(SettingsDestinations.GENERAL) {
-                    GeneralSettingsScreen(
-                        onNavigateBack = { localSettingsNavController.popBackStack() },
-                        viewModel = settingsViewModel,
-                        showTopAppBar = true // Pass true here
-                    )
+                SettingsDestinations.GENERAL -> {
+                    updateTopBarActions(R.string.settings_category_general) { localSettingsNavController.popBackStack() }
                 }
-                composable(SettingsDestinations.SOUND) {
-                    SoundSettingsScreen(
-                        onNavigateBack = { localSettingsNavController.popBackStack() },
-                        viewModel = settingsViewModel,
-                        showTopAppBar = true // Pass true here
-                    )
+                SettingsDestinations.SOUND -> {
+                    updateTopBarActions(R.string.settings_category_sound) { localSettingsNavController.popBackStack() }
                 }
-                composable(SettingsDestinations.DEVELOPER) {
-                    DeveloperSettingsScreen(
-                        onNavigateBack = { localSettingsNavController.popBackStack() },
-                        viewModel = settingsViewModel,
-                        showTopAppBar = true // Pass true here
+                SettingsDestinations.DEVELOPER -> {
+                    updateTopBarActions(R.string.settings_category_developer) { localSettingsNavController.popBackStack() }
+                }
+            }
+        }
+
+        NavHost(
+            navController = localSettingsNavController,
+            startDestination = SettingsDestinations.LIST,
+            modifier = modifier.fillMaxSize().padding(contentPadding) // Apply contentPadding
+        ) {
+            composable(SettingsDestinations.LIST) {
+                SettingsListScreen(
+                    onNavigateToGeneral = { localSettingsNavController.navigate(SettingsDestinations.GENERAL) },
+                    onNavigateToSound = { localSettingsNavController.navigate(SettingsDestinations.SOUND) },
+                    onNavigateToDeveloper = { localSettingsNavController.navigate(SettingsDestinations.DEVELOPER) }
+                )
+            }
+            composable(SettingsDestinations.GENERAL) {
+                GeneralSettingsScreen(
+                    onNavigateBack = { localSettingsNavController.popBackStack() }, // onNavigateBack is for internal logic if screen has one, not for TopAppBar
+                    viewModel = settingsViewModel
+                )
+            }
+            composable(SettingsDestinations.SOUND) {
+                SoundSettingsScreen(
+                    onNavigateBack = { localSettingsNavController.popBackStack() },
+                    viewModel = settingsViewModel
+                )
+            }
+            composable(SettingsDestinations.DEVELOPER) {
+                DeveloperSettingsScreen(
+                    onNavigateBack = { localSettingsNavController.popBackStack() },
+                    viewModel = settingsViewModel
                     )
                 }
             }

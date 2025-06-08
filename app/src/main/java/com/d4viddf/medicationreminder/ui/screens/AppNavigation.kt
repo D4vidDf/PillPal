@@ -23,6 +23,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.getValue // For state
+import androidx.compose.runtime.mutableStateOf // For state
+import androidx.compose.runtime.remember // For state
+import androidx.compose.runtime.setValue // For state
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -114,17 +118,19 @@ fun AppNavigation(
                 }
             }
             composable(Screen.Settings.route) {
+                var currentSettingsTitleResId by remember { mutableStateOf(R.string.settings_screen_title) }
+                var currentSettingsBackAction by remember { mutableStateOf<(() -> Unit)> { navController::popBackStack } }
+
                 if (widthSizeClass == WindowWidthSizeClass.Compact) {
-                    // Phone layout: AppNavigation provides the Scaffold and TopAppBar for the settings module.
                     Scaffold(
                         topBar = {
                             TopAppBar(
-                                title = { Text(stringResource(id = R.string.settings_screen_title)) },
+                                title = { Text(stringResource(id = currentSettingsTitleResId)) },
                                 navigationIcon = {
-                                    IconButton(onClick = { navController.popBackStack() }) { // Uses main app NavController
+                                    IconButton(onClick = { currentSettingsBackAction.invoke() }) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = stringResource(id = R.string.back)
+                                            contentDescription = stringResource(id = R.string.back) // Generic back description
                                         )
                                     }
                                 }
@@ -134,16 +140,24 @@ fun AppNavigation(
                         ResponsiveSettingsScaffold(
                             widthSizeClass = widthSizeClass,
                             navController = navController,
-                            // Apply padding from this Scaffold to the content area of ResponsiveSettingsScaffold
-                            // ResponsiveSettingsScaffold's internal NavHost will use its own Scaffold's innerPadding
-                            modifier = Modifier.padding(innerPadding)
+                            updateTopBarActions = { titleResId, backAction ->
+                                currentSettingsTitleResId = titleResId
+                                currentSettingsBackAction = backAction
+                            },
+                            contentPadding = innerPadding, // Pass Scaffold's innerPadding
+                            modifier = Modifier.fillMaxSize() // Responsive scaffold should fill the content area
                         )
                     }
                 } else {
-                    // Tablet layout: ResponsiveSettingsScaffold provides its own overall TopAppBar.
+                    // Tablet layout: ResponsiveSettingsScaffold manages its own TopAppBar.
+                    // updateTopBarActions and contentPadding are not strictly needed here as it manages its own Scaffold/TopAppBar.
+                    // However, to keep the call signature consistent or if some root modifier is needed:
                     ResponsiveSettingsScaffold(
                         widthSizeClass = widthSizeClass,
-                        navController = navController
+                        navController = navController,
+                        updateTopBarActions = { _, _ -> /* No-op for tablet as it handles its own top bar */ },
+                        // contentPadding can be default or specific if ResponsiveSettingsScaffold needs it
+                        modifier = Modifier.fillMaxSize() // Ensure it fills the designated area
                     )
                 }
             }

@@ -10,12 +10,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+// import androidx.compose.material3.IconButton // No longer used directly here
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
+// import androidx.compose.material3.Scaffold // Scaffold removed
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+// import androidx.compose.material3.TopAppBar // TopAppBar removed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -29,16 +29,16 @@ import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import android.util.Log // Required for LaunchedEffect error logging
 
-import androidx.compose.foundation.layout.Box // For empty topBar
-// import androidx.compose.ui.unit.dp // Already imported if Box is used with Modifier.height(0.dp)
+// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
+import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeveloperSettingsScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
-    showTopAppBar: Boolean // New parameter
+    onNavigateBack: () -> Unit, // Still passed by ResponsiveSettingsScaffold
+    viewModel: SettingsViewModel = hiltViewModel()
+    // showTopAppBar: Boolean // Parameter removed
 ) {
     val context = LocalContext.current
 
@@ -55,32 +55,14 @@ fun DeveloperSettingsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            if (showTopAppBar) {
-                TopAppBar(
-                    title = { Text(stringResource(id = R.string.settings_category_developer)) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back)
-                            )
-                        }
-                    }
-                )
-            } else {
-                Box(Modifier.height(0.dp)) // Or simply {}
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.settings_developer_options_description), // Assume new string resource like "These options are for debugging and development."
+    // Scaffold removed, root is now Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize() // Takes full size given by parent
+            .padding(16.dp) // General content padding
+    ) {
+        Text(
+            text = stringResource(id = R.string.settings_developer_options_description),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -122,6 +104,26 @@ fun DeveloperSettingsScreen(
 @Composable
 fun DeveloperSettingsScreenPreview() {
     AppTheme {
-        DeveloperSettingsScreen(onNavigateBack = {}, showTopAppBar = true)
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.settings_category_developer)) },
+                    navigationIcon = {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+             DeveloperSettingsScreen(
+                onNavigateBack = {},
+                viewModel = hiltViewModel()
+                // modifier = Modifier.padding(paddingValues)
+            )
+        }
     }
 }

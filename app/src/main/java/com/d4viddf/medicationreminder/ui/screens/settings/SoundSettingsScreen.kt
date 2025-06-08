@@ -21,13 +21,13 @@ import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+// import androidx.compose.material3.IconButton // No longer used directly here
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+// import androidx.compose.material3.Scaffold // Scaffold removed
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+// import androidx.compose.material3.TopAppBar // TopAppBar removed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,15 +43,15 @@ import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlin.math.roundToInt
 
-import androidx.compose.foundation.layout.Box // For empty topBar
-// import androidx.compose.ui.unit.dp // Already imported if Box is used with Modifier.height(0.dp)
+// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
+import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundSettingsScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
-    showTopAppBar: Boolean // New parameter
+    onNavigateBack: () -> Unit, // Still passed by ResponsiveSettingsScaffold
+    viewModel: SettingsViewModel = hiltViewModel()
+    // showTopAppBar: Boolean // Parameter removed
 ) {
     val context = LocalContext.current
     val currentVolume by viewModel.currentVolume.collectAsState()
@@ -68,32 +68,14 @@ fun SoundSettingsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            if (showTopAppBar) {
-                TopAppBar(
-                    title = { Text(stringResource(id = R.string.settings_category_sound)) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back)
-                            )
-                        }
-                    }
-                )
-            } else {
-                Box(Modifier.height(0.dp)) // Or simply {}
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-        ) {
-            // Volume Control Group
-            Surface(
+    // Scaffold removed, root is now Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize() // Takes full size given by parent
+            .padding(16.dp) // General content padding
+    ) {
+        // Volume Control Group
+        Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -196,6 +178,26 @@ private fun NotificationSoundSettingItemInternal( // Renamed to avoid conflict i
 @Composable
 fun SoundSettingsScreenPreview() {
     AppTheme {
-        SoundSettingsScreen(onNavigateBack = {}, showTopAppBar = true)
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.settings_category_sound)) },
+                    navigationIcon = {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            SoundSettingsScreen(
+                onNavigateBack = {},
+                viewModel = hiltViewModel()
+                // modifier = Modifier.padding(paddingValues)
+            )
+        }
     }
 }

@@ -13,16 +13,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+// import androidx.compose.material3.IconButton // No longer used directly here
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+// import androidx.compose.material3.Scaffold // Scaffold removed
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+// import androidx.compose.material3.TopAppBar // TopAppBar removed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,15 +47,15 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 data class LanguageOption(val displayName: String, val tag: String)
 
 
-import androidx.compose.foundation.layout.Box // For empty topBar
-// import androidx.compose.ui.unit.dp // Already imported if Box is used with Modifier.height(0.dp)
+// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
+import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralSettingsScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
-    showTopAppBar: Boolean // New parameter
+    onNavigateBack: () -> Unit, // Still passed by ResponsiveSettingsScaffold, though not used for TopAppBar here
+    viewModel: SettingsViewModel = hiltViewModel()
+    // showTopAppBar: Boolean, // Parameter removed
 ) {
     val context = LocalContext.current
     val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
@@ -83,32 +83,14 @@ fun GeneralSettingsScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            if (showTopAppBar) {
-                TopAppBar(
-                    title = { Text(stringResource(id = R.string.settings_category_general)) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back)
-                            )
-                        }
-                    }
-                )
-            } else {
-                 Box(Modifier.height(0.dp)) // Or simply {}
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-        ) {
-            // Language Selection Group
-            Surface(
+    // Scaffold removed, root is now Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize() // Takes full size given by parent
+            .padding(16.dp) // General content padding
+    ) {
+        // Language Selection Group
+        Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -187,6 +169,28 @@ fun GeneralSettingsScreen(
 @Composable
 fun GeneralSettingsScreenPreview() {
     AppTheme {
-        GeneralSettingsScreen(onNavigateBack = {}, showTopAppBar = true)
+        // Preview now needs a Scaffold if it's meant to show the TopAppBar visually
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.settings_category_general)) },
+                    navigationIcon = {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            // Pass hiltViewModel() directly in preview, or a mock if available/needed
+            GeneralSettingsScreen(
+                onNavigateBack = {},
+                viewModel = hiltViewModel()
+                // modifier = Modifier.padding(paddingValues) // Apply padding if content expects it
+            )
+        }
     }
 }
