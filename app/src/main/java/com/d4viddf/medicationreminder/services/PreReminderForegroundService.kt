@@ -49,8 +49,7 @@ class PreReminderForegroundService : Service() {
     private var actualTakeTimeMillis: Long = -1L
 
     private val updateNotificationRunnable = object : Runnable {
-        // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+        @RequiresApi(36)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -79,8 +78,7 @@ class PreReminderForegroundService : Service() {
         Log.d(TAG, "PreReminderForegroundService onCreate")
     }
 
-    // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(36)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
         val reminderIdFromIntent = intent?.getIntExtra(EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
@@ -121,7 +119,7 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val notificationToShow = if (Build.VERSION.SDK_INT >= 35) { // Changed condition to == 35
+        val notificationToShow = if (Build.VERSION.SDK_INT >= 36) { // Changed condition to == 35
             buildStyledNotification(initialTimeRemainingMillis)
         } else {
             buildCompatNotification(initialTimeRemainingMillis)
@@ -148,7 +146,7 @@ class PreReminderForegroundService : Service() {
     }
 
     @SuppressLint("SuspiciousIndentation")
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(36)
     private fun buildStyledNotification(timeRemainingMillis: Long): Notification {
         val minutesRemainingOverall = TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis).coerceAtLeast(0)
         val elapsedMinutesInPrePeriod = (TOTAL_PRE_REMINDER_DURATION_MINUTES - minutesRemainingOverall)
@@ -191,7 +189,7 @@ class PreReminderForegroundService : Service() {
             if (largeIconBitmap != null) builder.setLargeIcon(largeIconBitmap)
         } catch (e: Exception) { Log.e(TAG, "Error setting large icon: ${e.message}") }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+        if (Build.VERSION.SDK_INT >= 36) {
             val progressStyle = Notification.ProgressStyle()
                 .setStyledByProgress(false)
                 .setProgress(elapsedMinutesInPrePeriod.toInt())
@@ -272,11 +270,10 @@ class PreReminderForegroundService : Service() {
         return compatBuilder.build()
     }
 
-    // Removed @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    @RequiresApi(36)
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
-            val notification = if (Build.VERSION.SDK_INT >= 35) { // Changed condition to == 35
+            val notification = if (Build.VERSION.SDK_INT >= 36) { // Changed condition to == 35
                 buildStyledNotification(timeRemainingMillis)
             } else {
                 buildCompatNotification(timeRemainingMillis)

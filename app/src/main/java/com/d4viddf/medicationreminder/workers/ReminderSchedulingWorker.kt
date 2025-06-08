@@ -73,10 +73,23 @@ class ReminderSchedulingWorker constructor(
                 Log.w(TAG, "Worker run without medication ID and not a daily refresh.")
             }
             Log.i(TAG, "ReminderSchedulingWorker (CustomFactory) finished successfully")
+            // Check if stopped even on success path, as it might be a graceful stop
+            if (isStopped) {
+                Log.w(TAG, "Worker finished but was stopped. Stop reason: ${getStopReason()}")
+            }
             Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Error in ReminderSchedulingWorker (CustomFactory)", e)
+            if (isStopped) {
+                Log.w(TAG, "Worker was stopped due to error. Stop reason: ${getStopReason()}")
+            }
             Result.failure()
+        } finally {
+            // This block executes regardless of whether an exception occurred or not.
+            // Useful for final check if the worker was stopped for reasons not caught by the main try-catch.
+            if (isStopped) {
+                Log.w(TAG, "ReminderSchedulingWorker isStopped in finally block. Stop reason: ${getStopReason()}")
+            }
         }
     }
 
