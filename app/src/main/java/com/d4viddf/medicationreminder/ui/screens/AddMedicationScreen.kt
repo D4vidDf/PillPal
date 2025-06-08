@@ -42,7 +42,7 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.*
-import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
+// import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel // Removed if not used
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
@@ -58,8 +58,8 @@ fun AddMedicationScreen(
     navController: NavHostController, // Add this
     widthSizeClass: WindowWidthSizeClass,
     medicationViewModel: MedicationViewModel = hiltViewModel(),
-    medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
-    medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
+    medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel()
+    // medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel() // Removed parameter
 ) {
     // val windowSizeClass = LocalWindowSizeClass.current // REMOVE THIS
     val isTablet = widthSizeClass >= WindowWidthSizeClass.Medium // Ensure this uses the parameter
@@ -232,18 +232,7 @@ fun AddMedicationScreen(
                                 )
                                 Log.d("AddMedScreen", "Enqueued ReminderSchedulingWorker for medId: $medId")
 
-                                medicationSearchResult?.let { result ->
-                                    medicationInfoViewModel.insertMedicationInfo(
-                                        MedicationInfo(
-                                            medicationId = medId, description = result.description, atcCode = result.atcCode,
-                                            safetyNotes = result.safetyNotes, administrationRoutes = result.administrationRoutes.joinToString(","),
-                                            dosage = result.dosage, documentUrls = result.documentUrls.joinToString(","),
-                                            nregistro = result.nregistro, labtitular = result.labtitular,
-                                            comercializado = result.comercializado, requiereReceta = result.requiereReceta,
-                                            generico = result.generico
-                                        )
-                                    )
-                                }
+                                // Removed medicationInfoViewModel.insertMedicationInfo call block
                             }
                             // onNavigateBack() // Remove this line
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
+import com.d4viddf.medicationreminder.viewmodel.MedicationSearchViewModel // Changed ViewModel import
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -32,11 +32,14 @@ fun MedicationNameInput(
     onMedicationSelected: (MedicationSearchResult?) -> Unit,
     modifier: Modifier = Modifier, // This is for the whole component
     searchResultsListModifier: Modifier = Modifier, // New parameter for the LazyColumn
-    viewModel: MedicationInfoViewModel = hiltViewModel()
+    viewModel: MedicationSearchViewModel? = hiltViewModel() // Changed to MedicationSearchViewModel and made nullable
 ) {
 
     val coroutineScope = rememberCoroutineScope()
-    val searchResults by viewModel.medicationSearchResults.collectAsState()
+    // Handle nullable viewModel for preview
+    val searchResults by viewModel?.medicationSearchResults?.collectAsState() ?: remember { mutableStateOf(emptyList<MedicationSearchResult>()) }
+    val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) } // Collect isLoading
+
     var isInputValid by remember { mutableStateOf(true) }
     val focusManager = LocalFocusManager.current
     var explicitlySelectedItem by remember { mutableStateOf<MedicationSearchResult?>(null) }
@@ -65,12 +68,10 @@ fun MedicationNameInput(
 
                 // Only search if the input is at least 3 characters long
                 if (newQuery.length >= 3) {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.searchMedication(newQuery)
-                    }
+                    // No need for Dispatchers.IO here as ViewModel handles it
+                    viewModel?.searchMedication(newQuery)
                 } else {
-                    // Clear search results if the input is less than 3 characters
-                    viewModel.clearSearchResults()
+                    viewModel?.clearSearchResults()
                 }
             },
             modifier = Modifier
@@ -91,9 +92,9 @@ fun MedicationNameInput(
             },
             trailingIcon = {
                 IconButton(onClick = {
-                    onMedicationNameChange("")       // Update parent's state for medicationName
-                    explicitlySelectedItem = null    // Directly clear the chosen item state
-                    viewModel.clearSearchResults() // Directly clear results in ViewModel
+                    onMedicationNameChange("")
+                    explicitlySelectedItem = null
+                    viewModel?.clearSearchResults() // Use null-safe call
                     focusManager.clearFocus()
                 }) {
                     Icon(Icons.Default.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.medication_name_clear_search_acc))
@@ -150,7 +151,8 @@ fun MedicationNameInputPreview() {
             medicationName = "Ibuprofen",
             onMedicationNameChange = {},
             onMedicationSelected = {},
-            searchResultsListModifier = Modifier.heightIn(max = 200.dp) // Provide a default for preview
+            searchResultsListModifier = Modifier.heightIn(max = 200.dp), // Provide a default for preview
+            viewModel = null // Pass null for preview
         )
     }
 }

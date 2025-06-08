@@ -23,6 +23,18 @@ class MedicationInfoRepository @Inject constructor(
 ) {
     private val client = OkHttpClient()
 
+    // Private helper function moved out from getMedicationDetailsByNRegistro and made non-inline
+    private fun <T> parseJsonArrayToList(jsonArray: JSONArray?, parser: (JSONObject) -> T): List<T>? {
+        if (jsonArray == null) return null
+        val list = mutableListOf<T>()
+        for (i in 0 until jsonArray.length()) {
+            jsonArray.optJSONObject(i)?.let { // Ensure JSONObject is not null before parsing
+                list.add(parser(it))
+            }
+        }
+        return list.ifEmpty { null } // Keep original behavior of returning null for empty
+    }
+
     suspend fun insertMedicationInfo(medicationInfo: MedicationInfo) {
         medicationInfoDao.insertMedicationInfo(medicationInfo)
     }
@@ -149,16 +161,6 @@ class MedicationInfoRepository @Inject constructor(
 
             val jsonResponse = JSONObject(responseBody)
 
-            // Helper function to parse JSONArray into List<T>
-            inline fun <T> JSONArray?.toList(parser: (JSONObject) -> T): List<T>? {
-                if (this == null) return null
-                val list = mutableListOf<T>()
-                for (i in 0 until this.length()) {
-                    list.add(parser(this.getJSONObject(i)))
-                }
-                return list.ifEmpty { null }
-            }
-
             val formaFarmaceuticaJson = jsonResponse.optJSONObject("formaFarmaceutica")
             val viasAdministracionJsonArray = jsonResponse.optJSONArray("viasAdministracion")
             val estadoJson = jsonResponse.optJSONObject("estado")
@@ -173,19 +175,19 @@ class MedicationInfoRepository @Inject constructor(
                 formaFarmaceutica = formaFarmaceuticaJson?.let {
                     CimaFormaFarmaceutica(id = it.optInt("id"), nombre = it.optString("nombre", null))
                 },
-                viasAdministracion = viasAdministracionJsonArray.toList { viaJson ->
+                viasAdministracion = parseJsonArrayToList(viasAdministracionJsonArray) { viaJson ->
                     CimaViaAdministracion(id = viaJson.optInt("id"), nombre = viaJson.optString("nombre", null))
                 },
                 condPresc = jsonResponse.optString("condPresc", null),
                 estado = estadoJson?.let { CimaEstado(aut = it.optLong("aut", -1L).takeIf { aut -> aut != -1L }) },
-                docs = docsJsonArray.toList { docJson ->
+                docs = parseJsonArrayToList(docsJsonArray) { docJson ->
                     CimaDocumento(
                         tipo = docJson.optInt("tipo", -1).takeIf { tipo -> tipo != -1 },
                         urlHtml = docJson.optString("urlHtml", null),
                         url = docJson.optString("url", null)
                     )
                 },
-                fotos = fotosJsonArray.toList { fotoJson ->
+                fotos = parseJsonArrayToList(fotosJsonArray) { fotoJson ->
                     CimaFoto(
                         tipo = fotoJson.optString("tipo", null),
                         url = fotoJson.optString("url", null),

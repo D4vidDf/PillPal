@@ -20,8 +20,7 @@ import androidx.compose.material.icons.filled.DocumentScanner // For Ficha Técn
 import androidx.compose.material.icons.filled.Image // Placeholder for medication image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+// Removed duplicate Button and ButtonDefaults imports
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +46,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign // Added import for TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,7 +113,7 @@ fun MedicationInfoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(sampleInfoForPreview?.nombre ?: stringResource(id = R.string.loading_text)) },
+                title = { Text(sampleInfoForPreview?.nombre ?: stringResource(id = R.string.loading)) }, // Changed to R.string.loading
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
