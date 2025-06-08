@@ -55,10 +55,10 @@ fun MedicationReminderApp(
 
             // Specific routes that should not show the main navigation (Scaffold with FAB or NavRail)
             val hideAllMainChrome = currentRoute in listOf(
-                Screen.Settings.route,
+                // Screen.Settings.route, // Removed this line
                 Screen.AddMedication.route,
-                Screen.AddMedicationChoice.route, // Added this line
-                Screen.Onboarding.route // Add Onboarding here
+                Screen.AddMedicationChoice.route,
+                Screen.Onboarding.route
             ) || currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
 
 

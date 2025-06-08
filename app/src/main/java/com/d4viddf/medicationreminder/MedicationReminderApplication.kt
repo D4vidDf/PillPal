@@ -9,6 +9,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
+import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.HiltAndroidApp
 import java.util.Calendar
@@ -39,34 +40,46 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
+        // Initialize FileLogger
+        FileLogger.initialize(this)
+        FileLogger.log("MedicationReminderApp", "Application onCreate - File logging active.")
+
         originalUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             Log.e("MedGlobalExceptionHandler", "FATAL UNCAUGHT EXCEPTION on thread ${thread.name}", throwable)
+            FileLogger.log("MedGlobalExceptionHandler", "FATAL UNCAUGHT EXCEPTION on thread ${thread.name}", throwable) // Also log to file
             // Here you could add more detailed logging, like device info, app version, etc.
             // It's crucial to call the original handler to ensure the system processes the crash.
             originalUncaughtExceptionHandler?.uncaughtException(thread, throwable)
         }
 
         Log.d("MedicationReminderApp", "Application onCreate called.")
+        FileLogger.log("MedicationReminderApp", "Standard Log.d: Application onCreate called.")
+
 
         // Hilt inyecta customWorkerFactory aquí
         if (::customWorkerFactory.isInitialized) {
             Log.d("MedicationReminderApp", "CustomWorkerFasctory is initialized in onCreate.")
+        FileLogger.log("MedicationReminderApp", "Standard Log.d: CustomWorkerFasctory is initialized in onCreate.")
         } else {
             Log.e("MedicationReminderApp", "CustomWorkerFasctory IS NOT initialized in onCreate!")
+            FileLogger.log("MedicationReminderAppError", "CustomWorkerFasctory IS NOT initialized in onCreate!")
         }
 
 
             NotificationHelper.createNotificationChannels(this)
             Log.d("MedicationReminderApp", "Notification channels created.")
+            FileLogger.log("MedicationReminderApp", "Standard Log.d: Notification channels created.")
 
         setupDailyReminderRefreshWorker()
     }
 
     private fun setupDailyReminderRefreshWorker() {
         Log.d("MedicationReminderApp", "Attempting to get WorkManager instance.")
+        FileLogger.log("MedicationReminderApp", "Attempting to get WorkManager instance.")
         val workManager = WorkManager.getInstance(applicationContext)
         Log.d("MedicationReminderApp", "Successfully got WorkManager instance: $workManager")
+        FileLogger.log("MedicationReminderApp", "Successfully got WorkManager instance: $workManager")
 
         val data = Data.Builder()
             .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)
@@ -98,6 +111,8 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
         )
         val hoursUntilRun = TimeUnit.MILLISECONDS.toHours(delayUntilNextRun)
         val minutesUntilRun = TimeUnit.MILLISECONDS.toMinutes(delayUntilNextRun) % 60
-        Log.i("MedicationReminderApp", "Enqueued DailyReminderRefreshWorker to run in approx ${hoursUntilRun}h ${minutesUntilRun}m (using CustomFactory).")
+        val logMsg = "Enqueued ReminderSchedulingWorker (as DailyReminderRefreshWorker) to run in approx ${hoursUntilRun}h ${minutesUntilRun}m (using CustomFactory)."
+        Log.i("MedicationReminderApp", logMsg)
+        FileLogger.log("MedicationReminderApp", logMsg)
     }
 }

@@ -7,11 +7,27 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController // Corrected order
-import androidx.navigation.NavType // Added import
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Added
-import androidx.navigation.compose.NavHost // Corrected order
-import androidx.navigation.compose.composable // Corrected order
-import androidx.navigation.navArgument // Added import
+import androidx.navigation.NavType
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.d4viddf.medicationreminder.ui.screens.settings.ResponsiveSettingsScaffold
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.getValue // For state
+import androidx.compose.runtime.mutableStateOf // For state
+import androidx.compose.runtime.remember // For state
+import androidx.compose.runtime.setValue // For state
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -28,7 +44,7 @@ sealed class Screen(val route: String) {
 }
 
 // Removed @OptIn(ExperimentalSharedTransitionApi::class) from here
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     modifier: Modifier = Modifier, // Add this line
@@ -103,11 +119,48 @@ fun AppNavigation(
                 }
             }
             composable(Screen.Settings.route) {
-                // `this` is an AnimatedVisibilityScope
-                SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                    // No animatedVisibilityScope passed
-                )
+                var currentSettingsTitleResId by remember { mutableStateOf(R.string.settings_screen_title) }
+                var currentSettingsBackAction by remember { mutableStateOf<() -> Unit>({ navController.popBackStack() }) } // Explicit lambda wrapping
+
+                if (widthSizeClass == WindowWidthSizeClass.Compact) {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text(stringResource(id = currentSettingsTitleResId)) },
+                                navigationIcon = {
+                                    IconButton(onClick = { currentSettingsBackAction.invoke() }) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = stringResource(id = R.string.back) // Generic back description
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    ) { innerPadding ->
+                        ResponsiveSettingsScaffold(
+                            widthSizeClass = widthSizeClass,
+                            navController = navController,
+                            updateTopBarActions = { titleResId, backAction ->
+                                currentSettingsTitleResId = titleResId
+                                currentSettingsBackAction = backAction
+                            },
+                            contentPadding = innerPadding, // Pass Scaffold's innerPadding
+                            modifier = Modifier.fillMaxSize() // Responsive scaffold should fill the content area
+                        )
+                    }
+                } else {
+                    // Tablet layout: ResponsiveSettingsScaffold manages its own TopAppBar.
+                    // updateTopBarActions and contentPadding are not strictly needed here as it manages its own Scaffold/TopAppBar.
+                    // However, to keep the call signature consistent or if some root modifier is needed:
+                    ResponsiveSettingsScaffold(
+                        widthSizeClass = widthSizeClass,
+                        navController = navController,
+                        updateTopBarActions = { _, _ -> /* No-op for tablet as it handles its own top bar */ },
+                        // contentPadding can be default or specific if ResponsiveSettingsScaffold needs it
+                        modifier = Modifier.fillMaxSize() // Ensure it fills the designated area
+                    )
+                }
             }
             composable(Screen.Calendar.route) {
                 // `this` is an AnimatedVisibilityScope

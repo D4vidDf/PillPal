@@ -23,11 +23,18 @@ class MedicationReminderRepository @Inject constructor(
         return newId
     }
 
-    suspend fun updateReminder(reminder: MedicationReminder) {
-        medicationReminderDao.updateReminder(reminder)
-        firebaseSyncDao.insertSyncRecord(
-            FirebaseSync(entityName = "MedicationReminder", entityId = reminder.id, syncStatus = SyncStatus.PENDING)
-        )
+    suspend fun updateReminder(reminder: MedicationReminder): Int { // Return Int
+        Log.d("MedRecReminderRepo", "Attempting to update reminder in DAO. ID: ${reminder.id}, isTaken: ${reminder.isTaken}, takenAt: ${reminder.takenAt}")
+        val rowsUpdated = medicationReminderDao.updateReminder(reminder)
+        Log.i("MedRecReminderRepo", "Reminder DAO update executed. Rows updated: $rowsUpdated for reminder ID: ${reminder.id}")
+        if (rowsUpdated > 0) {
+            firebaseSyncDao.insertSyncRecord(
+                FirebaseSync(entityName = "MedicationReminder", entityId = reminder.id, syncStatus = SyncStatus.PENDING)
+            )
+        } else {
+            Log.e("MedRecReminderRepo", "CRITICAL: Update reminder ID ${reminder.id} affected 0 rows in DB!")
+        }
+        return rowsUpdated // Return the count
     }
 
     suspend fun deleteReminder(reminder: MedicationReminder) {
@@ -35,14 +42,22 @@ class MedicationReminderRepository @Inject constructor(
         firebaseSyncDao.insertSyncRecord(FirebaseSync(entityName = "MedicationReminder", entityId = reminder.id, syncStatus = SyncStatus.PENDING)) // O similar
     }
 
-    suspend fun markReminderAsTaken(reminderId: Int, takenAt: String) {
+    suspend fun markReminderAsTaken(reminderId: Int, takenAt: String): Boolean { // Return Boolean for success
         val reminder = medicationReminderDao.getReminderById(reminderId)
+        var success = false
         reminder?.let {
             val updatedReminder = it.copy(isTaken = true, takenAt = takenAt)
-            updateReminder(updatedReminder)
+            val rowsUpdated = updateReminder(updatedReminder) // Call the modified updateReminder
+            if (rowsUpdated > 0) {
+                Log.i("MedRecReminderRepo", "Successfully marked reminder ID $reminderId as taken. Rows updated: $rowsUpdated")
+                success = true
+            } else {
+                Log.e("MedRecReminderRepo", "Failed to mark reminder ID $reminderId as taken (0 rows updated in DB).")
+            }
         } ?: run {
             Log.e("MedRecReminderRepo", "markReminderAsTaken: Reminder not found with ID: $reminderId")
         }
+        return success
     }
     suspend fun getReminderById(id: Int): MedicationReminder? {
         return medicationReminderDao.getReminderById(id)
