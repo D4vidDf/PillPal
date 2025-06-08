@@ -46,8 +46,9 @@ object SettingsDestinations {
 @Composable
 fun ResponsiveSettingsScaffold(
     widthSizeClass: WindowWidthSizeClass,
-    navController: NavController, // Main app's NavController for back navigation from the list screen
-    settingsViewModel: SettingsViewModel = hiltViewModel()
+    navController: NavController,
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier // New parameter
 ) {
     val isTwoPane = widthSizeClass > WindowWidthSizeClass.Compact
     var selectedCategoryRoute by rememberSaveable { mutableStateOf<String?>(null) }
@@ -57,10 +58,10 @@ fun ResponsiveSettingsScaffold(
 
     if (isTwoPane) {
         // Two-pane layout (tablet)
-        Column(modifier = Modifier.fillMaxSize()) { // New Column wrapper
-            TopAppBar(title = { Text(stringResource(id = R.string.settings_screen_title)) }) // New Overall TopAppBar
-            Row(modifier = Modifier.fillMaxSize()) { // Existing Row for panes
-                Box(modifier = Modifier.width(300.dp).fillMaxHeight()) { // Left pane
+        Column(modifier = modifier.fillMaxSize()) { // Applied modifier
+            TopAppBar(title = { Text(stringResource(id = R.string.settings_screen_title)) })
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.width(300.dp).fillMaxHeight()) {
                     SettingsListScreen(
                         onNavigateToGeneral = { selectedCategoryRoute = SettingsDestinations.GENERAL },
                         onNavigateToSound = { selectedCategoryRoute = SettingsDestinations.SOUND },
@@ -84,7 +85,7 @@ fun ResponsiveSettingsScaffold(
         }
     } else {
         // Single-pane layout (phone)
-        Scaffold( /* topBar argument is now removed */ ) { innerPadding -> // TopAppBar removed here
+        Scaffold(modifier = modifier) { innerPadding -> // Applied modifier and removed topBar
             NavHost(
                 navController = localSettingsNavController,
                 startDestination = SettingsDestinations.LIST,
