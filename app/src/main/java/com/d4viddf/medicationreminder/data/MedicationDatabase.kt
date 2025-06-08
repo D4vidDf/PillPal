@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class],
-    version = 4, // Incremented version
+    version = 5, // Incremented version to 5
     exportSchema = false
 )
 abstract class MedicationDatabase : RoomDatabase() {
@@ -44,6 +44,12 @@ abstract class MedicationDatabase : RoomDatabase() {
                 // 5. Recreate indices (as they are dropped with the table)
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_medication_reminder_medicationId ON medication_reminder (medicationId)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_medication_reminder_medicationScheduleId ON medication_reminder (medicationScheduleId)")
+            }
+        }
+
+        val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE medications ADD COLUMN nregistro TEXT DEFAULT NULL")
             }
         }
     }
