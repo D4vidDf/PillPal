@@ -46,39 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 // import androidx.hilt.navigation.compose.hiltViewModel // For later
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
-
-// Placeholder data structure for medication info
-data class MedicationFullInfo(
-    val nombreComercial: String = "Medicamento Ejemplo",
-    val principioActivo: String = "Principio Activo Ejemplo",
-    val dosis: String = "10 mg",
-    val formaFarmaceutica: String = "Comprimido",
-    val viasDeAdministracion: List<String> = listOf("Oral"),
-    val laboratorioTitular: String = "Laboratorios Ficticios S.A.",
-    val estadoRegistro: String = "Autorizado",
-    val condicionesPrescripcion: String = "Con receta médica",
-    val prospectoUrl: String? = "https://example.com/prospecto",
-    val fichaTecnicaUrl: String? = "https://example.com/ficha_tecnica",
-    val imageUrl: String? = null // Placeholder for image
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MedicationInfoScreen(
-    medicationId: Int,
-    onNavigateBack: () -> Unit
-    // viewModel: MedicationInfoViewModel = hiltViewModel() // Placeholder
-) {
-    // In a real app, fetch this based on medicationId
-    var medicationInfo by remember { mutableStateOf<MedicationFullInfo?>(null) }
-
-    LaunchedEffect(medicationId) {
-        // Simulate data fetching
-        kotlinx.coroutines.delay(100) // Simulate network delay
-        medicationInfo = MedicationFullInfo(nombreComercial = "Medicamento ID: $medicationId")
-    }
-
-import com.d4viddf.medicationreminder.R // Added for R.string access
+import com.d4viddf.medicationreminder.R // Moved import to top
 
 // Placeholder data structure for medication info
 data class MedicationFullInfo(

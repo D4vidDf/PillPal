@@ -47,44 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 // import androidx.hilt.navigation.compose.hiltViewModel // For later ViewModel integration
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.R // Moved import to top
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-
-// Placeholder data structure
-data class MedicationHistoryEntry(
-    val id: Int,
-    val date: LocalDate,
-    val timeTaken: LocalTime,
-    val medicationName: String // Could be useful context
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MedicationHistoryScreen(
-    medicationId: Int,
-    onNavigateBack: () -> Unit
-    // viewModel: MedicationHistoryViewModel = hiltViewModel() // Placeholder
-) {
-    // Placeholder states for filter/sort
-    var selectedDateRange by remember { mutableStateOf<Pair<LocalDate, LocalDate>?>(null) }
-    var sortAscending by remember { mutableStateOf(true) }
-
-    // Placeholder data
-    val historyEntries = remember(medicationId, sortAscending) {
-        val baseList = List(15) { index ->
-            MedicationHistoryEntry(
-                id = index,
-                date = LocalDate.now().minusDays(index.toLong()),
-                timeTaken = LocalTime.of((8 + index) % 24, (index * 13) % 60),
-                medicationName = "Medication $medicationId"
-            )
-        }
-        if (sortAscending) baseList.sortedBy { it.date } else baseList.sortedByDescending { it.date }
-    }
-
-import com.d4viddf.medicationreminder.R // Added for R.string access
 
 // Placeholder data structure
 data class MedicationHistoryEntry(

@@ -22,8 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.NavigateNext // Changed from .rounded to .filled for NavigateNext
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.rounded.NavigateNext
+// import androidx.compose.material.icons.automirrored.rounded.NavigateNext // Keep only one NavigateNext import
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.History
@@ -424,7 +425,7 @@ fun MedicationDetailsScreen(
                                 )
                             }
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                imageVector = Icons.AutoMirrored.Filled.NavigateNext, // Changed to .Filled
                                 contentDescription = null, // Decorative
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -545,7 +546,7 @@ fun MedicationDetailsScreen(
                                     Text(text = stringResource(id = R.string.view_full_information)) // Placeholder
                                     Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
                                     Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.NavigateNext, // Re-using existing icon
+                                        imageVector = Icons.AutoMirrored.Filled.NavigateNext, // Ensured .Filled here as well
                                         contentDescription = null,
                                         modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )

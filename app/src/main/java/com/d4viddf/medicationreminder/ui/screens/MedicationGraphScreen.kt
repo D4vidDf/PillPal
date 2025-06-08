@@ -24,18 +24,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-// import androidx.hilt.navigation.compose.hiltViewModel // For later ViewModel integration
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.time.temporal.TemporalAdjusters
+import java.util.Locale
 
 enum class GraphViewType {
     WEEK, MONTH, YEAR
@@ -45,30 +56,36 @@ enum class GraphViewType {
 @Composable
 fun MedicationGraphScreen(
     medicationId: Int,
-    onNavigateBack: () -> Unit
-    // viewModel: MedicationGraphViewModel = hiltViewModel() // Placeholder
+    onNavigateBack: () -> Unit,
+    viewModel: MedicationGraphViewModel = hiltViewModel()
 ) {
     var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
+    val medicationName by viewModel.medicationName.collectAsState()
+    val graphData by viewModel.graphData.collectAsState()
 
-import com.d4viddf.medicationreminder.R // Added for R.string access
-
-enum class GraphViewType {
-    WEEK, MONTH, YEAR
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MedicationGraphScreen(
-    medicationId: Int,
-    onNavigateBack: () -> Unit
-    // viewModel: MedicationGraphViewModel = hiltViewModel() // Placeholder
-) {
-    var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
+    LaunchedEffect(medicationId, selectedViewType) {
+        when (selectedViewType) {
+            GraphViewType.WEEK -> {
+                val today = LocalDate.now()
+                val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
+                viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
+            }
+            GraphViewType.MONTH -> {
+                // viewModel.loadMonthlyGraphData(medicationId, YearMonth.now()) // Future
+                viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+            }
+            GraphViewType.YEAR -> {
+                // viewModel.loadYearlyGraphData(medicationId, Year.now()) // Future
+                viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(id = R.string.medication_statistics_title)) },
+                title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_statistics_title) }) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -87,12 +104,11 @@ fun MedicationGraphScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // View Selector (Segmented Control like)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.Center // Or SpaceEvenly
+                horizontalArrangement = Arrangement.Center
             ) {
                 GraphViewButton(
                     text = stringResource(id = R.string.graph_view_weekly),
@@ -113,32 +129,85 @@ fun MedicationGraphScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Graph Placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp) // Placeholder height
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                val viewText = when (selectedViewType) {
-                    GraphViewType.WEEK -> stringResource(id = R.string.graph_view_weekly)
-                    GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
-                    GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
-                }
-                Text(
-                    text = stringResource(id = R.string.graph_placeholder_text, viewText, medicationId),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
+            // Bar Chart Implementation
+            val maxCount = graphData.values.maxOrNull() ?: 1 // Avoid division by zero, ensure at least 1
+            val todayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
-            // TODO: Add more specific graph details or controls if needed
+            if (selectedViewType == GraphViewType.WEEK && graphData.isEmpty()) {
+                 Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp) // Match approx height of chart
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(stringResource(id = R.string.loading_graph_data)) // Or "No data for this week"
+                }
+            } else if (selectedViewType == GraphViewType.WEEK) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                     Text(
+                        stringResource(id = R.string.weekly_doses_taken_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp) // Increased height for labels + bars
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.Bottom // Align bars to bottom
+                    ) {
+                        graphData.forEach { (dayLabel, count) ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom,
+                                modifier = Modifier.weight(1f) // Distribute space equally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(30.dp)
+                                        .height(if (maxCount > 0) (count.toFloat() / maxCount.toFloat()) * 180.dp else 0.dp) // Max bar height 180.dp
+                                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                        .background(
+                                            if (dayLabel.equals(todayShortName, ignoreCase = true))
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.secondaryContainer
+                                        )
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(dayLabel, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            } else {
+                 // Placeholder for Month/Year views
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val viewText = when (selectedViewType) {
+                        GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
+                        GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
+                        else -> "" // Should not happen
+                    }
+                    Text(
+                        text = stringResource(id = R.string.graph_placeholder_text, viewText, medicationId),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }
@@ -215,33 +284,85 @@ fun MedicationGraphScreenPreviewMonth() {
                         .padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    GraphViewButton("Weekly", selectedViewType == GraphViewType.WEEK) { selectedViewType = GraphViewType.WEEK } // Changed text
-                    GraphViewButton("Monthly", selectedViewType == GraphViewType.MONTH) { selectedViewType = GraphViewType.MONTH } // Changed text
-                    GraphViewButton("Yearly", selectedViewType == GraphViewType.YEAR) { selectedViewType = GraphViewType.YEAR } // Changed text
+                    GraphViewButton(stringResource(id = R.string.graph_view_weekly), selectedViewType == GraphViewType.WEEK) { selectedViewType = GraphViewType.WEEK }
+                    GraphViewButton(stringResource(id = R.string.graph_view_monthly), selectedViewType == GraphViewType.MONTH) { selectedViewType = GraphViewType.MONTH }
+                    GraphViewButton(stringResource(id = R.string.graph_view_yearly), selectedViewType == GraphViewType.YEAR) { selectedViewType = GraphViewType.YEAR }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(12.dp)
+
+                // Actual chart or placeholder based on selectedViewType
+                if (selectedViewType == GraphViewType.WEEK && graphData.isNotEmpty()) {
+                    val currentDayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    val chartMaxCount = graphData.values.maxOrNull() ?: 1
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            stringResource(id = R.string.weekly_doses_taken_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
                         )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                     val viewText = when (selectedViewType) { // Match placeholder text logic
-                        GraphViewType.WEEK -> "Weekly"
-                        GraphViewType.MONTH -> "Monthly"
-                        GraphViewType.YEAR -> "Yearly"
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .padding(vertical = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            graphData.forEach { (dayLabel, count) ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Bottom,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(30.dp)
+                                            .height(if (chartMaxCount > 0) (count.toFloat() / chartMaxCount.toFloat()) * 180.dp else 0.dp)
+                                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                            .background(
+                                                if (dayLabel.equals(currentDayShortName, ignoreCase = true))
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.secondaryContainer
+                                            )
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(dayLabel, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
                     }
-                    Text(
-                        text = "$viewText Graph Placeholder\n(for Medication ID: 1)", // Changed placeholder text
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
+                } else { // Handles loading, empty for week, or Month/Year placeholders
+                     Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .background(
+                                if (selectedViewType != GraphViewType.WEEK || graphData.isEmpty())
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                else Color.Transparent, // Transparent if week has data but somehow this branch is hit (should not happen)
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val textToShow = if (selectedViewType == GraphViewType.WEEK) {
+                            stringResource(id = R.string.loading_graph_data) // Or no data this week
+                        } else {
+                            val viewText = when (selectedViewType) {
+                                GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
+                                GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
+                                else -> "" // Should already be WEEK
+                            }
+                            stringResource(id = R.string.graph_placeholder_text, viewText, 1) // medicationId for preview is 1
+                        }
+                        Text(
+                            text = textToShow,
+                            style = MaterialTheme.typography.bodyLarge, // Adjusted style for placeholders
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }

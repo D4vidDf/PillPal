@@ -183,7 +183,8 @@ fun AddMedicationScreen(
                                     startDate = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) startDate else null,
                                     endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
                                     reminderTime = null, // This seems to be consistently null here
-                                    registrationDate = currentRegistrationDate // Set the new field
+                                    registrationDate = currentRegistrationDate, // Set the new field
+                                    nregistro = medicationSearchResult?.nregistro // Populate nregistro from search result
                                 )
                             )
                             medicationId.let { medId ->
