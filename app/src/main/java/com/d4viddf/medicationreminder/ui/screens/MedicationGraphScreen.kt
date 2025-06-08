@@ -57,27 +57,40 @@ enum class GraphViewType {
 fun MedicationGraphScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
-    viewModel: MedicationGraphViewModel = hiltViewModel()
+    viewModel: MedicationGraphViewModel? = null // Made nullable for preview
 ) {
     var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
-    val medicationName by viewModel.medicationName.collectAsState()
-    val graphData by viewModel.graphData.collectAsState()
+    // Provide sample data for preview if viewModel is null
+    val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
+    val graphData by viewModel?.graphData?.collectAsState() ?: remember {
+        mutableStateOf(
+            mapOf(
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 2,
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(1).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 3,
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(2).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 1,
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(3).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 4,
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(4).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 2,
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(5).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 0,
+                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(6).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 1
+            )
+        )
+    }
 
-    LaunchedEffect(medicationId, selectedViewType) {
-        when (selectedViewType) {
-            GraphViewType.WEEK -> {
-                val today = LocalDate.now()
-                val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
-                viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
-            }
-            GraphViewType.MONTH -> {
-                // viewModel.loadMonthlyGraphData(medicationId, YearMonth.now()) // Future
-                viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
-            }
-            GraphViewType.YEAR -> {
-                // viewModel.loadYearlyGraphData(medicationId, Year.now()) // Future
-                viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+    LaunchedEffect(medicationId, selectedViewType, viewModel) { // Added viewModel to keys
+        if (viewModel != null) { // Only load if viewModel is available
+            when (selectedViewType) {
+                GraphViewType.WEEK -> {
+                    val today = LocalDate.now()
+                    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                    val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
+                    viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
+                }
+                GraphViewType.MONTH -> {
+                    viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+                }
+                GraphViewType.YEAR -> {
+                    viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+                }
             }
         }
     }
@@ -167,7 +180,7 @@ fun MedicationGraphScreen(
                                 Box(
                                     modifier = Modifier
                                         .width(30.dp)
-                                        .height(if (maxCount > 0) (count.toFloat() / maxCount.toFloat()) * 180.dp else 0.dp) // Max bar height 180.dp
+                                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * 180).dp else 0.dp) // Corrected Dp calculation
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                                         .background(
                                             if (dayLabel.equals(todayShortName, ignoreCase = true))
@@ -249,7 +262,8 @@ fun MedicationGraphScreenPreviewWeek() {
     AppTheme {
         MedicationGraphScreen(
             medicationId = 1,
-            onNavigateBack = {}
+            onNavigateBack = {},
+            viewModel = null // Pass null for preview to use sample data
         )
     }
 }
@@ -257,15 +271,21 @@ fun MedicationGraphScreenPreviewWeek() {
 @Preview(showBackground = true, name = "Medication Graph Screen - Month View")
 @Composable
 fun MedicationGraphScreenPreviewMonth() {
-    var selectedViewType by remember { mutableStateOf(GraphViewType.MONTH) } // Simulate state for preview
+    // This preview will also use the default data from MedicationGraphScreen when viewModel is null,
+    // but we can simulate the 'Month' selection for the placeholder text.
+    // For a true 'Month' data preview, a more complex setup or a dedicated preview composable would be needed.
     AppTheme {
+        var selectedViewType by remember { mutableStateOf(GraphViewType.MONTH) } // To control the placeholder text
+        val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
+        val graphData by remember { mutableStateOf(emptyMap<String, Int>()) } // Empty for month/year for now
+
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Medication Statistics (Monthly)") }, // Changed title for preview
+                    title = { Text(medicationName) },
                     navigationIcon = {
                         IconButton(onClick = {}) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Navigate Back") // Changed content description
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.med_stats_navigate_back_cd))
                         }
                     }
                 )
@@ -290,79 +310,29 @@ fun MedicationGraphScreenPreviewMonth() {
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Actual chart or placeholder based on selectedViewType
-                if (selectedViewType == GraphViewType.WEEK && graphData.isNotEmpty()) {
-                    val currentDayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                    val chartMaxCount = graphData.values.maxOrNull() ?: 1
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            stringResource(id = R.string.weekly_doses_taken_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
+                // Placeholder for Month/Year views as per original logic
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            RoundedCornerShape(12.dp)
                         )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .padding(vertical = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            graphData.forEach { (dayLabel, count) ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Bottom,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .width(30.dp)
-                                            .height(if (chartMaxCount > 0) (count.toFloat() / chartMaxCount.toFloat()) * 180.dp else 0.dp)
-                                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                            .background(
-                                                if (dayLabel.equals(currentDayShortName, ignoreCase = true))
-                                                    MaterialTheme.colorScheme.primary
-                                                else
-                                                    MaterialTheme.colorScheme.secondaryContainer
-                                            )
-                                    )
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(dayLabel, style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
-                        }
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val viewText = when (selectedViewType) {
+                        GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
+                        GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
+                        else -> stringResource(id = R.string.graph_view_weekly) // Default to weekly if state is somehow WEEK
                     }
-                } else { // Handles loading, empty for week, or Month/Year placeholders
-                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(250.dp)
-                            .background(
-                                if (selectedViewType != GraphViewType.WEEK || graphData.isEmpty())
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                                else Color.Transparent, // Transparent if week has data but somehow this branch is hit (should not happen)
-                                RoundedCornerShape(12.dp)
-                            )
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val textToShow = if (selectedViewType == GraphViewType.WEEK) {
-                            stringResource(id = R.string.loading_graph_data) // Or no data this week
-                        } else {
-                            val viewText = when (selectedViewType) {
-                                GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
-                                GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
-                                else -> "" // Should already be WEEK
-                            }
-                            stringResource(id = R.string.graph_placeholder_text, viewText, 1) // medicationId for preview is 1
-                        }
-                        Text(
-                            text = textToShow,
-                            style = MaterialTheme.typography.bodyLarge, // Adjusted style for placeholders
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    Text(
+                        text = stringResource(id = R.string.graph_placeholder_text, viewText, 1), // medicationId for preview is 1
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }

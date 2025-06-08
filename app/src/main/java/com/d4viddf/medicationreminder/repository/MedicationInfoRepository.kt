@@ -4,7 +4,15 @@ import com.d4viddf.medicationreminder.data.MedicationSearchResult
 import com.d4viddf.medicationreminder.data.MedicationInfo
 import com.d4viddf.medicationreminder.data.MedicationInfoDao
 import okhttp3.OkHttpClient
+import android.util.Log
+import com.d4viddf.medicationreminder.data.CimaDocumento
+import com.d4viddf.medicationreminder.data.CimaEstado
+import com.d4viddf.medicationreminder.data.CimaFormaFarmaceutica
+import com.d4viddf.medicationreminder.data.CimaFoto
+import com.d4viddf.medicationreminder.data.CimaMedicationDetail
+import com.d4viddf.medicationreminder.data.CimaViaAdministracion
 import okhttp3.Request
+import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -119,5 +127,81 @@ class MedicationInfoRepository @Inject constructor(
         }
 
         return searchResults
+    }
+
+    suspend fun getMedicationDetailsByNRegistro(nregistro: String): CimaMedicationDetail? {
+        val apiUrl = "https://cima.aemps.es/cima/rest/medicamento?nregistro=$nregistro"
+        val request = Request.Builder().url(apiUrl).build()
+        val TAG = "MedicationInfoRepo" // For logging
+
+        try {
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Unsuccessful response for nregistro $nregistro: ${response.code}")
+                return null
+            }
+
+            val responseBody = response.body?.string()
+            if (responseBody.isNullOrEmpty()) {
+                Log.e(TAG, "Empty response body for nregistro $nregistro")
+                return null
+            }
+
+            val jsonResponse = JSONObject(responseBody)
+
+            // Helper function to parse JSONArray into List<T>
+            inline fun <T> JSONArray?.toList(parser: (JSONObject) -> T): List<T>? {
+                if (this == null) return null
+                val list = mutableListOf<T>()
+                for (i in 0 until this.length()) {
+                    list.add(parser(this.getJSONObject(i)))
+                }
+                return list.ifEmpty { null }
+            }
+
+            val formaFarmaceuticaJson = jsonResponse.optJSONObject("formaFarmaceutica")
+            val viasAdministracionJsonArray = jsonResponse.optJSONArray("viasAdministracion")
+            val estadoJson = jsonResponse.optJSONObject("estado")
+            val docsJsonArray = jsonResponse.optJSONArray("docs")
+            val fotosJsonArray = jsonResponse.optJSONArray("fotos")
+
+            return CimaMedicationDetail(
+                nregistro = jsonResponse.optString("nregistro", null),
+                nombre = jsonResponse.optString("nombre", null),
+                labtitular = jsonResponse.optString("labtitular", null),
+                pactivos = jsonResponse.optString("pactivos", null), // Principios activos as a single string
+                formaFarmaceutica = formaFarmaceuticaJson?.let {
+                    CimaFormaFarmaceutica(id = it.optInt("id"), nombre = it.optString("nombre", null))
+                },
+                viasAdministracion = viasAdministracionJsonArray.toList { viaJson ->
+                    CimaViaAdministracion(id = viaJson.optInt("id"), nombre = viaJson.optString("nombre", null))
+                },
+                condPresc = jsonResponse.optString("condPresc", null),
+                estado = estadoJson?.let { CimaEstado(aut = it.optLong("aut", -1L).takeIf { aut -> aut != -1L }) },
+                docs = docsJsonArray.toList { docJson ->
+                    CimaDocumento(
+                        tipo = docJson.optInt("tipo", -1).takeIf { tipo -> tipo != -1 },
+                        urlHtml = docJson.optString("urlHtml", null),
+                        url = docJson.optString("url", null)
+                    )
+                },
+                fotos = fotosJsonArray.toList { fotoJson ->
+                    CimaFoto(
+                        tipo = fotoJson.optString("tipo", null),
+                        url = fotoJson.optString("url", null),
+                        fecha = fotoJson.optLong("fecha", -1L).takeIf { fecha -> fecha != -1L }
+                    )
+                },
+                comerc = jsonResponse.optBoolean("comerc"),
+                conduc = jsonResponse.optBoolean("conduc"),
+                triangulo = jsonResponse.optBoolean("triangulo"),
+                huerfano = jsonResponse.optBoolean("huerfano"),
+                biosimilar = jsonResponse.optBoolean("biosimilar")
+            )
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching or parsing medication details for nregistro $nregistro", e)
+            return null
+        }
     }
 }

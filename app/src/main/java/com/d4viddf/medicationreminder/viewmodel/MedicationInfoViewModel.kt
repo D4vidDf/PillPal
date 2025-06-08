@@ -1,71 +1,73 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import com.d4viddf.medicationreminder.data.MedicationSearchResult
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.d4viddf.medicationreminder.data.MedicationInfo
+import com.d4viddf.medicationreminder.data.CimaMedicationDetail
 import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
+import com.d4viddf.medicationreminder.repository.MedicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class MedicationInfoViewModel @Inject constructor(
+    private val medicationRepository: MedicationRepository,
     private val medicationInfoRepository: MedicationInfoRepository
 ) : ViewModel() {
 
-    // StateFlow to expose the current MedicationInfo
-    private val _medicationInfo = MutableStateFlow<MedicationInfo?>(null)
-    val medicationInfo: StateFlow<MedicationInfo?> = _medicationInfo
+    private val _medicationInfo = MutableStateFlow<CimaMedicationDetail?>(null)
+    val medicationInfo: StateFlow<CimaMedicationDetail?> = _medicationInfo.asStateFlow()
 
-    // StateFlow to expose the list of search results from CIMA API
-    private val _medicationSearchResults = MutableStateFlow<List<MedicationSearchResult>>(emptyList())
-    val medicationSearchResults: StateFlow<List<MedicationSearchResult>> = _medicationSearchResults
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Insert Medication Info to the database
-    fun insertMedicationInfo(medicationInfo: MedicationInfo) {
-        viewModelScope.launch {
-            medicationInfoRepository.insertMedicationInfo(medicationInfo)
-        }
-    }
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-    // Fetch Medication Info by ID and update StateFlow
-    fun getMedicationInfoById(medicationId: Int) {
-        viewModelScope.launch {
-            val info = medicationInfoRepository.getMedicationInfoById(medicationId)
-            _medicationInfo.value = info
-        }
-    }
+    private val TAG = "MedicationInfoVM"
 
-    // Search for medication using CIMA API and update StateFlow
-    fun searchMedication(query: String) {
-        if (query.length >= 3) {
-            viewModelScope.launch(Dispatchers.IO) { // Run on background thread
-                try {
-                    val searchResults = medicationInfoRepository.searchMedication(query)
-                    withContext(Dispatchers.Main) {
-                        _medicationSearchResults.value = searchResults // Update StateFlow safely on the main thread
+    fun loadMedicationInfo(medicationId: Int) {
+        Log.d(TAG, "loadMedicationInfo called for medicationId: $medicationId")
+        _isLoading.value = true
+        _error.value = null
+        _medicationInfo.value = null // Clear previous info
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val medication = medicationRepository.getMedicationById(medicationId)
+                if (medication != null) {
+                    Log.d(TAG, "Medication found: ${medication.name}, nregistro: ${medication.nregistro}")
+                    if (!medication.nregistro.isNullOrBlank()) {
+                        // Ensure nregistro is not null before passing
+                        val nregistroValue = medication.nregistro
+                        val cimaDetails = medicationInfoRepository.getMedicationDetailsByNRegistro(nregistroValue)
+                        if (cimaDetails != null) {
+                            _medicationInfo.value = cimaDetails
+                            Log.d(TAG, "CIMA details loaded successfully for nregistro: $nregistroValue")
+                        } else {
+                            _error.value = "Could not retrieve details from CIMA for nregistro: $nregistroValue."
+                            Log.w(TAG, "CIMA details were null for nregistro: $nregistroValue")
+                        }
+                    } else {
+                        _error.value = "Medication registration number (nregistro) not found for ${medication.name}."
+                        Log.w(TAG, "nregistro is null or blank for medicationId: $medicationId")
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        // Handle error gracefully, e.g., update to empty list
-                        _medicationSearchResults.value = emptyList()
-                    }
+                } else {
+                    _error.value = "Medication with ID $medicationId not found."
+                    Log.w(TAG, "Medication not found for medicationId: $medicationId")
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception while loading medication info for ID $medicationId", e)
+                _error.value = "An unexpected error occurred while fetching medication information."
+            } finally {
+                _isLoading.value = false
+                Log.d(TAG, "Finished loading medication info for ID $medicationId. isLoading: false")
             }
-        } else {
-            _medicationSearchResults.value = emptyList()
         }
     }
-
-    fun clearSearchResults() {
-        _medicationSearchResults.value = emptyList()
-    }
-
-
 }

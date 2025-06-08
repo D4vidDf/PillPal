@@ -56,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,28 +75,34 @@ import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
+import java.time.temporal.TemporalAdjusters
+import java.util.Locale
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) // Removed ExperimentalSharedTransitionApi
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MedicationDetailsScreen(
     medicationId: Int,
     onNavigateBack: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
     medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
-    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(), // Added
+    medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(),
+    graphViewModel: MedicationGraphViewModel? = hiltViewModel(), // Made nullable for preview
     isHostedInPane: Boolean,
-    // Navigation callbacks
     onNavigateToAllSchedules: (Int) -> Unit,
     onNavigateToMedicationHistory: (Int) -> Unit,
     onNavigateToMedicationGraph: (Int) -> Unit,
@@ -105,41 +112,36 @@ fun MedicationDetailsScreen(
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
 
-    // var contentVisible by remember { mutableStateOf(!enableSharedTransition) } // DELETED
-    // LaunchedEffect(key1 = enableSharedTransition) { // DELETED BLOCK
-    //     if (enableSharedTransition) {
-    //         kotlinx.coroutines.delay(300)
-    //         contentVisible = true
-    //     } else {
-    //         contentVisible = true
-    //     }
-    // }
-
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
-    val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState() // Added
-    var showDialog by remember { mutableStateOf(false) } // Added for AddPastMedicationDialog
+    val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = medicationId) {
-        val med = viewModel.getMedicationById(medicationId)
-        medicationState = med
-        if (med != null) {
-            scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
-            viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
-            medicationReminderViewModel.loadTodaySchedule(medicationId) // Added data load call
+    // Graph Data
+    val weeklyGraphData by graphViewModel?.graphData?.collectAsState() ?: remember { mutableStateOf(emptyMap()) }
+
+    LaunchedEffect(medicationId, graphViewModel) { // Added graphViewModel to keys
+        // Load base medication data
+        viewModel.getMedicationById(medicationId)?.let { med ->
+            medicationState = med
+            scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id) // Potentially suspend
+            viewModel.observeMedicationAndRemindersForDailyProgress(med.id) // Suspend
+            medicationReminderViewModel.loadTodaySchedule(medicationId) // Suspend
 
             med.typeId?.let { typeId ->
-                medicationTypeViewModel.medicationTypes.collect { types ->
+                // This collect might be an issue if it never completes or if medId changes frequently.
+                // Consider .firstOrNull() if you only need initial load or a more specific trigger.
+                medicationTypeViewModel.medicationTypes.collect { types -> // Suspend
                     medicationTypeState = types.find { it.id == typeId }
                 }
             }
-        } else {
-            // Limpiar los detalles del progreso si no hay medicación
-            // La función calculateAndSetDailyProgressDetails ya maneja el caso de medication == null
-            // pero llamar a la de observación con un ID inválido no tendría sentido.
-            // Es mejor que el ViewModel ponga progressDetails a null si med es null.
-            // O, si quieres explícitamente limpiar, podrías tener una función viewModel.clearProgressDetails()
-            // Por ahora, el calculateAndSetDailyProgressDetails pondrá null si med es null.
-            // La lógica actual en el viewModel ya lo hace.
+        }
+
+        // Load graph data
+        if (graphViewModel != null) {
+            val today = LocalDate.now()
+            val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
+            graphViewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
         }
     }
 
@@ -466,11 +468,8 @@ fun MedicationDetailsScreen(
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = stringResource(id = R.string.bar_graph_placeholder), // Placeholder
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                // Integrate WeeklyBarChartDisplay
+                                WeeklyBarChartDisplay(graphData = weeklyGraphData, modifier = Modifier.fillMaxSize())
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
@@ -495,9 +494,8 @@ fun MedicationDetailsScreen(
 
                 // Medication Information Card
                 item {
-                    // Placeholder condition for showing the card
-                    val medicationInfoAvailable = medicationState?.typeId != null // Example: check if there's a typeId which might link to info
-                                                // In a real scenario, this would come from a ViewModel or medication object property
+                    // Updated condition to check for nregistro availability
+                    val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
 
                     if (medicationInfoAvailable) {
                         Spacer(modifier = Modifier.height(16.dp)) // Add space before the card
@@ -628,11 +626,60 @@ fun MedicationDetailsScreenPreview() {
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
             isHostedInPane = false,
-            onNavigateToAllSchedules = {}, // Added for preview
-            onNavigateToMedicationHistory = {}, // Added for preview
-            onNavigateToMedicationGraph = {}, // Added for preview
-            onNavigateToMedicationInfo = {} // Added for preview
+            graphViewModel = null, // Added for preview
+            onNavigateToAllSchedules = {},
+            onNavigateToMedicationHistory = {},
+            onNavigateToMedicationGraph = {},
+            onNavigateToMedicationInfo = {}
         )
+    }
+}
+
+@Composable
+private fun WeeklyBarChartDisplay(graphData: Map<String, Int>, modifier: Modifier = Modifier) {
+    if (graphData.isEmpty()) {
+        Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+            Text(stringResource(id = R.string.loading_graph_data)) // Or "No data for this week"
+        }
+        return
+    }
+
+    val maxCount = graphData.values.maxOrNull() ?: 1
+    // Ensure todayShortName matches exactly how keys are stored in graphData (e.g. "Mon", "Tue")
+    val todayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    val chartHeight = 120.dp // Smaller height for the card display
+    val barMaxHeight = 100.dp // Max height for a single bar
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(chartHeight)
+            .padding(top = 8.dp, bottom = 8.dp, start = 4.dp, end = 4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        graphData.forEach { (dayLabel, count) ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(24.dp) // Narrower bars
+                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
+                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                        .background(
+                            if (dayLabel.equals(todayShortName, ignoreCase = true))
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.secondaryContainer
+                        )
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(dayLabel, style = MaterialTheme.typography.labelSmall) // Smaller label
+            }
+        }
     }
 }
 

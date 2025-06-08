@@ -331,6 +331,15 @@
     <string name="med_info_value_not_available">Not available</string>
     <string name="med_info_button_prospecto">View Leaflet (PDF/Web)</string>
     <string name="med_info_button_ficha_tecnica">View SmPC (PDF/Web)</string>
+    <string name="text_yes">Yes</string>
+    <string name="text_no">No</string>
+    <string name="med_info_label_comercializado">Marketed</string>
+    <string name="med_info_label_conduccion">Affects Driving</string>
+    <string name="med_info_label_triangulo_negro">Black Triangle</string>
+    <string name="med_info_label_huerfano">Orphan Drug</string>
+    <string name="med_info_label_biosimilar">Biosimilar</string>
+    <string name="med_info_label_estado_autorizacion_date">Authorization Date</string>
+    <string name="med_info_not_available_generic">Medication information not available.</string>
 
     <!-- MedicationHistoryScreen -->
     <string name="med_history_navigate_back_cd">Navigate Back</string>
