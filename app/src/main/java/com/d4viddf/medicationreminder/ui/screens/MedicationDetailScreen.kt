@@ -23,8 +23,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info // Added for Medication Info Card
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -327,7 +336,8 @@ fun MedicationDetailsScreen(
                 }
 
                 var futureRemindersStarted = false
-                items(todayScheduleItems, key = { it.id }) { todayItem ->
+                // Display only the first 5 schedule items
+                items(todayScheduleItems.take(5), key = { it.id }) { todayItem ->
                     val isActuallyPast =
                         todayItem.time.isBefore(LocalTime.now()) // Recalculate for safety, though ViewModel should be accurate
 
@@ -354,8 +364,27 @@ fun MedicationDetailsScreen(
                         // Enable toggle only for past or current items. Future items are disabled.
                         enabled = isActuallyPast || todayItem.isTaken
                     )
-
                 }
+
+                // Show "Show More" button if there are more than 5 schedules
+                if (todayScheduleItems.size > 5) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp, horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Button(
+                                onClick = { /* TODO: Navigate to AllSchedulesScreen */ },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = stringResource(id = R.string.show_more))
+                            }
+                        }
+                    }
+                }
+
                 item {
                     Spacer(modifier = Modifier.height(48.dp)) // Espacio original antes de contadores
                 }
