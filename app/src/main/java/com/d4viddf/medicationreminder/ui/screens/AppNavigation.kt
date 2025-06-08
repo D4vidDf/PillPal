@@ -12,7 +12,17 @@ import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.d4viddf.medicationreminder.ui.screens.settings.ResponsiveSettingsScaffold // Add import
+import com.d4viddf.medicationreminder.ui.screens.settings.ResponsiveSettingsScaffold
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
+import androidx.compose.foundation.layout.padding
 
 // Define the routes for navigation
 sealed class Screen(val route: String) {
@@ -104,12 +114,38 @@ fun AppNavigation(
                 }
             }
             composable(Screen.Settings.route) {
-                // `this` is an AnimatedVisibilityScope
-                ResponsiveSettingsScaffold(
-                    widthSizeClass = widthSizeClass, // Pass the available widthSizeClass
-                    navController = navController    // Pass the main NavController
-                    // SettingsViewModel will be obtained via hiltViewModel() within ResponsiveSettingsScaffold
-                )
+                if (widthSizeClass == WindowWidthSizeClass.Compact) {
+                    // Phone layout: AppNavigation provides the Scaffold and TopAppBar for the settings module.
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text(stringResource(id = R.string.settings_screen_title)) },
+                                navigationIcon = {
+                                    IconButton(onClick = { navController.popBackStack() }) { // Uses main app NavController
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = stringResource(id = R.string.back)
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    ) { innerPadding ->
+                        ResponsiveSettingsScaffold(
+                            widthSizeClass = widthSizeClass,
+                            navController = navController,
+                            // Apply padding from this Scaffold to the content area of ResponsiveSettingsScaffold
+                            // ResponsiveSettingsScaffold's internal NavHost will use its own Scaffold's innerPadding
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
+                } else {
+                    // Tablet layout: ResponsiveSettingsScaffold provides its own overall TopAppBar.
+                    ResponsiveSettingsScaffold(
+                        widthSizeClass = widthSizeClass,
+                        navController = navController
+                    )
+                }
             }
             composable(Screen.Calendar.route) {
                 // `this` is an AnimatedVisibilityScope

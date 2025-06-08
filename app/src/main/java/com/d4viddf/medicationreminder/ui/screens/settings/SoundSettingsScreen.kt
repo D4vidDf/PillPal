@@ -43,13 +43,17 @@ import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlin.math.roundToInt
 
+import androidx.compose.foundation.layout.Box // For empty topBar
+// import androidx.compose.ui.unit.dp // Already imported if Box is used with Modifier.height(0.dp)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundSettingsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    showTopAppBar: Boolean // New parameter
 ) {
-    val context = LocalContext.current // For stringResource if needed, and for RingtoneManager intent
+    val context = LocalContext.current
     val currentVolume by viewModel.currentVolume.collectAsState()
     val maxVolume by viewModel.maxVolume.collectAsState()
     val currentNotificationSoundUri by viewModel.currentNotificationSoundUri.collectAsState()
@@ -66,17 +70,21 @@ fun SoundSettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.settings_category_sound)) }, // Use category title
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
+            if (showTopAppBar) {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.settings_category_sound)) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                Box(Modifier.height(0.dp)) // Or simply {}
+            }
         }
     ) { innerPadding ->
         Column(
@@ -188,6 +196,6 @@ private fun NotificationSoundSettingItemInternal( // Renamed to avoid conflict i
 @Composable
 fun SoundSettingsScreenPreview() {
     AppTheme {
-        SoundSettingsScreen(onNavigateBack = {})
+        SoundSettingsScreen(onNavigateBack = {}, showTopAppBar = true)
     }
 }

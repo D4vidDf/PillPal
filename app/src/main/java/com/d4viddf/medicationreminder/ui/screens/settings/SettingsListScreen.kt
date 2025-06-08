@@ -16,9 +16,10 @@ import androidx.compose.material.icons.filled.Build // For Developer Options
 import androidx.compose.material.icons.filled.Info // Placeholder for General
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.VolumeUp // For Sound
-import androidx.compose.material3.HorizontalDivider
+// import androidx.compose.material3.HorizontalDivider // Removed
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
+// import androidx.compose.material3.ListItem // Removed
+import androidx.compose.material3.OutlinedCard // Added
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -71,7 +72,7 @@ fun SettingsListScreen(
         )
     )
 
-    LazyColumn(modifier = modifier.padding(top = 8.dp)) {
+    LazyColumn(modifier = modifier) { // Removed .padding(top = 8.dp)
         items(categories) { category ->
             SettingsCategoryItem(
                 title = category.title,
@@ -79,7 +80,7 @@ fun SettingsListScreen(
                 contentDescription = category.contentDescription,
                 onClick = category.onClick
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            // HorizontalDivider removed
         }
     }
 }
@@ -91,26 +92,36 @@ fun SettingsCategoryItem(
     contentDescription: String,
     onClick: () -> Unit
 ) {
-    ListItem(
-        headlineContent = { Text(title, style = MaterialTheme.typography.titleMedium) },
-        leadingContent = {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(24.dp)
-            )
-        },
-        trailingContent = {
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowRight,
-                contentDescription = null // Decorative
-            )
-        },
+    OutlinedCard(
+        onClick = onClick, // Make the whole card clickable
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 16.dp) // Consistent padding
-    )
+            .padding(horizontal = 16.dp, vertical = 6.dp) // Padding around each card
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 20.dp), // Padding inside the card
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between icon and text
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription, // For accessibility
+                modifier = Modifier.size(24.dp) // Consistent icon size
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f) // Ensure text takes available space
+            )
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowRight,
+                contentDescription = null, // Decorative
+                tint = MaterialTheme.colorScheme.onSurfaceVariant // Subtle color
+            )
+        }
+    }
 }
 
 // Define necessary string resources in strings.xml (conceptual, not part of this subtask action)

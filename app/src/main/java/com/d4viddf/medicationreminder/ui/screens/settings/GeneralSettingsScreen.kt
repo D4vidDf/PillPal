@@ -47,11 +47,15 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 data class LanguageOption(val displayName: String, val tag: String)
 
 
+import androidx.compose.foundation.layout.Box // For empty topBar
+// import androidx.compose.ui.unit.dp // Already imported if Box is used with Modifier.height(0.dp)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralSettingsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    showTopAppBar: Boolean // New parameter
 ) {
     val context = LocalContext.current
     val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
@@ -81,17 +85,21 @@ fun GeneralSettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.settings_category_general)) }, // Use category title
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
+            if (showTopAppBar) {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.settings_category_general)) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                 Box(Modifier.height(0.dp)) // Or simply {}
+            }
         }
     ) { innerPadding ->
         Column(
@@ -179,6 +187,6 @@ fun GeneralSettingsScreen(
 @Composable
 fun GeneralSettingsScreenPreview() {
     AppTheme {
-        GeneralSettingsScreen(onNavigateBack = {})
+        GeneralSettingsScreen(onNavigateBack = {}, showTopAppBar = true)
     }
 }

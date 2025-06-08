@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.foundation.layout.padding // Required for Modifier.padding
+import androidx.compose.foundation.layout.Column // Ensure Column is imported
 
 // Define routes for sub-settings screens
 object SettingsDestinations {
@@ -56,52 +57,34 @@ fun ResponsiveSettingsScaffold(
 
     if (isTwoPane) {
         // Two-pane layout (tablet)
-        Row(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.width(300.dp).fillMaxHeight()) { // Left pane
-                SettingsListScreen(
-                    onNavigateToGeneral = { selectedCategoryRoute = SettingsDestinations.GENERAL },
-                    onNavigateToSound = { selectedCategoryRoute = SettingsDestinations.SOUND },
-                    onNavigateToDeveloper = { selectedCategoryRoute = SettingsDestinations.DEVELOPER },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            VerticalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
-            Box(modifier = Modifier.weight(1f)) { // Right pane
-                if (selectedCategoryRoute == null) {
-                    // Optionally show a placeholder or the first category by default
-                    // For now, let's show General settings by default in two-pane if nothing selected
-                    GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
-                } else {
-                    when (selectedCategoryRoute) {
-                        SettingsDestinations.GENERAL -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // No back nav needed from detail in 2-pane
-                        SettingsDestinations.SOUND -> SoundSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
-                        SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
+        Column(modifier = Modifier.fillMaxSize()) { // New Column wrapper
+            TopAppBar(title = { Text(stringResource(id = R.string.settings_screen_title)) }) // New Overall TopAppBar
+            Row(modifier = Modifier.fillMaxSize()) { // Existing Row for panes
+                Box(modifier = Modifier.width(300.dp).fillMaxHeight()) { // Left pane
+                    SettingsListScreen(
+                        onNavigateToGeneral = { selectedCategoryRoute = SettingsDestinations.GENERAL },
+                        onNavigateToSound = { selectedCategoryRoute = SettingsDestinations.SOUND },
+                        onNavigateToDeveloper = { selectedCategoryRoute = SettingsDestinations.DEVELOPER },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                VerticalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                Box(modifier = Modifier.weight(1f)) { // Right pane
+                    if (selectedCategoryRoute == null) {
+                        GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
+                    } else {
+                        when (selectedCategoryRoute) {
+                            SettingsDestinations.GENERAL -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
+                            SettingsDestinations.SOUND -> SoundSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
+                            SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel, showTopAppBar = false)
+                        }
                     }
                 }
             }
         }
     } else {
         // Single-pane layout (phone)
-        Scaffold(
-            topBar = {
-                // TopAppBar for the settings list screen when on phone
-                // Detail screens have their own TopAppBars with back navigation
-                val currentRoute = localSettingsNavController.currentBackStackEntry?.destination?.route
-                if (currentRoute == SettingsDestinations.LIST) {
-                    TopAppBar(
-                        title = { Text(stringResource(id = R.string.settings_screen_title)) },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) { // Uses main app NavController
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(id = R.string.back)
-                                )
-                            }
-                        }
-                    )
-                }
-            }
-        ) { innerPadding ->
+        Scaffold( /* topBar argument is now removed */ ) { innerPadding -> // TopAppBar removed here
             NavHost(
                 navController = localSettingsNavController,
                 startDestination = SettingsDestinations.LIST,
@@ -117,19 +100,22 @@ fun ResponsiveSettingsScaffold(
                 composable(SettingsDestinations.GENERAL) {
                     GeneralSettingsScreen(
                         onNavigateBack = { localSettingsNavController.popBackStack() },
-                        viewModel = settingsViewModel
+                        viewModel = settingsViewModel,
+                        showTopAppBar = true // Pass true here
                     )
                 }
                 composable(SettingsDestinations.SOUND) {
                     SoundSettingsScreen(
                         onNavigateBack = { localSettingsNavController.popBackStack() },
-                        viewModel = settingsViewModel
+                        viewModel = settingsViewModel,
+                        showTopAppBar = true // Pass true here
                     )
                 }
                 composable(SettingsDestinations.DEVELOPER) {
                     DeveloperSettingsScreen(
                         onNavigateBack = { localSettingsNavController.popBackStack() },
-                        viewModel = settingsViewModel
+                        viewModel = settingsViewModel,
+                        showTopAppBar = true // Pass true here
                     )
                 }
             }

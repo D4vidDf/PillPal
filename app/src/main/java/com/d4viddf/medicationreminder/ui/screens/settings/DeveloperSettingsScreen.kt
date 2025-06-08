@@ -29,11 +29,16 @@ import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import android.util.Log // Required for LaunchedEffect error logging
 
+import androidx.compose.foundation.layout.Box // For empty topBar
+// import androidx.compose.ui.unit.dp // Already imported if Box is used with Modifier.height(0.dp)
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeveloperSettingsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    showTopAppBar: Boolean // New parameter
 ) {
     val context = LocalContext.current
 
@@ -52,17 +57,21 @@ fun DeveloperSettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.settings_category_developer)) }, // Use category title
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
+            if (showTopAppBar) {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.settings_category_developer)) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                Box(Modifier.height(0.dp)) // Or simply {}
+            }
         }
     ) { innerPadding ->
         Column(
@@ -113,6 +122,6 @@ fun DeveloperSettingsScreen(
 @Composable
 fun DeveloperSettingsScreenPreview() {
     AppTheme {
-        DeveloperSettingsScreen(onNavigateBack = {})
+        DeveloperSettingsScreen(onNavigateBack = {}, showTopAppBar = true)
     }
 }
