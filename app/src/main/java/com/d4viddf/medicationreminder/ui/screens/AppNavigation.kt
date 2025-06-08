@@ -119,7 +119,7 @@ fun AppNavigation(
             }
             composable(Screen.Settings.route) {
                 var currentSettingsTitleResId by remember { mutableStateOf(R.string.settings_screen_title) }
-                var currentSettingsBackAction by remember { mutableStateOf<(() -> Unit)> { navController::popBackStack } }
+                var currentSettingsBackAction by remember { mutableStateOf<() -> Unit>({ navController.popBackStack() }) } // Explicit lambda wrapping
 
                 if (widthSizeClass == WindowWidthSizeClass.Compact) {
                     Scaffold(

@@ -21,13 +21,13 @@ import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-// import androidx.compose.material3.IconButton // No longer used directly here
+import androidx.compose.material3.IconButton // Needed for Preview's TopAppBar
 import androidx.compose.material3.MaterialTheme
-// import androidx.compose.material3.Scaffold // Scaffold removed
+import androidx.compose.material3.Scaffold // Needed for Preview
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-// import androidx.compose.material3.TopAppBar // TopAppBar removed
+import androidx.compose.material3.TopAppBar // Needed for Preview's Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -174,30 +174,28 @@ private fun NotificationSoundSettingItemInternal( // Renamed to avoid conflict i
 }
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Sound Settings Screen Preview")
 @Composable
 fun SoundSettingsScreenPreview() {
     AppTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(id = R.string.settings_category_sound)) },
+                    title = { Text("Sound Settings") }, // Preview-specific Title
                     navigationIcon = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {}) { // Dummy action for preview
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back)
+                                contentDescription = "Back" // Preview description
                             )
                         }
                     }
                 )
             }
-        ) { paddingValues ->
-            SoundSettingsScreen(
-                onNavigateBack = {},
-                viewModel = hiltViewModel()
-                // modifier = Modifier.padding(paddingValues)
-            )
+        ) { innerPadding ->
+            androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
+                SoundSettingsScreen(onNavigateBack = {}, viewModel = hiltViewModel())
+            }
         }
     }
 }

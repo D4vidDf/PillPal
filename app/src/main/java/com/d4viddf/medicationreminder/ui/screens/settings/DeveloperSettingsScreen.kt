@@ -10,12 +10,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-// import androidx.compose.material3.IconButton // No longer used directly here
+import androidx.compose.material3.IconButton // Needed for Preview's TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-// import androidx.compose.material3.Scaffold // Scaffold removed
+import androidx.compose.material3.Scaffold // Needed for Preview
 import androidx.compose.material3.Text
-// import androidx.compose.material3.TopAppBar // TopAppBar removed
+import androidx.compose.material3.TopAppBar // Needed for Preview's Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -100,30 +100,28 @@ fun DeveloperSettingsScreen(
 // <string name="settings_restart_daily_worker_button">Restart Daily Worker</string>
 // <string name="settings_share_app_logs_button">Share App Logs</string>
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Developer Settings Screen Preview")
 @Composable
 fun DeveloperSettingsScreenPreview() {
     AppTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(id = R.string.settings_category_developer)) },
+                    title = { Text("Developer Options") }, // Preview-specific Title
                     navigationIcon = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {}) { // Dummy action for preview
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back)
+                                contentDescription = "Back" // Preview description
                             )
                         }
                     }
                 )
             }
-        ) { paddingValues ->
-             DeveloperSettingsScreen(
-                onNavigateBack = {},
-                viewModel = hiltViewModel()
-                // modifier = Modifier.padding(paddingValues)
-            )
+        ) { innerPadding ->
+            androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
+                DeveloperSettingsScreen(onNavigateBack = {}, viewModel = hiltViewModel())
+            }
         }
     }
 }

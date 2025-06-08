@@ -66,14 +66,16 @@ fun ResponsiveSettingsScaffold(
         Column(modifier = modifier.fillMaxSize()) {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.settings_screen_title)) },
-                navigationIcon = if (selectedCategoryRoute != null && selectedCategoryRoute != SettingsDestinations.GENERAL) { // Show back if detail is not the default general
-                    {
-                        IconButton(onClick = { selectedCategoryRoute = SettingsDestinations.GENERAL }) { // Navigate back to default/list
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
+                navigationIcon = {
+                    if (selectedCategoryRoute != null && selectedCategoryRoute != SettingsDestinations.GENERAL) {
+                        IconButton(onClick = { selectedCategoryRoute = SettingsDestinations.GENERAL }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
+                            )
                         }
                     }
-                } else {
-                    null
+                    // If condition is false, lambda is empty, icon slot is empty.
                 }
             )
             Row(modifier = Modifier.fillMaxSize()) {

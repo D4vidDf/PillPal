@@ -22,7 +22,11 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-// import androidx.compose.material3.TopAppBar // TopAppBar removed
+import androidx.compose.material3.TopAppBar // Needed for Preview's Scaffold
+import androidx.compose.material3.Scaffold // Needed for Preview
+import androidx.compose.material3.IconButton // Needed for Preview's TopAppBar
+import androidx.compose.material.icons.Icons // Needed for Preview's TopAppBar
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Needed for Preview's TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -165,32 +169,31 @@ fun GeneralSettingsScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "General Settings Screen Preview")
 @Composable
 fun GeneralSettingsScreenPreview() {
     AppTheme {
-        // Preview now needs a Scaffold if it's meant to show the TopAppBar visually
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(id = R.string.settings_category_general)) },
+                    title = { Text("General Settings") }, // Preview-specific Title
                     navigationIcon = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {}) { // Dummy action for preview
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back)
+                                contentDescription = "Back" // Preview description
                             )
                         }
                     }
                 )
             }
-        ) { paddingValues ->
-            // Pass hiltViewModel() directly in preview, or a mock if available/needed
-            GeneralSettingsScreen(
-                onNavigateBack = {},
-                viewModel = hiltViewModel()
-                // modifier = Modifier.padding(paddingValues) // Apply padding if content expects it
-            )
+        ) { innerPadding ->
+             androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
+                // Using hiltViewModel in Preview can be problematic if dependencies aren't set up for previews.
+                // It's better to pass null or a mock ViewModel if possible, or ensure Hilt preview support is configured.
+                // For this task, we'll keep hiltViewModel() as per the example, assuming it resolves or will be handled.
+                GeneralSettingsScreen(onNavigateBack = {}, viewModel = hiltViewModel())
+            }
         }
     }
 }
