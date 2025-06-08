@@ -111,13 +111,19 @@
     <string name="medication_progress_display_info_not_available_acc">Medication progress: Information not available.</string>
     <string name="medication_progress_display_title">Progress</string>
     <string name="medication_detail_no_reminders_today">There are no reminders for today.</string>
-    <!-- New strings for MedicationDetailScreen -->
     <string name="content_desc_add_past_dose" translatable="false">Add past medication dose</string>
     <string name="dialog_add_past_dose_title" translatable="false">Add Past Dose</string>
     <string name="label_medication_name_in_dialog" translatable="false">Medication Name</string>
     <string name="button_select_date" translatable="false">Select Date</string>
     <string name="button_save_dose" translatable="false">Save Dose</string>
     <string name="dialog_select_time_title" translatable="false">Select Time</string>
+    <string name="medication_history_title">Medication History</string>
+    <string name="current_week_dosage_title">Current Week\'s Dosage</string>
+    <string name="bar_graph_placeholder">Bar Graph Placeholder (Current day highlighted)</string>
+    <string name="view_more_stats">View More Stats</string>
+    <string name="medication_information_title">Medication Information</string>
+    <string name="medication_info_description_placeholder">Detailed information about this medication is available.</string>
+    <string name="view_full_information">View Full Information</string>
 
 
     <!-- Settings Screen (New) -->
@@ -294,4 +300,61 @@
     <string name="settings_developer_options_description">These options are for debugging and development purposes.</string>
     <string name="settings_restart_daily_worker_button">Restart Daily Worker</string>
     <string name="settings_share_app_logs_button">Share App Logs</string>
+
+    <!-- AllSchedulesScreen -->
+    <string name="all_schedules_title">All Schedules</string>
+    <string name="back_button_content_description">Back</string>
+    <string name="all_schedules_no_schedules_found">No schedules found for this medication.</string>
+
+    <!-- MedicationGraphScreen -->
+    <string name="medication_statistics_title">Medication Statistics</string>
+    <string name="med_stats_navigate_back_cd">Navigate Back</string>
+    <string name="graph_view_weekly">Weekly</string>
+    <string name="graph_view_monthly">Monthly</string>
+    <string name="graph_view_yearly">Yearly</string>
+    <string name="graph_placeholder_text">%1$s Graph Placeholder\n(for Medication ID: %2$d)</string>
+    <string name="weekly_doses_taken_title">Weekly Doses Taken</string>
+    <string name="loading_graph_data">Loading graph data...</string>
+
+    <!-- MedicationInfoScreen -->
+    <string name="med_info_navigate_back_cd">Back to medication details</string>
+    <string name="med_info_loading_details">Loading medication information...</string>
+    <string name="med_info_image_placeholder_cd">Medication Image Placeholder</string>
+    <string name="med_info_label_nombre_comercial">Commercial Name</string>
+    <string name="med_info_label_principio_activo">Active Ingredient</string>
+    <string name="med_info_label_dosis">Dosage</string>
+    <string name="med_info_label_forma_farmaceutica">Pharmaceutical Form</string>
+    <string name="med_info_label_vias_administracion">Administration Routes</string>
+    <string name="med_info_label_laboratorio_titular">Marketing Authorization Holder</string>
+    <string name="med_info_label_estado_registro">Registration Status</string>
+    <string name="med_info_label_condiciones_prescripcion">Prescription Conditions</string>
+    <string name="med_info_value_not_available">Not available</string>
+    <string name="med_info_button_prospecto">View Leaflet (PDF/Web)</string>
+    <string name="med_info_button_ficha_tecnica">View SmPC (PDF/Web)</string>
+    <string name="text_yes">Yes</string>
+    <string name="text_no">No</string>
+    <string name="med_info_label_comercializado">Marketed</string>
+    <string name="med_info_label_conduccion">Affects Driving</string>
+    <string name="med_info_label_triangulo_negro">Black Triangle</string>
+    <string name="med_info_label_huerfano">Orphan Drug</string>
+    <string name="med_info_label_biosimilar">Biosimilar</string>
+    <string name="med_info_label_estado_autorizacion_date">Authorization Date</string>
+    <string name="med_info_not_available_generic">Medication information not available.</string>
+
+    <!-- MedicationHistoryScreen -->
+    <string name="med_history_navigate_back_cd">Navigate Back</string>
+    <string name="med_history_filter_by_date_label">Filter by Date:</string>
+    <string name="med_history_filter_select_date_cd">Select Date Range</string>
+    <string name="med_history_filter_select_range_button">Select Range</string>
+    <string name="med_history_filter_clear_button">Clear Date Filter</string>
+    <string name="med_history_action_first">First</string>
+    <string name="med_history_action_last">Last</string>
+    <string name="med_history_sort_asc">Asc</string>
+    <string name="med_history_sort_desc">Desc</string>
+    <string name="med_history_no_history_found">No history found for this medication.</string>
+    <string name="med_history_item_taken_at_prefix">Taken at: </string>
+    <!-- Note: "medication_history_title" was already added in a previous step for MedicationDetailScreen -->
+    <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
+    <!-- <string name="medication_history_title">Medication History</string> -->
+
 </resources>

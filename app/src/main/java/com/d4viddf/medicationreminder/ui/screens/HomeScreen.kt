@@ -311,7 +311,13 @@ fun HomeScreen(
                     // the one from AppNavigation. Since shared elements are off, this is less critical.
                     // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
                     animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
-                    isHostedInPane = true // Added parameter
+                    isHostedInPane = true, // Added parameter
+                    // Add new navigation parameters with empty lambdas for now
+                    onNavigateToAllSchedules = { /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToMedicationHistory = { /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToMedicationGraph = { /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToMedicationInfo = { /* TODO: Implement if needed from detail pane */ },
+                    graphViewModel = hiltViewModel() // Provide the graphViewModel
                 )
             } else {
                 // Placeholder when no medication is selected in detail pane (medium/expanded screens)
