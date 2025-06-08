@@ -137,7 +137,7 @@ fun SoundSettingsScreen(
             )
         }
     }
-}
+
 
 // Copied from original SettingsScreen.kt, assuming it was private.
 // If it becomes shared, it should be moved to a common components file.

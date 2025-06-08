@@ -154,7 +154,6 @@ fun ResponsiveSettingsScaffold(
             }
         }
     }
-}
 
 // Previewing this responsive scaffold is complex due to NavController and WindowSizeClass.
 // Basic previews for each mode might be added later if needed.

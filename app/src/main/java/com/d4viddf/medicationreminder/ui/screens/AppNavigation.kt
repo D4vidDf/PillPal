@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.getValue // For state
 import androidx.compose.runtime.mutableStateOf // For state
 import androidx.compose.runtime.remember // For state
@@ -43,7 +44,7 @@ sealed class Screen(val route: String) {
 }
 
 // Removed @OptIn(ExperimentalSharedTransitionApi::class) from here
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     modifier: Modifier = Modifier, // Add this line
