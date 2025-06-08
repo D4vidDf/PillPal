@@ -284,4 +284,14 @@
     <string name="step_title_dosage_package">Dosage &amp; Package</string>
     <string name="step_title_frequency">Frequency</string>
     <string name="step_title_summary">Summary</string>
+
+    <string name="settings_category_general">General</string>
+    <string name="settings_category_general_cd">Navigate to general settings</string>
+    <string name="settings_category_sound">Sound</string>
+    <string name="settings_category_sound_cd">Navigate to sound settings</string>
+    <string name="settings_category_developer">Developer Options</string>
+    <string name="settings_category_developer_cd">Navigate to developer options</string>
+    <string name="settings_developer_options_description">These options are for debugging and development purposes.</string>
+    <string name="settings_restart_daily_worker_button">Restart Daily Worker</string>
+    <string name="settings_share_app_logs_button">Share App Logs</string>
 </resources>

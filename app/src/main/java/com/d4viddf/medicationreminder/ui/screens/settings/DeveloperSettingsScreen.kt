@@ -83,7 +83,7 @@ fun DeveloperSettingsScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Restart Daily Worker") // Consider R.string resource
+                Text(stringResource(id = R.string.settings_restart_daily_worker_button))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -97,7 +97,7 @@ fun DeveloperSettingsScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Share App Logs") // Consider R.string resource
+                Text(stringResource(id = R.string.settings_share_app_logs_button))
             }
         }
     }
