@@ -105,6 +105,10 @@ class NotificationScheduler @Inject constructor() {
                 Log.i(TAG, setExactLegacyLog)
                 FileLogger.log(TAG, setExactLegacyLog)
             }
+        } catch (ise: IllegalStateException) {
+            val errorLog = "ALARM LIMIT EXCEPTION: Could not schedule MAIN alarm for reminder ID ${reminder.id} due to likely system alarm limits. Details: ${ise.message}"
+            Log.e(TAG, errorLog, ise)
+            FileLogger.log(TAG, errorLog, ise)
         } catch (e: Exception) {
             val errorLog = "Error scheduling MAIN alarm for reminder ID ${reminder.id}"
             Log.e(TAG, errorLog, e)
@@ -175,6 +179,10 @@ class NotificationScheduler @Inject constructor() {
             val setPreAlarmLog = "PRE-REMINDER alarm set via $setMethodUsed for original reminderId ${reminder.id} at ${formatMillisToDateTimeString(preReminderTimeMillis)} (request_code: $preReminderRequestCode)"
             Log.i(TAG, setPreAlarmLog)
             FileLogger.log(TAG, setPreAlarmLog)
+        } catch (ise: IllegalStateException) {
+            val errorPreLog = "ALARM LIMIT EXCEPTION: Could not schedule PRE-REMINDER alarm for original reminderId ${reminder.id} (request_code: $preReminderRequestCode) due to likely system alarm limits. Details: ${ise.message}"
+            Log.e(TAG, errorPreLog, ise)
+            FileLogger.log(TAG, errorPreLog, ise)
         } catch (e: Exception) {
             val errorPreLog = "Error scheduling PRE-REMINDER alarm for original reminderId ${reminder.id} (request_code: $preReminderRequestCode)"
             Log.e(TAG, errorPreLog, e)

@@ -122,7 +122,16 @@ class ReminderSchedulingWorker constructor(
         }
 
         // 1. Determine Search Window for ideal reminder calculation
-        val effectiveSearchStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) medicationStartDate.atStartOfDay() else now
+        val isDailyRefresh = inputData.getBoolean(KEY_IS_DAILY_REFRESH, false)
+        val effectiveSearchStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) {
+            medicationStartDate.atStartOfDay()
+        } else {
+            if (isDailyRefresh && medicationStartDate.isBefore(now.toLocalDate().plusDays(1))) { // If daily refresh and med has started
+                now.toLocalDate().atStartOfDay() // For today's processing, start from beginning of day
+            } else {
+                now // Otherwise, for specific scheduling or future meds, use now
+            }
+        }
         var calculationWindowEndDate = effectiveSearchStartDateTime.toLocalDate().plusDays(3) // How far out to calculate ideal reminders
         if (medicationEndDate != null && medicationEndDate.isBefore(calculationWindowEndDate)) {
             calculationWindowEndDate = medicationEndDate
@@ -194,7 +203,18 @@ class ReminderSchedulingWorker constructor(
         calculatedRemindersMap.forEach { (date, times) ->
             times.forEach { time ->
                 val idealDateTime = LocalDateTime.of(date, time)
-                if (idealDateTime.isAfter(now) &&
+                val isToday = idealDateTime.toLocalDate().isEqual(now.toLocalDate())
+                val twelveHoursAgoMillis = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(12)
+
+                val isValidForScheduling = if (isToday) {
+                    // For today, allow if it's not older than 12 hours ago, or if it's in the future
+                    idealDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() >= twelveHoursAgoMillis
+                } else {
+                    // For other days (future), it must be after now
+                    idealDateTime.isAfter(now)
+                }
+
+                if (isValidForScheduling &&
                     (medicationEndDate == null || !idealDateTime.toLocalDate().isAfter(medicationEndDate)) &&
                     !idealDateTime.toLocalDate().isBefore(medicationStartDate)
                 ) {
