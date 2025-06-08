@@ -42,9 +42,9 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlin.math.roundToInt
+import androidx.compose.foundation.layout.fillMaxSize // Moved to main import block
 
 // import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
-import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -174,6 +174,7 @@ private fun NotificationSoundSettingItemInternal( // Renamed to avoid conflict i
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class) // Added OptIn for Preview
 @Preview(showBackground = true, name = "Sound Settings Screen Preview")
 @Composable
 fun SoundSettingsScreenPreview() {

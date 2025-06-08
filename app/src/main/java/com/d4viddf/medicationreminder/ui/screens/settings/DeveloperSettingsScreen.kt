@@ -90,8 +90,9 @@ fun DeveloperSettingsScreen(
             ) {
                 Text(stringResource(id = R.string.settings_share_app_logs_button))
             }
-        }
+        // Extra brace removed here, Column is closed above.
     }
+    // DeveloperSettingsScreen function is closed by the brace below
 }
 
 // Define necessary string resources in strings.xml (conceptual)
@@ -100,6 +101,7 @@ fun DeveloperSettingsScreen(
 // <string name="settings_restart_daily_worker_button">Restart Daily Worker</string>
 // <string name="settings_share_app_logs_button">Share App Logs</string>
 
+@OptIn(ExperimentalMaterial3Api::class) // Added OptIn for Preview
 @Preview(showBackground = true, name = "Developer Settings Screen Preview")
 @Composable
 fun DeveloperSettingsScreenPreview() {

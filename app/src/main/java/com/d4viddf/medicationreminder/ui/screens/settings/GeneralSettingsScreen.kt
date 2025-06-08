@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.ui.screens.settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,20 +14,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-// import androidx.compose.material3.IconButton // No longer used directly here
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-// import androidx.compose.material3.Scaffold // Scaffold removed
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar // Needed for Preview's Scaffold
-import androidx.compose.material3.Scaffold // Needed for Preview
-import androidx.compose.material3.IconButton // Needed for Preview's TopAppBar
-import androidx.compose.material.icons.Icons // Needed for Preview's TopAppBar
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Needed for Preview's TopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,26 +37,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 
-// Assuming LanguageOption data class is accessible or redefined if needed.
-// For simplicity, if it's in the old SettingsScreen.kt, we can redefine it or assume it's moved to a common place.
-// For this subtask, we'll assume it's available via `import com.d4viddf.medicationreminder.ui.screens.LanguageOption`
-// If not, the subtask should include its definition.
-// Let's include it here for self-containment of this new file.
 data class LanguageOption(val displayName: String, val tag: String)
-
-
-// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
-import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralSettingsScreen(
-    onNavigateBack: () -> Unit, // Still passed by ResponsiveSettingsScaffold, though not used for TopAppBar here
+    onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
-    // showTopAppBar: Boolean, // Parameter removed
 ) {
     val context = LocalContext.current
     val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
@@ -87,11 +74,10 @@ fun GeneralSettingsScreen(
         )
     }
 
-    // Scaffold removed, root is now Column
     Column(
         modifier = Modifier
-            .fillMaxSize() // Takes full size given by parent
-            .padding(16.dp) // General content padding
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
         // Language Selection Group
         Surface(
@@ -166,9 +152,11 @@ fun GeneralSettingsScreen(
                 }
             }
         }
-    }
+    // This extra brace was the original culprit for a similar error if it existed.
+    // Ensure GeneralSettingsScreen function is properly closed before Preview.
 }
 
+@OptIn(ExperimentalMaterial3Api::class) // Added OptIn for Preview
 @Preview(showBackground = true, name = "General Settings Screen Preview")
 @Composable
 fun GeneralSettingsScreenPreview() {
@@ -176,12 +164,12 @@ fun GeneralSettingsScreenPreview() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("General Settings") }, // Preview-specific Title
+                    title = { Text("General Settings") },
                     navigationIcon = {
-                        IconButton(onClick = {}) { // Dummy action for preview
+                        IconButton(onClick = {}) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back" // Preview description
+                                contentDescription = "Back"
                             )
                         }
                     }
@@ -189,9 +177,6 @@ fun GeneralSettingsScreenPreview() {
             }
         ) { innerPadding ->
              androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
-                // Using hiltViewModel in Preview can be problematic if dependencies aren't set up for previews.
-                // It's better to pass null or a mock ViewModel if possible, or ensure Hilt preview support is configured.
-                // For this task, we'll keep hiltViewModel() as per the example, assuming it resolves or will be handled.
                 GeneralSettingsScreen(onNavigateBack = {}, viewModel = hiltViewModel())
             }
         }
