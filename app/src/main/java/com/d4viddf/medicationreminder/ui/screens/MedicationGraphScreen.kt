@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
+
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,6 +54,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth // Added for currentDisplayedMonth
 import java.time.format.DateTimeFormatter // Added for month formatting
+
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
@@ -105,6 +108,7 @@ fun MedicationGraphScreen(
                 }
                 GraphViewType.YEAR -> {
                     viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
+
                 }
             }
         }
@@ -350,6 +354,7 @@ private fun BarChartDisplay(
 }
 
 
+=======
 @Composable
 private fun GraphViewButton(
     text: String,
@@ -410,6 +415,7 @@ fun MedicationGraphScreenPreviewMonth() {
             }
         }
          val graphData by remember { mutableStateOf(if (selectedViewType == GraphViewType.MONTH) sampleMonthlyData else emptyMap<String,Int>()) }
+
 
 
         Scaffold(

@@ -132,6 +132,7 @@ fun AppNavigation(
                         isHostedInPane = false,
                         // Navigation callbacks for new screens from MedicationDetailScreen
                         onNavigateToAllSchedules = { medId -> navController.navigate(Screen.AllSchedules.createRoute(medicationId = medId, showToday = true)) }, // Pass showToday = true from details screen
+
                         onNavigateToMedicationHistory = { medId -> navController.navigate(Screen.MedicationHistory.createRoute(medId)) },
                         onNavigateToMedicationGraph = { medId -> navController.navigate(Screen.MedicationGraph.createRoute(medId)) },
                         onNavigateToMedicationInfo = { medId -> navController.navigate(Screen.MedicationInfo.createRoute(medId)) }
@@ -213,6 +214,7 @@ fun AppNavigation(
                 AllSchedulesScreen(
                     medicationId = medicationId,
                     showToday = showToday, // Pass showToday argument
+
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

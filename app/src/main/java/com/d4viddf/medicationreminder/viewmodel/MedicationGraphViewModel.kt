@@ -67,6 +67,7 @@ class MedicationGraphViewModel @Inject constructor(
         }
          if (currentWeekDays.count() != 7) { // Changed .size to .count()
             Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.") // Changed .size to .count()
+
             _graphData.value = emptyMap() // Reset or handle error appropriately
             return
         }
@@ -83,6 +84,7 @@ class MedicationGraphViewModel @Inject constructor(
                     _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
                 Log.d(TAG, "Medication name: ${_medicationName.value}")
+
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
                 Log.d(TAG, "Total reminders fetched: ${allReminders.size}")
@@ -105,6 +107,7 @@ class MedicationGraphViewModel @Inject constructor(
 
                 // Group taken reminders by date
                 val dosesByDate = takenRemindersThisWeek.groupingBy { it }.eachCount()
+
                 Log.d(TAG, "Doses grouped by date: $dosesByDate")
 
                 // Initialize map for the week with 0 counts
@@ -117,6 +120,7 @@ class MedicationGraphViewModel @Inject constructor(
                     // val dayName = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     val dayName = day.format(dayFormatter)
                     weeklyDataMap[dayName] = dosesByDate[day] ?: 0
+
                 }
                 Log.d(TAG, "Final weekly data map: $weeklyDataMap")
 
@@ -236,6 +240,7 @@ class MedicationGraphViewModel @Inject constructor(
                 _graphData.value = emptyMap()
             } finally {
                 _isLoading.value = false
+
             }
         }
     }

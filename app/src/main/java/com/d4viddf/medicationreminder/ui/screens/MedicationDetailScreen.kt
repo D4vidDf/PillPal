@@ -391,6 +391,7 @@ fun MedicationDetailsScreen(
                                 // Using stringResource for "Show More" is better practice,
                                 // but sticking to hardcoded as per initial subtask instructions if R.string.show_more doesn't exist yet.
                                 // For now, assuming "Show More" is acceptable directly.
+
                                 Text(text = "Show More")
                             }
                         }

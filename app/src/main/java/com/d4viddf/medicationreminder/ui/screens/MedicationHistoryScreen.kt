@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn // Added for DateRangePicker
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState // For scroll control
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState // For scroll control
+
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -30,6 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePickerDialog // Added
 import androidx.compose.material3.DateRangePicker // Added
+
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -48,6 +51,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope // Added
+
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +77,7 @@ import java.time.format.FormatStyle
 import kotlinx.coroutines.launch
 
 // Removed old placeholder data class MedicationHistoryEntry
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,6 +116,7 @@ fun MedicationHistoryScreen(
         topBar = {
             TopAppBar(
                 title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_history_title) }) },
+
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -134,6 +140,7 @@ fun MedicationHistoryScreen(
                     viewModel?.setDateFilter(startDate, endDate)
                 },
                 onClearDateFilter = { viewModel?.setDateFilter(null, null) }
+
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -142,6 +149,7 @@ fun MedicationHistoryScreen(
                 sortAscending = sortAscending,
                 onSortOldestFirst = { viewModel?.setSortOrder(true) },
                 onSortNewestFirst = { viewModel?.setSortOrder(false) }
+
             )
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -166,6 +174,7 @@ fun MedicationHistoryScreen(
                             if (historyEntries.last() != entry) {
                                 Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
                             }
+
                         }
                     }
                 }
@@ -190,6 +199,7 @@ fun FilterControls(
         Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
         OutlinedButton(
             onClick = { showDialog = true }, // Corrected: removed .value
+
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
@@ -200,12 +210,14 @@ fun FilterControls(
                     val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     "$start - $end"
+
                 } ?: stringResource(id = R.string.med_history_filter_select_range_button),
                 fontSize = 12.sp
             )
         }
     }
     if (currentFilter != null) { // Show clear button if any filter is active
+
         OutlinedButton(onClick = onClearDateFilter, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(id = R.string.med_history_filter_clear_button))
         }
@@ -218,6 +230,7 @@ fun ActionControls(
     sortAscending: Boolean,
     onSortOldestFirst: () -> Unit,
     onSortNewestFirst: () -> Unit
+
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -269,6 +282,7 @@ fun ActionControls(
 // }
 
 
+
 @Composable
 fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
     Card(
@@ -288,12 +302,14 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
             Column {
                 Text(
                     text = entry.dateTaken.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
+
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     // Medication name can be part of the item if needed, or use a general prefix
+
                     text = stringResource(id = R.string.med_history_item_taken_at_prefix) + entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
