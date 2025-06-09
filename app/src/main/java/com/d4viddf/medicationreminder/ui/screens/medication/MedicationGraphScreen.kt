@@ -18,10 +18,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-
+import androidx.compose.foundation.BorderStroke // Added import
+import androidx.compose.material3.Button // Added import
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton // Added import
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -63,30 +65,38 @@ enum class GraphViewType {
 }
 
 @Composable
-fun GraphViewButton( // Made non-private
+fun GraphViewButton(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val colors = if (isSelected) {
-        ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        )
+    val commonModifier = Modifier.padding(horizontal = 4.dp)
+    val shape = RoundedCornerShape(8.dp)
+
+    if (isSelected) {
+        Button( // Filled button for selected state
+            onClick = onClick,
+            shape = shape,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            modifier = commonModifier
+        ) {
+            Text(text)
+        }
     } else {
-        ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary
-        )
-    }
-    val border = if (isSelected) null else ButtonDefaults.outlinedButtonBorder
-    TextButton(
-        onClick = onClick,
-        shape = RoundedCornerShape(8.dp),
-        colors = colors,
-        border = border,
-        modifier = Modifier.padding(horizontal = 4.dp)
-    ) {
-        Text(text)
+        OutlinedButton( // Outlined button for unselected state
+            onClick = onClick,
+            shape = shape,
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), // Simpler border
+            modifier = commonModifier
+        ) {
+            Text(text)
+        }
     }
 }
 
