@@ -38,13 +38,13 @@ private val fallbackDarkColorScheme = darkColorScheme(
 @Composable
 fun MedicationSpecificTheme(
     medicationColor: MedicationColor,
-    useDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val seedColor = medicationColor.backgroundColor // The seed color from MedicationColor
     // val context = LocalContext.current // Context no longer needed for dynamic theming
+    val appIsDarkTheme = LocalAppUseDarkTheme.current // Consume here
 
-    val colorScheme = if (useDarkTheme) {
+    val colorScheme = if (appIsDarkTheme) { // Use appIsDarkTheme
         fallbackDarkColorScheme.copy(
             primary = seedColor,
             onPrimary = medicationColor.textColor

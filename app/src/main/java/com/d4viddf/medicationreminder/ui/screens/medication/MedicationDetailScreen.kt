@@ -365,7 +365,7 @@ fun MedicationDetailsScreen(
                                 onClick = { showDialog = true },
                                 modifier = Modifier
                                     .background(
-                                        MaterialTheme.colorScheme.secondaryContainer,
+                                        MaterialTheme.colorScheme.primaryContainer, // NEW
                                         shape = RoundedCornerShape(12.dp)
                                     )
                                     .padding(4.dp)
@@ -373,7 +373,7 @@ fun MedicationDetailsScreen(
                                 Icon(
                                     imageVector = Icons.Filled.Add,
                                     contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer, // NEW
                                     modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
                                 )
                             }
