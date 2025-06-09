@@ -315,6 +315,8 @@
     <string name="graph_placeholder_text">%1$s Graph Placeholder\n(for Medication ID: %2$d)</string>
     <string name="weekly_doses_taken_title">Weekly Doses Taken</string>
     <string name="loading_graph_data">Loading graph data...</string>
+    <string name="monthly_doses_taken_title_template">Monthly Doses - %1$s</string>
+    <string name="yearly_doses_taken_title_template">Yearly Doses - %1$d</string>
 
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Back to medication details</string>
@@ -353,6 +355,8 @@
     <string name="med_history_sort_desc">Desc</string>
     <string name="med_history_no_history_found">No history found for this medication.</string>
     <string name="med_history_item_taken_at_prefix">Taken at: </string>
+    <string name="previous_period_cd">Previous Period</string>
+    <string name="next_period_cd">Next Period</string>
     <!-- Note: "medication_history_title" was already added in a previous step for MedicationDetailScreen -->
     <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
     <!-- <string name="medication_history_title">Medication History</string> -->
