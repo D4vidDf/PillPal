@@ -220,6 +220,7 @@ fun AllSchedulesScreenDefinedPreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Today's Schedule Instances")
 @Composable
 fun AllSchedulesScreenTodayPreview() {

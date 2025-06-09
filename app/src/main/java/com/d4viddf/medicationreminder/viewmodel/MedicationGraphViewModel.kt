@@ -116,7 +116,7 @@ class MedicationGraphViewModel @Inject constructor(
                     // but EEE is standard. For this example, EEE is fine.
                     // val dayName = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     val dayName = day.format(dayFormatter)
-                    weeklyDataMap[dayName] = dosesByDate[day]?.size ?: 0
+                    weeklyDataMap[dayName] = dosesByDate[day] ?: 0
                 }
                 Log.d(TAG, "Final weekly data map: $weeklyDataMap")
 

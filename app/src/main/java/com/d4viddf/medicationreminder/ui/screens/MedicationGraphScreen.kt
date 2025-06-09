@@ -393,6 +393,7 @@ fun MedicationGraphScreenPreviewWeek() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Medication Graph Screen - Month View")
 @Composable
 fun MedicationGraphScreenPreviewMonth() {
