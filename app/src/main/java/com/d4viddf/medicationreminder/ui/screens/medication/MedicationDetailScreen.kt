@@ -259,21 +259,29 @@ fun MedicationDetailsScreen(
                             }
                         },
                         actions = {
-                            TextButton(
-                                onClick = { /* TODO: Handle edit action */ },
-                                modifier = Modifier.padding(end = 8.dp),
-                                colors = ButtonDefaults.textButtonColors(contentColor = color.textColor)
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 10.dp) // Original padding
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.4f),
+                                        shape = RoundedCornerShape(20.dp) // Pill/capsule shape
+                                    )
+                                    .clickable { /* TODO: Handle edit action */ }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp), // Padding for text inside
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.edit),
-                                    fontWeight = FontWeight.Bold
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp // Explicit font size as before
                                 )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = color.backgroundColor,
-                            navigationIconContentColor = color.textColor,
-                            actionIconContentColor = color.textColor
+                            navigationIconContentColor = Color.White,
+                            actionIconContentColor = Color.White
                         )
                     )
                 }
