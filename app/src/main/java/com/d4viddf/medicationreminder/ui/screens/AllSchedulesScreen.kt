@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch // Needed again for TodayScheduleItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,7 +43,9 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.AllSchedulesViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -55,11 +58,19 @@ import java.time.format.FormatStyle
 fun AllSchedulesScreen(
     medicationId: Int,
     showToday: Boolean, // Added parameter
+    colorName: String,
     onNavigateBack: () -> Unit,
     allSchedulesViewModel: AllSchedulesViewModel = hiltViewModel(),
     medicationViewModel: MedicationViewModel = hiltViewModel(),
     medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel() // Added
 ) {
+    val medicationColor = remember(colorName) {
+        try {
+            MedicationColor.valueOf(colorName)
+        } catch (e: IllegalArgumentException) {
+            MedicationColor.LIGHT_ORANGE // Fallback
+        }
+    }
     val schedules by allSchedulesViewModel.getSchedules(medicationId).collectAsState(initial = emptyList())
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState(initial = emptyList())
     var medicationName by remember { mutableStateOf<String?>(null) }
@@ -78,22 +89,28 @@ fun AllSchedulesScreen(
         else -> medicationName ?: stringResource(id = R.string.all_schedules_title)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back_button_content_description)
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        val isLoading = medicationName == null && (if (showToday) todayScheduleItems.isEmpty() else schedules.isEmpty())
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(title) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_content_description)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        ) { paddingValues ->
+            val isLoading = medicationName == null && (if (showToday) todayScheduleItems.isEmpty() else schedules.isEmpty())
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
@@ -146,7 +163,7 @@ fun AllSchedulesScreen(
             }
         }
     }
-}
+} // Closing MedicationSpecificTheme
 
 @Composable
 fun FullScheduleItem(
@@ -215,6 +232,7 @@ fun AllSchedulesScreenDefinedPreview() {
         AllSchedulesScreen(
             medicationId = 1,
             showToday = false, // For defined schedules
+            colorName = "GREEN",
             onNavigateBack = {}
             // ViewModels will use Hilt defaults or be null if signature is updated
         )
@@ -233,11 +251,18 @@ fun AllSchedulesScreenTodayPreview() {
     )
     var medicationName by remember { mutableStateOf("Sample Medication") }
     val previewMedicationId = 1 // Define sample medicationId for preview context
+    val medicationColor = MedicationColor.BLUE // Example color for preview
 
     AppTheme {
-         Scaffold(
-            topBar = {
-                TopAppBar(
+        MedicationSpecificTheme(medicationColor = medicationColor) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
                     title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationName ?: stringResource(id = R.string.medication_detail_today_title))) },
                     navigationIcon = {
                         IconButton(onClick = {}) {
@@ -249,8 +274,8 @@ fun AllSchedulesScreenTodayPreview() {
                     }
                 )
             }
-        ) { paddingValues ->
-            LazyColumn(
+            ) { paddingValues ->
+                LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
@@ -269,5 +294,5 @@ fun AllSchedulesScreenTodayPreview() {
             }
         }
     }
-}
+} // Close MedicationSpecificTheme
 // Removed AllSchedulesScreenWithDataPreview as it's replaced by the two new previews

@@ -50,8 +50,8 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     data object Onboarding : Screen("onboarding_screen")
 
-    object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
-        fun createRoute(medicationId: Int, showToday: Boolean = false) = "all_schedules_screen/$medicationId?$SHOW_TODAY_ARG=$showToday"
+    object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}/{colorName}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
+        fun createRoute(medicationId: Int, colorName: String, showToday: Boolean = false) = "all_schedules_screen/$medicationId/$colorName?$SHOW_TODAY_ARG=$showToday"
     }
     object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_history_screen/$medicationId/$colorName"
@@ -135,12 +135,9 @@ fun AppNavigation(
                         animatedVisibilityScope = this, // Pass scope
                         isHostedInPane = false,
                         // Navigation callbacks for new screens from MedicationDetailScreen
-                        onNavigateToAllSchedules = { medId ->
+                        onNavigateToAllSchedules = { medId, colorName ->
                             navController.navigate(
-                                Screen.AllSchedules.createRoute(
-                                    medicationId = medId,
-                                    showToday = true
-                                )
+                                Screen.AllSchedules.createRoute(medId, colorName, true)
                             )
                         }, // Pass showToday = true from details screen
 
@@ -229,16 +226,18 @@ fun AppNavigation(
                 Screen.AllSchedules.route,
                 arguments = listOf(
                     navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
+                    navArgument("colorName") { type = NavType.StringType },
                     navArgument(SHOW_TODAY_ARG) { type = NavType.BoolType; defaultValue = false }
                 )
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                val colorName = backStackEntry.arguments?.getString("colorName")
                 val showToday = backStackEntry.arguments?.getBoolean(SHOW_TODAY_ARG) ?: false
                 AllSchedulesScreen(
                     medicationId = medicationId,
                     showToday = showToday, // Pass showToday argument
-
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
             }
 

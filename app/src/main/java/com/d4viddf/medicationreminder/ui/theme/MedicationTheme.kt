@@ -18,7 +18,15 @@ import com.d4viddf.medicationreminder.ui.theme.AppTypography
 private val fallbackLightColorScheme = lightColorScheme(
     primary = Color(0xFF006970),
     secondary = Color(0xFF4A6364),
-    tertiary = Color(0xFF525E7D)
+    tertiary = Color(0xFF525E7D),
+    secondaryContainer = Color(0xFFC2F7FA), // Light Cyan
+    onSecondaryContainer = Color(0xFF002022), // Very Dark Cyan
+    // Explicitly define surface, onSurface, surfaceVariant, and onSurfaceVariant
+    // for better control over dialog and card backgrounds/text in light mode.
+    surface = Color(0xFFFAFDFD), // Very light cyan/almost white
+    onSurface = Color(0xFF191C1C), // Very dark grey/cyan
+    surfaceVariant = Color(0xFFDAE5E5), // Light greyish cyan (for card backgrounds etc.)
+    onSurfaceVariant = Color(0xFF3F4949) // Darker grey/cyan (for text on surfaceVariant)
 )
 
 private val fallbackDarkColorScheme = darkColorScheme(

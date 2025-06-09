@@ -184,7 +184,7 @@ fun MedicationDetailsScreen(
     medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(),
     graphViewModel: MedicationGraphViewModel? = hiltViewModel(), // Made nullable for preview
     isHostedInPane: Boolean,
-    onNavigateToAllSchedules: (Int) -> Unit,
+    onNavigateToAllSchedules: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationHistory: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit
@@ -435,7 +435,7 @@ fun MedicationDetailsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Button(
-                                    onClick = { onNavigateToAllSchedules(medicationId) },
+                                    onClick = { onNavigateToAllSchedules(medicationId, medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name) },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(text = "Show More")
@@ -637,7 +637,7 @@ fun MedicationDetailsScreenPreview() {
             animatedVisibilityScope = null, // Preview won't have a real scope
             isHostedInPane = false,
             graphViewModel = null, // Added for preview
-            onNavigateToAllSchedules = {},
+            onNavigateToAllSchedules = { _, _ -> }, // Adjusted for new signature
             onNavigateToMedicationHistory = { _, _ -> }, // Adjusted for new signature
             onNavigateToMedicationGraph = { _, _ -> }, // Adjusted for new signature
             onNavigateToMedicationInfo = { _, _ -> } // Adjusted for new signature
