@@ -440,7 +440,7 @@ object ReminderCalculator {
                 var continuousIterations = 0
                 val longStopDate = periodStartDate.plusYears(5)
 
-                val startGenLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Starting generation from $currentReminderTime (derived from anchorDateTime). Interval: $totalIntervalMinutes mins. MedEndDate: $parsedMedicationEndDate. Period: $periodStartDate to $periodEndDate."
+                val startGenLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Starting generation from $currentReminderTime (derived from anchorDateTime). Interval: $totalIntervalMinutes mins. MedEndDate: $medicationOverallEndDate. Period: $periodStartDate to $periodEndDate."
                 Log.i(TAG, startGenLog)
                 FileLogger.log(TAG, startGenLog)
 
