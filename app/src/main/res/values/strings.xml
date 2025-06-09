@@ -352,12 +352,10 @@
     <string name="med_history_filter_select_date_cd">Select Date Range</string>
     <string name="med_history_filter_select_range_button">Select Range</string>
     <string name="med_history_filter_clear_button">Clear Date Filter</string>
-    <string name="med_history_action_first">First</string>
-    <string name="med_history_action_last">Last</string>
-    <string name="med_history_sort_asc">Asc</string>
-    <string name="med_history_sort_desc">Desc</string>
     <string name="med_history_no_history_found">No history found for this medication.</string>
     <string name="med_history_item_taken_at_prefix">Taken at: </string>
+    <string name="med_history_action_sort_oldest_first">Oldest First</string>
+    <string name="med_history_action_sort_newest_first">Newest First</string>
     <!-- Note: "medication_history_title" was already added in a previous step for MedicationDetailScreen -->
     <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
     <!-- <string name="medication_history_title">Medication History</string> -->

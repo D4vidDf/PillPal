@@ -111,13 +111,24 @@ class MedicationHistoryViewModel @Inject constructor(
             // Filter by date
             val dateFiltered = if (_dateFilter.value?.first != null || _dateFilter.value?.second != null) {
                 currentRawHistory.filter { reminder ->
-                    val takenDateTime = parseTakenAt(reminder.takenAt) ?: return@filter false
+                    val takenDateTime = parseTakenAt(reminder.takenAt)
+                    if (takenDateTime == null) {
+                        Log.d(TAG, "Filtering reminderId ${reminder.id}: takenAt='${reminder.takenAt}'. Parse failed or null takenAt.")
+                        return@filter false
+                    }
+                    // Log 1: After parsing takenAt
+                    Log.d(TAG, "Filtering reminderId ${reminder.id}: takenAt='${reminder.takenAt}'. Parsed takenDateTime: $takenDateTime")
+
                     val startDate = _dateFilter.value?.first
                     val endDate = _dateFilter.value?.second
                     val takenDate = takenDateTime.toLocalDate()
+                    // Log 2: After extracting takenDate and getting filter dates
+                    Log.d(TAG, "ReminderId ${reminder.id}: takenDate=$takenDate, filterStartDate=$startDate, filterEndDate=$endDate")
 
                     val afterOrOnStartDate = startDate == null || !takenDate.isBefore(startDate)
                     val beforeOrOnEndDate = endDate == null || !takenDate.isAfter(endDate)
+                    // Log 3: After comparison logic
+                    Log.d(TAG, "ReminderId ${reminder.id}: afterOrOnStartDate=$afterOrOnStartDate, beforeOrOnEndDate=$beforeOrOnEndDate. Will be included: ${afterOrOnStartDate && beforeOrOnEndDate}")
 
                     afterOrOnStartDate && beforeOrOnEndDate
                 }

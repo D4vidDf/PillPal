@@ -100,8 +100,8 @@ fun MedicationHistoryScreen(
     val currentFilter by viewModel?.dateFilter?.collectAsState() ?: remember { mutableStateOf<Pair<LocalDate?, LocalDate?>?>(null) }
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
 
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    // Removed: val listState = rememberLazyListState()
+    // Removed: val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
@@ -140,17 +140,8 @@ fun MedicationHistoryScreen(
 
             ActionControls(
                 sortAscending = sortAscending,
-                onSortToggle = { viewModel?.setSortOrder(!sortAscending) },
-                onGoToFirst = {
-                    if (historyEntries.isNotEmpty()) {
-                        coroutineScope.launch { listState.animateScrollToItem(0) }
-                    }
-                },
-                onGoToLast = {
-                    if (historyEntries.isNotEmpty()) {
-                        coroutineScope.launch { listState.animateScrollToItem(historyEntries.size - 1) }
-                    }
-                }
+                onSortOldestFirst = { viewModel?.setSortOrder(true) },
+                onSortNewestFirst = { viewModel?.setSortOrder(false) }
             )
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -169,7 +160,7 @@ fun MedicationHistoryScreen(
                     )
                 }
                 else -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) { // Removed state = listState
                         items(historyEntries, key = { it.id }) { entry ->
                             MedicationHistoryListItem(entry = entry)
                             if (historyEntries.last() != entry) {
@@ -225,33 +216,57 @@ fun FilterControls(
 @Composable
 fun ActionControls(
     sortAscending: Boolean,
-    onSortToggle: () -> Unit,
-    onGoToFirst: () -> Unit,
-    onGoToLast: () -> Unit
+    onSortOldestFirst: () -> Unit,
+    onSortNewestFirst: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        HistoryActionButton(icon = Icons.Filled.KeyboardArrowUp, text = stringResource(id = R.string.med_history_action_first), onClick = onGoToFirst)
-        HistoryActionButton(icon = Icons.Filled.KeyboardArrowDown, text = stringResource(id = R.string.med_history_action_last), onClick = onGoToLast)
-        HistoryActionButton(
-            icon = Icons.Filled.SortByAlpha, // Could use different icons for asc/desc
-            text = if (sortAscending) stringResource(id = R.string.med_history_sort_asc) else stringResource(id = R.string.med_history_sort_desc),
-            onClick = onSortToggle
-        )
+        // Button for "Oldest First"
+        val oldestFirstButtonColors = if (sortAscending) { // Active if sortAscending is true
+            ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        } else {
+            ButtonDefaults.outlinedButtonColors()
+        }
+        OutlinedButton(
+            onClick = onSortOldestFirst,
+            shape = RoundedCornerShape(8.dp),
+            colors = oldestFirstButtonColors
+        ) {
+            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.med_history_action_sort_oldest_first), modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(stringResource(R.string.med_history_action_sort_oldest_first), fontSize = 12.sp)
+        }
+
+        // Button for "Newest First"
+        val newestFirstButtonColors = if (!sortAscending) { // Active if sortAscending is false
+            ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        } else {
+            ButtonDefaults.outlinedButtonColors()
+        }
+        OutlinedButton(
+            onClick = onSortNewestFirst,
+            shape = RoundedCornerShape(8.dp),
+            colors = newestFirstButtonColors
+        ) {
+            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.med_history_action_sort_newest_first), modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(stringResource(R.string.med_history_action_sort_newest_first), fontSize = 12.sp)
+        }
     }
 }
 
-@Composable
-fun HistoryActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, shape = RoundedCornerShape(8.dp)) {
-        Icon(icon, contentDescription = text, modifier = Modifier.size(18.dp)) // Content description could be more specific if needed
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, fontSize = 12.sp)
-    }
-}
+// HistoryActionButton is no longer needed as its logic is incorporated above or buttons are more distinct
+// @Composable
+// fun HistoryActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
+//    OutlinedButton(onClick = onClick, shape = RoundedCornerShape(8.dp)) {
+//        Icon(icon, contentDescription = text, modifier = Modifier.size(18.dp))
+//        Spacer(modifier = Modifier.width(4.dp))
+//        Text(text, fontSize = 12.sp)
+//    }
+// }
 
 
 @Composable
