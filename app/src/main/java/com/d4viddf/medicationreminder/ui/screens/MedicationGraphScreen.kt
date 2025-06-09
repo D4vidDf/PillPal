@@ -278,13 +278,28 @@ private fun BarChartDisplay(
     }
     val barMaxHeight = 160.dp // Reduced to make space for count text
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(220.dp) // Overall chart area height
+    val rowModifier = if (selectedViewType == GraphViewType.WEEK) {
+        modifier
+            .fillMaxWidth() // For WEEK, fill width
+            .height(220.dp)
+            .padding(vertical = 16.dp)
+    } else { // For MONTH, YEAR
+        modifier
+            .fillMaxWidth() // Still fill width for the scrollable area
+            .height(220.dp)
             .horizontalScroll(rememberScrollState())
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(vertical = 16.dp)
+    }
+
+    val rowArrangement = if (selectedViewType == GraphViewType.WEEK) {
+        Arrangement.SpaceEvenly // Distribute weekly bars evenly
+    } else {
+        Arrangement.spacedBy(8.dp) // More spacing for scrollable views
+    }
+
+    Row(
+        modifier = rowModifier,
+        horizontalArrangement = rowArrangement,
         verticalAlignment = Alignment.Bottom
     ) {
         graphData.forEach { (label, count) ->
@@ -293,9 +308,17 @@ private fun BarChartDisplay(
                 GraphViewType.MONTH -> label == currentDayOfMonthForHighlight
                 GraphViewType.YEAR -> label.equals(currentMonthShortNameForHighlight, ignoreCase = true) && currentDisplayedYear == today.year
             }
+
+            val columnModifier = if (selectedViewType == GraphViewType.WEEK) {
+                Modifier.weight(1f) // Weekly bars take equal weighted space
+            } else {
+                Modifier // Monthly/Yearly bars have fixed width defined on the Box
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom,
+                modifier = columnModifier
             ) {
                 if (count > 0) {
                     Text(
@@ -312,7 +335,7 @@ private fun BarChartDisplay(
                 Box(
                     modifier = Modifier
                         .width(if (selectedViewType == GraphViewType.WEEK) 30.dp else 20.dp)
-                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp) // Use barMaxHeight
+                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                         .background(
                             if (highlight) MaterialTheme.colorScheme.primary
