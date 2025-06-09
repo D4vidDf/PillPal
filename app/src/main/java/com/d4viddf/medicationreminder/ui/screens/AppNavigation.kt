@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue // For state
 // Define the routes for navigation
 
 const val MEDICATION_ID_ARG = "medicationId" // Common argument name
+const val SHOW_TODAY_ARG = "showToday" // Argument for AllSchedulesScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -45,8 +46,8 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     data object Onboarding : Screen("onboarding_screen")
 
-    object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}") {
-        fun createRoute(medicationId: Int) = "all_schedules_screen/$medicationId"
+    object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
+        fun createRoute(medicationId: Int, showToday: Boolean = false) = "all_schedules_screen/$medicationId?$SHOW_TODAY_ARG=$showToday"
     }
     object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "medication_history_screen/$medicationId"
@@ -130,7 +131,8 @@ fun AppNavigation(
                         animatedVisibilityScope = this, // Pass scope
                         isHostedInPane = false,
                         // Navigation callbacks for new screens from MedicationDetailScreen
-                        onNavigateToAllSchedules = { medId -> navController.navigate(Screen.AllSchedules.createRoute(medId)) },
+                        onNavigateToAllSchedules = { medId -> navController.navigate(Screen.AllSchedules.createRoute(medicationId = medId, showToday = true)) }, // Pass showToday = true from details screen
+
                         onNavigateToMedicationHistory = { medId -> navController.navigate(Screen.MedicationHistory.createRoute(medId)) },
                         onNavigateToMedicationGraph = { medId -> navController.navigate(Screen.MedicationGraph.createRoute(medId)) },
                         onNavigateToMedicationInfo = { medId -> navController.navigate(Screen.MedicationInfo.createRoute(medId)) }
@@ -202,11 +204,17 @@ fun AppNavigation(
             // Routes for the new screens
             composable(
                 Screen.AllSchedules.route,
-                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
+                    navArgument(SHOW_TODAY_ARG) { type = NavType.BoolType; defaultValue = false }
+                )
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                val showToday = backStackEntry.arguments?.getBoolean(SHOW_TODAY_ARG) ?: false
                 AllSchedulesScreen(
                     medicationId = medicationId,
+                    showToday = showToday, // Pass showToday argument
+
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

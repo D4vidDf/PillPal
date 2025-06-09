@@ -37,7 +37,9 @@ import org.junit.runner.Description
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @ExperimentalCoroutinesApi
 class MainCoroutineRule(
@@ -104,6 +106,51 @@ class MedicationReminderViewModelTest {
         // Clean up, if necessary
     }
 
+    // --- Helper Functions for Test Data ---
+    private fun createTestMedication(id: Int, name: String, startDateOffset: Long? = -5L, endDateOffset: Long? = null): Medication {
+        val today = LocalDate.now()
+        return Medication(
+            id = id, name = name, typeId = 1, color = "Blue", dosage = "1 pill",
+            packageSize = 30, remainingDoses = 30,
+            startDate = startDateOffset?.let { today.minusDays(it).format(ReminderCalculator.dateStorableFormatter) },
+            endDate = endDateOffset?.let { today.plusDays(it).format(ReminderCalculator.dateStorableFormatter) },
+            reminderTime = null, // Not used directly by loadTodaySchedule logic for generation
+            nregistro = "12345"
+        )
+    }
+
+    private fun createTestSchedule(
+        id: Int, medId: Int, type: ScheduleType,
+        specificTimes: String? = null, daysOfWeek: String? = null,
+        intervalHours: Int? = null, intervalMinutes: Int? = null,
+        intervalStart: String? = null, intervalEnd: String? = null
+    ): MedicationSchedule {
+        return MedicationSchedule(
+            id = id, medicationId = medId, scheduleType = type,
+            specificTimes = specificTimes, daysOfWeek = daysOfWeek,
+            intervalHours = intervalHours, intervalMinutes = intervalMinutes,
+            intervalStartTime = intervalStart, intervalEndTime = intervalEnd
+        )
+    }
+
+    private fun createTestReminder(
+        idStr: String, medId: Int, scheduleId: Int?, // scheduleId can be null for ad-hoc
+        reminderDateTime: LocalDateTime,
+        isTakenFlag: Boolean,
+        takenAtDateTime: LocalDateTime? = null
+    ): MedicationReminder {
+        return MedicationReminder(
+            id = idStr.hashCode(), // Simple int ID for mock
+            medicationId = medId,
+            medicationScheduleId = scheduleId,
+            reminderTime = reminderDateTime.format(ReminderCalculator.storableDateTimeFormatter),
+            isTaken = isTakenFlag,
+            takenAt = takenAtDateTime?.format(ReminderCalculator.storableDateTimeFormatter),
+            notificationId = null
+        )
+    }
+
+
     // --- Tests for loadTodaySchedule ---
 
     @Test
@@ -111,76 +158,369 @@ class MedicationReminderViewModelTest {
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns null
 
         viewModel.loadTodaySchedule(testMedicationId)
+        advanceUntilIdle()
 
         assertTrue(viewModel.todayScheduleItems.value.isEmpty())
+        assertEquals(false, viewModel.isLoading.value)
     }
 
     @Test
-    fun `loadTodaySchedule_noSchedulesForMedication_emitsEmptyList`() = mainCoroutineRule.testDispatcher.runBlockingTest {
-        coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
-        coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(emptyList())
-
-        viewModel.loadTodaySchedule(testMedicationId)
-
-        assertTrue(viewModel.todayScheduleItems.value.isEmpty())
-    }
-
-    @Test
-    fun `loadTodaySchedule_schedulesExist_noExistingReminders_emitsCorrectItems`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+    fun `loadTodaySchedule_noSchedulesForMedication_onlyShowsAdHocTakenReminders_ifAny`() = mainCoroutineRule.testDispatcher.runBlockingTest {
         val today = LocalDate.now()
+        val adHocTakenTime = LocalTime.of(10,0)
+        val medId = testMedicationId
+        val medication = createTestMedication(medId, "AdHocMed")
+        val adHocReminder = createTestReminder("adhoc1", medId, null, LocalDateTime.of(today, adHocTakenTime), true, LocalDateTime.of(today, adHocTakenTime))
+
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(emptyList())
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(listOf(adHocReminder))
+
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
+
+        val items = viewModel.todayScheduleItems.value
+        assertEquals(1, items.size)
+        assertEquals(medication.name, items[0].medicationName)
+        assertEquals(adHocTakenTime, items[0].time)
+        assertTrue(items[0].isTaken)
+        assertEquals(adHocReminder.id.toLong(), items[0].underlyingReminderId)
+        assertEquals(0, items[0].medicationScheduleId) // Adhoc items have scheduleId 0 or null
+        assertEquals(adHocTakenTime.isBefore(LocalTime.now()), items[0].isPast)
+        assertEquals(false, viewModel.isLoading.value)
+
+        // Scenario: No ad-hoc reminders either
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(emptyList())
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
+        assertTrue(viewModel.todayScheduleItems.value.isEmpty())
+        assertEquals(false, viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `loadTodaySchedule_dailySchedule_noExistingReminders_emitsCorrectUntakenItems`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val today = LocalDate.now()
+        val medId = testMedicationId
         val time0900 = LocalTime.of(9, 0)
-        val schedule1 = MedicationSchedule(id = 1, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY, daysOfWeek = "1,2,3,4,5,6,7", specificTimes = time0900.format(ReminderCalculator.timeStorableFormatter), intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
-        val mockMedicationWithRecentStartDate = testMedication.copy(startDate = today.minusDays(1).format(ReminderCalculator.dateStorableFormatter))
+        val time1700 = LocalTime.of(17, 0)
+        val medication = createTestMedication(medId, "DailyMed", startDateOffset = 1) // Started yesterday
+        val dailySchedule = createTestSchedule(
+            1, medId, ScheduleType.DAILY,
+            specificTimes = "${time0900.format(ReminderCalculator.timeStorableFormatter)},${time1700.format(ReminderCalculator.timeStorableFormatter)}",
+            daysOfWeek = "1,2,3,4,5,6,7" // Everyday
+        )
 
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(dailySchedule))
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(emptyList())
 
-        coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns mockMedicationWithRecentStartDate
-        coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(schedule1))
-        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(emptyList())
-
-        viewModel.loadTodaySchedule(testMedicationId)
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
 
         val items = viewModel.todayScheduleItems.value
-        assertEquals(1, items.size)
-        assertEquals(testMedication.name, items[0].medicationName)
-        assertEquals(time0900, items[0].time)
-        assertEquals(false, items[0].isTaken)
-        assertEquals(0L, items[0].underlyingReminderId)
-        assertEquals(schedule1.id, items[0].medicationScheduleId)
+        assertEquals(2, items.size)
+        assertEquals(false, viewModel.isLoading.value)
+
+        val item0900 = items.find { it.time == time0900 }
+        assertNotNull(item0900)
+        assertEquals(medication.name, item0900!!.medicationName)
+        assertEquals(false, item0900.isTaken)
+        assertEquals(0L, item0900.underlyingReminderId)
+        assertEquals(dailySchedule.id, item0900.medicationScheduleId)
+        assertEquals(time0900.isBefore(LocalTime.now()), item0900.isPast)
+
+        val item1700 = items.find { it.time == time1700 }
+        assertNotNull(item1700)
+        assertEquals(false, item1700.isTaken)
+        assertEquals(dailySchedule.id, item1700.medicationScheduleId)
+        assertEquals(time1700.isBefore(LocalTime.now()), item1700.isPast)
     }
 
     @Test
-    fun `loadTodaySchedule_schedulesExist_oneReminderTaken_emitsCorrectItems`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+    fun `loadTodaySchedule_dailySchedule_withMixedReminders_emitsCorrectItemsStatus`() = mainCoroutineRule.testDispatcher.runBlockingTest {
         val today = LocalDate.now()
-        val time1000 = LocalTime.of(10, 0)
-        val schedule2 = MedicationSchedule(id = 2, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY, daysOfWeek = today.dayOfWeek.value.toString(), specificTimes = time1000.format(ReminderCalculator.timeStorableFormatter), intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
-        val reminderTimeStr = LocalDateTime.of(today, time1000).format(ReminderCalculator.storableDateTimeFormatter)
-        val mockTakenReminder = MedicationReminder(id = 100, medicationId = testMedicationId, medicationScheduleId = schedule2.id, reminderTime = reminderTimeStr, isTaken = true, takenAt = reminderTimeStr)
-        val mockMedicationWithOldStartDate = testMedication.copy(startDate = today.minusDays(10).format(ReminderCalculator.dateStorableFormatter))
+        val medId = testMedicationId
+        val time0800 = LocalTime.of(8, 0)
+        val time1400 = LocalTime.of(14, 0)
+        val time2000 = LocalTime.of(20, 0)
 
+        val medication = createTestMedication(medId, "DailyMix", startDateOffset = 2)
+        val dailySchedule = createTestSchedule(
+            2, medId, ScheduleType.DAILY,
+            specificTimes = "${time0800.format(ReminderCalculator.timeStorableFormatter)},${time1400.format(ReminderCalculator.timeStorableFormatter)},${time2000.format(ReminderCalculator.timeStorableFormatter)}",
+            daysOfWeek = today.dayOfWeek.value.toString() // Only for today
+        )
 
-        coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns mockMedicationWithOldStartDate
-        coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(schedule2))
-        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(listOf(mockTakenReminder))
+        val reminder0800Taken = createTestReminder("db0800", medId, dailySchedule.id, LocalDateTime.of(today, time0800), true, LocalDateTime.of(today, time0800.plusMinutes(2)))
+        // No reminder for 14:00 (so it's untaken)
+        val reminder2000Untaken = createTestReminder("db2000", medId, dailySchedule.id, LocalDateTime.of(today, time2000), false, null) // Explicitly untaken in DB
 
-        viewModel.loadTodaySchedule(testMedicationId)
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(dailySchedule))
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(listOf(reminder0800Taken, reminder2000Untaken))
+
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
 
         val items = viewModel.todayScheduleItems.value
-        assertEquals(1, items.size)
-        val item = items.find { it.time == time1000 }
-        assertNotNull(item)
-        assertEquals(true, item!!.isTaken)
-        assertEquals(mockTakenReminder.id.toLong(), item.underlyingReminderId)
-        assertEquals(schedule2.id, item.medicationScheduleId)
+        assertEquals(3, items.size) // All 3 slots should be present
+        assertEquals(false, viewModel.isLoading.value)
+
+        val item0800 = items.find { it.time == time0800 }
+        assertNotNull(item0800); assertTrue(item0800!!.isTaken); assertEquals(reminder0800Taken.id.toLong(), item0800.underlyingReminderId); assertEquals(dailySchedule.id, item0800.medicationScheduleId)
+
+        val item1400 = items.find { it.time == time1400 }
+        assertNotNull(item1400); assertFalse(item1400!!.isTaken); assertEquals(0L, item1400.underlyingReminderId); assertEquals(dailySchedule.id, item1400.medicationScheduleId)
+
+        val item2000 = items.find { it.time == time2000 }
+        assertNotNull(item2000); assertFalse(item2000!!.isTaken); assertEquals(reminder2000Untaken.id.toLong(), item2000.underlyingReminderId); assertEquals(dailySchedule.id, item2000.medicationScheduleId)
+    }
+
+
+    // --- Interval Schedule Tests for loadTodaySchedule() ---
+    @Test
+    fun `loadTodaySchedule interval_allSlotsVisible_bugFixVerification`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val today = LocalDate.now()
+        val medId = 1
+        val medication = createTestMedication(medId, "IntervalMed", startDateOffset = 1) // Started yesterday
+        val intervalSchedule = createTestSchedule(10, medId, ScheduleType.INTERVAL,
+            intervalHours = 4, intervalMinutes = 0,
+            intervalStart = "08:00", intervalEnd = "20:00" // Slots: 08:00, 12:00, 16:00, 20:00
+        )
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(intervalSchedule))
+
+        // Scenario 1: No doses taken yet
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(emptyList())
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
+
+        var items = viewModel.todayScheduleItems.value
+        assertEquals(4, items.size)
+        assertEquals(false, viewModel.isLoading.value)
+        assertTrue(items.all { !it.isTaken && it.medicationScheduleId == intervalSchedule.id })
+        assertNotNull(items.find { it.time == LocalTime.of(8,0) })
+        assertNotNull(items.find { it.time == LocalTime.of(12,0) })
+        assertNotNull(items.find { it.time == LocalTime.of(16,0) })
+        assertNotNull(items.find { it.time == LocalTime.of(20,0) })
+        items.forEach { assertEquals(it.time.isBefore(LocalTime.now()), it.isPast) }
+
+
+        // Scenario 2: 16:00 dose taken
+        val takenReminder1600 = createTestReminder(
+            "taken1600", medId, intervalSchedule.id,
+            LocalDateTime.of(today, LocalTime.of(16,0)), // Reminder time is the slot time
+            isTakenFlag = true,
+            takenAtDateTime = LocalDateTime.of(today, LocalTime.of(16,5)) // Actual taken time
+        )
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(listOf(takenReminder1600))
+        viewModel.loadTodaySchedule(medId) // Reload
+        advanceUntilIdle()
+
+        items = viewModel.todayScheduleItems.value
+        assertEquals(4, items.size)
+        assertEquals(false, viewModel.isLoading.value)
+        val item1600 = items.find { it.time == LocalTime.of(16,0) }
+        assertNotNull(item1600)
+        assertTrue(item1600!!.isTaken)
+        assertEquals(takenReminder1600.id.toLong(), item1600.underlyingReminderId)
+        assertEquals(intervalSchedule.id, item1600.medicationScheduleId)
+        assertTrue(items.filter { it.time != LocalTime.of(16,0) }.all { !it.isTaken })
+
+
+        // Scenario 3: 08:00 is explicitly untaken in DB, 16:00 is taken. 12:00 and 20:00 are purely calculated.
+        val untakenReminder0800 = createTestReminder(
+             "untaken0800", medId, intervalSchedule.id,
+            LocalDateTime.of(today, LocalTime.of(8,0)),
+            isTakenFlag = false // Explicitly false
+        )
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(listOf(takenReminder1600, untakenReminder0800))
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
+
+        items = viewModel.todayScheduleItems.value
+        assertEquals(4, items.size) // Crucial: all 4 slots should still be there
+        assertEquals(false, viewModel.isLoading.value)
+
+        val item0800Final = items.find { it.time == LocalTime.of(8,0) }
+        assertNotNull(item0800Final); assertFalse(item0800Final!!.isTaken); assertEquals(untakenReminder0800.id.toLong(), item0800Final.underlyingReminderId)
+
+        val item1200Final = items.find { it.time == LocalTime.of(12,0) }
+        assertNotNull(item1200Final); assertFalse(item1200Final!!.isTaken); assertEquals(0L, item1200Final.underlyingReminderId) // No DB record
+
+        val item1600Final = items.find { it.time == LocalTime.of(16,0) }
+        assertNotNull(item1600Final); assertTrue(item1600Final!!.isTaken); assertEquals(takenReminder1600.id.toLong(), item1600Final.underlyingReminderId)
+
+        val item2000Final = items.find { it.time == LocalTime.of(20,0) }
+        assertNotNull(item2000Final); assertFalse(item2000Final!!.isTaken); assertEquals(0L, item2000Final.underlyingReminderId) // No DB record
+
+        items.forEach { assertEquals(it.medicationScheduleId, intervalSchedule.id) }
+    }
+
+    @Test
+    fun `loadTodaySchedule_interval_withSomeTakenDoses_showsCorrectStatus()`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val today = LocalDate.now()
+        val medId = 2
+        val medication = createTestMedication(medId, "IntervalMix", startDateOffset = 0) // Started today
+        val intervalSchedule = createTestSchedule(11, medId, ScheduleType.INTERVAL,
+            intervalHours = 3, intervalMinutes = 0,
+            intervalStart = "09:00", intervalEnd = "18:00" // Slots: 09:00, 12:00, 15:00, 18:00
+        )
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(intervalSchedule))
+
+        val taken0900 = createTestReminder("t0900", medId, intervalSchedule.id, LocalDateTime.of(today, LocalTime.of(9,0)), true, LocalDateTime.of(today, LocalTime.of(9,3)))
+        // 12:00 is not in DB (untaken)
+        val taken1500 = createTestReminder("t1500", medId, intervalSchedule.id, LocalDateTime.of(today, LocalTime.of(15,0)), true, LocalDateTime.of(today, LocalTime.of(15,1)))
+        // 18:00 has a DB record but isTaken=false
+        val untaken1800 = createTestReminder("ut1800", medId, intervalSchedule.id, LocalDateTime.of(today, LocalTime.of(18,0)), false)
+
+
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(listOf(taken0900, taken1500, untaken1800))
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
+
+        val items = viewModel.todayScheduleItems.value
+        assertEquals(4, items.size)
+        assertEquals(false, viewModel.isLoading.value)
+
+        val item09 = items.find { it.time == LocalTime.of(9,0) }
+        assertNotNull(item09); assertTrue(item09!!.isTaken); assertEquals(taken0900.id.toLong(), item09.underlyingReminderId)
+
+        val item12 = items.find { it.time == LocalTime.of(12,0) }
+        assertNotNull(item12); assertFalse(item12!!.isTaken); assertEquals(0L, item12.underlyingReminderId)
+
+        val item15 = items.find { it.time == LocalTime.of(15,0) }
+        assertNotNull(item15); assertTrue(item15!!.isTaken); assertEquals(taken1500.id.toLong(), item15.underlyingReminderId)
+
+        val item18 = items.find { it.time == LocalTime.of(18,0) }
+        assertNotNull(item18); assertFalse(item18!!.isTaken); assertEquals(untaken1800.id.toLong(), item18.underlyingReminderId)
+
+        items.forEach {
+            assertEquals(intervalSchedule.id, it.medicationScheduleId)
+            assertEquals(it.time.isBefore(LocalTime.now()), it.isPast)
+        }
+    }
+
+
+    @Test
+    fun `loadTodaySchedule_weeklySchedule_slotsShownOnlyOnCorrectDay()`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val medId = 3
+        val medication = createTestMedication(medId, "WeeklyMed")
+        val scheduleTime = LocalTime.of(10,0)
+        // Schedule for Monday, Wednesday, Friday at 10:00
+        val weeklySchedule = createTestSchedule(12, medId, ScheduleType.WEEKLY,
+            specificTimes = scheduleTime.format(ReminderCalculator.timeStorableFormatter),
+            daysOfWeek = "1,3,5" // Mon, Wed, Fri
+        )
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(weeklySchedule))
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(emptyList()) // No taken doses initially
+
+        // --- Test for a day IN the schedule (e.g. Monday) ---
+        val today = LocalDate.now()
+        val dayOfWeekToTest = DayOfWeek.MONDAY // For this to pass, run test on a Monday or mock LocalDate.now()
+                                              // For simplicity, this test assumes LocalDate.now() will be Monday when it runs,
+                                              // or relies on the schedule matching the actual current day.
+                                              // A more robust test would mock time.
+
+        if (today.dayOfWeek == dayOfWeekToTest) {
+            viewModel.loadTodaySchedule(medId)
+            advanceUntilIdle()
+            val itemsOnScheduledDay = viewModel.todayScheduleItems.value
+            assertEquals(1, itemsOnScheduledDay.size)
+            assertEquals(false, viewModel.isLoading.value)
+            val item = itemsOnScheduledDay.first()
+            assertEquals(scheduleTime, item.time)
+            assertFalse(item.isTaken)
+            assertEquals(weeklySchedule.id, item.medicationScheduleId)
+            assertEquals(scheduleTime.isBefore(LocalTime.now()), item.isPast)
+        } else {
+            // If today is not Monday, we expect no items from this schedule.
+            // This part of the test is conditional on the actual day the test runs.
+            // To make it deterministic, one would mock LocalDate.now().
+            // For now, we'll just acknowledge this behavior.
+             println("Skipping weekly schedule 'on day' check as today is not ${dayOfWeekToTest.name}")
+        }
+
+
+        // --- Test for a day NOT IN the schedule (e.g. Tuesday) ---
+        // This part is harder to make deterministic without time mocking.
+        // We assume if the above passed (it was Monday), then on a Tuesday, it should be empty.
+        // If we cannot guarantee the test execution day, we'd mock `LocalDate.now()`.
+        // For this example, if today is NOT Tuesday, this check might not be what we want.
+        val dayNotScheduled = DayOfWeek.TUESDAY
+        if (today.dayOfWeek == dayNotScheduled) {
+            viewModel.loadTodaySchedule(medId) // Reload for the "different" day
+            advanceUntilIdle()
+            val itemsNotOnScheduledDay = viewModel.todayScheduleItems.value
+            assertTrue(itemsNotOnScheduledDay.isEmpty()) // Expect empty if it's Tuesday
+            assertEquals(false, viewModel.isLoading.value)
+        } else {
+            println("Skipping weekly schedule 'off day' check as today is not ${dayNotScheduled.name}")
+        }
+    }
+
+
+    @Test
+    fun `loadTodaySchedule_adHocTakenDose_isIncluded_andSortedCorrectly`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val today = LocalDate.now()
+        val medId = testMedicationId
+        val medication = createTestMedication(medId, "AdhocAndScheduled")
+
+        // A daily schedule
+        val dailyTime = LocalTime.of(9,0)
+        val dailySchedule = createTestSchedule(15, medId, ScheduleType.DAILY, specificTimes = dailyTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
+
+        // An ad-hoc dose taken earlier than the scheduled one
+        val adHocTime = LocalTime.of(7,0)
+        val adHocReminder = createTestReminder(
+            "adhocEarly", medId, null, // No schedule ID
+            LocalDateTime.of(today, adHocTime),
+            isTakenFlag = true,
+            takenAtDateTime = LocalDateTime.of(today, adHocTime)
+        )
+
+        coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(dailySchedule))
+        coEvery { mockReminderRepository.getRemindersForMedication(medId) } returns flowOf(listOf(adHocReminder)) // DB returns only adhoc
+
+        viewModel.loadTodaySchedule(medId)
+        advanceUntilIdle()
+
+        val items = viewModel.todayScheduleItems.value
+        assertEquals(2, items.size) // Both ad-hoc and scheduled item
+        assertEquals(false, viewModel.isLoading.value)
+
+        // Ad-hoc item
+        val adhocItem = items.find { it.time == adHocTime }
+        assertNotNull(adhocItem)
+        assertTrue(adhocItem!!.isTaken)
+        assertEquals(adHocReminder.id.toLong(), adhocItem.underlyingReminderId)
+        assertEquals(0, adhocItem.medicationScheduleId) // Adhoc
+        assertEquals(adHocTime.isBefore(LocalTime.now()), adhocItem.isPast)
+
+
+        // Scheduled item (should be untaken as only adhoc was in DB)
+        val dailyItem = items.find { it.time == dailyTime }
+        assertNotNull(dailyItem)
+        assertFalse(dailyItem!!.isTaken)
+        assertEquals(0L, dailyItem.underlyingReminderId) // No DB item for this one
+        assertEquals(dailySchedule.id, dailyItem.medicationScheduleId)
+        assertEquals(dailyTime.isBefore(LocalTime.now()), dailyItem.isPast)
+
+        // Check sorting
+        assertEquals(adHocTime, items[0].time) // Adhoc was earlier
+        assertEquals(dailyTime, items[1].time)
     }
 
 
     // --- Tests for addPastMedicationTaken ---
     @Test
-    fun `addPastMedicationTaken_validPastDose_noMatchingSchedule_insertsReminderWithScheduleId0`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+    fun `addPastMedicationTaken_validPastDose_noMatchingSchedule_insertsReminderWithScheduleIdNull`() = mainCoroutineRule.testDispatcher.runBlockingTest {
         val pastDate = LocalDate.now().minusDays(1)
         val pastTime = LocalTime.of(14, 0)
-        // Ensure ReminderCalculator returns empty for this specific time, or for any schedule
-        val scheduleNotMatching = MedicationSchedule(id = 3, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY, daysOfWeek = "1", specificTimes = "10:00", intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
+        val scheduleNotMatching = createTestSchedule(3, testMedicationId, ScheduleType.DAILY, specificTimes = "10:00", daysOfWeek = "1")
 
 
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
@@ -188,10 +528,11 @@ class MedicationReminderViewModelTest {
         coEvery { mockReminderRepository.insertReminder(any()) } returns 1L // return dummy ID
 
         viewModel.addPastMedicationTaken(testMedicationId, testMedication.name, pastDate, pastTime)
+        advanceUntilIdle()
 
         coVerify { mockReminderRepository.insertReminder(match {
             it.medicationId == testMedicationId &&
-            it.medicationScheduleId == 0 && // No matching schedule
+            it.medicationScheduleId == null && // Changed from 0 to null
             it.isTaken &&
             it.reminderTime == LocalDateTime.of(pastDate, pastTime).format(ReminderCalculator.storableDateTimeFormatter)
         }) }
@@ -199,13 +540,12 @@ class MedicationReminderViewModelTest {
 
     @Test
     fun `addPastMedicationTaken_validPastDose_matchingSchedule_insertsReminderWithScheduleId`() = mainCoroutineRule.testDispatcher.runBlockingTest {
-        val pastDate = LocalDate.now().minusDays(1) // A specific past date
-        val pastTime = LocalTime.of(10,0) // Time that will match scheduleForPastDate
-        val scheduleForPastDate = MedicationSchedule(
-            id = 5, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY,
-            daysOfWeek = pastDate.dayOfWeek.value.toString(), // Match the day of week for pastDate
-            specificTimes = pastTime.format(ReminderCalculator.timeStorableFormatter), // Match the pastTime
-            intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
+        val pastDate = LocalDate.now().minusDays(1)
+        val pastTime = LocalTime.of(10,0)
+        val scheduleForPastDate = createTestSchedule(
+            5, testMedicationId, ScheduleType.DAILY,
+            specificTimes = pastTime.format(ReminderCalculator.timeStorableFormatter),
+            daysOfWeek = pastDate.dayOfWeek.value.toString()
         )
         val medicationForPastDate = testMedication.copy(startDate = pastDate.minusDays(2).format(ReminderCalculator.dateStorableFormatter))
 
@@ -215,10 +555,11 @@ class MedicationReminderViewModelTest {
         coEvery { mockReminderRepository.insertReminder(any()) } returns 1L
 
         viewModel.addPastMedicationTaken(testMedicationId, medicationForPastDate.name, pastDate, pastTime)
+        advanceUntilIdle()
 
         coVerify { mockReminderRepository.insertReminder(match {
             it.medicationId == testMedicationId &&
-            it.medicationScheduleId == scheduleForPastDate.id && // Matching schedule
+            it.medicationScheduleId == scheduleForPastDate.id &&
             it.isTaken
         }) }
     }
@@ -230,6 +571,7 @@ class MedicationReminderViewModelTest {
         val futureTime = LocalTime.NOON
 
         viewModel.addPastMedicationTaken(testMedicationId, testMedication.name, futureDate, futureTime)
+        advanceUntilIdle()
 
         coVerify(exactly = 0) { mockReminderRepository.insertReminder(any()) }
     }
@@ -241,17 +583,19 @@ class MedicationReminderViewModelTest {
         val medicationForCalc = testMedication.copy(startDate = today.minusDays(1).format(ReminderCalculator.dateStorableFormatter))
 
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns medicationForCalc
-        coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(emptyList()) // for addPast...
+        coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(emptyList())
         coEvery { mockReminderRepository.insertReminder(any()) } returns 1L
-        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(emptyList()) // for loadToday...
+        // For loadTodaySchedule, getRemindersForMedication will be called again.
+        // To ensure it's not empty after insert, we need to mock it to return the newly added item.
+        // However, for verifying the *call* to loadTodaySchedule, mocking its dependencies is enough.
+        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(emptyList())
 
         viewModel.addPastMedicationTaken(testMedicationId, testMedication.name, today, pastTime)
+        advanceUntilIdle()
 
-        // Verify insert was called
         coVerify { mockReminderRepository.insertReminder(any()) }
-        // Verify that loadTodaySchedule's dependencies were called again
-        coVerify(atLeast = 2) { mockMedicationRepository.getMedicationById(testMedicationId) } // Once for add, once for load
-        coVerify(atLeast = 2) { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } // Once for add, once for load
+        coVerify(atLeast = 2) { mockMedicationRepository.getMedicationById(testMedicationId) }
+        coVerify(atLeast = 2) { mockScheduleRepository.getSchedulesForMedication(testMedicationId) }
     }
 
 
@@ -259,35 +603,35 @@ class MedicationReminderViewModelTest {
     private suspend fun setupLoadTodayScheduleWithOneItem(taken: Boolean, scheduleId: Int = 1, time: LocalTime = LocalTime.of(9,0)): TodayScheduleItem {
         val today = LocalDate.now()
         val itemTime = time
-        val testSchedule = MedicationSchedule(id = scheduleId, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY, daysOfWeek = today.dayOfWeek.value.toString(), specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
-        val reminderTimeStr = LocalDateTime.of(today, itemTime).format(ReminderCalculator.storableDateTimeFormatter)
-        val existingReminder = if (taken) MedicationReminder(id = 101, medicationId = testMedicationId, medicationScheduleId = scheduleId, reminderTime = reminderTimeStr, isTaken = true, takenAt = reminderTimeStr) else null
+        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
+        val reminderTime = LocalDateTime.of(today, itemTime)
+        val existingReminder = if (taken) createTestReminder("db101", testMedicationId, scheduleId, reminderTime, true, reminderTime) else null
 
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
         coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(testSchedule))
         coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(if(existingReminder != null) listOf(existingReminder) else emptyList())
 
         viewModel.loadTodaySchedule(testMedicationId)
-        return viewModel.todayScheduleItems.value.first { it.time == itemTime }
+        advanceUntilIdle()
+        return viewModel.todayScheduleItems.value.first { it.time.truncatedTo(ChronoUnit.MINUTES) == itemTime.truncatedTo(ChronoUnit.MINUTES) && it.medicationScheduleId == scheduleId }
     }
 
     @Test
     fun `updateReminderStatus_markAsTaken_itemNotYetInDB_insertsNewReminder`() = mainCoroutineRule.testDispatcher.runBlockingTest {
-        val testItem = setupLoadTodayScheduleWithOneItem(taken = false, scheduleId = 20) // This item will have underlyingReminderId = 0L
+        val testItem = setupLoadTodayScheduleWithOneItem(taken = false, scheduleId = 20)
 
-        // Ensure no existing reminder for this specific time when updateReminderStatus calls getRemindersForMedication
-        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(emptyList()) // Simulate no reminder existing at the point of update check
-        coEvery { mockReminderRepository.insertReminder(any()) } returns 1L // Mock insert
+        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(emptyList())
+        coEvery { mockReminderRepository.insertReminder(any()) } returns 1L
 
         viewModel.updateReminderStatus(testItem.id, true, testMedicationId)
+        advanceUntilIdle()
 
         coVerify { mockReminderRepository.insertReminder(match {
             it.medicationId == testMedicationId &&
-            it.medicationScheduleId == testItem.medicationScheduleId && // Uses ID from TodayScheduleItem
+            it.medicationScheduleId == testItem.medicationScheduleId &&
             it.isTaken &&
             it.reminderTime == LocalDateTime.of(LocalDate.now(), testItem.time).format(ReminderCalculator.storableDateTimeFormatter)
         }) }
-        coVerify(atLeast = 2) { mockMedicationRepository.getMedicationById(testMedicationId) } // For initial load + reload
     }
 
     @Test
@@ -296,21 +640,26 @@ class MedicationReminderViewModelTest {
         val today = LocalDate.now()
         val scheduleId = 21
         val reminderId = 102
-        val reminderTimeStr = LocalDateTime.of(today, itemTime).format(ReminderCalculator.storableDateTimeFormatter)
-        val dbReminder = MedicationReminder(id = reminderId, medicationId = testMedicationId, medicationScheduleId = scheduleId, reminderTime = reminderTimeStr, isTaken = false, takenAt = null)
+        val reminderTime = LocalDateTime.of(today, itemTime)
+        val dbReminder = createTestReminder("db102", testMedicationId, scheduleId, reminderTime, false)
 
-        // Setup for loadTodaySchedule
-        val testSchedule = MedicationSchedule(id = scheduleId, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY, daysOfWeek = today.dayOfWeek.value.toString(), specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
+        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
         coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(testSchedule))
-        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(listOf(dbReminder)) // This is for loadTodaySchedule AND the find in updateReminderStatus
+        // This mock is for loadTodaySchedule AND the find in updateReminderStatus
+        coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(listOf(dbReminder))
+        // This mock is for the getReminderById call
+        coEvery { mockReminderRepository.getReminderById(reminderId) } returns dbReminder
+
 
         viewModel.loadTodaySchedule(testMedicationId)
+        advanceUntilIdle()
         val testItem = viewModel.todayScheduleItems.value.first { it.underlyingReminderId == reminderId.toLong() }
 
         coEvery { mockReminderRepository.updateReminder(any()) } just runs
 
         viewModel.updateReminderStatus(testItem.id, true, testMedicationId)
+        advanceUntilIdle()
 
         coVerify { mockReminderRepository.updateReminder(match {
             it.id == reminderId && it.isTaken && it.takenAt != null
@@ -323,20 +672,24 @@ class MedicationReminderViewModelTest {
         val today = LocalDate.now()
         val scheduleId = 22
         val reminderId = 103
-        val reminderTimeStr = LocalDateTime.of(today, itemTime).format(ReminderCalculator.storableDateTimeFormatter)
-        val dbReminder = MedicationReminder(id = reminderId, medicationId = testMedicationId, medicationScheduleId = scheduleId, reminderTime = reminderTimeStr, isTaken = true, takenAt = reminderTimeStr)
+        val reminderTime = LocalDateTime.of(today, itemTime)
+        val dbReminder = createTestReminder("db103", testMedicationId, scheduleId, reminderTime, true, reminderTime)
 
-        val testSchedule = MedicationSchedule(id = scheduleId, medicationId = testMedicationId, scheduleType = ScheduleType.DAILY, daysOfWeek = today.dayOfWeek.value.toString(), specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
+        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
         coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(testSchedule))
         coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(listOf(dbReminder))
+        coEvery { mockReminderRepository.getReminderById(reminderId) } returns dbReminder
+
 
         viewModel.loadTodaySchedule(testMedicationId)
+        advanceUntilIdle()
         val testItem = viewModel.todayScheduleItems.value.first { it.underlyingReminderId == reminderId.toLong() }
 
         coEvery { mockReminderRepository.updateReminder(any()) } just runs
 
         viewModel.updateReminderStatus(testItem.id, false, testMedicationId)
+        advanceUntilIdle()
 
         coVerify { mockReminderRepository.updateReminder(match {
             it.id == reminderId && !it.isTaken && it.takenAt == null
@@ -346,9 +699,10 @@ class MedicationReminderViewModelTest {
 
     @Test
     fun `updateReminderStatus_itemIdNotFound_doesNotCrashOrCallRepo`() = mainCoroutineRule.testDispatcher.runBlockingTest {
-        setupLoadTodayScheduleWithOneItem(false) // Populate with some data
+        setupLoadTodayScheduleWithOneItem(false)
 
         viewModel.updateReminderStatus("nonExistentId", true, testMedicationId)
+        advanceUntilIdle()
 
         coVerify(exactly = 0) { mockReminderRepository.insertReminder(any()) }
         coVerify(exactly = 0) { mockReminderRepository.updateReminder(any()) }

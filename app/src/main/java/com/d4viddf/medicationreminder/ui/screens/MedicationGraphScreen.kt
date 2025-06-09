@@ -10,10 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.width // Ensure width is imported for bar width
+import androidx.compose.foundation.rememberScrollState // For horizontal scroll
+import androidx.compose.foundation.horizontalScroll // For horizontal scroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
+
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,6 +52,9 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exi
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth // Added for currentDisplayedMonth
+import java.time.format.DateTimeFormatter // Added for month formatting
+
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
@@ -61,24 +71,31 @@ fun MedicationGraphScreen(
     viewModel: MedicationGraphViewModel? = null // Made nullable for preview
 ) {
     var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
+    var currentDisplayedMonth by remember { mutableStateOf(YearMonth.now()) }
+    var currentDisplayedYear by remember { mutableStateOf(LocalDate.now().year) } // Added state for year
+
     // Provide sample data for preview if viewModel is null
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
     val graphData by viewModel?.graphData?.collectAsState() ?: remember {
+        // Sample data for weekly view in preview
+        val today = LocalDate.now()
+        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        val shortDayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
         mutableStateOf(
             mapOf(
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 2,
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(1).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 3,
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(2).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 1,
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(3).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 4,
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(4).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 2,
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(5).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 0,
-                LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(6).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to 1
+                monday.format(shortDayFormatter) to 2,
+                monday.plusDays(1).format(shortDayFormatter) to 3,
+                monday.plusDays(2).format(shortDayFormatter) to 1,
+                monday.plusDays(3).format(shortDayFormatter) to 4,
+                monday.plusDays(4).format(shortDayFormatter) to 2,
+                monday.plusDays(5).format(shortDayFormatter) to 0,
+                monday.plusDays(6).format(shortDayFormatter) to 1
             )
         )
     }
 
-    LaunchedEffect(medicationId, selectedViewType, viewModel) { // Added viewModel to keys
-        if (viewModel != null) { // Only load if viewModel is available
+    LaunchedEffect(medicationId, selectedViewType, currentDisplayedMonth, currentDisplayedYear, viewModel) { // Added currentDisplayedYear
+        if (viewModel != null) {
             when (selectedViewType) {
                 GraphViewType.WEEK -> {
                     val today = LocalDate.now()
@@ -87,10 +104,11 @@ fun MedicationGraphScreen(
                     viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
                 }
                 GraphViewType.MONTH -> {
-                    viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+                    viewModel.loadMonthlyGraphData(medicationId, currentDisplayedMonth)
                 }
                 GraphViewType.YEAR -> {
-                    viewModel.loadWeeklyGraphData(medicationId, emptyList()) // Clear data for now
+                    viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
+
                 }
             }
         }
@@ -141,91 +159,202 @@ fun MedicationGraphScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Date Navigation Controls - Placed here
+            if (selectedViewType == GraphViewType.MONTH || selectedViewType == GraphViewType.YEAR) {
+                val monthYearFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
+                val currentDisplayPeriodText = when (selectedViewType) {
+                    GraphViewType.MONTH -> currentDisplayedMonth.format(monthYearFormatter)
+                    GraphViewType.YEAR -> currentDisplayedYear.toString()
+                    else -> "" // Should not happen as it's guarded by the if
+                }
+                DateNavigationControls(
+                    selectedViewType = selectedViewType,
+                    currentPeriodDisplayName = currentDisplayPeriodText,
+                    onPrevious = {
+                        if (selectedViewType == GraphViewType.MONTH) {
+                            currentDisplayedMonth = currentDisplayedMonth.minusMonths(1)
+                        } else if (selectedViewType == GraphViewType.YEAR) {
+                            currentDisplayedYear--
+                        }
+                    },
+                    onNext = {
+                        if (selectedViewType == GraphViewType.MONTH) {
+                            currentDisplayedMonth = currentDisplayedMonth.plusMonths(1)
+                        } else if (selectedViewType == GraphViewType.YEAR) {
+                            currentDisplayedYear++
+                        }
+                    }
+                )
+            }
 
-            // Bar Chart Implementation
-            val maxCount = graphData.values.maxOrNull() ?: 1 // Avoid division by zero, ensure at least 1
-            val todayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            Spacer(modifier = Modifier.height(8.dp)) // Adjusted spacer
 
-            if (selectedViewType == GraphViewType.WEEK && graphData.isEmpty()) {
+            // Chart Title
+            val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
+            val chartTitle = when (selectedViewType) {
+                GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
+                GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentDisplayedMonth.format(monthFormatter))
+                GraphViewType.YEAR -> "Yearly Doses - $currentDisplayedYear" // Updated to use currentDisplayedYear
+            }
+            Text(
+                text = chartTitle,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
+            )
+
+            // Bar Chart or Placeholder
+            if (graphData.isEmpty()) {
                  Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp) // Match approx height of chart
+                        .height(220.dp)
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(stringResource(id = R.string.loading_graph_data)) // Or "No data for this week"
-                }
-            } else if (selectedViewType == GraphViewType.WEEK) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                     Text(
-                        stringResource(id = R.string.weekly_doses_taken_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp) // Increased height for labels + bars
-                            .padding(vertical = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.Bottom // Align bars to bottom
-                    ) {
-                        graphData.forEach { (dayLabel, count) ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Bottom,
-                                modifier = Modifier.weight(1f) // Distribute space equally
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(30.dp)
-                                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * 180).dp else 0.dp) // Corrected Dp calculation
-                                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                        .background(
-                                            if (dayLabel.equals(todayShortName, ignoreCase = true))
-                                                MaterialTheme.colorScheme.primary
-                                            else
-                                                MaterialTheme.colorScheme.secondaryContainer
-                                        )
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(dayLabel, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
+                    Text(stringResource(id = R.string.loading_graph_data)) // Or "No data for this view"
                 }
             } else {
-                 // Placeholder for Month/Year views
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val viewText = when (selectedViewType) {
-                        GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
-                        GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
-                        else -> "" // Should not happen
-                    }
-                    Text(
-                        text = stringResource(id = R.string.graph_placeholder_text, viewText, medicationId),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                 BarChartDisplay(
+                    graphData = graphData,
+                    selectedViewType = selectedViewType,
+                    currentDisplayedMonth = currentDisplayedMonth,
+                    currentDisplayedYear = currentDisplayedYear // Pass currentDisplayedYear
+                 )
             }
         }
     }
 }
 
+@Composable
+private fun DateNavigationControls(
+    selectedViewType: GraphViewType,
+    currentPeriodDisplayName: String,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onPrevious) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = stringResource(id = R.string.previous_period_cd)
+            )
+        }
+        Text(
+            text = currentPeriodDisplayName,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Medium
+        )
+        IconButton(onClick = onNext) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(id = R.string.next_period_cd)
+            )
+        }
+    }
+}
+
+@Composable
+private fun BarChartDisplay(
+    graphData: Map<String, Int>,
+    selectedViewType: GraphViewType,
+    currentDisplayedMonth: YearMonth,
+    currentDisplayedYear: Int,
+    modifier: Modifier = Modifier
+) {
+    val maxCount = graphData.values.maxOrNull() ?: 1
+    val today = LocalDate.now()
+    val todayShortName = today.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    val currentDayOfMonthForHighlight = if (currentDisplayedMonth.year == today.year && currentDisplayedMonth.month == today.month) {
+        today.dayOfMonth.toString()
+    } else {
+        null
+    }
+    val currentMonthShortNameForHighlight = if (currentDisplayedYear == today.year) {
+        today.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    } else {
+        null
+    }
+    val barMaxHeight = 160.dp // Reduced to make space for count text
+
+    val rowModifier = if (selectedViewType == GraphViewType.WEEK) {
+        modifier
+            .fillMaxWidth() // For WEEK, fill width
+            .height(220.dp)
+            .padding(vertical = 16.dp)
+    } else { // For MONTH, YEAR
+        modifier
+            .fillMaxWidth() // Still fill width for the scrollable area
+            .height(220.dp)
+            .horizontalScroll(rememberScrollState())
+            .padding(vertical = 16.dp)
+    }
+
+    val rowArrangement = if (selectedViewType == GraphViewType.WEEK) {
+        Arrangement.SpaceEvenly // Distribute weekly bars evenly
+    } else {
+        Arrangement.spacedBy(8.dp) // More spacing for scrollable views
+    }
+
+    Row(
+        modifier = rowModifier,
+        horizontalArrangement = rowArrangement,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        graphData.forEach { (label, count) ->
+            val highlight = when(selectedViewType) {
+                GraphViewType.WEEK -> label.equals(todayShortName, ignoreCase = true)
+                GraphViewType.MONTH -> label == currentDayOfMonthForHighlight
+                GraphViewType.YEAR -> label.equals(currentMonthShortNameForHighlight, ignoreCase = true) && currentDisplayedYear == today.year
+            }
+
+            val columnModifier = if (selectedViewType == GraphViewType.WEEK) {
+                Modifier.weight(1f) // Weekly bars take equal weighted space
+            } else {
+                Modifier // Monthly/Yearly bars have fixed width defined on the Box
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom,
+                modifier = columnModifier
+            ) {
+                if (count > 0) {
+                    Text(
+                        text = count.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (highlight) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(bottom = 1.dp) // Small space between count and bar
+                    )
+                } else {
+                    // Leave space for alignment even if count is 0, or adjust layout not to need this.
+                    Spacer(modifier = Modifier.height(MaterialTheme.typography.labelSmall.lineHeight.value.dp + 1.dp))
+                }
+                // Spacer(Modifier.height(2.dp)) // Original position, moved or replaced by padding in Text
+                Box(
+                    modifier = Modifier
+                        .width(if (selectedViewType == GraphViewType.WEEK) 30.dp else 20.dp)
+                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
+                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                        .background(
+                            if (highlight) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.secondaryContainer
+                        )
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(label, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+
+=======
 @Composable
 private fun GraphViewButton(
     text: String,
@@ -243,14 +372,14 @@ private fun GraphViewButton(
         )
     }
 
-    val border = if (isSelected) null else ButtonDefaults.outlinedButtonBorder // Corrected method name
+    val border = if (isSelected) null else ButtonDefaults.outlinedButtonBorder
 
-    TextButton( // Using TextButton for a flatter look which works well for segmented controls
+    TextButton(
         onClick = onClick,
-        shape = RoundedCornerShape(8.dp), // Consistent shape
+        shape = RoundedCornerShape(8.dp),
         colors = colors,
         border = border,
-        modifier = Modifier.padding(horizontal = 4.dp) // Some spacing between buttons
+        modifier = Modifier.padding(horizontal = 4.dp)
     ) {
         Text(text)
     }
@@ -264,7 +393,7 @@ fun MedicationGraphScreenPreviewWeek() {
         MedicationGraphScreen(
             medicationId = 1,
             onNavigateBack = {},
-            viewModel = null // Pass null for preview to use sample data
+            viewModel = null
         )
     }
 }
@@ -273,13 +402,21 @@ fun MedicationGraphScreenPreviewWeek() {
 @Preview(showBackground = true, name = "Medication Graph Screen - Month View")
 @Composable
 fun MedicationGraphScreenPreviewMonth() {
-    // This preview will also use the default data from MedicationGraphScreen when viewModel is null,
-    // but we can simulate the 'Month' selection for the placeholder text.
-    // For a true 'Month' data preview, a more complex setup or a dedicated preview composable would be needed.
     AppTheme {
-        var selectedViewType by remember { mutableStateOf(GraphViewType.MONTH) } // To control the placeholder text
+        // Simulate selecting MONTH view for preview
+        var selectedViewType by remember { mutableStateOf(GraphViewType.MONTH) }
         val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
-        val graphData by remember { mutableStateOf(emptyMap<String, Int>()) } // Empty for month/year for now
+        // Sample data for monthly view in preview
+        val currentMonth = YearMonth.now()
+        val currentYearForPreview = currentMonth.year // Define for use in title
+        val sampleMonthlyData = remember {
+            (1..currentMonth.lengthOfMonth()).associate { day ->
+                day.toString() to (0..5).random() // Random counts for preview
+            }
+        }
+         val graphData by remember { mutableStateOf(if (selectedViewType == GraphViewType.MONTH) sampleMonthlyData else emptyMap<String,Int>()) }
+
+
 
         Scaffold(
             topBar = {
@@ -312,28 +449,35 @@ fun MedicationGraphScreenPreviewMonth() {
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Placeholder for Month/Year views as per original logic
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val viewText = when (selectedViewType) {
-                        GraphViewType.MONTH -> stringResource(id = R.string.graph_view_monthly)
-                        GraphViewType.YEAR -> stringResource(id = R.string.graph_view_yearly)
-                        else -> stringResource(id = R.string.graph_view_weekly) // Default to weekly if state is somehow WEEK
+                val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
+                val currentYearForPreview = currentMonth.year // Assuming currentMonth is still in scope for preview
+                val chartTitle = when (selectedViewType) {
+                    GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
+                    GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentMonth.format(monthFormatter))
+                    GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentYearForPreview) // Use defined currentYearForPreview
+                }
+                Text(
+                    text = chartTitle,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
+                )
+
+                if (graphData.isEmpty() && selectedViewType != GraphViewType.WEEK /* Handled by default data in main composable for WEEK */) {
+                     Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(stringResource(id = R.string.loading_graph_data))
                     }
-                    Text(
-                        text = stringResource(id = R.string.graph_placeholder_text, viewText, 1), // medicationId for preview is 1
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                } else {
+                    BarChartDisplay(
+                        graphData = graphData,
+                        selectedViewType = selectedViewType,
+                        currentDisplayedMonth = currentMonth,
+                        currentDisplayedYear = currentYearForPreview // Pass current year for preview
                     )
                 }
             }

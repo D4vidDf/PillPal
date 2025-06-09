@@ -305,6 +305,7 @@
     <string name="all_schedules_title">All Schedules</string>
     <string name="back_button_content_description">Back</string>
     <string name="all_schedules_no_schedules_found">No schedules found for this medication.</string>
+    <string name="todays_full_schedule_title_template">%1$s - Today\'s Schedule</string>
 
     <!-- MedicationGraphScreen -->
     <string name="medication_statistics_title">Medication Statistics</string>
@@ -315,6 +316,10 @@
     <string name="graph_placeholder_text">%1$s Graph Placeholder\n(for Medication ID: %2$d)</string>
     <string name="weekly_doses_taken_title">Weekly Doses Taken</string>
     <string name="loading_graph_data">Loading graph data...</string>
+    <string name="monthly_doses_taken_title_template">Monthly Doses - %1$s</string>
+    <string name="yearly_doses_taken_title_template">Yearly Doses - %1$d</string>
+    <string name="previous_period_cd">Previous Period</string>
+    <string name="next_period_cd">Next Period</string>
 
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Back to medication details</string>
@@ -347,12 +352,10 @@
     <string name="med_history_filter_select_date_cd">Select Date Range</string>
     <string name="med_history_filter_select_range_button">Select Range</string>
     <string name="med_history_filter_clear_button">Clear Date Filter</string>
-    <string name="med_history_action_first">First</string>
-    <string name="med_history_action_last">Last</string>
-    <string name="med_history_sort_asc">Asc</string>
-    <string name="med_history_sort_desc">Desc</string>
     <string name="med_history_no_history_found">No history found for this medication.</string>
     <string name="med_history_item_taken_at_prefix">Taken at: </string>
+    <string name="med_history_action_sort_oldest_first">Oldest First</string>
+    <string name="med_history_action_sort_newest_first">Newest First</string>
     <!-- Note: "medication_history_title" was already added in a previous step for MedicationDetailScreen -->
     <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
     <!-- <string name="medication_history_title">Medication History</string> -->
