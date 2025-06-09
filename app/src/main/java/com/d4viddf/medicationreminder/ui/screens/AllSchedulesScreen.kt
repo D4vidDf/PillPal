@@ -53,6 +53,66 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+@Composable
+fun FullScheduleItem(
+    itemData: Any,
+    medicationName: String,
+    medicationId: Int, // Added medicationId parameter
+    onToggleTaken: ((itemId: String, isTaken: Boolean, medicationId: Int) -> Unit)? = null,
+    isSwitchEnabled: Boolean = false,
+    showSwitch: Boolean = false
+) {
+    val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            val itemName: String
+            val itemTimeText: String
+            // var isTakenState = false // Default, only used if switch is shown - REMOVED
+
+            when (itemData) {
+                is TodayScheduleItem -> {
+                    itemName = itemData.medicationName // TodayScheduleItem has its own medicationName
+                    itemTimeText = itemData.time.format(timeFormatter)
+                    // isTakenState = itemData.isTaken // REMOVED
+                }
+                is MedicationSchedule -> {
+                    itemName = medicationName // Use the passed overall medicationName
+                    itemTimeText = itemData.getFormattedSchedule()
+                }
+                else -> {
+                    itemName = "Unknown Item"
+                    itemTimeText = "N/A"
+                }
+            }
+
+            Text(text = itemName, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = itemTimeText,
+
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
+            Switch(
+                checked = itemData.isTaken,
+                onCheckedChange = { newTakenStatus ->
+                    onToggleTaken(itemData.id, newTakenStatus, medicationId) // Use passed medicationId
+                },
+                enabled = isSwitchEnabled
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllSchedulesScreen(
@@ -165,66 +225,6 @@ fun AllSchedulesScreen(
     }
 } // Closing MedicationSpecificTheme
 
-@Composable
-fun FullScheduleItem(
-    itemData: Any,
-    medicationName: String,
-    medicationId: Int, // Added medicationId parameter
-    onToggleTaken: ((itemId: String, isTaken: Boolean, medicationId: Int) -> Unit)? = null,
-    isSwitchEnabled: Boolean = false,
-    showSwitch: Boolean = false
-) {
-    val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            val itemName: String
-            val itemTimeText: String
-            var isTakenState = false // Default, only used if switch is shown
-
-            when (itemData) {
-                is TodayScheduleItem -> {
-                    itemName = itemData.medicationName // TodayScheduleItem has its own medicationName
-                    itemTimeText = itemData.time.format(timeFormatter)
-                    isTakenState = itemData.isTaken
-                }
-                is MedicationSchedule -> {
-                    itemName = medicationName // Use the passed overall medicationName
-                    itemTimeText = itemData.getFormattedSchedule()
-                }
-                else -> {
-                    itemName = "Unknown Item"
-                    itemTimeText = "N/A"
-                }
-            }
-
-            Text(text = itemName, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = itemTimeText,
-
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
-            Switch(
-                checked = itemData.isTaken,
-                onCheckedChange = { newTakenStatus ->
-                    onToggleTaken(itemData.id, newTakenStatus, medicationId) // Use passed medicationId
-                },
-                enabled = isSwitchEnabled
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true, name = "All Defined Schedules")
 @Composable
 fun AllSchedulesScreenDefinedPreview() {
@@ -249,9 +249,9 @@ fun AllSchedulesScreenTodayPreview() {
         TodayScheduleItem("ts2", "Med A", LocalTime.of(14,0), false, false, 2L, 1, null),
         TodayScheduleItem("ts3", "Med A", LocalTime.of(20,0), false, true, 3L, 1, LocalTime.of(19,55).toString())
     )
-    var medicationName by remember { mutableStateOf("Sample Medication") }
-    val previewMedicationId = 1 // Define sample medicationId for preview context
-    val medicationColor = MedicationColor.BLUE // Example color for preview
+    val medicationNameForPreview by remember { mutableStateOf("Sample Medication") }
+    val previewMedicationId = 1
+    val medicationColor = MedicationColor.BLUE
 
     AppTheme {
         MedicationSpecificTheme(medicationColor = medicationColor) {
@@ -263,10 +263,10 @@ fun AllSchedulesScreenTodayPreview() {
                             titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                    title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationName ?: stringResource(id = R.string.medication_detail_today_title))) },
-                    navigationIcon = {
-                        IconButton(onClick = {}) {
-                            Icon(
+                        title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationNameForPreview)) },
+                        navigationIcon = {
+                            IconButton(onClick = {}) {
+                                Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(id = R.string.back_button_content_description)
                             )
