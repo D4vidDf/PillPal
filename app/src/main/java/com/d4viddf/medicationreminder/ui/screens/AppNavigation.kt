@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue // For state
 import androidx.compose.runtime.mutableStateOf // For state
 import androidx.compose.runtime.remember // For state
 import androidx.compose.runtime.setValue // For state
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added import
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationHistoryScreen
@@ -50,16 +51,16 @@ sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding_screen")
 
     object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
-        fun createRoute(medicationId: Int, showToday: Boolean = false) = "all_schedules_screen/$medicationId?$SHOW_TODAY_ARG=$showToday"
+        fun createRoute(medicationId: Int, showToday: Boolean = false) = "all_schedules_screen/$medId?$SHOW_TODAY_ARG=$showToday"
     }
-    object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}") {
-        fun createRoute(medicationId: Int) = "medication_history_screen/$medicationId"
+    object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}/{colorName}") {
+        fun createRoute(medicationId: Int, colorName: String) = "medication_history_screen/$medicationId/$colorName"
     }
-    object MedicationGraph : Screen("medication_graph_screen/{$MEDICATION_ID_ARG}") {
-        fun createRoute(medicationId: Int) = "medication_graph_screen/$medicationId"
+    object MedicationGraph : Screen("medication_graph_screen/{$MEDICATION_ID_ARG}/{colorName}") {
+        fun createRoute(medicationId: Int, colorName: String) = "medication_graph_screen/$medicationId/$colorName"
     }
-    object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}") {
-        fun createRoute(medicationId: Int) = "medication_info_screen/$medicationId"
+    object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}/{colorName}") {
+        fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
     }
 }
 
@@ -143,25 +144,19 @@ fun AppNavigation(
                             )
                         }, // Pass showToday = true from details screen
 
-                        onNavigateToMedicationHistory = { medId ->
+                        onNavigateToMedicationHistory = { medId, colorName ->
                             navController.navigate(
-                                Screen.MedicationHistory.createRoute(
-                                    medId
-                                )
+                                Screen.MedicationHistory.createRoute(medId, colorName)
                             )
                         },
-                        onNavigateToMedicationGraph = { medId ->
+                        onNavigateToMedicationGraph = { medId, colorName ->
                             navController.navigate(
-                                Screen.MedicationGraph.createRoute(
-                                    medId
-                                )
+                                Screen.MedicationGraph.createRoute(medId, colorName)
                             )
                         },
-                        onNavigateToMedicationInfo = { medId ->
+                        onNavigateToMedicationInfo = { medId, colorName ->
                             navController.navigate(
-                                Screen.MedicationInfo.createRoute(
-                                    medId
-                                )
+                                Screen.MedicationInfo.createRoute(medId, colorName)
                             )
                         }
                     )
@@ -249,34 +244,49 @@ fun AppNavigation(
 
             composable(
                 Screen.MedicationHistory.route,
-                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
+                    navArgument("colorName") { type = NavType.StringType }
+                )
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                val colorName = backStackEntry.arguments?.getString("colorName")
                 MedicationHistoryScreen(
                     medicationId = medicationId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
             }
 
             composable(
                 Screen.MedicationGraph.route,
-                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
+                    navArgument("colorName") { type = NavType.StringType }
+                )
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                val colorName = backStackEntry.arguments?.getString("colorName")
                 MedicationGraphScreen(
                     medicationId = medicationId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
             }
 
             composable(
                 Screen.MedicationInfo.route,
-                arguments = listOf(navArgument(MEDICATION_ID_ARG) { type = NavType.IntType })
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
+                    navArgument("colorName") { type = NavType.StringType }
+                )
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                val colorName = backStackEntry.arguments?.getString("colorName")
                 MedicationInfoScreen(
                     medicationId = medicationId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
             }
         }

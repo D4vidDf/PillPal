@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,7 +45,9 @@ import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R // Moved import to top
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -63,9 +66,17 @@ enum class GraphViewType {
 @Composable
 fun MedicationGraphScreen(
     medicationId: Int,
+    colorName: String,
     onNavigateBack: () -> Unit,
     viewModel: MedicationGraphViewModel? = null // Made nullable for preview
 ) {
+    val medicationColor = remember(colorName) {
+        try {
+            MedicationColor.valueOf(colorName)
+        } catch (e: IllegalArgumentException) {
+            MedicationColor.LIGHT_ORANGE // Fallback
+        }
+    }
     var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
     var currentDisplayedMonth by remember { mutableStateOf(YearMonth.now()) }
     var currentDisplayedYear by remember { mutableStateOf(LocalDate.now().year) } // Added state for year
@@ -110,23 +121,29 @@ fun MedicationGraphScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_statistics_title) }) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.med_stats_navigate_back_cd)
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_statistics_title) }) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.med_stats_navigate_back_cd)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
@@ -219,7 +236,7 @@ fun MedicationGraphScreen(
             }
         }
     }
-}
+} // Closing MedicationSpecificTheme
 
 @Composable
 private fun DateNavigationControls(
@@ -387,6 +404,7 @@ fun MedicationGraphScreenPreviewWeek() {
     AppTheme {
         MedicationGraphScreen(
             medicationId = 1,
+            colorName = "LIGHT_GREEN", // Added colorName for preview
             onNavigateBack = {},
             viewModel = null
         )

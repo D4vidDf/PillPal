@@ -21,14 +21,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,7 +54,9 @@ import com.d4viddf.medicationreminder.data.CimaFormaFarmaceutica // For preview
 import com.d4viddf.medicationreminder.data.CimaViaAdministracion // For preview
 import com.d4viddf.medicationreminder.data.CimaEstado // For preview
 import com.d4viddf.medicationreminder.data.CimaDocumento // For preview
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -65,9 +68,17 @@ import java.util.Locale
 @Composable
 fun MedicationInfoScreen(
     medicationId: Int,
+    colorName: String,
     onNavigateBack: () -> Unit,
     viewModel: MedicationInfoViewModel? = hiltViewModel() // Made nullable for preview
 ) {
+    val medicationColor = remember(colorName) {
+        try {
+            MedicationColor.valueOf(colorName)
+        } catch (e: IllegalArgumentException) {
+            MedicationColor.LIGHT_ORANGE // Fallback
+        }
+    }
     val cimaMedicationDetail by viewModel?.medicationInfo?.collectAsState() ?: remember { mutableStateOf(null) }
     val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
     val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
@@ -105,23 +116,29 @@ fun MedicationInfoScreen(
         viewModel?.loadMedicationInfo(medicationId)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(sampleInfoForPreview?.nombre ?: stringResource(id = R.string.loading)) }, // Changed to R.string.loading
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.med_info_navigate_back_cd)
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        when {
-            isLoading -> {
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(sampleInfoForPreview?.nombre ?: stringResource(id = R.string.loading)) }, // Changed to R.string.loading
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.med_info_navigate_back_cd)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        ) { paddingValues ->
+            when {
+                isLoading -> {
                 Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -197,7 +214,7 @@ fun MedicationInfoScreen(
             }
         }
     }
-}
+} // Closing MedicationSpecificTheme
 
 @Composable
 private fun InfoSectionCard(info: CimaMedicationDetail) { // Changed parameter type
@@ -267,7 +284,10 @@ private fun InfoRow(label: String, value: String?, showDivider: Boolean = true) 
         )
     }
     if (showDivider) {
-        Divider(modifier = Modifier.padding(top = 8.dp))
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
     }
 }
 
@@ -300,6 +320,7 @@ fun MedicationInfoScreenPreview() {
     AppTheme {
         MedicationInfoScreen(
             medicationId = 1, // Sample ID for preview
+            colorName = "LIGHT_RED", // Added colorName for preview
             onNavigateBack = {},
             viewModel = null // Ensures preview uses sample data
         )

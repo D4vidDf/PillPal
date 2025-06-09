@@ -26,7 +26,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DateRangePickerState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,8 +36,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState // Added
@@ -55,11 +61,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry // Use new data class
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -70,9 +80,18 @@ import java.time.format.FormatStyle
 @Composable
 fun MedicationHistoryScreen(
     medicationId: Int,
+    colorName: String,
     onNavigateBack: () -> Unit,
     viewModel: MedicationHistoryViewModel? = hiltViewModel() // Made nullable for preview
 ) {
+    val medicationColor = remember(colorName) {
+        try {
+            MedicationColor.valueOf(colorName)
+        } catch (e: IllegalArgumentException) {
+            MedicationColor.LIGHT_ORANGE // Fallback
+        }
+    }
+
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf( "Medication History (Preview)") }
     val historyEntries by viewModel?.filteredAndSortedHistory?.collectAsState() ?: remember {
         // Sample data for preview if viewModel is null
@@ -99,24 +118,29 @@ fun MedicationHistoryScreen(
         viewModel?.loadInitialHistory(medicationId)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_history_title) }) },
-
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.med_history_navigate_back_cd)
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_history_title) }) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.med_history_navigate_back_cd)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
@@ -158,9 +182,6 @@ fun MedicationHistoryScreen(
                     LazyColumn(modifier = Modifier.fillMaxSize()) { // Removed state = listState
                         items(historyEntries, key = { it.id }) { entry ->
                             MedicationHistoryListItem(entry = entry)
-                            if (historyEntries.last() != entry) {
-                                Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
-                            }
 
                         }
                     }
@@ -168,7 +189,7 @@ fun MedicationHistoryScreen(
             }
         }
     }
-}
+} // Closing MedicationSpecificTheme
 
 @Composable
 fun FilterControls(
@@ -177,6 +198,52 @@ fun FilterControls(
     onClearDateFilter: () -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
+
+    // DateRangePickerDialog implementation
+    if (showDialog) {
+        val state = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = currentFilter?.first?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
+            initialSelectedEndDateMillis = currentFilter?.second?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis <= Instant.now().toEpochMilli()
+                }
+                override fun isSelectableYear(year: Int): Boolean {
+                    return year <= LocalDate.now().year
+                }
+            }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val startDateMillis = state.selectedStartDateMillis
+                        val endDateMillis = state.selectedEndDateMillis
+                        if (startDateMillis != null && endDateMillis != null) {
+                            val startDate = Instant.ofEpochMilli(startDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                            val endDate = Instant.ofEpochMilli(endDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                            onFilterChanged(startDate, endDate)
+                        }
+                        // If only one is selected, or none, we could either clear the filter or do nothing.
+                        // Current behavior: only updates if a full range is selected.
+                        showDialog = false
+                    },
+                    enabled = state.selectedStartDateMillis != null && state.selectedEndDateMillis != null
+                ) {
+                    Text(stringResource(id = android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(id = android.R.string.cancel))
+                }
+            }
+        ) {
+            DateRangePicker(state = state, title = null, headline = null, showModeToggle = true)
+        }
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -310,7 +377,7 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
 @Composable
 fun MedicationHistoryScreenPreview_Loading() {
     AppTheme {
-        MedicationHistoryScreen(medicationId = 1, onNavigateBack = {}, viewModel = null) // viewModel = null will show sample data or loading state
+        MedicationHistoryScreen(medicationId = 1, colorName = "LIGHT_BLUE", onNavigateBack = {}, viewModel = null) // viewModel = null will show sample data or loading state
     }
 }
 

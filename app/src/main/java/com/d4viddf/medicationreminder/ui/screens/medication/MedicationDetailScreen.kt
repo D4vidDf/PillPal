@@ -75,6 +75,7 @@ import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
@@ -104,9 +105,9 @@ fun MedicationDetailsScreen(
     graphViewModel: MedicationGraphViewModel? = hiltViewModel(), // Made nullable for preview
     isHostedInPane: Boolean,
     onNavigateToAllSchedules: (Int) -> Unit,
-    onNavigateToMedicationHistory: (Int) -> Unit,
-    onNavigateToMedicationGraph: (Int) -> Unit,
-    onNavigateToMedicationInfo: (Int) -> Unit
+    onNavigateToMedicationHistory: (medicationId: Int, colorName: String) -> Unit,
+    onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
+    onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
@@ -153,10 +154,11 @@ fun MedicationDetailsScreen(
         }
     }
 
-    if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) { // Updated condition
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
+    MedicationSpecificTheme(medicationColor = color) { // Wrap with MedicationSpecificTheme
+        if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) { // Updated condition
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
     } else {
         Scaffold(
             topBar = {
@@ -401,7 +403,7 @@ fun MedicationDetailsScreen(
                 item {
                     Spacer(modifier = Modifier.height(16.dp)) // Add space before the card
                     ElevatedCard(
-                        onClick = { onNavigateToMedicationHistory(medicationId) }, // Updated onClick
+                        onClick = { onNavigateToMedicationHistory(medicationId, medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name) }, // Updated onClick
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -477,7 +479,7 @@ fun MedicationDetailsScreen(
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
-                                onClick = { onNavigateToMedicationGraph(medicationId) }, // Updated onClick
+                                onClick = { onNavigateToMedicationGraph(medicationId, medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name) }, // Updated onClick
                                 modifier = Modifier.align(Alignment.End),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
@@ -538,7 +540,7 @@ fun MedicationDetailsScreen(
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
                                 Button(
-                                    onClick = { onNavigateToMedicationInfo(medicationId) }, // Updated onClick
+                                    onClick = { onNavigateToMedicationInfo(medicationId, medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name) }, // Updated onClick
                                     modifier = Modifier.align(Alignment.End),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
@@ -581,7 +583,7 @@ fun MedicationDetailsScreen(
             )
         }
     }
-}
+} // Closing brace for MedicationSpecificTheme
 
 
 
@@ -632,9 +634,9 @@ fun MedicationDetailsScreenPreview() {
             isHostedInPane = false,
             graphViewModel = null, // Added for preview
             onNavigateToAllSchedules = {},
-            onNavigateToMedicationHistory = {},
-            onNavigateToMedicationGraph = {},
-            onNavigateToMedicationInfo = {}
+            onNavigateToMedicationHistory = { _, _ -> }, // Adjusted for new signature
+            onNavigateToMedicationGraph = { _, _ -> }, // Adjusted for new signature
+            onNavigateToMedicationInfo = { _, _ -> } // Adjusted for new signature
         )
     }
 }
