@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn // Added for DateRangePicker
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,7 +27,9 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator // Added
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePickerDialog // Added
+import androidx.compose.material3.DateRangePicker // Added
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,9 +38,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // Added
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDateRangePickerState // Added
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect // Added
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState // Added
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,13 +62,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry // Use new data class
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
-import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel // Added
+import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
+import java.time.Instant // Added
 import java.time.LocalDate
-import java.time.LocalDateTime // Added
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId // Added
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import kotlinx.coroutines.launch // Added
+import kotlinx.coroutines.launch
 
 // Removed old placeholder data class MedicationHistoryEntry
 
@@ -182,6 +189,8 @@ fun FilterControls(
     onFilterChanged: (startDate: LocalDate?, endDate: LocalDate?) -> Unit,
     onClearDateFilter: () -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -189,10 +198,7 @@ fun FilterControls(
     ) {
         Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
         OutlinedButton(
-            onClick = { /* TODO: Show Date Range Picker Dialog */
-                // For now, let's simulate a selection
-                onFilterChanged(LocalDate.now().minusWeeks(1), LocalDate.now()) // Changed to onFilterChanged
-            },
+            onClick = { showDialog.value = true }, // Show dialog
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {

@@ -385,9 +385,12 @@ fun MedicationDetailsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Button(
-                                onClick = { onNavigateToAllSchedules(medicationId) }, // Updated onClick
+                                onClick = { onNavigateToAllSchedules(medicationId) },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
+                                // Using stringResource for "Show More" is better practice,
+                                // but sticking to hardcoded as per initial subtask instructions if R.string.show_more doesn't exist yet.
+                                // For now, assuming "Show More" is acceptable directly.
                                 Text(text = "Show More")
                             }
                         }
