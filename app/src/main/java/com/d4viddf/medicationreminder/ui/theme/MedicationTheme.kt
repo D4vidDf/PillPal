@@ -34,29 +34,24 @@ fun MedicationSpecificTheme(
     content: @Composable () -> Unit
 ) {
     val seedColor = medicationColor.backgroundColor // The seed color from MedicationColor
-    val context = LocalContext.current
+    // val context = LocalContext.current // Context no longer needed for dynamic theming
 
-    val colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (useDarkTheme) {
-            dynamicDarkColorScheme(context, seedColor)
-        } else {
-            dynamicLightColorScheme(context, seedColor)
-        }
+    val colorScheme = if (useDarkTheme) {
+        fallbackDarkColorScheme.copy(
+            primary = seedColor,
+            onPrimary = medicationColor.textColor
+            // Other MedicationColor properties can be mapped here if suitable
+            // e.g., secondary = medicationColor.progressBarColor,
+            // surface = medicationColor.cardColor (ensure cardColor is appropriate for surface)
+        )
     } else {
-        if (useDarkTheme) {
-            fallbackDarkColorScheme.copy(
-                primary = seedColor,
-                onPrimary = medicationColor.textColor,
-                primaryContainer = seedColor.copy(alpha = 0.8f) // Corrected: ensure alpha is float
-            )
-        } else {
-            fallbackLightColorScheme.copy(
-                primary = seedColor,
-                onPrimary = medicationColor.textColor,
-                primaryContainer = seedColor.copy(alpha = 0.3f) // Corrected: ensure alpha is float
-            )
-        }
+        fallbackLightColorScheme.copy(
+            primary = seedColor,
+            onPrimary = medicationColor.textColor
+        )
     }
+    // The Build.VERSION.SDK_INT check is removed as the logic is now unified.
+    // If it were to be kept, both branches of the SDK check would contain the above .copy() logic.
 
     MaterialTheme(
         colorScheme = colorScheme,

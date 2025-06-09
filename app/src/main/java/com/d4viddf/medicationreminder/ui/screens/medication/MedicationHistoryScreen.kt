@@ -94,7 +94,6 @@ fun MedicationHistoryScreen(
 
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf( "Medication History (Preview)") }
     val historyEntries by viewModel?.filteredAndSortedHistory?.collectAsState() ?: remember {
-        // Sample data for preview if viewModel is null
         mutableStateOf(List(5) { index ->
             val time = LocalTime.now().minusHours(index.toLong())
             MedicationHistoryEntry(
@@ -110,9 +109,6 @@ fun MedicationHistoryScreen(
     val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
     val currentFilter by viewModel?.dateFilter?.collectAsState() ?: remember { mutableStateOf<Pair<LocalDate?, LocalDate?>?>(null) }
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
-
-    // Removed: val listState = rememberLazyListState()
-    // Removed: val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
@@ -141,55 +137,53 @@ fun MedicationHistoryScreen(
         ) { paddingValues ->
             Column(
                 modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            FilterControls(
-                currentFilter = currentFilter,
-                onFilterChanged = { startDate, endDate ->
-                    viewModel?.setDateFilter(startDate, endDate)
-                },
-                onClearDateFilter = { viewModel?.setDateFilter(null, null) }
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
+            ) {
+                FilterControls(
+                    currentFilter = currentFilter,
+                    onFilterChanged = { startDate, endDate ->
+                        viewModel?.setDateFilter(startDate, endDate)
+                    },
+                    onClearDateFilter = { viewModel?.setDateFilter(null, null) }
+                )
 
-            )
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                ActionControls(
+                    sortAscending = sortAscending,
+                    onSortOldestFirst = { viewModel?.setSortOrder(true) },
+                    onSortNewestFirst = { viewModel?.setSortOrder(false) }
+                )
 
-            ActionControls(
-                sortAscending = sortAscending,
-                onSortOldestFirst = { viewModel?.setSortOrder(true) },
-                onSortNewestFirst = { viewModel?.setSortOrder(false) }
+                Divider(modifier = Modifier.padding(vertical = 8.dp)) // This is a Material 3 Divider
 
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            when {
-                isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
-                }
-                historyEntries.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(id = R.string.med_history_no_history_found),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                else -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) { // Removed state = listState
-                        items(historyEntries, key = { it.id }) { entry ->
-                            MedicationHistoryListItem(entry = entry)
-
+                when {
+                    isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                    }
+                    historyEntries.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            stringResource(id = R.string.med_history_no_history_found),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    else -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(historyEntries, key = { it.id }) { entry ->
+                                MedicationHistoryListItem(entry = entry)
+                            }
                         }
                     }
                 }
-            }
-        }
-    }
-} // Closing MedicationSpecificTheme
+            } // Closes Column
+        } // Closes Scaffold content lambda
+    } // Closes MedicationSpecificTheme content lambda
+} // Closes MedicationHistoryScreen
 
 @Composable
 fun FilterControls(
@@ -226,8 +220,6 @@ fun FilterControls(
                             val endDate = Instant.ofEpochMilli(endDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
                             onFilterChanged(startDate, endDate)
                         }
-                        // If only one is selected, or none, we could either clear the filter or do nothing.
-                        // Current behavior: only updates if a full range is selected.
                         showDialog = false
                     },
                     enabled = state.selectedStartDateMillis != null && state.selectedEndDateMillis != null
@@ -243,7 +235,7 @@ fun FilterControls(
         ) {
             DateRangePicker(state = state, title = null, headline = null, showModeToggle = true)
         }
-    }
+    } // Closes if (showDialog)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -252,8 +244,7 @@ fun FilterControls(
     ) {
         Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
         OutlinedButton(
-            onClick = { showDialog = true }, // Corrected: removed .value
-
+            onClick = { showDialog = true },
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
@@ -264,19 +255,18 @@ fun FilterControls(
                     val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     "$start - $end"
-
                 } ?: stringResource(id = R.string.med_history_filter_select_range_button),
                 fontSize = 12.sp
             )
         }
-    }
-    if (currentFilter != null) { // Show clear button if any filter is active
+    } // Closes Row
 
+    if (currentFilter != null) {
         OutlinedButton(onClick = onClearDateFilter, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(id = R.string.med_history_filter_clear_button))
         }
         Spacer(modifier = Modifier.height(8.dp))
-    }
+    } // Closes if (currentFilter != null)
 }
 
 @Composable
@@ -284,15 +274,13 @@ fun ActionControls(
     sortAscending: Boolean,
     onSortOldestFirst: () -> Unit,
     onSortNewestFirst: () -> Unit
-
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Button for "Oldest First"
-        val oldestFirstButtonColors = if (sortAscending) { // Active if sortAscending is true
+        val oldestFirstButtonColors = if (sortAscending) {
             ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         } else {
             ButtonDefaults.outlinedButtonColors()
@@ -307,8 +295,7 @@ fun ActionControls(
             Text(stringResource(R.string.med_history_action_sort_oldest_first), fontSize = 12.sp)
         }
 
-        // Button for "Newest First"
-        val newestFirstButtonColors = if (!sortAscending) { // Active if sortAscending is false
+        val newestFirstButtonColors = if (!sortAscending) {
             ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         } else {
             ButtonDefaults.outlinedButtonColors()
@@ -324,18 +311,6 @@ fun ActionControls(
         }
     }
 }
-
-// HistoryActionButton is no longer needed as its logic is incorporated above or buttons are more distinct
-// @Composable
-// fun HistoryActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
-//    OutlinedButton(onClick = onClick, shape = RoundedCornerShape(8.dp)) {
-//        Icon(icon, contentDescription = text, modifier = Modifier.size(18.dp))
-//        Spacer(modifier = Modifier.width(4.dp))
-//        Text(text, fontSize = 12.sp)
-//    }
-// }
-
-
 
 @Composable
 fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
@@ -356,14 +331,11 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
             Column {
                 Text(
                     text = entry.dateTaken.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
-
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    // Medication name can be part of the item if needed, or use a general prefix
-
                     text = stringResource(id = R.string.med_history_item_taken_at_prefix) + entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -377,17 +349,21 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
 @Composable
 fun MedicationHistoryScreenPreview_Loading() {
     AppTheme {
-        MedicationHistoryScreen(medicationId = 1, colorName = "LIGHT_BLUE", onNavigateBack = {}, viewModel = null) // viewModel = null will show sample data or loading state
+        MedicationHistoryScreen(
+            medicationId = 1,
+            colorName = "LIGHT_BLUE",
+            onNavigateBack = {},
+            viewModel = null
+        )
     }
 }
-
 
 @Preview(showBackground = true, name = "Medication History List Item")
 @Composable
 fun MedicationHistoryListItemPreview() {
     AppTheme {
         MedicationHistoryListItem(
-            entry = MedicationHistoryEntry( // Use the correct data class
+            entry = MedicationHistoryEntry(
                 id = "preview1",
                 medicationName = "Sample Med",
                 dateTaken = LocalDate.now(),

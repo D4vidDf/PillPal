@@ -51,7 +51,7 @@ sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding_screen")
 
     object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
-        fun createRoute(medicationId: Int, showToday: Boolean = false) = "all_schedules_screen/$medId?$SHOW_TODAY_ARG=$showToday"
+        fun createRoute(medicationId: Int, showToday: Boolean = false) = "all_schedules_screen/$medicationId?$SHOW_TODAY_ARG=$showToday"
     }
     object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_history_screen/$medicationId/$colorName"
