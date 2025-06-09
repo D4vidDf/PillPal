@@ -46,16 +46,27 @@ fun MedicationSpecificTheme(
 
     val colorScheme = if (appIsDarkTheme) { // Use appIsDarkTheme
         fallbackDarkColorScheme.copy(
-            primary = seedColor,
-            onPrimary = medicationColor.textColor
-            // Other MedicationColor properties can be mapped here if suitable
-            // e.g., secondary = medicationColor.progressBarColor,
-            // surface = medicationColor.cardColor (ensure cardColor is appropriate for surface)
+            primary = seedColor, // which is medicationColor.backgroundColor
+            onPrimary = medicationColor.textColor,
+            primaryContainer = medicationColor.progressBackColor,
+            onPrimaryContainer = medicationColor.progressBarColor,
+            secondary = medicationColor.progressBackColor, // Using same as primaryContainer for now
+            onSecondary = medicationColor.progressBarColor, // Using same as onPrimaryContainer for now
+            secondaryContainer = medicationColor.cardColor,
+            onSecondaryContainer = medicationColor.onBackgroundColor
+            // Other colors like tertiary, background, surface, error will come from fallbackDarkColorScheme
         )
     } else {
         fallbackLightColorScheme.copy(
-            primary = seedColor,
-            onPrimary = medicationColor.textColor
+            primary = seedColor, // which is medicationColor.backgroundColor
+            onPrimary = medicationColor.textColor,
+            primaryContainer = medicationColor.progressBackColor,
+            onPrimaryContainer = medicationColor.progressBarColor,
+            secondary = medicationColor.progressBackColor,
+            onSecondary = medicationColor.progressBarColor,
+            secondaryContainer = medicationColor.cardColor,
+            onSecondaryContainer = medicationColor.onBackgroundColor
+            // Other colors will come from fallbackLightColorScheme
         )
     }
     // The Build.VERSION.SDK_INT check is removed as the logic is now unified.
