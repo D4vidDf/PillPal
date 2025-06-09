@@ -259,32 +259,21 @@ fun MedicationDetailsScreen(
                             }
                         },
                         actions = {
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 10.dp)
-                                    .background(
-                                        color = Color.Black.copy(alpha = 0.4f),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .clickable { /* TODO: Handle edit action */ }
-                                    .padding(
-                                        horizontal = 12.dp,
-                                        vertical = 6.dp
-                                    ),
-                                contentAlignment = Alignment.Center
+                            TextButton(
+                                onClick = { /* TODO: Handle edit action */ },
+                                modifier = Modifier.padding(end = 8.dp),
+                                colors = ButtonDefaults.textButtonColors(contentColor = color.textColor)
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.edit),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = color.backgroundColor,
-                            navigationIconContentColor = Color.White,
-                            actionIconContentColor = Color.White
+                            navigationIconContentColor = color.textColor,
+                            actionIconContentColor = color.textColor
                         )
                     )
                 }
@@ -436,7 +425,11 @@ fun MedicationDetailsScreen(
                             ) {
                                 Button(
                                     onClick = { onNavigateToAllSchedules(medicationId, medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name) },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
                                 ) {
                                     Text(text = "Show More")
                                 }
@@ -453,7 +446,7 @@ fun MedicationDetailsScreen(
                                 .padding(horizontal = 16.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer // NEW
                             )
                         ) {
                             Row(
@@ -467,19 +460,19 @@ fun MedicationDetailsScreen(
                                     Icon(
                                         imageVector = Icons.Filled.History,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer // NEW
                                     )
                                     Spacer(modifier = Modifier.size(12.dp))
                                     Text(
                                         text = stringResource(id = R.string.medication_history_title),
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer // NEW
                                     )
                                 }
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.NavigateNext,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer // NEW
                                 )
                             }
                         }
@@ -493,7 +486,7 @@ fun MedicationDetailsScreen(
                                 .padding(horizontal = 16.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer // NEW
                             )
                         ) {
                             Column(
@@ -504,6 +497,7 @@ fun MedicationDetailsScreen(
                                 Text(
                                     text = stringResource(id = R.string.current_week_dosage_title),
                                     style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer, // NEW
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 Box(
@@ -550,7 +544,7 @@ fun MedicationDetailsScreen(
                                     .padding(horizontal = 16.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.elevatedCardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer // NEW
                                 )
                             ) {
                                 Column(
@@ -565,17 +559,19 @@ fun MedicationDetailsScreen(
                                         Icon(
                                             imageVector = Icons.Filled.Info,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer // NEW
                                         )
                                         Spacer(modifier = Modifier.size(12.dp))
                                         Text(
                                             text = stringResource(id = R.string.medication_information_title),
-                                            style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer // NEW
                                         )
                                     }
                                     Text(
                                         text = stringResource(id = R.string.medication_info_description_placeholder),
                                         style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer, // NEW
                                         modifier = Modifier.padding(bottom = 12.dp)
                                     )
                                     Button(
