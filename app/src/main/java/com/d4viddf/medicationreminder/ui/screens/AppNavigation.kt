@@ -22,12 +22,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.getValue // For state
 import androidx.compose.runtime.mutableStateOf // For state
 import androidx.compose.runtime.remember // For state
 import androidx.compose.runtime.setValue // For state
+import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
+import com.d4viddf.medicationreminder.ui.screens.medication.MedicationGraphScreen
+import com.d4viddf.medicationreminder.ui.screens.medication.MedicationHistoryScreen
+import com.d4viddf.medicationreminder.ui.screens.medication.MedicationInfoScreen
 
 // Define the routes for navigation
 
@@ -131,11 +134,36 @@ fun AppNavigation(
                         animatedVisibilityScope = this, // Pass scope
                         isHostedInPane = false,
                         // Navigation callbacks for new screens from MedicationDetailScreen
-                        onNavigateToAllSchedules = { medId -> navController.navigate(Screen.AllSchedules.createRoute(medicationId = medId, showToday = true)) }, // Pass showToday = true from details screen
+                        onNavigateToAllSchedules = { medId ->
+                            navController.navigate(
+                                Screen.AllSchedules.createRoute(
+                                    medicationId = medId,
+                                    showToday = true
+                                )
+                            )
+                        }, // Pass showToday = true from details screen
 
-                        onNavigateToMedicationHistory = { medId -> navController.navigate(Screen.MedicationHistory.createRoute(medId)) },
-                        onNavigateToMedicationGraph = { medId -> navController.navigate(Screen.MedicationGraph.createRoute(medId)) },
-                        onNavigateToMedicationInfo = { medId -> navController.navigate(Screen.MedicationInfo.createRoute(medId)) }
+                        onNavigateToMedicationHistory = { medId ->
+                            navController.navigate(
+                                Screen.MedicationHistory.createRoute(
+                                    medId
+                                )
+                            )
+                        },
+                        onNavigateToMedicationGraph = { medId ->
+                            navController.navigate(
+                                Screen.MedicationGraph.createRoute(
+                                    medId
+                                )
+                            )
+                        },
+                        onNavigateToMedicationInfo = { medId ->
+                            navController.navigate(
+                                Screen.MedicationInfo.createRoute(
+                                    medId
+                                )
+                            )
+                        }
                     )
                 }
             }

@@ -1,5 +1,5 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
-package com.d4viddf.medicationreminder.ui.screens
+package com.d4viddf.medicationreminder.ui.screens.medication
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info // Added for Medication Info Card
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard

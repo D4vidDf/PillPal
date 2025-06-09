@@ -1,10 +1,8 @@
-package com.d4viddf.medicationreminder.ui.screens
+package com.d4viddf.medicationreminder.ui.screens.medication
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Subject // For Prospecto
 import androidx.compose.material.icons.filled.DocumentScanner // For Ficha Técnica
-import androidx.compose.material.icons.filled.Image // Placeholder for medication image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 // Removed duplicate Button and ButtonDefaults imports
@@ -38,10 +35,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added import for TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.d4viddf.medicationreminder.R // Moved import to top
@@ -280,7 +275,7 @@ private fun InfoRow(label: String, value: String?, showDivider: Boolean = true) 
 private fun LinkButton(
     text: String,
     url: String?,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: (String) -> Unit // Pass URL to click handler
 ) {
     Button(

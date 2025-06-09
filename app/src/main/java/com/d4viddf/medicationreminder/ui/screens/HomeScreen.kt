@@ -59,6 +59,7 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.components.MedicationList
+import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import kotlinx.coroutines.launch
