@@ -65,8 +65,8 @@ class MedicationGraphViewModel @Inject constructor(
             // Potentially set an error or specific state if a non-empty list was expected but not 7 days
             return
         }
-         if (currentWeekDays.size != 7) {
-            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.size}. Expected 7 or 0 to clear.")
+         if (currentWeekDays.count() != 7) { // Changed .size to .count()
+            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.") // Changed .size to .count()
             _graphData.value = emptyMap() // Reset or handle error appropriately
             return
         }

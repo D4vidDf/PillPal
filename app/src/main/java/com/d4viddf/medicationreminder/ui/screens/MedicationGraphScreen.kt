@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -378,6 +379,7 @@ fun MedicationGraphScreenPreviewMonth() {
         val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
         // Sample data for monthly view in preview
         val currentMonth = YearMonth.now()
+        val currentYearForPreview = currentMonth.year // Define for use in title
         val sampleMonthlyData = remember {
             (1..currentMonth.lengthOfMonth()).associate { day ->
                 day.toString() to (0..5).random() // Random counts for preview
@@ -422,7 +424,7 @@ fun MedicationGraphScreenPreviewMonth() {
                 val chartTitle = when (selectedViewType) {
                     GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
                     GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentMonth.format(monthFormatter))
-                GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYear)
+                    GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentYearForPreview) // Use defined currentYearForPreview
                 }
                 Text(
                     text = chartTitle,
