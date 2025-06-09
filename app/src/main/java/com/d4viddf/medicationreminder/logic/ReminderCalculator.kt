@@ -468,8 +468,8 @@ object ReminderCalculator {
                         FileLogger.log(TAG, noAdvanceLog)
                         break
                     }
-                    if (parsedMedicationEndDate != null && currentReminderTime.toLocalDate().isAfter(parsedMedicationEndDate)) {
-                        val afterEndDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, next currentReminderTime ($currentReminderTime) would be after medication end date ($parsedMedicationEndDate). Stopping generation."
+                    if (medicationOverallEndDate != null && currentReminderTime.toLocalDate().isAfter(medicationOverallEndDate)) {
+                        val afterEndDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, next currentReminderTime ($currentReminderTime) would be after medication end date ($medicationOverallEndDate). Stopping generation."
                         Log.d(TAG, afterEndDateLog)
                         FileLogger.log(TAG, afterEndDateLog)
                         break

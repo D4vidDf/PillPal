@@ -198,7 +198,7 @@ fun FilterControls(
     ) {
         Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
         OutlinedButton(
-            onClick = { showDialog.value = true }, // Show dialog
+            onClick = { showDialog = true }, // Corrected: removed .value
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
