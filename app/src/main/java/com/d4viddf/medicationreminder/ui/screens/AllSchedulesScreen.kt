@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign // Added import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -129,10 +130,11 @@ fun AllSchedulesScreen(
                         FullScheduleItem(
                             itemData = itemData,
                             medicationName = medicationName ?: "Medication", // Fallback
+                            medicationId = medicationId, // Pass screen's medicationId
                             showSwitch = showToday,
                             onToggleTaken = if (showToday) {
-                                { itemId, newState ->
-                                    medicationReminderViewModel.updateReminderStatus(itemId, newState, medicationId)
+                                { itemId, newState, mId -> // mId here is the one passed to FullScheduleItem
+                                    medicationReminderViewModel.updateReminderStatus(itemId, newState, mId)
                                 }
                             } else null,
                             isSwitchEnabled = if (showToday && itemData is TodayScheduleItem) {
@@ -150,6 +152,7 @@ fun AllSchedulesScreen(
 fun FullScheduleItem(
     itemData: Any,
     medicationName: String,
+    medicationId: Int, // Added medicationId parameter
     onToggleTaken: ((itemId: String, isTaken: Boolean, medicationId: Int) -> Unit)? = null,
     isSwitchEnabled: Boolean = false,
     showSwitch: Boolean = false
@@ -194,8 +197,10 @@ fun FullScheduleItem(
         }
         if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
             Switch(
-                checked = itemData.isTaken, // Use itemData.isTaken directly for checked state
-                onCheckedChange = { newState -> onToggleTaken(itemData.id, newState, itemData.medicationId) }, // medicationId from itemData if available, else pass from screen
+                checked = itemData.isTaken,
+                onCheckedChange = { newTakenStatus ->
+                    onToggleTaken(itemData.id, newTakenStatus, medicationId) // Use passed medicationId
+                },
                 enabled = isSwitchEnabled
             )
         }
@@ -225,6 +230,7 @@ fun AllSchedulesScreenTodayPreview() {
         TodayScheduleItem("ts3", "Med A", LocalTime.of(20,0), false, true, 3L, 1, LocalTime.of(19,55).toString())
     )
     var medicationName by remember { mutableStateOf("Sample Medication") }
+    val previewMedicationId = 1 // Define sample medicationId for preview context
 
     AppTheme {
          Scaffold(
@@ -251,9 +257,10 @@ fun AllSchedulesScreenTodayPreview() {
                 items(sampleTodayItems, key = { it.id }) { item ->
                     FullScheduleItem(
                         itemData = item,
-                        medicationName = item.medicationName, // Or pass the general medicationName
+                        medicationName = item.medicationName,
+                        medicationId = previewMedicationId, // Pass previewMedicationId
                         showSwitch = true,
-                        onToggleTaken = { _, _, _ -> },
+                        onToggleTaken = { _, _, _ -> }, // No-op for preview
                         isSwitchEnabled = item.isPast || item.isTaken
                     )
                 }

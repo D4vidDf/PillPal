@@ -130,7 +130,7 @@ class MedicationHistoryViewModel @Inject constructor(
             val transformedAndSorted = dateFiltered.mapNotNull { reminder ->
                 parseTakenAt(reminder.takenAt)?.let { originalDateTime ->
                     MedicationHistoryEntry(
-                        id = reminder.id, // Using reminder's own ID
+                        id = reminder.id.toString(), // Convert Int to String
                         medicationName = nameToUse,
                         dateTaken = originalDateTime.toLocalDate(),
                         timeTaken = originalDateTime.toLocalTime(),

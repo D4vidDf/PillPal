@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box // Added Box import
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -190,7 +191,7 @@ fun FilterControls(
         OutlinedButton(
             onClick = { /* TODO: Show Date Range Picker Dialog */
                 // For now, let's simulate a selection
-                onDateRangeSelected(LocalDate.now().minusWeeks(1), LocalDate.now())
+                onFilterChanged(LocalDate.now().minusWeeks(1), LocalDate.now()) // Changed to onFilterChanged
             },
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
