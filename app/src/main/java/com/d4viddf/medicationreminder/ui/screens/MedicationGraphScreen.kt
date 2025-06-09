@@ -354,7 +354,6 @@ private fun BarChartDisplay(
 }
 
 
-=======
 @Composable
 private fun GraphViewButton(
     text: String,

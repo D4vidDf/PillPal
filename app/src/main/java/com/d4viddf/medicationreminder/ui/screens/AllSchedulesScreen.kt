@@ -239,7 +239,6 @@ fun AllSchedulesScreenTodayPreview() {
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationName ?: stringResource(id = R.string.medication_detail_today_title))) },
-@Preview(s
                     navigationIcon = {
                         IconButton(onClick = {}) {
                             Icon(
