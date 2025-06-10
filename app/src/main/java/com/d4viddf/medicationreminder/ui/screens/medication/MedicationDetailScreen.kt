@@ -243,41 +243,49 @@ fun MedicationDetailsScreen(
                         title = { },
                         navigationIcon = {
                             if (!isHostedInPane) {
-                                IconButton(onClick = onNavigateBack, modifier = Modifier.padding(start = 4.dp)) { // Adjusted padding for IconButton
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                        contentDescription = stringResource(id = R.string.back),
-                                        tint = MaterialTheme.colorScheme.onSurface // Changed tint
-                                    )
+                                Box (modifier = Modifier.padding(start = 10.dp)){ // Original padding
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                            .clickable { onNavigateBack() },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                            contentDescription = stringResource(id = R.string.back), // R.string.back was original
+                                            modifier = Modifier.size(28.dp),
+                                            tint = Color.White
+                                        )
+                                    }
                                 }
                             }
                         },
                         actions = {
-                            Box( // The edit button's styling might need adjustment for a transparent app bar
+                            Box(
                                 modifier = Modifier
-                                    .padding(end = 10.dp)
+                                    .padding(end = 10.dp) // Original padding
                                     .background(
-                                        color = MaterialTheme.colorScheme.primaryContainer, // Example: Use theme color
-                                        shape = RoundedCornerShape(20.dp)
+                                        color = Color.Black.copy(alpha = 0.4f),
+                                        shape = RoundedCornerShape(20.dp) // Pill/capsule shape
                                     )
-                                    .clickable { /* TODO: Handle edit action */ }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    .clickable { /* TODO: Handle edit action */ } // Keep original action
+                                    .padding(horizontal = 16.dp, vertical = 8.dp), // Padding for text inside
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = stringResource(id = R.string.edit),
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer, // Example: Use theme color
+                                    text = stringResource(id = R.string.edit), // R.string.edit was original
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    fontSize = 14.sp // Explicit font size as before
                                 )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent, // Changed to Transparent
-                            scrolledContainerColor = Color.Transparent, // Added for consistency
-                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface, // Changed
-                            actionIconContentColor = MaterialTheme.colorScheme.onSurface, // Changed
-                            titleContentColor = MaterialTheme.colorScheme.onSurface // Added for completeness
+                            containerColor = color.backgroundColor, // Restored
+                            navigationIconContentColor = Color.White, // Restored
+                            actionIconContentColor = Color.White, // Restored for custom action
+                            titleContentColor = Color.White // Assuming title would be white if present
                         )
                     )
                 }
