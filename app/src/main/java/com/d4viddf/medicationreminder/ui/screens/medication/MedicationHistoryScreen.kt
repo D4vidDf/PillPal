@@ -40,8 +40,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.MediumTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState // New import
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,10 +54,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,94 +115,17 @@ fun MedicationHistoryScreen(
     val currentFilter by viewModel?.dateFilter?.collectAsState() ?: remember { mutableStateOf<Pair<LocalDate?, LocalDate?>?>(null) }
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
 
+    var showDateRangeDialog by remember { mutableStateOf(false) } // Hoisted state variable
+
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
     }
 
-    MedicationSpecificTheme(medicationColor = medicationColor) {
-        Scaffold(
-            topBar = {
-                TopAppBar( // Changed back to TopAppBar
-                    title = { Text(stringResource(id = R.string.medication_history_title)) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-            }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp)) // ADDED SPACER HERE
-                FilterControls(
-                    currentFilter = currentFilter,
-                    onFilterChanged = { startDate, endDate ->
-                        viewModel?.setDateFilter(startDate, endDate)
-                    },
-                    onClearDateFilter = { viewModel?.setDateFilter(null, null) }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ActionControls(
-                    sortAscending = sortAscending,
-                    onToggleSort = { viewModel?.setSortOrder(!sortAscending) }
-                )
-
-                Divider(modifier = Modifier.padding(vertical = 8.dp)) // This is a Material 3 Divider
-
-                when {
-                    isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
-                    }
-                    historyEntries.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            stringResource(id = R.string.med_history_no_history_found),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    else -> {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(historyEntries, key = { it.id }) { entry ->
-                                MedicationHistoryListItem(entry = entry)
-                            }
-                        }
-                    }
-                }
-            } // Closes Column
-        } // Closes Scaffold content lambda
-    } // Closes MedicationSpecificTheme content lambda
-} // Closes MedicationHistoryScreen
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FilterControls(
-    currentFilter: Pair<LocalDate?, LocalDate?>?,
-    onFilterChanged: (startDate: LocalDate?, endDate: LocalDate?) -> Unit,
-    onClearDateFilter: () -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    // DateRangePickerDialog implementation
-    if (showDialog) {
-        val state = rememberDateRangePickerState(
+    // DateRangePickerDialog logic moved here
+    if (showDateRangeDialog) {
+        val dateRangePickerState = rememberDateRangePickerState(
             initialSelectedStartDateMillis = currentFilter?.first?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
             initialSelectedEndDateMillis = currentFilter?.second?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
             selectableDates = object : SelectableDates {
@@ -212,95 +137,171 @@ fun FilterControls(
                 }
             }
         )
-
         DatePickerDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showDateRangeDialog = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val startDateMillis = state.selectedStartDateMillis
-                        val endDateMillis = state.selectedEndDateMillis
+                        val startDateMillis = dateRangePickerState.selectedStartDateMillis
+                        val endDateMillis = dateRangePickerState.selectedEndDateMillis
                         if (startDateMillis != null && endDateMillis != null) {
                             val startDate = Instant.ofEpochMilli(startDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
                             val endDate = Instant.ofEpochMilli(endDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                            onFilterChanged(startDate, endDate)
+                            viewModel?.setDateFilter(startDate, endDate)
                         }
-                        showDialog = false
+                        showDateRangeDialog = false
                     },
-                    enabled = state.selectedStartDateMillis != null && state.selectedEndDateMillis != null
+                    enabled = dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
                 ) {
                     Text(stringResource(id = android.R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showDateRangeDialog = false }) {
                     Text(stringResource(id = android.R.string.cancel))
                 }
             }
         ) {
-            DateRangePicker(state = state, title = null, headline = null, showModeToggle = true)
+            DateRangePicker(state = dateRangePickerState, title = null, headline = null, showModeToggle = true)
         }
-    } // Closes if (showDialog)
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween // This will push IconButton to the right
-    ) {
-        // Text part on the left
-        Column {
-            Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
-            Text(
-                currentFilter?.let {
-                    val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
-                    val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
-                    "$start - $end"
-                } ?: stringResource(id = R.string.med_history_filter_no_range_selected), // Changed string resource
-                fontSize = 12.sp // Consider using MaterialTheme.typography.labelSmall
-            )
-        }
-
-        // IconButton on the right
-        IconButton(onClick = { showDialog = true }) {
-            Icon(
-                Icons.Filled.CalendarToday,
-                contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd)
-            )
-        }
-    } // Closes Row
-
-    if (currentFilter != null) {
-        OutlinedButton(onClick = onClearDateFilter, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(id = R.string.med_history_filter_clear_button))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-    } // Closes if (currentFilter != null)
-}
-
-@Composable
-fun ActionControls(
-    sortAscending: Boolean,
-    onToggleSort: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start, // Changed to Start
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onToggleSort) {
-            Icon(
-                imageVector = Icons.Filled.SwapVert,
-                contentDescription = stringResource(R.string.med_history_action_sort_toggle_cd) // New string resource
-            )
-        }
-        Spacer(modifier = Modifier.width(8.dp)) // Space between icon and text
-        Text(
-            text = if (sortAscending) stringResource(R.string.med_history_sorted_oldest_first) // New string resource
-                   else stringResource(R.string.med_history_sorted_newest_first), // New string resource
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
-}
+
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                MediumTopAppBar(
+                    title = { Text(stringResource(id = R.string.medication_history_title)) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd)
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues) // Applied padding from Scaffold
+            ) {
+                // New Two-Column Layout for Controls
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Overall padding for the controls area
+                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between the two columns
+                ) {
+                    // Left Column for Date Range Filter
+                    Column(
+                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp), // Added internal padding
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            stringResource(id = R.string.med_history_filter_by_date_label),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = currentFilter?.let {
+                                    val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                    val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                    "$start - $end"
+                                } ?: stringResource(id = R.string.med_history_filter_no_range_selected),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { showDateRangeDialog = true }) {
+                                Icon(
+                                    Icons.Filled.CalendarToday,
+                                    contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd)
+                                )
+                            }
+                        }
+                        if (currentFilter != null) {
+                            OutlinedButton(
+                                onClick = { viewModel?.setDateFilter(null, null) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(id = R.string.med_history_filter_clear_button))
+                            }
+                        }
+                    }
+
+                    // Right Column for Sort Order
+                    Column(
+                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp), // Added internal padding
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            stringResource(id = R.string.med_history_sort_order_label), // New string
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { viewModel?.setSortOrder(!sortAscending) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.SwapVert,
+                                    contentDescription = stringResource(R.string.med_history_action_sort_toggle_cd)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (sortAscending) stringResource(R.string.med_history_sorted_oldest_first)
+                                       else stringResource(R.string.med_history_sorted_newest_first),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+
+                Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+
+                // Original LazyColumn for history entries, ensuring it takes remaining space
+                // and has its own padding if needed (horizontal padding is now on the outer Column's Row for controls)
+                val listModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp) // Keep horizontal padding for the list
+
+                when {
+                    isLoading -> Box(modifier = listModifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    error != null -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                    }
+                    historyEntries.isEmpty() -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                        Text(
+                            stringResource(id = R.string.med_history_no_history_found),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    else -> {
+                        LazyColumn(modifier = listModifier) { // Applied listModifier
+                            items(historyEntries, key = { it.id }) { entry ->
+                                MedicationHistoryListItem(entry = entry)
+                            }
+                        }
+                    }
+                }
+            } // Closes Column
+        } // Closes Scaffold content lambda
+    } // Closes MedicationSpecificTheme content lambda
+} // Closes MedicationHistoryScreen
+
+// FilterControls and ActionControls composables are now inlined into MedicationHistoryScreen.
+// They can be removed if they are not used elsewhere.
 
 @Composable
 fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
