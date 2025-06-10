@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added import
+import androidx.compose.ui.graphics.Color // Added import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +47,7 @@ import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.AllSchedulesViewModel
@@ -158,9 +160,10 @@ fun AllSchedulesScreen(
         // For !showToday, schedules are already collected via allSchedulesViewModel
     }
 
-    val title = when {
-        showToday -> stringResource(R.string.todays_full_schedule_title_template, medicationName ?: stringResource(id = R.string.medication_detail_today_title)) // Fallback to just "Today" if name is null
-        else -> medicationName ?: stringResource(id = R.string.all_schedules_title)
+    val title = if (showToday) {
+        stringResource(R.string.medication_detail_today_title) // Using "Today" as fallback for "Today's Schedule"
+    } else {
+        stringResource(R.string.all_schedules_title)
     }
 
     MedicationSpecificTheme(medicationColor = medicationColor) {
@@ -169,17 +172,13 @@ fun AllSchedulesScreen(
                 TopAppBar(
                     title = { Text(title) },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back_button_content_description)
-                            )
-                        }
+                        ThemedAppBarBackButton(onClick = onNavigateBack)
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                        navigationIconContentColor = Color.White, // For ThemedAppBarBackButton
+                        actionIconContentColor = Color.White    // For consistency if actions were added
                     )
                 )
             }

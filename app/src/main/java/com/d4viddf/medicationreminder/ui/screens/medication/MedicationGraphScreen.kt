@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
 
@@ -48,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton // Added import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
@@ -282,19 +284,15 @@ fun MedicationGraphScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_statistics_title) }) },
+                    title = { Text(stringResource(id = R.string.medication_statistics_title)) },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.med_stats_navigate_back_cd)
-                            )
-                        }
+                        ThemedAppBarBackButton(onClick = onNavigateBack)
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                        navigationIconContentColor = Color.White, // For ThemedAppBarBackButton
+                        actionIconContentColor = Color.White    // For consistency if actions were added
                     )
                 )
             }

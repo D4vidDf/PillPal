@@ -43,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added import for TextAlign
+import androidx.compose.ui.graphics.Color // Added Import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,6 +55,7 @@ import com.d4viddf.medicationreminder.data.CimaViaAdministracion // For preview
 import com.d4viddf.medicationreminder.data.CimaEstado // For preview
 import com.d4viddf.medicationreminder.data.CimaDocumento // For preview
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
@@ -212,19 +214,15 @@ fun MedicationInfoScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(sampleInfoForPreview?.nombre ?: stringResource(id = R.string.loading)) },
+                    title = { Text(stringResource(id = R.string.medication_information_title)) },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.med_info_navigate_back_cd)
-                            )
-                        }
+                        ThemedAppBarBackButton(onClick = onNavigateBack)
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                        navigationIconContentColor = Color.White, // For ThemedAppBarBackButton
+                        actionIconContentColor = Color.White    // For consistency if actions were added
                     )
                 )
             }

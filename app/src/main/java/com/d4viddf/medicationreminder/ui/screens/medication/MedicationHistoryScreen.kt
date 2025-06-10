@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added
+import androidx.compose.ui.graphics.Color // Added import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,6 +63,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry // Use new data class
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
@@ -118,19 +120,15 @@ fun MedicationHistoryScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_history_title) }) },
+                    title = { Text(stringResource(id = R.string.medication_history_title)) },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.med_history_navigate_back_cd)
-                            )
-                        }
+                        ThemedAppBarBackButton(onClick = onNavigateBack)
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary, // Changed
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary // Changed
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = Color.White, // For ThemedAppBarBackButton
+                        actionIconContentColor = Color.White    // For consistency if actions were added
                     )
                 )
             }
