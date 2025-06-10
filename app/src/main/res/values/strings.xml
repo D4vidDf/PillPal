@@ -321,8 +321,8 @@
     <string name="yearly_doses_taken_title_template">Yearly Doses - %1$d</string>
     <string name="previous_period_cd">Previous Period</string>
     <string name="next_period_cd">Next Period</string>
-    <string name="med_graph_no_data_found">No graph data found for the selected period.</string> <!-- New -->
-    <string name="med_graph_unknown_error">An unknown error occurred while loading graph data.</string> <!-- New -->
+    <string name="med_graph_no_data_found">No graph data found for the selected period.</string>
+    <string name="med_graph_unknown_error">An unknown error occurred while loading graph data.</string>
 
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Back to medication details</string>
@@ -372,5 +372,3 @@
     <!-- <string name="medication_history_title">Medication History</string> -->
 
 </resources>
-
-[end of app/src/main/res/values/strings.xml]
