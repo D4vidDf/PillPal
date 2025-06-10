@@ -61,7 +61,7 @@ enum class MedicationColor(
     YELLOW(
         colorName = "Golden",
         backgroundColor = Color(0xFFf0b300),
-        textColor = Color(0xFFfffef4),
+        textColor = Color(0xFF0D0D0D),
         cardColor = Color(0xFF312400),
         onBackgroundColor = Color(0xFFfffff9),
         progressBackColor = Color(0xFFf3bf26),

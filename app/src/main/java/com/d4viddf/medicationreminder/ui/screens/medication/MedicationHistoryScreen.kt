@@ -26,7 +26,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DateRangePickerState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,8 +36,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState // Added
@@ -49,17 +55,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added
+import androidx.compose.ui.graphics.Color // Added import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry // Use new data class
+import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -70,12 +82,20 @@ import java.time.format.FormatStyle
 @Composable
 fun MedicationHistoryScreen(
     medicationId: Int,
+    colorName: String,
     onNavigateBack: () -> Unit,
     viewModel: MedicationHistoryViewModel? = hiltViewModel() // Made nullable for preview
 ) {
+    val medicationColor = remember(colorName) {
+        try {
+            MedicationColor.valueOf(colorName)
+        } catch (e: IllegalArgumentException) {
+            MedicationColor.LIGHT_ORANGE // Fallback
+        }
+    }
+
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf( "Medication History (Preview)") }
     val historyEntries by viewModel?.filteredAndSortedHistory?.collectAsState() ?: remember {
-        // Sample data for preview if viewModel is null
         mutableStateOf(List(5) { index ->
             val time = LocalTime.now().minusHours(index.toLong())
             MedicationHistoryEntry(
@@ -92,84 +112,82 @@ fun MedicationHistoryScreen(
     val currentFilter by viewModel?.dateFilter?.collectAsState() ?: remember { mutableStateOf<Pair<LocalDate?, LocalDate?>?>(null) }
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
 
-    // Removed: val listState = rememberLazyListState()
-    // Removed: val coroutineScope = rememberCoroutineScope()
-
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(medicationName.ifEmpty { stringResource(id = R.string.medication_history_title) }) },
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            topBar = {
+                TopAppBar( // Changed back to TopAppBar
+                    title = { Text(stringResource(id = R.string.medication_history_title)) },
+                    navigationIcon = {
+                        Box(modifier = Modifier.padding(start = 10.dp)) {
+                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                        // scrolledContainerColor is not applicable here
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(8.dp)) // ADDED SPACER HERE
+                FilterControls(
+                    currentFilter = currentFilter,
+                    onFilterChanged = { startDate, endDate ->
+                        viewModel?.setDateFilter(startDate, endDate)
+                    },
+                    onClearDateFilter = { viewModel?.setDateFilter(null, null) }
+                )
 
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.med_history_navigate_back_cd)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                ActionControls(
+                    sortAscending = sortAscending,
+                    onSortOldestFirst = { viewModel?.setSortOrder(true) },
+                    onSortNewestFirst = { viewModel?.setSortOrder(false) }
+                )
+
+                Divider(modifier = Modifier.padding(vertical = 8.dp)) // This is a Material 3 Divider
+
+                when {
+                    isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                    }
+                    historyEntries.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            stringResource(id = R.string.med_history_no_history_found),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            FilterControls(
-                currentFilter = currentFilter,
-                onFilterChanged = { startDate, endDate ->
-                    viewModel?.setDateFilter(startDate, endDate)
-                },
-                onClearDateFilter = { viewModel?.setDateFilter(null, null) }
-
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ActionControls(
-                sortAscending = sortAscending,
-                onSortOldestFirst = { viewModel?.setSortOrder(true) },
-                onSortNewestFirst = { viewModel?.setSortOrder(false) }
-
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            when {
-                isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
-                }
-                historyEntries.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(id = R.string.med_history_no_history_found),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                else -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) { // Removed state = listState
-                        items(historyEntries, key = { it.id }) { entry ->
-                            MedicationHistoryListItem(entry = entry)
-                            if (historyEntries.last() != entry) {
-                                Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
+                    else -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(historyEntries, key = { it.id }) { entry ->
+                                MedicationHistoryListItem(entry = entry)
                             }
-
                         }
                     }
                 }
-            }
-        }
-    }
-}
+            } // Closes Column
+        } // Closes Scaffold content lambda
+    } // Closes MedicationSpecificTheme content lambda
+} // Closes MedicationHistoryScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterControls(
     currentFilter: Pair<LocalDate?, LocalDate?>?,
@@ -178,6 +196,50 @@ fun FilterControls(
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
+    // DateRangePickerDialog implementation
+    if (showDialog) {
+        val state = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = currentFilter?.first?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
+            initialSelectedEndDateMillis = currentFilter?.second?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis <= Instant.now().toEpochMilli()
+                }
+                override fun isSelectableYear(year: Int): Boolean {
+                    return year <= LocalDate.now().year
+                }
+            }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val startDateMillis = state.selectedStartDateMillis
+                        val endDateMillis = state.selectedEndDateMillis
+                        if (startDateMillis != null && endDateMillis != null) {
+                            val startDate = Instant.ofEpochMilli(startDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                            val endDate = Instant.ofEpochMilli(endDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                            onFilterChanged(startDate, endDate)
+                        }
+                        showDialog = false
+                    },
+                    enabled = state.selectedStartDateMillis != null && state.selectedEndDateMillis != null
+                ) {
+                    Text(stringResource(id = android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(id = android.R.string.cancel))
+                }
+            }
+        ) {
+            DateRangePicker(state = state, title = null, headline = null, showModeToggle = true)
+        }
+    } // Closes if (showDialog)
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -185,8 +247,7 @@ fun FilterControls(
     ) {
         Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
         OutlinedButton(
-            onClick = { showDialog = true }, // Corrected: removed .value
-
+            onClick = { showDialog = true },
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
@@ -197,19 +258,18 @@ fun FilterControls(
                     val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     "$start - $end"
-
                 } ?: stringResource(id = R.string.med_history_filter_select_range_button),
                 fontSize = 12.sp
             )
         }
-    }
-    if (currentFilter != null) { // Show clear button if any filter is active
+    } // Closes Row
 
+    if (currentFilter != null) {
         OutlinedButton(onClick = onClearDateFilter, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(id = R.string.med_history_filter_clear_button))
         }
         Spacer(modifier = Modifier.height(8.dp))
-    }
+    } // Closes if (currentFilter != null)
 }
 
 @Composable
@@ -217,18 +277,21 @@ fun ActionControls(
     sortAscending: Boolean,
     onSortOldestFirst: () -> Unit,
     onSortNewestFirst: () -> Unit
-
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Button for "Oldest First"
-        val oldestFirstButtonColors = if (sortAscending) { // Active if sortAscending is true
-            ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        val oldestFirstButtonColors = if (sortAscending) {
+            ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
+            )
         } else {
-            ButtonDefaults.outlinedButtonColors()
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
+            )
         }
         OutlinedButton(
             onClick = onSortOldestFirst,
@@ -240,11 +303,15 @@ fun ActionControls(
             Text(stringResource(R.string.med_history_action_sort_oldest_first), fontSize = 12.sp)
         }
 
-        // Button for "Newest First"
-        val newestFirstButtonColors = if (!sortAscending) { // Active if sortAscending is false
-            ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        val newestFirstButtonColors = if (!sortAscending) {
+            ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
+            )
         } else {
-            ButtonDefaults.outlinedButtonColors()
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
+            )
         }
         OutlinedButton(
             onClick = onSortNewestFirst,
@@ -258,18 +325,6 @@ fun ActionControls(
     }
 }
 
-// HistoryActionButton is no longer needed as its logic is incorporated above or buttons are more distinct
-// @Composable
-// fun HistoryActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
-//    OutlinedButton(onClick = onClick, shape = RoundedCornerShape(8.dp)) {
-//        Icon(icon, contentDescription = text, modifier = Modifier.size(18.dp))
-//        Spacer(modifier = Modifier.width(4.dp))
-//        Text(text, fontSize = 12.sp)
-//    }
-// }
-
-
-
 @Composable
 fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
     Card(
@@ -277,7 +332,9 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
             .fillMaxWidth()
             .padding(vertical = 6.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer // Changed
+        )
     ) {
         Row(
             modifier = Modifier
@@ -289,17 +346,15 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
             Column {
                 Text(
                     text = entry.dateTaken.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
-
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer // Added/Changed
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    // Medication name can be part of the item if needed, or use a general prefix
-
                     text = stringResource(id = R.string.med_history_item_taken_at_prefix) + entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSecondaryContainer // Changed
                 )
             }
         }
@@ -310,17 +365,21 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
 @Composable
 fun MedicationHistoryScreenPreview_Loading() {
     AppTheme {
-        MedicationHistoryScreen(medicationId = 1, onNavigateBack = {}, viewModel = null) // viewModel = null will show sample data or loading state
+        MedicationHistoryScreen(
+            medicationId = 1,
+            colorName = "LIGHT_BLUE",
+            onNavigateBack = {},
+            viewModel = null
+        )
     }
 }
-
 
 @Preview(showBackground = true, name = "Medication History List Item")
 @Composable
 fun MedicationHistoryListItemPreview() {
     AppTheme {
         MedicationHistoryListItem(
-            entry = MedicationHistoryEntry( // Use the correct data class
+            entry = MedicationHistoryEntry(
                 id = "preview1",
                 medicationName = "Sample Med",
                 dateTaken = LocalDate.now(),

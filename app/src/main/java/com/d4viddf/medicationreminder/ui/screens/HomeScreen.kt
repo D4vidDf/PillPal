@@ -314,10 +314,10 @@ fun HomeScreen(
                     animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
                     isHostedInPane = true, // Added parameter
                     // Add new navigation parameters with empty lambdas for now
-                    onNavigateToAllSchedules = { /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationHistory = { /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationGraph = { /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationInfo = { /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToAllSchedules = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToMedicationHistory = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToMedicationGraph = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToMedicationInfo = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
                     graphViewModel = hiltViewModel() // Provide the graphViewModel
                 )
             } else {

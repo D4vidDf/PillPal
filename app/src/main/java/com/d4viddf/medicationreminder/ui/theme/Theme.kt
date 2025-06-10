@@ -9,14 +9,18 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 // Remove Material3.Typography as AppTypography is used
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.d4viddf.medicationreminder.data.ThemeKeys
+
+val LocalAppUseDarkTheme = compositionLocalOf { false } // Default to false
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -134,18 +138,20 @@ fun AppTheme(
         else -> lightScheme
     }
 
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb() // You might want to use a specific status bar color
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkTheme
+    CompositionLocalProvider(LocalAppUseDarkTheme provides useDarkTheme) {
+        val view = LocalView.current
+        if (!view.isInEditMode) {
+            SideEffect {
+                val window = (view.context as Activity).window
+                window.statusBarColor = colorScheme.primary.toArgb() // You might want to use a specific status bar color
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkTheme
+            }
         }
-    }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography, // Assuming AppTypography is defined elsewhere
-        content = content
-    )
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography, // Assuming AppTypography is defined elsewhere
+            content = content
+        )
+    }
 }
