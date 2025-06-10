@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -64,51 +66,63 @@ fun FullScheduleItem(
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
 
-    Row(
+    Card( // WRAPPER CARD
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 4.dp), // Padding for the card itself
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            val itemName: String
-            val itemTimeText: String
-            // var isTakenState = false // Default, only used if switch is shown - REMOVED
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), // Internal padding for content
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                val itemName: String
+                val itemTimeText: String
 
-            when (itemData) {
-                is TodayScheduleItem -> {
-                    itemName = itemData.medicationName // TodayScheduleItem has its own medicationName
-                    itemTimeText = itemData.time.format(timeFormatter)
-                    // isTakenState = itemData.isTaken // REMOVED
+                when (itemData) {
+                    is TodayScheduleItem -> {
+                        itemName = itemData.medicationName
+                        itemTimeText = itemData.time.format(timeFormatter)
+                    }
+                    is MedicationSchedule -> {
+                        itemName = medicationName
+                        itemTimeText = itemData.getFormattedSchedule()
+                    }
+                    else -> {
+                        itemName = "Unknown Item"
+                        itemTimeText = "N/A"
+                    }
                 }
-                is MedicationSchedule -> {
-                    itemName = medicationName // Use the passed overall medicationName
-                    itemTimeText = itemData.getFormattedSchedule()
-                }
-                else -> {
-                    itemName = "Unknown Item"
-                    itemTimeText = "N/A"
-                }
+
+                Text(
+                    text = itemName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer // Set color
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = itemTimeText,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer // Set color
+                )
             }
-
-            Text(text = itemName, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = itemTimeText,
-
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
-            Switch(
-                checked = itemData.isTaken,
-                onCheckedChange = { newTakenStatus ->
-                    onToggleTaken(itemData.id, newTakenStatus, medicationId) // Use passed medicationId
-                },
-                enabled = isSwitchEnabled
-            )
+            if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
+                Switch(
+                    checked = itemData.isTaken,
+                    onCheckedChange = { newTakenStatus ->
+                        onToggleTaken(itemData.id, newTakenStatus, medicationId)
+                    },
+                    enabled = isSwitchEnabled
+                    // Switch colors will be themed by default
+                )
+            }
         }
     }
 }
@@ -163,9 +177,9 @@ fun AllSchedulesScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             }
