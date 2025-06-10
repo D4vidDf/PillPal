@@ -44,13 +44,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.Canvas // New import
+// Removed Canvas import, as it's no longer used by BarChartDisplay
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Rect // New import
+// Removed Rect import
 import androidx.compose.ui.graphics.Color // Added import
-import androidx.compose.ui.graphics.Path // New import
+// Removed Path import
 import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
-import androidx.compose.ui.platform.LocalDensity // New import
+// Removed LocalDensity import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
 import androidx.compose.ui.text.style.TextAlign // New import
@@ -61,7 +61,10 @@ import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 // Removed ThemedAppBarBackButton import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
+import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // ViewModel now provides this
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
+import com.himanshoe.charty.bar.BarChart // Charty import
+import com.himanshoe.charty.common.bar.BarData // Charty import
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth // Added for currentDisplayedMonth
@@ -145,126 +148,7 @@ fun DateNavigationControls( // Made non-private
     }
 }
 
-@Composable
-fun BarChartDisplay( // Made non-private
-    graphData: Map<String, Int>,
-    selectedViewType: GraphViewType,
-    currentDisplayedMonth: YearMonth,
-    currentDisplayedYear: Int,
-    modifier: Modifier = Modifier
-) {
-    val maxCount = graphData.values.maxOrNull() ?: 1
-    val today = LocalDate.now()
-    val todayShortName = today.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-    val currentDayOfMonthForHighlight = if (currentDisplayedMonth.year == today.year && currentDisplayedMonth.month == today.month) {
-        today.dayOfMonth.toString()
-    } else {
-        null
-    }
-    val currentMonthShortNameForHighlight = if (currentDisplayedYear == today.year) {
-        today.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-    } else {
-        null
-    }
-    val barMaxHeight = 160.dp
-    val rowModifier = if (selectedViewType == GraphViewType.WEEK) {
-        modifier
-            .fillMaxWidth()
-            .height(220.dp)
-            .padding(vertical = 16.dp)
-    } else {
-        modifier
-            .fillMaxWidth()
-            .height(220.dp)
-            .horizontalScroll(rememberScrollState())
-            .padding(vertical = 16.dp)
-    }
-    val rowArrangement = if (selectedViewType == GraphViewType.WEEK) {
-        Arrangement.SpaceEvenly
-    } else {
-        Arrangement.spacedBy(8.dp)
-    }
-
-    Row(
-        modifier = rowModifier,
-        horizontalArrangement = rowArrangement,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        graphData.forEach { (label, count) ->
-            val highlight = when(selectedViewType) {
-                GraphViewType.WEEK -> label.equals(todayShortName, ignoreCase = true)
-                GraphViewType.MONTH -> label == currentDayOfMonthForHighlight
-                GraphViewType.YEAR -> label.equals(currentMonthShortNameForHighlight, ignoreCase = true) && currentDisplayedYear == today.year
-            }
-            val columnModifier = if (selectedViewType == GraphViewType.WEEK) {
-                Modifier.weight(1f)
-            } else {
-                Modifier
-            }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = columnModifier
-            ) {
-                if (count > 0) {
-                    Text(
-                        text = count.toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (highlight) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.padding(bottom = 1.dp)
-                    )
-                } else {
-                    Spacer(modifier = Modifier.height(MaterialTheme.typography.labelSmall.lineHeight.value.dp + 1.dp))
-                }
-
-                val barColor = if (highlight) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.secondaryContainer
-                val currentDensity = LocalDensity.current
-                val barHeightPx = with(currentDensity) {
-                    if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp.toPx() else 0f
-                }
-                val barWidthDp = if (selectedViewType == GraphViewType.WEEK) 30.dp else 20.dp
-                val barWidthPx = with(currentDensity) { barWidthDp.toPx() }
-                val topRadiusPx = with(currentDensity) { 4.dp.toPx() }
-
-                Canvas(
-                    modifier = Modifier
-                        .width(barWidthDp)
-                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
-                ) {
-                    if (barHeightPx > 0f) {
-                        val path = Path().apply {
-                            val actualRadius = minOf(topRadiusPx, barWidthPx / 2, barHeightPx / 2)
-                            // Start from bottom-left, go up to top-left curve start
-                            moveTo(0f, barHeightPx)
-                            lineTo(0f, actualRadius)
-                            // Top-left arc
-                            arcTo(
-                                rect = Rect(0f, 0f, 2 * actualRadius, 2 * actualRadius),
-                                startAngleDegrees = 180f,
-                                sweepAngleDegrees = 90f,
-                                forceMoveTo = false
-                            )
-                            lineTo(barWidthPx - actualRadius, 0f)
-                            // Top-right arc
-                            arcTo(
-                                rect = Rect(barWidthPx - 2 * actualRadius, 0f, barWidthPx, 2 * actualRadius),
-                                startAngleDegrees = 270f,
-                                sweepAngleDegrees = 90f,
-                                forceMoveTo = false
-                            )
-                            lineTo(barWidthPx, barHeightPx)
-                            close()
-                        }
-                        drawPath(path = path, color = barColor)
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(label, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-    }
-}
+// Old BarChartDisplay composable removed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -288,9 +172,11 @@ fun MedicationGraphScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
-    val graphData by viewModel?.graphData?.collectAsState() ?: remember {
-        val today = LocalDate.now()
-        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    // Collect the new chartyGraphData
+    val chartEntries by viewModel?.chartyGraphData?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+    // val graphData by viewModel?.graphData?.collectAsState() ?: remember { // Old data structure
+    //    val today = LocalDate.now()
+    //    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val shortDayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
         mutableStateOf(
             mapOf(
@@ -427,7 +313,7 @@ fun MedicationGraphScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(220.dp) // Same height as BarChartDisplay area
+                                .height(220.dp)
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -438,18 +324,18 @@ fun MedicationGraphScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(220.dp) // Same height
+                                .height(220.dp)
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = error ?: stringResource(id = R.string.med_graph_unknown_error), // Display the error message
+                                text = error ?: stringResource(id = R.string.med_graph_unknown_error),
                                 color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Center
                             )
                         }
                     }
-                    graphData.isEmpty() -> {
+                    chartEntries.isEmpty() -> { // Check new data structure
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -457,16 +343,52 @@ fun MedicationGraphScreen(
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(stringResource(id = R.string.med_graph_no_data_found)) // New string for clarity
+                            Text(stringResource(id = R.string.med_graph_no_data_found))
                         }
                     }
                     else -> {
-                        BarChartDisplay(
-                            graphData = graphData,
-                            selectedViewType = selectedViewType,
-                        currentDisplayedMonth = currentDisplayedMonth,
-                        currentDisplayedYear = currentDisplayedYear
-                     )
+                        val primaryColor = MaterialTheme.colorScheme.primary
+                        val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
+
+                        val chartyBarDataList = remember(chartEntries) {
+                            chartEntries.map { entry ->
+                                BarData(
+                                    xValue = entry.xValue,
+                                    yValue = entry.yValue,
+                                    color = if (entry.isHighlighted) primaryColor else secondaryContainerColor
+                                )
+                            }
+                        }
+
+                        if (chartyBarDataList.isNotEmpty()) {
+                            BarChart(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp),
+                                barData = chartyBarDataList,
+                                gridColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                xAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                yAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                showGridLines = true,
+                                showZeroLine = true,
+                                barWidth = when(selectedViewType) {
+                                    GraphViewType.WEEK -> 30.dp
+                                    else -> 20.dp
+                                },
+                                barSpacing = 8.dp
+                            )
+                        } else {
+                             Box( // Fallback if chartyBarDataList is empty after mapping (should be caught by chartEntries.isEmpty() though)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(stringResource(id = R.string.med_graph_no_data_found))
+                            }
+                        }
+                    }
                 }
             }
         }

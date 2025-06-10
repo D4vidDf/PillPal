@@ -22,14 +22,21 @@ import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
 
+// Data class for Charty
+data class ChartyGraphEntry(
+    val xValue: String,      // Label for X-axis (e.g., "Mon", "15", "Jan")
+    val yValue: Float,       // Value for Y-axis (bar height)
+    val isHighlighted: Boolean // Flag to indicate if this bar should be highlighted
+)
+
 @HiltViewModel
 class MedicationGraphViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository
 ) : ViewModel() {
 
-    private val _graphData = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val graphData: StateFlow<Map<String, Int>> = _graphData.asStateFlow()
+    private val _chartyGraphData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
+    val chartyGraphData: StateFlow<List<ChartyGraphEntry>> = _chartyGraphData.asStateFlow()
 
     private val _medicationName = MutableStateFlow<String>("")
     val medicationName: StateFlow<String> = _medicationName.asStateFlow()
@@ -58,22 +65,20 @@ class MedicationGraphViewModel @Inject constructor(
     }
 
     fun clearGraphData() {
-        _graphData.value = emptyMap()
+        _chartyGraphData.value = emptyList() // Updated
         // _medicationName.value = "" // Optionally clear name too, or keep it
-        Log.d(TAG, "Graph data cleared.")
+        Log.d(TAG, "Charty graph data cleared.")
     }
 
     fun loadWeeklyGraphData(medicationId: Int, currentWeekDays: List<LocalDate>) {
-        if (currentWeekDays.isEmpty()) { // Allow empty list to clear data
-            Log.d(TAG, "currentWeekDays is empty, clearing graph data for weekly view.")
-            _graphData.value = emptyMap()
-            // Potentially set an error or specific state if a non-empty list was expected but not 7 days
+        if (currentWeekDays.isEmpty()) {
+            Log.d(TAG, "currentWeekDays is empty, clearing charty graph data for weekly view.")
+            _chartyGraphData.value = emptyList() // Updated
             return
         }
-         if (currentWeekDays.count() != 7) { // Changed .size to .count()
-            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.") // Changed .size to .count()
-
-            _graphData.value = emptyMap() // Reset or handle error appropriately
+         if (currentWeekDays.count() != 7) {
+            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.")
+            _chartyGraphData.value = emptyList() // Updated
             return
         }
 
@@ -128,12 +133,25 @@ class MedicationGraphViewModel @Inject constructor(
                     val dayName = day.format(dayFormatter)
                     weeklyDataMap[dayName] = dosesByDate[day] ?: 0
                 }
-                Log.i(TAG, "loadWeeklyGraphData: Final weekly data map for medId $medicationId: $weeklyDataMap") // Enhanced log
-                _graphData.value = weeklyDataMap
+                // Log.i(TAG, "loadWeeklyGraphData: Intermediate weeklyDataMap for medId $medicationId: $weeklyDataMap") // Old log
+
+                val today = LocalDate.now()
+                val todayShortName = today.format(dayFormatter)
+
+                val chartEntries = weeklyDataMap.map { (dayName, count) ->
+                    ChartyGraphEntry(
+                        xValue = dayName,
+                        yValue = count.toFloat(),
+                        isHighlighted = dayName.equals(todayShortName, ignoreCase = true)
+                    )
+                }
+                Log.i(TAG, "loadWeeklyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                _chartyGraphData.value = chartEntries
+
             } catch (e: Exception) {
                 Log.e(TAG, "loadWeeklyGraphData: Error loading weekly graph data for medId $medicationId", e)
                 _error.value = "Failed to load weekly graph data."
-                _graphData.value = emptyMap()
+                _chartyGraphData.value = emptyList() // Updated
             } finally {
                 _isLoading.value = false
             }
@@ -185,12 +203,28 @@ class MedicationGraphViewModel @Inject constructor(
                 for (day in 1..daysInMonth) {
                     monthlyDataMap[day.toString()] = dosesByDayOfMonth[day] ?: 0
                 }
-                Log.i(TAG, "loadMonthlyGraphData: Final monthly data map for medId $medicationId: $monthlyDataMap") // Enhanced log
-                _graphData.value = monthlyDataMap
+                // Log.i(TAG, "loadMonthlyGraphData: Intermediate monthlyDataMap for medId $medicationId: $monthlyDataMap")
+
+                val today = LocalDate.now()
+                val currentDayOfMonthForHighlight = if (targetMonth.year == today.year && targetMonth.month == today.month) {
+                    today.dayOfMonth.toString()
+                } else {
+                    null
+                }
+
+                val chartEntries = monthlyDataMap.map { (dayOfMonthStr, count) ->
+                    ChartyGraphEntry(
+                        xValue = dayOfMonthStr,
+                        yValue = count.toFloat(),
+                        isHighlighted = dayOfMonthStr == currentDayOfMonthForHighlight
+                    )
+                }
+                Log.i(TAG, "loadMonthlyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                _chartyGraphData.value = chartEntries
             } catch (e: Exception) {
                 Log.e(TAG, "loadMonthlyGraphData: Error for medId $medicationId, month $targetMonth", e)
                 _error.value = "Failed to load monthly graph data."
-                _graphData.value = emptyMap()
+                _chartyGraphData.value = emptyList() // Updated
             } finally {
                 _isLoading.value = false
             }
@@ -241,12 +275,28 @@ class MedicationGraphViewModel @Inject constructor(
                     val monthName = monthEnum.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     yearlyDataMap[monthName] = dosesByMonth[monthEnum] ?: 0
                 }
-                Log.i(TAG, "loadYearlyGraphData: Final yearly data map for medId $medicationId: $yearlyDataMap") // Enhanced log
-                _graphData.value = yearlyDataMap
+                // Log.i(TAG, "loadYearlyGraphData: Intermediate yearlyDataMap for medId $medicationId: $yearlyDataMap")
+
+                val today = LocalDate.now()
+                val currentMonthShortNameForHighlight = if (targetYear == today.year) {
+                    today.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                } else {
+                    null
+                }
+
+                val chartEntries = yearlyDataMap.map { (monthName, count) ->
+                    ChartyGraphEntry(
+                        xValue = monthName,
+                        yValue = count.toFloat(),
+                        isHighlighted = monthName.equals(currentMonthShortNameForHighlight, ignoreCase = true)
+                    )
+                }
+                Log.i(TAG, "loadYearlyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                _chartyGraphData.value = chartEntries
             } catch (e: Exception) {
                 Log.e(TAG, "loadYearlyGraphData: Error for medId $medicationId, year $targetYear", e)
                 _error.value = "Failed to load yearly graph data."
-                _graphData.value = emptyMap()
+                _chartyGraphData.value = emptyList() // Updated
             } finally {
                 _isLoading.value = false
 

@@ -57,12 +57,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.Canvas // New import
+// Removed Canvas import
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Rect // New import
+// Removed Rect import
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path // New import
-import androidx.compose.ui.platform.LocalDensity // New import
+// Removed Path import
+// Removed LocalDensity import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -81,8 +81,11 @@ import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme // Added import
+import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
+import com.himanshoe.charty.bar.BarChart // Charty import
+import com.himanshoe.charty.common.bar.BarData // Charty import
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -128,88 +131,7 @@ fun ScheduleItem(
     }
 }
 
-@Composable
-fun WeeklyBarChartDisplay(graphData: Map<String, Int>, modifier: Modifier = Modifier) {
-    if (graphData.isEmpty()) {
-        Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
-            Text(stringResource(id = R.string.loading_graph_data)) // Or "No data for this week"
-        }
-        return
-    }
-
-    val maxCount = graphData.values.maxOrNull() ?: 1
-    // val today = LocalDate.now() // Moved below
-    // val dayFormatter = remember { DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) } // Moved below
-    // val todayShortName = today.format(dayFormatter) // Moved below
-    val chartHeight = 120.dp // Smaller height for the card display
-    val barMaxHeight = 100.dp // Max height for a single bar
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(chartHeight)
-            .padding(top = 8.dp, bottom = 8.dp, start = 4.dp, end = 4.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        graphData.forEach { (dayLabel, count) ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier.weight(1f)
-            ) {
-                val currentDensity = LocalDensity.current
-                val barHeightPx = with(currentDensity) {
-                    (if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp).toPx()
-                }
-                val barWidthPx = with(currentDensity) { 24.dp.toPx() }
-
-                val today = LocalDate.now()
-                val dayFormatter = remember { DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) }
-                val todayShortNameFormatted = today.format(dayFormatter)
-                val isToday = dayLabel.equals(todayShortNameFormatted, ignoreCase = true)
-
-                val barColor = if (isToday) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.secondaryContainer
-
-                val topRadiusPx = with(currentDensity) { 4.dp.toPx() }
-
-                Canvas(
-                    modifier = Modifier
-                        .width(24.dp)
-                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
-                ) {
-                    if (barHeightPx > 0f) {
-                        val path = Path().apply {
-                            val actualRadius = minOf(topRadiusPx, barWidthPx / 2, barHeightPx / 2)
-
-                            moveTo(0f, barHeightPx) // Bottom-left
-                            lineTo(0f, actualRadius) // To top-left curve start
-                            arcTo(
-                                rect = Rect(0f, 0f, 2 * actualRadius, 2 * actualRadius),
-                                startAngleDegrees = 180f,
-                                sweepAngleDegrees = 90f,
-                                forceMoveTo = false
-                            )
-                            lineTo(barWidthPx - actualRadius, 0f) // To top-right curve start
-                            arcTo(
-                                rect = Rect(barWidthPx - 2 * actualRadius, 0f, barWidthPx, 2 * actualRadius),
-                                startAngleDegrees = 270f,
-                                sweepAngleDegrees = 90f,
-                                forceMoveTo = false
-                            )
-                            lineTo(barWidthPx, barHeightPx) // To bottom-right
-                            close()
-                        }
-                        drawPath(path = path, color = barColor)
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(dayLabel, style = MaterialTheme.typography.labelSmall) // Smaller label
-            }
-        }
-    }
-}
+// Old WeeklyBarChartDisplay composable removed
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -237,7 +159,7 @@ fun MedicationDetailsScreen(
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val weeklyGraphData by graphViewModel?.graphData?.collectAsState() ?: remember { mutableStateOf(emptyMap()) }
+    val chartEntries by graphViewModel?.chartyGraphData?.collectAsState() ?: remember { mutableStateOf(emptyList()) } // NEW
 
     LaunchedEffect(medicationId, graphViewModel) {
         viewModel.getMedicationById(medicationId)?.let { med ->
@@ -561,7 +483,41 @@ fun MedicationDetailsScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    WeeklyBarChartDisplay(graphData = weeklyGraphData, modifier = Modifier.fillMaxSize()) // Call to WeeklyBarChartDisplay
+                                    // NEW Charty IMPLEMENTATION:
+                                    val primaryColor = MaterialTheme.colorScheme.primary
+                                    val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
+
+                                    val chartyBarDataList = remember(chartEntries) {
+                                        chartEntries.map { entry ->
+                                            BarData(
+                                                xValue = entry.xValue,
+                                                yValue = entry.yValue,
+                                                color = if (entry.isHighlighted) primaryColor else secondaryContainerColor
+                                            )
+                                        }
+                                    }
+
+                                    if (chartyBarDataList.isNotEmpty()) {
+                                        BarChart(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(vertical = 8.dp),
+                                            barData = chartyBarDataList,
+                                            barWidth = 20.dp,
+                                            barSpacing = 6.dp,
+                                            showGridLines = false,
+                                            showZeroLine = false,
+                                            xAxisLabelColor = Color.Transparent,
+                                            yAxisLabelColor = Color.Transparent
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(stringResource(id = R.string.loading_graph_data))
+                                        }
+                                    }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Button(
