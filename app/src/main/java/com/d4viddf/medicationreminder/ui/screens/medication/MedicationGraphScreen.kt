@@ -11,8 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width // Ensure width is imported for bar width
-import androidx.compose.foundation.rememberScrollState // For horizontal scroll
+import androidx.compose.foundation.rememberScrollState // For horizontal and vertical scroll
 import androidx.compose.foundation.horizontalScroll // For horizontal scroll
+import androidx.compose.foundation.verticalScroll // For vertical scroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.foundation.BorderStroke // Added import
 import androidx.compose.material3.Button // Added import
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator // New import
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton // Added import
@@ -29,8 +31,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.MediumTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState // New import
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,11 +43,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Canvas // New import
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect // New import
 import androidx.compose.ui.graphics.Color // Added import
+import androidx.compose.ui.graphics.Path // New import
+import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
+import androidx.compose.ui.platform.LocalDensity // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
-
+import androidx.compose.ui.text.style.TextAlign // New import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R // Moved import to top
@@ -207,16 +215,49 @@ fun BarChartDisplay( // Made non-private
                 } else {
                     Spacer(modifier = Modifier.height(MaterialTheme.typography.labelSmall.lineHeight.value.dp + 1.dp))
                 }
-                Box(
+
+                val barColor = if (highlight) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.secondaryContainer
+                val currentDensity = LocalDensity.current
+                val barHeightPx = with(currentDensity) {
+                    if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp.toPx() else 0f
+                }
+                val barWidthDp = if (selectedViewType == GraphViewType.WEEK) 30.dp else 20.dp
+                val barWidthPx = with(currentDensity) { barWidthDp.toPx() }
+                val topRadiusPx = with(currentDensity) { 4.dp.toPx() }
+
+                Canvas(
                     modifier = Modifier
-                        .width(if (selectedViewType == GraphViewType.WEEK) 30.dp else 20.dp)
+                        .width(barWidthDp)
                         .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
-                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                        .background(
-                            if (highlight) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.secondaryContainer
-                        )
-                )
+                ) {
+                    if (barHeightPx > 0f) {
+                        val path = Path().apply {
+                            val actualRadius = minOf(topRadiusPx, barWidthPx / 2, barHeightPx / 2)
+                            // Start from bottom-left, go up to top-left curve start
+                            moveTo(0f, barHeightPx)
+                            lineTo(0f, actualRadius)
+                            // Top-left arc
+                            arcTo(
+                                rect = Rect(0f, 0f, 2 * actualRadius, 2 * actualRadius),
+                                startAngleDegrees = 180f,
+                                sweepAngleDegrees = 90f,
+                                forceMoveTo = false
+                            )
+                            lineTo(barWidthPx - actualRadius, 0f)
+                            // Top-right arc
+                            arcTo(
+                                rect = Rect(barWidthPx - 2 * actualRadius, 0f, barWidthPx, 2 * actualRadius),
+                                startAngleDegrees = 270f,
+                                sweepAngleDegrees = 90f,
+                                forceMoveTo = false
+                            )
+                            lineTo(barWidthPx, barHeightPx)
+                            close()
+                        }
+                        drawPath(path = path, color = barColor)
+                    }
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(label, style = MaterialTheme.typography.bodySmall)
             }
@@ -243,6 +284,8 @@ fun MedicationGraphScreen(
     var currentDisplayedMonth by remember { mutableStateOf(YearMonth.now()) }
     var currentDisplayedYear by remember { mutableStateOf(LocalDate.now().year) }
 
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
     val graphData by viewModel?.graphData?.collectAsState() ?: remember {
         val today = LocalDate.now()
@@ -260,6 +303,8 @@ fun MedicationGraphScreen(
             )
         )
     }
+    val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
+    val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(medicationId, selectedViewType, currentDisplayedMonth, currentDisplayedYear, viewModel) {
         if (viewModel != null) {
@@ -282,22 +327,24 @@ fun MedicationGraphScreen(
 
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added
             topBar = {
-                TopAppBar(
+                MediumTopAppBar( // Changed
                     title = { Text(stringResource(id = R.string.medication_statistics_title)) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
+                                contentDescription = stringResource(id = R.string.back_button_cd)
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
+                    scrollBehavior = scrollBehavior, // Added
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -306,7 +353,8 @@ fun MedicationGraphScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(16.dp),
+                    .padding(16.dp) // Existing content padding
+                    .verticalScroll(rememberScrollState()), // Make content column scrollable
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
@@ -373,20 +421,48 @@ fun MedicationGraphScreen(
                     modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
                 )
 
-                if (graphData.isEmpty()) {
-                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(stringResource(id = R.string.loading_graph_data))
+                when {
+                    isLoading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp) // Same height as BarChartDisplay area
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                } else {
-                     BarChartDisplay(
-                        graphData = graphData,
-                        selectedViewType = selectedViewType,
+                    error != null -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp) // Same height
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = error ?: stringResource(id = R.string.med_graph_unknown_error), // Display the error message
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    graphData.isEmpty() -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(stringResource(id = R.string.med_graph_no_data_found)) // New string for clarity
+                        }
+                    }
+                    else -> {
+                        BarChartDisplay(
+                            graphData = graphData,
+                            selectedViewType = selectedViewType,
                         currentDisplayedMonth = currentDisplayedMonth,
                         currentDisplayedYear = currentDisplayedYear
                      )

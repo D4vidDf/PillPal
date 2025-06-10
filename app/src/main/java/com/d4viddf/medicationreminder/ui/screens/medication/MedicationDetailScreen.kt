@@ -57,8 +57,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Canvas // New import
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect // New import
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path // New import
+import androidx.compose.ui.platform.LocalDensity // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -134,9 +138,9 @@ fun WeeklyBarChartDisplay(graphData: Map<String, Int>, modifier: Modifier = Modi
     }
 
     val maxCount = graphData.values.maxOrNull() ?: 1
-    val today = LocalDate.now()
-    val dayFormatter = remember { DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) }
-    val todayShortName = today.format(dayFormatter)
+    // val today = LocalDate.now() // Moved below
+    // val dayFormatter = remember { DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) } // Moved below
+    // val todayShortName = today.format(dayFormatter) // Moved below
     val chartHeight = 120.dp // Smaller height for the card display
     val barMaxHeight = 100.dp // Max height for a single bar
 
@@ -154,18 +158,52 @@ fun WeeklyBarChartDisplay(graphData: Map<String, Int>, modifier: Modifier = Modi
                 verticalArrangement = Arrangement.Bottom,
                 modifier = Modifier.weight(1f)
             ) {
-                Box(
+                val currentDensity = LocalDensity.current
+                val barHeightPx = with(currentDensity) {
+                    (if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp).toPx()
+                }
+                val barWidthPx = with(currentDensity) { 24.dp.toPx() }
+
+                val today = LocalDate.now()
+                val dayFormatter = remember { DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) }
+                val todayShortNameFormatted = today.format(dayFormatter)
+                val isToday = dayLabel.equals(todayShortNameFormatted, ignoreCase = true)
+
+                val barColor = if (isToday) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.secondaryContainer
+
+                val topRadiusPx = with(currentDensity) { 4.dp.toPx() }
+
+                Canvas(
                     modifier = Modifier
-                        .width(24.dp) // Narrower bars
+                        .width(24.dp)
                         .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
-                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                        .background(
-                            if (dayLabel.equals(todayShortName, ignoreCase = true))
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.secondaryContainer
-                        )
-                )
+                ) {
+                    if (barHeightPx > 0f) {
+                        val path = Path().apply {
+                            val actualRadius = minOf(topRadiusPx, barWidthPx / 2, barHeightPx / 2)
+
+                            moveTo(0f, barHeightPx) // Bottom-left
+                            lineTo(0f, actualRadius) // To top-left curve start
+                            arcTo(
+                                rect = Rect(0f, 0f, 2 * actualRadius, 2 * actualRadius),
+                                startAngleDegrees = 180f,
+                                sweepAngleDegrees = 90f,
+                                forceMoveTo = false
+                            )
+                            lineTo(barWidthPx - actualRadius, 0f) // To top-right curve start
+                            arcTo(
+                                rect = Rect(barWidthPx - 2 * actualRadius, 0f, barWidthPx, 2 * actualRadius),
+                                startAngleDegrees = 270f,
+                                sweepAngleDegrees = 90f,
+                                forceMoveTo = false
+                            )
+                            lineTo(barWidthPx, barHeightPx) // To bottom-right
+                            close()
+                        }
+                        drawPath(path = path, color = barColor)
+                    }
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(dayLabel, style = MaterialTheme.typography.labelSmall) // Smaller label
             }

@@ -321,6 +321,8 @@
     <string name="yearly_doses_taken_title_template">Yearly Doses - %1$d</string>
     <string name="previous_period_cd">Previous Period</string>
     <string name="next_period_cd">Next Period</string>
+    <string name="med_graph_no_data_found">No graph data found for the selected period.</string> <!-- New -->
+    <string name="med_graph_unknown_error">An unknown error occurred while loading graph data.</string> <!-- New -->
 
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Back to medication details</string>
@@ -352,21 +354,23 @@
     <string name="med_history_filter_by_date_label">Filter by Date:</string>
     <string name="med_history_filter_select_date_cd">Select Date Range</string>
     <string name="med_history_filter_select_range_button">Select Range</string>
-    <string name="med_history_filter_select_range_button_label">Select Date Range</string> <!-- New -->
-    <string name="med_history_filter_no_range_selected">All Dates</string> <!-- New -->
+    <string name="med_history_filter_select_range_button_label">Select Date Range</string>
+    <string name="med_history_filter_no_range_selected">All Dates</string>
     <string name="med_history_filter_clear_button">Clear Date Filter</string>
     <string name="med_history_no_history_found">No history found for this medication.</string>
     <string name="med_history_item_taken_at_prefix">Taken at: </string>
     <string name="med_history_action_sort_oldest_first">Oldest First</string>
     <string name="med_history_action_sort_newest_first">Newest First</string>
-    <string name="med_history_action_sort_toggle_cd">Toggle sort order</string> <!-- New -->
-    <string name="med_history_sorted_oldest_first">Sorted: Oldest First</string> <!-- New -->
-    <string name="med_history_sorted_newest_first">Sorted: Newest First</string> <!-- New -->
+    <string name="med_history_action_sort_toggle_cd">Toggle sort order</string>
+    <string name="med_history_sorted_oldest_first">Sorted: Oldest First</string>
+    <string name="med_history_sorted_newest_first">Sorted: Newest First</string>
     <string name="med_history_sort_order_label">Sort order:</string>
-    <string name="med_history_sort_by_oldest_button">Sort: Oldest First</string> <!-- New -->
-    <string name="med_history_sort_by_newest_button">Sort: Newest First</string> <!-- New -->
+    <string name="med_history_sort_by_oldest_button">Sort: Oldest First</string>
+    <string name="med_history_sort_by_newest_button">Sort: Newest First</string>
     <!-- Note: "medication_history_title" was already added in a previous step for MedicationDetailScreen -->
     <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
     <!-- <string name="medication_history_title">Medication History</string> -->
 
 </resources>
+
+[end of app/src/main/res/values/strings.xml]
