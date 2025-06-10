@@ -362,7 +362,9 @@
     <string name="med_history_action_sort_toggle_cd">Toggle sort order</string> <!-- New -->
     <string name="med_history_sorted_oldest_first">Sorted: Oldest First</string> <!-- New -->
     <string name="med_history_sorted_newest_first">Sorted: Newest First</string> <!-- New -->
-    <string name="med_history_sort_order_label">Sort order:</string> <!-- Added this line -->
+    <string name="med_history_sort_order_label">Sort order:</string>
+    <string name="med_history_sort_by_oldest_button">Sort: Oldest First</string> <!-- New -->
+    <string name="med_history_sort_by_newest_button">Sort: Newest First</string> <!-- New -->
     <!-- Note: "medication_history_title" was already added in a previous step for MedicationDetailScreen -->
     <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
     <!-- <string name="medication_history_title">Medication History</string> -->
