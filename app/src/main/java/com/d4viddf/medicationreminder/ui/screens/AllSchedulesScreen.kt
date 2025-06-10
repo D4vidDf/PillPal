@@ -23,7 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch // Needed again for TodayScheduleItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.LargeTopAppBar // Added import
+import androidx.compose.material3.TopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -169,19 +169,19 @@ fun AllSchedulesScreen(
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
             topBar = {
-                LargeTopAppBar( // Changed to LargeTopAppBar
+                TopAppBar( // Changed back to TopAppBar
                     title = { Text(title) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) { // Ensure this padding
+                        Box(modifier = Modifier.padding(start = 10.dp)) {
                             ThemedAppBarBackButton(onClick = onNavigateBack)
                         }
                     },
-                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = Color.White, // ThemedAppBarBackButton's icon is white
-                        actionIconContentColor = Color.White,    // For consistency
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                        // scrolledContainerColor is not applicable here
                     )
                 )
             }
@@ -273,19 +273,18 @@ fun AllSchedulesScreenTodayPreview() {
         MedicationSpecificTheme(medicationColor = medicationColor) {
             Scaffold(
                 topBar = {
-                    LargeTopAppBar( // Changed
+                    TopAppBar( // Changed back to TopAppBar
                         title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationNameForPreview)) },
                         navigationIcon = {
-                            Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding and new button
+                            Box(modifier = Modifier.padding(start = 10.dp)) {
                                 ThemedAppBarBackButton(onClick = {}) // No-op for preview
                             }
                         },
-                        colors = TopAppBarDefaults.largeTopAppBarColors( // Changed
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface,
-                            navigationIconContentColor = Color.White,
-                            actionIconContentColor = Color.White,
-                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                            containerColor = MaterialTheme.colorScheme.primary, // Changed
+                            titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
+                            navigationIconContentColor = Color.White, // Consistent
+                            actionIconContentColor = Color.White     // Consistent
                         )
                     )
                 }

@@ -29,7 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.LargeTopAppBar // Added Import
+import androidx.compose.material3.TopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -283,19 +283,19 @@ fun MedicationGraphScreen(
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
             topBar = {
-                LargeTopAppBar( // Changed to LargeTopAppBar
+                TopAppBar( // Changed back to TopAppBar
                     title = { Text(stringResource(id = R.string.medication_statistics_title)) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding
+                        Box(modifier = Modifier.padding(start = 10.dp)) {
                             ThemedAppBarBackButton(onClick = onNavigateBack)
                         }
                     },
-                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = Color.White, // ThemedAppBarBackButton's icon is white
-                        actionIconContentColor = Color.White,    // For consistency
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                        // scrolledContainerColor is not applicable here
                     )
                 )
             }
@@ -426,19 +426,18 @@ fun MedicationGraphScreenPreviewMonth() {
 
         Scaffold(
             topBar = {
-                LargeTopAppBar( // Changed
+                TopAppBar( // Changed back to TopAppBar
                     title = { Text(medicationName) }, // medicationName is available in preview scope
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding and new button
+                        Box(modifier = Modifier.padding(start = 10.dp)) {
                             ThemedAppBarBackButton(onClick = {}) // No-op for preview
                         }
                     },
-                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                        containerColor = MaterialTheme.colorScheme.primary, // Changed
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
+                        navigationIconContentColor = Color.White, // Consistent
+                        actionIconContentColor = Color.White     // Consistent
                     )
                 )
             }

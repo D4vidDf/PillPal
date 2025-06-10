@@ -39,7 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.LargeTopAppBar // Added import
+import androidx.compose.material3.TopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
@@ -119,19 +119,19 @@ fun MedicationHistoryScreen(
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
             topBar = {
-                LargeTopAppBar( // Changed to LargeTopAppBar
+                TopAppBar( // Changed back to TopAppBar
                     title = { Text(stringResource(id = R.string.medication_history_title)) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding
+                        Box(modifier = Modifier.padding(start = 10.dp)) {
                             ThemedAppBarBackButton(onClick = onNavigateBack)
                         }
                     },
-                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = Color.White, // ThemedAppBarBackButton's icon is white
-                        actionIconContentColor = Color.White,    // For consistency
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                        // scrolledContainerColor is not applicable here
                     )
                 )
             }
