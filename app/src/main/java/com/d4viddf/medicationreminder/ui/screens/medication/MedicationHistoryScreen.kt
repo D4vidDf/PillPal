@@ -141,6 +141,7 @@ fun MedicationHistoryScreen(
                     .padding(paddingValues)
                     .padding(horizontal = 16.dp)
             ) {
+                Spacer(modifier = Modifier.height(8.dp)) // ADDED SPACER HERE
                 FilterControls(
                     currentFilter = currentFilter,
                     onFilterChanged = { startDate, endDate ->
@@ -281,9 +282,14 @@ fun ActionControls(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val oldestFirstButtonColors = if (sortAscending) {
-            ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
+            )
         } else {
-            ButtonDefaults.outlinedButtonColors()
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
+            )
         }
         OutlinedButton(
             onClick = onSortOldestFirst,
@@ -296,9 +302,14 @@ fun ActionControls(
         }
 
         val newestFirstButtonColors = if (!sortAscending) {
-            ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
+            )
         } else {
-            ButtonDefaults.outlinedButtonColors()
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
+            )
         }
         OutlinedButton(
             onClick = onSortNewestFirst,
