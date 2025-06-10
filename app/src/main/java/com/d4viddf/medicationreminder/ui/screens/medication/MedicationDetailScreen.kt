@@ -17,14 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width // Explicit import for Modifier.width
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NavigateNext // Changed from .rounded to .filled for NavigateNext
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft // Ensure this import is present
 // import androidx.compose.material.icons.automirrored.rounded.NavigateNext // Keep only one NavigateNext import
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
@@ -134,8 +134,9 @@ fun WeeklyBarChartDisplay(graphData: Map<String, Int>, modifier: Modifier = Modi
     }
 
     val maxCount = graphData.values.maxOrNull() ?: 1
-    // Ensure todayShortName matches exactly how keys are stored in graphData (e.g. "Mon", "Tue")
-    val todayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    val today = LocalDate.now()
+    val dayFormatter = remember { DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) }
+    val todayShortName = today.format(dayFormatter)
     val chartHeight = 120.dp // Smaller height for the card display
     val barMaxHeight = 100.dp // Max height for a single bar
 
@@ -242,47 +243,41 @@ fun MedicationDetailsScreen(
                         title = { },
                         navigationIcon = {
                             if (!isHostedInPane) {
-                                Box (modifier = Modifier.padding(start = 10.dp)){
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                                            .clickable { onNavigateBack() },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                            contentDescription = stringResource(id = R.string.back),
-                                            modifier = Modifier.size(28.dp), tint = Color.White
-                                        )
-                                    }
+                                IconButton(onClick = onNavigateBack, modifier = Modifier.padding(start = 4.dp)) { // Adjusted padding for IconButton
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                        contentDescription = stringResource(id = R.string.back),
+                                        tint = MaterialTheme.colorScheme.onSurface // Changed tint
+                                    )
                                 }
                             }
                         },
                         actions = {
-                            Box(
+                            Box( // The edit button's styling might need adjustment for a transparent app bar
                                 modifier = Modifier
-                                    .padding(end = 10.dp) // Original padding
+                                    .padding(end = 10.dp)
                                     .background(
-                                        color = Color.Black.copy(alpha = 0.4f),
-                                        shape = RoundedCornerShape(20.dp) // Pill/capsule shape
+                                        color = MaterialTheme.colorScheme.primaryContainer, // Example: Use theme color
+                                        shape = RoundedCornerShape(20.dp)
                                     )
                                     .clickable { /* TODO: Handle edit action */ }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp), // Padding for text inside
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.edit),
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer, // Example: Use theme color
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp // Explicit font size as before
+                                    fontSize = 14.sp
                                 )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = color.backgroundColor,
-                            navigationIconContentColor = Color.White,
-                            actionIconContentColor = Color.White
+                            containerColor = Color.Transparent, // Changed to Transparent
+                            scrolledContainerColor = Color.Transparent, // Added for consistency
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface, // Changed
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface, // Changed
+                            titleContentColor = MaterialTheme.colorScheme.onSurface // Added for completeness
                         )
                     )
                 }

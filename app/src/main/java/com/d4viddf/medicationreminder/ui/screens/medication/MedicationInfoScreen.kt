@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
 import androidx.compose.material.icons.automirrored.filled.Subject // For Prospecto
 import androidx.compose.material.icons.filled.DocumentScanner // For Ficha Técnica
 import androidx.compose.material3.Button
@@ -38,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,7 +61,7 @@ import com.d4viddf.medicationreminder.data.CimaViaAdministracion // For preview
 import com.d4viddf.medicationreminder.data.CimaEstado // For preview
 import com.d4viddf.medicationreminder.data.CimaDocumento // For preview
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
+// Removed ThemedAppBarBackButton import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
@@ -179,6 +185,10 @@ fun MedicationInfoScreen(
     val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
     val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+    val useGrid = screenWidthDp >= 720.dp // Threshold for using grid layout
+
     val sampleInfoForPreview = if (viewModel == null) {
         remember {
             CimaMedicationDetail(
@@ -213,19 +223,21 @@ fun MedicationInfoScreen(
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
             topBar = {
-                TopAppBar( // Changed back to TopAppBar
+                TopAppBar(
                     title = { Text("") }, // Empty title
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary, // Retained for completeness
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                        // scrolledContainerColor is not applicable here
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface, // Adjusted for transparent background
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface // Adjusted for transparent background
                     )
                 )
             }
@@ -243,54 +255,108 @@ fun MedicationInfoScreen(
                 }
                 sampleInfoForPreview != null -> {
                     val info = sampleInfoForPreview
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        item {
-                            val imageUrl = if (!info.nregistro.isNullOrBlank()) {
-                                "https://cima.aemps.es/cima/rest/medicamento/${info.nregistro}/foto/materialAcondicionamientoPrimario"
-                            } else {
-                                null
+                    val imageUrl = if (!info.nregistro.isNullOrBlank()) {
+                        "https://cima.aemps.es/cima/rest/medicamento/${info.nregistro}/foto/materialAcondicionamientoPrimario"
+                    } else {
+                        null
+                    }
+                    val uriHandler = LocalUriHandler.current
+                    val prospecto = info.docs?.find { it.tipo == 2 }
+                    val fichaTecnica = info.docs?.find { it.tipo == 1 }
+
+                    if (useGrid) {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 340.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                                .padding(horizontal = 12.dp),
+                            contentPadding = PaddingValues(vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                AsyncImage(
+                                    model = imageUrl,
+                                    placeholder = painterResource(id = R.drawable.ic_pill_placeholder),
+                                    error = painterResource(id = R.drawable.ic_pill_placeholder),
+                                    contentDescription = stringResource(id = R.string.med_info_image_placeholder_cd),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp) // Adjusted height for grid
+                                        .padding(bottom = 4.dp) // Adjusted padding for grid
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                            RoundedCornerShape(12.dp)
+                                        ),
+                                    alignment = Alignment.Center
+                                )
                             }
-                            AsyncImage(
-                                model = imageUrl,
-                                placeholder = painterResource(id = R.drawable.ic_pill_placeholder),
-                                error = painterResource(id = R.drawable.ic_pill_placeholder),
-                                contentDescription = stringResource(id = R.string.med_info_image_placeholder_cd),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .padding(vertical = 8.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                        RoundedCornerShape(12.dp)
-                                    ),
-                                alignment = Alignment.Center
-                            )
+                            item { InfoSectionCard(info) }
+                            item {
+                                LinkButton(
+                                    text = stringResource(id = R.string.med_info_button_prospecto),
+                                    url = prospecto?.urlHtml ?: prospecto?.url,
+                                    icon = Icons.AutoMirrored.Filled.Subject,
+                                    onClick = { url -> uriHandler.openUri(url) }
+                                )
+                            }
+                            item {
+                                LinkButton(
+                                    text = stringResource(id = R.string.med_info_button_ficha_tecnica),
+                                    url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
+                                    icon = Icons.Filled.DocumentScanner,
+                                    onClick = { url -> uriHandler.openUri(url) }
+                                )
+                            }
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
-                        item { InfoSectionCard(info) }
-                        item {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            val uriHandler = LocalUriHandler.current
-                            val prospecto = info.docs?.find { it.tipo == 2 }
-                            val fichaTecnica = info.docs?.find { it.tipo == 1 }
-                            LinkButton(
-                                text = stringResource(id = R.string.med_info_button_prospecto),
-                                url = prospecto?.urlHtml ?: prospecto?.url,
-                                icon = Icons.AutoMirrored.Filled.Subject,
-                                onClick = { url -> uriHandler.openUri(url) }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LinkButton(
-                                text = stringResource(id = R.string.med_info_button_ficha_tecnica),
-                                url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
-                                icon = Icons.Filled.DocumentScanner,
-                                onClick = { url -> uriHandler.openUri(url) }
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            item {
+                                AsyncImage(
+                                    model = imageUrl,
+                                    placeholder = painterResource(id = R.drawable.ic_pill_placeholder),
+                                    error = painterResource(id = R.drawable.ic_pill_placeholder),
+                                    contentDescription = stringResource(id = R.string.med_info_image_placeholder_cd),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .padding(vertical = 8.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                            RoundedCornerShape(12.dp)
+                                        ),
+                                    alignment = Alignment.Center
+                                )
+                            }
+                            item { InfoSectionCard(info) }
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                LinkButton(
+                                    text = stringResource(id = R.string.med_info_button_prospecto),
+                                    url = prospecto?.urlHtml ?: prospecto?.url,
+                                    icon = Icons.AutoMirrored.Filled.Subject,
+                                    onClick = { url -> uriHandler.openUri(url) }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
+                            item {
+                                LinkButton(
+                                    text = stringResource(id = R.string.med_info_button_ficha_tecnica),
+                                    url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
+                                    icon = Icons.Filled.DocumentScanner,
+                                    onClick = { url -> uriHandler.openUri(url) }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(16.dp)) }
                         }
                     }
                 }

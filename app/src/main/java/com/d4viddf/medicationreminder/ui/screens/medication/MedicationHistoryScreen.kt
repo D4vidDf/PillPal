@@ -18,10 +18,11 @@ import androidx.compose.foundation.lazy.items
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.SwapVert // Added import
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,7 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added
-import androidx.compose.ui.graphics.Color // Added import
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,7 +64,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry // Use new data class
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
+// Removed ThemedAppBarBackButton import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
@@ -122,16 +123,18 @@ fun MedicationHistoryScreen(
                 TopAppBar( // Changed back to TopAppBar
                     title = { Text(stringResource(id = R.string.medication_history_title)) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                        // scrolledContainerColor is not applicable here
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -155,8 +158,7 @@ fun MedicationHistoryScreen(
 
                 ActionControls(
                     sortAscending = sortAscending,
-                    onSortOldestFirst = { viewModel?.setSortOrder(true) },
-                    onSortNewestFirst = { viewModel?.setSortOrder(false) }
+                    onToggleSort = { viewModel?.setSortOrder(!sortAscending) }
                 )
 
                 Divider(modifier = Modifier.padding(vertical = 8.dp)) // This is a Material 3 Divider
@@ -243,23 +245,26 @@ fun FilterControls(
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween // This will push IconButton to the right
     ) {
-        Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
-        OutlinedButton(
-            onClick = { showDialog = true },
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-        ) {
-            Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
+        // Text part on the left
+        Column {
+            Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
             Text(
                 currentFilter?.let {
                     val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                     "$start - $end"
-                } ?: stringResource(id = R.string.med_history_filter_select_range_button),
-                fontSize = 12.sp
+                } ?: stringResource(id = R.string.med_history_filter_no_range_selected), // Changed string resource
+                fontSize = 12.sp // Consider using MaterialTheme.typography.labelSmall
+            )
+        }
+
+        // IconButton on the right
+        IconButton(onClick = { showDialog = true }) {
+            Icon(
+                Icons.Filled.CalendarToday,
+                contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd)
             )
         }
     } // Closes Row
@@ -275,53 +280,25 @@ fun FilterControls(
 @Composable
 fun ActionControls(
     sortAscending: Boolean,
-    onSortOldestFirst: () -> Unit,
-    onSortNewestFirst: () -> Unit
+    onToggleSort: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.Start, // Changed to Start
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val oldestFirstButtonColors = if (sortAscending) {
-            ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
-            )
-        } else {
-            ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
+        IconButton(onClick = onToggleSort) {
+            Icon(
+                imageVector = Icons.Filled.SwapVert,
+                contentDescription = stringResource(R.string.med_history_action_sort_toggle_cd) // New string resource
             )
         }
-        OutlinedButton(
-            onClick = onSortOldestFirst,
-            shape = RoundedCornerShape(8.dp),
-            colors = oldestFirstButtonColors
-        ) {
-            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.med_history_action_sort_oldest_first), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(stringResource(R.string.med_history_action_sort_oldest_first), fontSize = 12.sp)
-        }
-
-        val newestFirstButtonColors = if (!sortAscending) {
-            ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
-            )
-        } else {
-            ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
-            )
-        }
-        OutlinedButton(
-            onClick = onSortNewestFirst,
-            shape = RoundedCornerShape(8.dp),
-            colors = newestFirstButtonColors
-        ) {
-            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.med_history_action_sort_newest_first), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(stringResource(R.string.med_history_action_sort_newest_first), fontSize = 12.sp)
-        }
+        Spacer(modifier = Modifier.width(8.dp)) // Space between icon and text
+        Text(
+            text = if (sortAscending) stringResource(R.string.med_history_sorted_oldest_first) // New string resource
+                   else stringResource(R.string.med_history_sorted_newest_first), // New string resource
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 

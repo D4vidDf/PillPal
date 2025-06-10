@@ -15,7 +15,7 @@ import androidx.compose.foundation.rememberScrollState // For horizontal scroll
 import androidx.compose.foundation.horizontalScroll // For horizontal scroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.foundation.BorderStroke // Added import
@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton // Added import
+// Removed ThemedAppBarBackButton import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
@@ -283,19 +283,21 @@ fun MedicationGraphScreen(
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
             topBar = {
-                TopAppBar( // Changed back to TopAppBar
+                TopAppBar(
                     title = { Text(stringResource(id = R.string.medication_statistics_title)) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                        // scrolledContainerColor is not applicable here
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -363,7 +365,7 @@ fun MedicationGraphScreen(
                 val chartTitle = when (selectedViewType) {
                     GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
                     GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentDisplayedMonth.format(monthFormatter))
-                    GraphViewType.YEAR -> "Yearly Doses - $currentDisplayedYear"
+                    GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYear)
                 }
                 Text(
                     text = chartTitle,
@@ -429,11 +431,15 @@ fun MedicationGraphScreenPreviewMonth() {
                 TopAppBar( // Changed back to TopAppBar
                     title = { Text(medicationName) }, // medicationName is available in preview scope
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = {}) // No-op for preview
+                        // IconButton for preview, similar to main screen, or remove if not needed for preview focus
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd)
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary, // Changed
                         titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
                         navigationIconContentColor = Color.White, // Consistent

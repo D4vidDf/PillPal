@@ -145,28 +145,74 @@ class MedicationReminderViewModel @Inject constructor(
             val potentialSlotsToday = mutableListOf<TodayScheduleItem>()
 
             // 1. Get all potential slots for today from schedules
+            // Fetch all DB reminders for the medication once, as it's needed for Type B logic and later merging.
+            val allDbReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+            Log.d("MedReminderVM", "$funcTag: Fetched ${allDbReminders.size} total DB reminders for medicationId: $medicationId.")
+
             schedules?.forEach { schedule ->
-                Log.d("MedReminderVM", "$funcTag: Getting potential slots for Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}")
-                val dailySlots = ReminderCalculator.getAllPotentialSlotsForDay(schedule, today)
-                dailySlots.forEach { slotTime ->
-                    potentialSlotsToday.add(
-                        TodayScheduleItem(
-                            id = "slot_${medication.id}_${schedule.id}_${slotTime.toNanoOfDay()}",
-                            medicationName = medication.name,
-                            time = slotTime,
-                            isPast = currentTime.isAfter(slotTime),
-                            isTaken = false, // Default to not taken
-                            underlyingReminderId = 0L, // Will be updated if a DB entry matches
-                            medicationScheduleId = schedule.id,
-                            takenAt = null
-                        )
+                if (schedule.scheduleType == com.d4viddf.medicationreminder.data.ScheduleType.INTERVAL &&
+                    schedule.intervalStartTime.isNullOrBlank()) {
+                    // This is a Type B (Continuous) Interval
+                    Log.d("MedReminderVM", "$funcTag: Handling Type B Interval. Schedule ID: ${schedule.id}")
+
+                    val lastTakenDbReminder = allDbReminders
+                        .filter { it.isTaken && it.takenAt != null && it.medicationId == medicationId } // Ensure it's for the current medication
+                        .maxByOrNull { LocalDateTime.parse(it.takenAt, storableDateTimeFormatter) }
+
+                    val lastTakenDateTime = lastTakenDbReminder?.takenAt?.let {
+                        try { LocalDateTime.parse(it, storableDateTimeFormatter) } catch (e: Exception) { null }
+                    }
+                    Log.d("MedReminderVM", "$funcTag: For Type B Interval, lastTakenDateTime: $lastTakenDateTime (from DB reminder ID: ${lastTakenDbReminder?.id})")
+
+                    val remindersForTodayMap = ReminderCalculator.generateRemindersForPeriod(
+                        medication = medication,
+                        schedule = schedule,
+                        periodStartDate = today,
+                        periodEndDate = today,
+                        lastTakenDateTime = lastTakenDateTime
                     )
+
+                    val dailySlotsFromTypeB = remindersForTodayMap[today] ?: emptyList()
+                    Log.d("MedReminderVM", "$funcTag: Type B Interval generated ${dailySlotsFromTypeB.size} slots for today: $dailySlotsFromTypeB")
+
+                    dailySlotsFromTypeB.forEach { slotTime ->
+                        potentialSlotsToday.add(
+                            TodayScheduleItem(
+                                id = "slot_typeB_${medication.id}_${schedule.id}_${slotTime.toNanoOfDay()}", // Ensure unique ID
+                                medicationName = medication.name,
+                                time = slotTime,
+                                isPast = currentTime.isAfter(slotTime),
+                                isTaken = false, // Default, will be merged later
+                                underlyingReminderId = 0L,
+                                medicationScheduleId = schedule.id,
+                                takenAt = null
+                            )
+                        )
+                    }
+                } else {
+                    // Existing logic for Type A intervals and other schedule types
+                    Log.d("MedReminderVM", "$funcTag: Handling non-Type B Interval or other schedule type. Schedule ID: ${schedule.id}, Type: ${schedule.scheduleType}")
+                    val dailySlots = ReminderCalculator.getAllPotentialSlotsForDay(schedule, today)
+                    dailySlots.forEach { slotTime ->
+                        potentialSlotsToday.add(
+                            TodayScheduleItem(
+                                id = "slot_${medication.id}_${schedule.id}_${slotTime.toNanoOfDay()}",
+                                medicationName = medication.name,
+                                time = slotTime,
+                                isPast = currentTime.isAfter(slotTime),
+                                isTaken = false,
+                                underlyingReminderId = 0L,
+                                medicationScheduleId = schedule.id,
+                                takenAt = null
+                            )
+                        )
+                    }
                 }
             }
             Log.i("MedReminderVM", "$funcTag: Generated ${potentialSlotsToday.size} potential slots for today.")
 
             // 2. Fetch relevant DB reminders (scheduled for today OR taken today)
-            val allDbReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+            // allDbReminders is already fetched above.
             val relevantDbReminders = allDbReminders.filter { reminder ->
                 val reminderScheduledDate = try { LocalDateTime.parse(reminder.reminderTime, storableDateTimeFormatter).toLocalDate() } catch (e: Exception) { null }
                 val reminderTakenDate = reminder.takenAt?.let { try { LocalDateTime.parse(it, storableDateTimeFormatter).toLocalDate() } catch (e: Exception) { null } }
