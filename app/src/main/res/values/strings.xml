@@ -352,6 +352,7 @@
     <string name="med_history_filter_by_date_label">Filter by Date:</string>
     <string name="med_history_filter_select_date_cd">Select Date Range</string>
     <string name="med_history_filter_select_range_button">Select Range</string>
+    <string name="med_history_filter_select_range_button_label">Select Date Range</string> <!-- New -->
     <string name="med_history_filter_no_range_selected">All Dates</string> <!-- New -->
     <string name="med_history_filter_clear_button">Clear Date Filter</string>
     <string name="med_history_no_history_found">No history found for this medication.</string>

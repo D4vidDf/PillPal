@@ -59,6 +59,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added
+import androidx.compose.ui.text.style.TextOverflow // New import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -211,25 +212,28 @@ fun MedicationHistoryScreen(
                             stringResource(id = R.string.med_history_filter_by_date_label),
                             style = MaterialTheme.typography.titleSmall
                         )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                        // Replaced Row with OutlinedButton
+                        OutlinedButton(
+                            onClick = { showDateRangeDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
                         ) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarToday,
+                                contentDescription = null, // Text on button describes action
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                             Text(
                                 text = currentFilter?.let {
                                     val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                                     val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
                                     "$start - $end"
-                                } ?: stringResource(id = R.string.med_history_filter_no_range_selected),
+                                } ?: stringResource(id = R.string.med_history_filter_select_range_button_label),
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                            IconButton(onClick = { showDateRangeDialog = true }) {
-                                Icon(
-                                    Icons.Filled.CalendarToday,
-                                    contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd)
-                                )
-                            }
                         }
                         if (currentFilter != null) {
                             OutlinedButton(
@@ -248,21 +252,27 @@ fun MedicationHistoryScreen(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            stringResource(id = R.string.med_history_sort_order_label), // New string
+                            stringResource(id = R.string.med_history_sort_order_label),
                             style = MaterialTheme.typography.titleSmall
                         )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { viewModel?.setSortOrder(!sortAscending) }) {
-                                Icon(
-                                    imageVector = Icons.Filled.SwapVert,
-                                    contentDescription = stringResource(R.string.med_history_action_sort_toggle_cd)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
+                        // Replaced Row with OutlinedButton for sorting
+                        OutlinedButton(
+                            onClick = { viewModel?.setSortOrder(!sortAscending) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.SwapVert,
+                                contentDescription = null, // Text on button describes action
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                             Text(
-                                text = if (sortAscending) stringResource(R.string.med_history_sorted_oldest_first)
-                                       else stringResource(R.string.med_history_sorted_newest_first),
-                                style = MaterialTheme.typography.bodyMedium
+                                text = if (sortAscending) stringResource(id = R.string.med_history_sort_by_oldest_button)
+                                       else stringResource(id = R.string.med_history_sort_by_newest_button),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
