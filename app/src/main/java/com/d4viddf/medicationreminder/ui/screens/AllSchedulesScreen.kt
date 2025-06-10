@@ -273,23 +273,22 @@ fun AllSchedulesScreenTodayPreview() {
         MedicationSpecificTheme(medicationColor = medicationColor) {
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
+                    LargeTopAppBar( // Changed
                         title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationNameForPreview)) },
                         navigationIcon = {
-                            IconButton(onClick = {}) {
-                                Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back_button_content_description)
-                            )
-                        }
-                    }
-                )
-            }
+                            Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding and new button
+                                ThemedAppBarBackButton(onClick = {}) // No-op for preview
+                            }
+                        },
+                        colors = TopAppBarDefaults.largeTopAppBarColors( // Changed
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            navigationIconContentColor = Color.White,
+                            actionIconContentColor = Color.White,
+                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                    )
+                }
             ) { paddingValues ->
                 LazyColumn(
                 modifier = Modifier

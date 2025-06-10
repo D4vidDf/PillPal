@@ -426,13 +426,20 @@ fun MedicationGraphScreenPreviewMonth() {
 
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text(medicationName) },
+                LargeTopAppBar( // Changed
+                    title = { Text(medicationName) }, // medicationName is available in preview scope
                     navigationIcon = {
-                        IconButton(onClick = {}) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.med_stats_navigate_back_cd))
+                        Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding and new button
+                            ThemedAppBarBackButton(onClick = {}) // No-op for preview
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
                 )
             }
         ) { paddingValues ->
