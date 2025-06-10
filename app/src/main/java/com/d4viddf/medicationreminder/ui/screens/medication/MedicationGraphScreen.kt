@@ -29,7 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.LargeTopAppBar // Added Import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -283,16 +283,19 @@ fun MedicationGraphScreen(
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
             topBar = {
-                TopAppBar(
+                LargeTopAppBar( // Changed to LargeTopAppBar
                     title = { Text(stringResource(id = R.string.medication_statistics_title)) },
                     navigationIcon = {
-                        ThemedAppBarBackButton(onClick = onNavigateBack)
+                        Box(modifier = Modifier.padding(start = 10.dp)) { // Added padding
+                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = Color.White, // For ThemedAppBarBackButton
-                        actionIconContentColor = Color.White    // For consistency if actions were added
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = Color.White, // ThemedAppBarBackButton's icon is white
+                        actionIconContentColor = Color.White,    // For consistency
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     )
                 )
             }
