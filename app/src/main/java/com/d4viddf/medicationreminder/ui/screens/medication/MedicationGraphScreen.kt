@@ -31,9 +31,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.MediumTopAppBar // Changed import
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.TopAppBar // Ensure this is imported for the preview
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState // New import
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -504,11 +505,10 @@ fun MedicationGraphScreenPreviewMonth() {
 
         Scaffold(
             topBar = {
-                TopAppBar( // Changed back to TopAppBar
-                    title = { Text(medicationName) }, // medicationName is available in preview scope
+                TopAppBar( // Use R.string.back_button_cd for consistency if it's generic enough
+                    title = { Text(medicationName) },
                     navigationIcon = {
-                        // IconButton for preview, similar to main screen, or remove if not needed for preview focus
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = { /* Preview no-op */ }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(id = R.string.back_button_cd)
@@ -516,10 +516,9 @@ fun MedicationGraphScreenPreviewMonth() {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary, // Changed
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
-                        navigationIconContentColor = Color.White, // Consistent
-                        actionIconContentColor = Color.White     // Consistent
+                        containerColor = MaterialTheme.colorScheme.primaryContainer, // Adjusted for preview
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
             }
