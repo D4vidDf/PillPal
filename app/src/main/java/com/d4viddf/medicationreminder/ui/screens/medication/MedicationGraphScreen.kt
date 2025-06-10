@@ -174,22 +174,7 @@ fun MedicationGraphScreen(
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
     // Collect the new chartyGraphData
     val chartEntries by viewModel?.chartyGraphData?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
-    // val graphData by viewModel?.graphData?.collectAsState() ?: remember { // Old data structure
-    //    val today = LocalDate.now()
-    //    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        val shortDayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
-        mutableStateOf(
-            mapOf(
-                monday.format(shortDayFormatter) to 2,
-                monday.plusDays(1).format(shortDayFormatter) to 3,
-                monday.plusDays(2).format(shortDayFormatter) to 1,
-                monday.plusDays(3).format(shortDayFormatter) to 4,
-                monday.plusDays(4).format(shortDayFormatter) to 2,
-                monday.plusDays(5).format(shortDayFormatter) to 0,
-                monday.plusDays(6).format(shortDayFormatter) to 1
-            )
-        )
-    }
+    // The old graphData definition that caused "unresolved reference monday" has been removed.
     val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
     val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
@@ -414,16 +399,22 @@ fun MedicationGraphScreenPreviewWeek() {
 @Composable
 fun MedicationGraphScreenPreviewMonth() {
     AppTheme {
-        var selectedViewType by remember { mutableStateOf(GraphViewType.MONTH) }
+        val selectedViewType = GraphViewType.MONTH // Fixed for this preview
         val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
         val currentMonth = YearMonth.now()
-        val currentYearForPreview = currentMonth.year
-        val sampleMonthlyData = remember {
-            (1..currentMonth.lengthOfMonth()).associate { day ->
-                day.toString() to (0..5).random()
+        // val currentYearForPreview = currentMonth.year // Not strictly needed if selectedViewType is fixed to MONTH for title
+
+        // Sample data for the Charty BarChart in preview
+        val sampleChartyBarData = remember {
+            (1..currentMonth.lengthOfMonth()).map { day ->
+                BarData(
+                    xValue = day.toString(),
+                    yValue = (0..5).random().toFloat(),
+                    color = if (day == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
+                    // Example: Highlight the 1st day of the month
+                )
             }
         }
-         val graphData by remember { mutableStateOf(if (selectedViewType == GraphViewType.MONTH) sampleMonthlyData else emptyMap<String,Int>()) }
 
         Scaffold(
             topBar = {
@@ -465,35 +456,30 @@ fun MedicationGraphScreenPreviewMonth() {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                // val currentYearForPreview = currentMonth.year // Already defined
-                val chartTitle = when (selectedViewType) {
-                    GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
-                    GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentMonth.format(monthFormatter))
-                    GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentYearForPreview)
-                }
+                // val currentYearForPreview = currentMonth.year // Not strictly needed if selectedViewType is fixed to MONTH for title
+                val chartTitle = stringResource(R.string.monthly_doses_taken_title_template, currentMonth.format(monthFormatter))
+
                 Text(
                     text = chartTitle,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
                 )
 
-                if (graphData.isEmpty() && selectedViewType != GraphViewType.WEEK ) {
-                     Box(
+                if (sampleChartyBarData.isNotEmpty()) {
+                    BarChart(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp)
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(stringResource(id = R.string.loading_graph_data))
-                    }
-                } else {
-                    BarChartDisplay(
-                        graphData = graphData,
-                        selectedViewType = selectedViewType,
-                        currentDisplayedMonth = currentMonth,
-                        currentDisplayedYear = currentYearForPreview
+                            .height(220.dp),
+                        barData = sampleChartyBarData,
+                        gridColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        xAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        yAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        showGridLines = true,
+                        barWidth = 20.dp,
+                        barSpacing = 8.dp
                     )
+                } else {
+                    Text("No sample data to display in preview.")
                 }
             }
         }

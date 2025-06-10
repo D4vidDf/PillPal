@@ -159,7 +159,8 @@ fun MedicationDetailsScreen(
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val chartEntries by graphViewModel?.chartyGraphData?.collectAsState() ?: remember { mutableStateOf(emptyList()) } // NEW
+    val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(initial = emptyList<ChartyGraphEntry>())
+        ?: remember { mutableStateOf(emptyList<ChartyGraphEntry>()) })
 
     LaunchedEffect(medicationId, graphViewModel) {
         viewModel.getMedicationById(medicationId)?.let { med ->
