@@ -186,54 +186,63 @@ fun AllSchedulesScreen(
                 )
             }
         ) { paddingValues ->
-            val isLoading = medicationName == null && (if (showToday) todayScheduleItems.isEmpty() else schedules.isEmpty())
+            val isLoading =
+                medicationName == null && (if (showToday) todayScheduleItems.isEmpty() else schedules.isEmpty())
 
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                val itemsToDisplay: List<Any> = if (showToday) todayScheduleItems else schedules
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    val itemsToDisplay: List<Any> = if (showToday) todayScheduleItems else schedules
 
-                if (itemsToDisplay.isEmpty()) {
-                    item {
-                        Text(
-                            text = stringResource(id = R.string.all_schedules_no_schedules_found), // Could be more specific for "today"
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    items(itemsToDisplay, key = { item ->
-                        when(item) {
-                            is TodayScheduleItem -> item.id
-                            is MedicationSchedule -> item.id.toString() // Ensure unique string key
-                            else -> item.hashCode().toString()
+                    if (itemsToDisplay.isEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(id = R.string.all_schedules_no_schedules_found), // Could be more specific for "today"
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
                         }
-                    }) { itemData ->
-                        FullScheduleItem(
-                            itemData = itemData,
-                            medicationName = medicationName ?: "Medication", // Fallback
-                            medicationId = medicationId, // Pass screen's medicationId
-                            showSwitch = showToday,
-                            onToggleTaken = if (showToday) {
-                                { itemId, newState, mId -> // mId here is the one passed to FullScheduleItem
-                                    medicationReminderViewModel.updateReminderStatus(itemId, newState, mId)
-                                }
-                            } else null,
-                            isSwitchEnabled = if (showToday && itemData is TodayScheduleItem) {
-                                itemData.isPast || itemData.isTaken
-                            } else false
-                        )
+                    } else {
+                        items(itemsToDisplay, key = { item ->
+                            when (item) {
+                                is TodayScheduleItem -> item.id
+                                is MedicationSchedule -> item.id.toString() // Ensure unique string key
+                                else -> item.hashCode().toString()
+                            }
+                        }) { itemData ->
+                            FullScheduleItem(
+                                itemData = itemData,
+                                medicationName = medicationName ?: "Medication", // Fallback
+                                medicationId = medicationId, // Pass screen's medicationId
+                                showSwitch = showToday,
+                                onToggleTaken = if (showToday) {
+                                    { itemId, newState, mId -> // mId here is the one passed to FullScheduleItem
+                                        medicationReminderViewModel.updateReminderStatus(
+                                            itemId,
+                                            newState,
+                                            mId
+                                        )
+                                    }
+                                } else null,
+                                isSwitchEnabled = if (showToday && itemData is TodayScheduleItem) {
+                                    itemData.isPast || itemData.isTaken
+                                } else false
+                            )
+                        }
                     }
                 }
             }
@@ -261,9 +270,27 @@ fun AllSchedulesScreenDefinedPreview() {
 fun AllSchedulesScreenTodayPreview() {
     // Sample data for TodayScheduleItem list
     val sampleTodayItems = listOf(
-        TodayScheduleItem("ts1", "Med A", LocalTime.of(8,0), true, true, 1L, 1, LocalTime.of(8,2).toString()),
-        TodayScheduleItem("ts2", "Med A", LocalTime.of(14,0), false, false, 2L, 1, null),
-        TodayScheduleItem("ts3", "Med A", LocalTime.of(20,0), false, true, 3L, 1, LocalTime.of(19,55).toString())
+        TodayScheduleItem(
+            "ts1",
+            "Med A",
+            LocalTime.of(8, 0),
+            true,
+            true,
+            1L,
+            1,
+            LocalTime.of(8, 2).toString()
+        ),
+        TodayScheduleItem("ts2", "Med A", LocalTime.of(14, 0), false, false, 2L, 1, null),
+        TodayScheduleItem(
+            "ts3",
+            "Med A",
+            LocalTime.of(20, 0),
+            false,
+            true,
+            3L,
+            1,
+            LocalTime.of(19, 55).toString()
+        )
     )
     val medicationNameForPreview by remember { mutableStateOf("Sample Medication") }
     val previewMedicationId = 1
@@ -274,7 +301,14 @@ fun AllSchedulesScreenTodayPreview() {
             Scaffold(
                 topBar = {
                     TopAppBar( // Changed back to TopAppBar
-                        title = { Text(stringResource(R.string.todays_full_schedule_title_template, medicationNameForPreview)) },
+                        title = {
+                            Text(
+                                stringResource(
+                                    R.string.todays_full_schedule_title_template,
+                                    medicationNameForPreview
+                                )
+                            )
+                        },
                         navigationIcon = {
                             Box(modifier = Modifier.padding(start = 10.dp)) {
                                 ThemedAppBarBackButton(onClick = {}) // No-op for preview
@@ -290,23 +324,24 @@ fun AllSchedulesScreenTodayPreview() {
                 }
             ) { paddingValues ->
                 LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                items(sampleTodayItems, key = { it.id }) { item ->
-                    FullScheduleItem(
-                        itemData = item,
-                        medicationName = item.medicationName,
-                        medicationId = previewMedicationId, // Pass previewMedicationId
-                        showSwitch = true,
-                        onToggleTaken = { _, _, _ -> }, // No-op for preview
-                        isSwitchEnabled = item.isPast || item.isTaken
-                    )
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    items(sampleTodayItems, key = { it.id }) { item ->
+                        FullScheduleItem(
+                            itemData = item,
+                            medicationName = item.medicationName,
+                            medicationId = previewMedicationId, // Pass previewMedicationId
+                            showSwitch = true,
+                            onToggleTaken = { _, _, _ -> }, // No-op for preview
+                            isSwitchEnabled = item.isPast || item.isTaken
+                        )
+                    }
                 }
             }
         }
     }
-} // Close MedicationSpecificTheme
+}// Close MedicationSpecificTheme
 // Removed AllSchedulesScreenWithDataPreview as it's replaced by the two new previews

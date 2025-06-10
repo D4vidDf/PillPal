@@ -45,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -513,7 +514,7 @@ fun MedicationDetailsScreen(
                                         .fillMaxWidth()
                                         .height(150.dp)
                                         .background(
-                                            MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.1f),
+                                            MaterialTheme.colorScheme.surfaceVariant,
                                             RoundedCornerShape(8.dp)
                                         )
                                         .padding(16.dp),

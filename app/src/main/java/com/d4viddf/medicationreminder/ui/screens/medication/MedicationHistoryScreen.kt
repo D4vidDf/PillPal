@@ -187,6 +187,7 @@ fun MedicationHistoryScreen(
     } // Closes MedicationSpecificTheme content lambda
 } // Closes MedicationHistoryScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterControls(
     currentFilter: Pair<LocalDate?, LocalDate?>?,
