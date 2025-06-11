@@ -85,6 +85,7 @@ class MedicationGraphViewModel @Inject constructor(
     }
 
     fun loadWeeklyGraphData(medicationId: Int, currentWeekDays: List<LocalDate>) {
+        Log.d(TAG, "loadWeeklyGraphData: Called with medicationId: $medicationId, currentWeekDays: $currentWeekDays")
         if (currentWeekDays.isEmpty()) {
             Log.d(TAG, "currentWeekDays is empty, clearing charty graph data for weekly view.")
             _chartyGraphData.value = emptyList() // Updated
@@ -103,19 +104,20 @@ class MedicationGraphViewModel @Inject constructor(
             Log.i(TAG, "loadWeeklyGraphData: Starting for medId: $medicationId, week: $currentWeekDays") // Enhanced log
             try {
                 val medication = medicationRepository.getMedicationById(medicationId)
+                Log.d(TAG, "loadWeeklyGraphData: Fetched medication: ${medication?.name ?: "N/A"} (Dosage: ${medication?.dosage ?: "N/A"})")
                 // _medicationName.value = medication?.name ?: ... (already exists)
                 if (medication?.name != _medicationName.value) { // Ensure name is updated if it changed
                     _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
                 val dosageQuantity = parseDosageQuantity(medication?.dosage)
-                Log.d(TAG, "loadWeeklyGraphData: Medication name: ${_medicationName.value}, Dosage quantity: $dosageQuantity")
+                Log.d(TAG, "loadWeeklyGraphData: Parsed dosage quantity: $dosageQuantity")
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "loadWeeklyGraphData: Fetched ${allReminders.size} total raw reminders from repository.")
+                Log.d(TAG, "loadWeeklyGraphData: Fetched ${allReminders.size} total raw reminders. Sample: ${allReminders.take(5).map { r -> "ID: ${r.id}, Taken: ${r.isTaken}, Time: ${r.takenAt}" }}")
 
                 val weekStartDateTime = currentWeekDays.first().atStartOfDay()
                 val weekEndDateTime = currentWeekDays.last().atTime(LocalTime.MAX)
-                Log.d(TAG, "loadWeeklyGraphData: Week date range: $weekStartDateTime to $weekEndDateTime")
+                Log.d(TAG, "loadWeeklyGraphData: Calculated week date range: $weekStartDateTime to $weekEndDateTime")
 
                 val takenRemindersThisWeek = allReminders.mapNotNull { reminder ->
                     if (!reminder.isTaken) {
@@ -153,6 +155,7 @@ class MedicationGraphViewModel @Inject constructor(
                     val dayName = day.format(dayFormatter)
                     weeklyDataMap[dayName] = dosesByDate[day] ?: 0f // Ensure this handles Float
                 }
+                Log.d(TAG, "loadWeeklyGraphData: Constructed weeklyDataMap: $weeklyDataMap")
 
                 val today = LocalDate.now()
                 val todayShortName = today.format(dayFormatter)
@@ -164,7 +167,7 @@ class MedicationGraphViewModel @Inject constructor(
                         isHighlighted = dayName.equals(todayShortName, ignoreCase = true)
                     )
                 }
-                Log.i(TAG, "loadWeeklyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                Log.d(TAG, "loadWeeklyGraphData: Final chartEntries: $chartEntries")
                 _chartyGraphData.value = chartEntries
 
             } catch (e: Exception) {
@@ -178,24 +181,26 @@ class MedicationGraphViewModel @Inject constructor(
     }
 
     fun loadMonthlyGraphData(medicationId: Int, targetMonth: YearMonth) {
+        Log.d(TAG, "loadMonthlyGraphData: Called with medicationId: $medicationId, targetMonth: $targetMonth")
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
             Log.i(TAG, "loadMonthlyGraphData: Starting for medId: $medicationId, month: $targetMonth") // Enhanced log
             try {
                 val medication = medicationRepository.getMedicationById(medicationId)
+                Log.d(TAG, "loadMonthlyGraphData: Fetched medication: ${medication?.name ?: "N/A"} (Dosage: ${medication?.dosage ?: "N/A"})")
                 if (medication?.name != _medicationName.value) { // Ensure name is updated
                     _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
                 val dosageQuantity = parseDosageQuantity(medication?.dosage)
-                Log.d(TAG, "loadMonthlyGraphData: Medication name: ${_medicationName.value}, Dosage quantity: $dosageQuantity")
+                Log.d(TAG, "loadMonthlyGraphData: Parsed dosage quantity: $dosageQuantity")
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "loadMonthlyGraphData: Fetched ${allReminders.size} total raw reminders.")
+                Log.d(TAG, "loadMonthlyGraphData: Fetched ${allReminders.size} total raw reminders. Sample: ${allReminders.take(5).map { r -> "ID: ${r.id}, Taken: ${r.isTaken}, Time: ${r.takenAt}" }}")
 
                 val monthStartDateTime = targetMonth.atDay(1).atStartOfDay()
                 val monthEndDateTime = targetMonth.atEndOfMonth().atTime(LocalTime.MAX)
-                Log.d(TAG, "loadMonthlyGraphData: Month date range: $monthStartDateTime to $monthEndDateTime")
+                Log.d(TAG, "loadMonthlyGraphData: Calculated month date range: $monthStartDateTime to $monthEndDateTime")
 
                 val takenRemindersThisMonth = allReminders.mapNotNull { reminder ->
                     if (!reminder.isTaken) return@mapNotNull null
@@ -230,6 +235,7 @@ class MedicationGraphViewModel @Inject constructor(
                     // dosesByDayOfMonth[day] will now be a Float?
                     monthlyDataMap[day.toString()] = dosesByDayOfMonth[day] ?: 0f // Use 0f
                 }
+                Log.d(TAG, "loadMonthlyGraphData: Constructed monthlyDataMap: $monthlyDataMap")
 
                 val today = LocalDate.now()
                 val currentDayOfMonthForHighlight = if (targetMonth.year == today.year && targetMonth.month == today.month) {
@@ -245,7 +251,7 @@ class MedicationGraphViewModel @Inject constructor(
                         isHighlighted = dayOfMonthStr == currentDayOfMonthForHighlight
                     )
                 }
-                Log.i(TAG, "loadMonthlyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                Log.d(TAG, "loadMonthlyGraphData: Final chartEntries: $chartEntries")
                 _chartyGraphData.value = chartEntries
             } catch (e: Exception) {
                 Log.e(TAG, "loadMonthlyGraphData: Error for medId $medicationId, month $targetMonth", e)
@@ -258,20 +264,22 @@ class MedicationGraphViewModel @Inject constructor(
     }
 
     fun loadYearlyGraphData(medicationId: Int, targetYear: Int) {
+        Log.d(TAG, "loadYearlyGraphData: Called with medicationId: $medicationId, targetYear: $targetYear")
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
             Log.i(TAG, "loadYearlyGraphData: Starting for medId: $medicationId, year: $targetYear") // Enhanced log
             try {
                 val medication = medicationRepository.getMedicationById(medicationId)
+                Log.d(TAG, "loadYearlyGraphData: Fetched medication: ${medication?.name ?: "N/A"} (Dosage: ${medication?.dosage ?: "N/A"})")
                 if (medication?.name != _medicationName.value) { // Ensure name is updated
                      _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
                 val dosageQuantity = parseDosageQuantity(medication?.dosage)
-                Log.d(TAG, "loadYearlyGraphData: Medication name: ${_medicationName.value}, Dosage quantity: $dosageQuantity")
+                Log.d(TAG, "loadYearlyGraphData: Parsed dosage quantity: $dosageQuantity")
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "loadYearlyGraphData: Fetched ${allReminders.size} total raw reminders.")
+                Log.d(TAG, "loadYearlyGraphData: Fetched ${allReminders.size} total raw reminders. Sample: ${allReminders.take(5).map { r -> "ID: ${r.id}, Taken: ${r.isTaken}, Time: ${r.takenAt}" }}")
 
                 val takenRemindersThisYear = allReminders.mapNotNull { reminder ->
                     if (!reminder.isTaken) return@mapNotNull null
@@ -287,10 +295,7 @@ class MedicationGraphViewModel @Inject constructor(
                         null
                     }
                 }
-                Log.d(TAG, "loadYearlyGraphData: Filtered to ${takenRemindersThisYear.size} taken reminders (with dosage) in this year.")
-                if (takenRemindersThisYear.isNotEmpty()) {
-                     Log.d(TAG, "loadYearlyGraphData: First 5 taken items this year: ${takenRemindersThisYear.take(5)}")
-                }
+                Log.d(TAG, "loadYearlyGraphData: Filtered to ${takenRemindersThisYear.size} taken reminders (with dosage) in this year. Sample: ${takenRemindersThisYear.take(5)}")
 
                 val dosesByMonth = takenRemindersThisYear
                     .groupBy { it.first } // Group by Month enum
@@ -307,6 +312,7 @@ class MedicationGraphViewModel @Inject constructor(
                     // dosesByMonth[monthEnum] will now be a Float?
                     yearlyDataMap[monthName] = dosesByMonth[monthEnum] ?: 0f // Use 0f
                 }
+                Log.d(TAG, "loadYearlyGraphData: Constructed yearlyDataMap: $yearlyDataMap")
 
                 val today = LocalDate.now()
                 val currentMonthShortNameForHighlight = if (targetYear == today.year) {
@@ -322,7 +328,7 @@ class MedicationGraphViewModel @Inject constructor(
                         isHighlighted = monthName.equals(currentMonthShortNameForHighlight, ignoreCase = true)
                     )
                 }
-                Log.i(TAG, "loadYearlyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                Log.d(TAG, "loadYearlyGraphData: Final chartEntries: $chartEntries")
                 _chartyGraphData.value = chartEntries
             } catch (e: Exception) {
                 Log.e(TAG, "loadYearlyGraphData: Error for medId $medicationId, year $targetYear", e)

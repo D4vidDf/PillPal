@@ -499,34 +499,39 @@ fun MedicationDetailsScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     // SimpleBarChart IMPLEMENTATION:
-                                    val barChartItems = remember(chartEntries) {
-                                        chartEntries.map { entry ->
-                                            BarChartItem(
-                                                label = entry.xValue, // e.g., "Mon", "Tue"
-                                                value = entry.yValue,
-                                                isHighlighted = entry.isHighlighted
-                                            )
+                                    val finalBarChartItems = remember(chartEntries) {
+                                        if (chartEntries.isEmpty()) {
+                                            // Generate default items for the current week
+                                            val today = LocalDate.now()
+                                            val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                                            val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                                            List(7) { i ->
+                                                val day = monday.plusDays(i.toLong())
+                                                BarChartItem(
+                                                    label = day.format(dayFormatter),
+                                                    value = 0f,
+                                                    isHighlighted = day.isEqual(today) // Highlight current day
+                                                )
+                                            }
+                                        } else {
+                                            chartEntries.map { entry ->
+                                                BarChartItem(
+                                                    label = entry.xValue, // e.g., "Mon", "Tue"
+                                                    value = entry.yValue,
+                                                    isHighlighted = entry.isHighlighted
+                                                )
+                                            }
                                         }
                                     }
 
-                                    if (barChartItems.isNotEmpty()) {
-                                        SimpleBarChart(
-                                            data = barChartItems,
-                                            modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
-                                            highlightedBarColor = MaterialTheme.colorScheme.primary,
-                                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                            // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
-                                        )
-                                    } else {
-                                        // This Box is from the original code for loading/empty state
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(stringResource(id = R.string.loading_graph_data)) // Or handle empty specifically
-                                        }
-                                    }
+                                    SimpleBarChart(
+                                        data = finalBarChartItems,
+                                        modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
+                                        highlightedBarColor = MaterialTheme.colorScheme.primary,
+                                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
+                                    )
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Button(

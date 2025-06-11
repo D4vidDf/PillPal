@@ -311,13 +311,58 @@ fun MedicationGraphScreen(
                 )
 
                 // Refactored chart display area
-                val barChartItems = remember(chartEntries) {
-                    chartEntries.map { entry ->
-                        BarChartItem(
-                            label = entry.xValue,
-                            value = entry.yValue,
-                            isHighlighted = entry.isHighlighted
-                        )
+                val displayableBarChartItems = remember(chartEntries, isLoading, error, selectedViewType, currentDisplayedMonth, currentDisplayedYear) {
+                    if (!isLoading && error == null && chartEntries.isEmpty()) {
+                        // Generate default items if not loading, no error, and chartEntries is empty
+                        when (selectedViewType) {
+                            GraphViewType.WEEK -> {
+                                val today = LocalDate.now()
+                                val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                                val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                                List(7) { i ->
+                                    val day = monday.plusDays(i.toLong())
+                                    BarChartItem(
+                                        label = day.format(dayFormatter),
+                                        value = 0f,
+                                        isHighlighted = day.isEqual(today)
+                                    )
+                                }
+                            }
+                            GraphViewType.MONTH -> {
+                                val daysInMonth = currentDisplayedMonth.lengthOfMonth()
+                                val today = LocalDate.now()
+                                List(daysInMonth) { i ->
+                                    val dayOfMonth = i + 1
+                                    BarChartItem(
+                                        label = dayOfMonth.toString(),
+                                        value = 0f,
+                                        isHighlighted = currentDisplayedMonth.year == today.year &&
+                                                currentDisplayedMonth.month == today.month &&
+                                                dayOfMonth == today.dayOfMonth
+                                    )
+                                }
+                            }
+                            GraphViewType.YEAR -> {
+                                val today = LocalDate.now()
+                                List(12) { i ->
+                                    val month = java.time.Month.of(i + 1)
+                                    BarChartItem(
+                                        label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                                        value = 0f,
+                                        isHighlighted = currentDisplayedYear == today.year && month == today.month
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // Otherwise, use chartEntries from ViewModel
+                        chartEntries.map { entry ->
+                            BarChartItem(
+                                label = entry.xValue,
+                                value = entry.yValue,
+                                isHighlighted = entry.isHighlighted
+                            )
+                        }
                     }
                 }
 
@@ -348,17 +393,7 @@ fun MedicationGraphScreen(
                             )
                         }
                     }
-                    barChartItems.isEmpty() -> { // Check the new barChartItems list
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp) // Keep consistent height
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(stringResource(id = R.string.med_graph_no_data_found))
-                        }
-                    }
+                    // Removed barChartItems.isEmpty() case, chart is always displayed if not loading/error
                     else -> {
                         Box(
                             modifier = Modifier
@@ -367,7 +402,7 @@ fun MedicationGraphScreen(
                                 .horizontalScroll(rememberScrollState())
                         ) {
                             SimpleBarChart(
-                                data = barChartItems,
+                                data = displayableBarChartItems, // Use the new list
                                 modifier = Modifier.fillMaxHeight(), // To use the 220.dp from the parent Box
                                 highlightedBarColor = MaterialTheme.colorScheme.primary,
                                 normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
