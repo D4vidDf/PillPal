@@ -19,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.hilt.navigation.compose.hiltViewModel // Added for ViewModel instantiation
+import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added for ViewModel type
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
@@ -266,10 +268,12 @@ fun AppNavigation(
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
                 val colorName = backStackEntry.arguments?.getString("colorName")
+                val medicationGraphViewModel: com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel = hiltViewModel()
                 MedicationGraphScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
-                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
+                    viewModel = medicationGraphViewModel
                 )
             }
 
