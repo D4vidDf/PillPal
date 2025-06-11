@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.width // Added import for Modifier.wid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius // Added import
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -33,7 +34,10 @@ fun SimpleBarChart(
     normalBarColor: Color,
     labelTextColor: Color,
     barWidthDp: Dp = 24.dp, // Default bar width
-    spaceAroundBarsDp: Dp = 8.dp // Default space between and around bars
+    spaceAroundBarsDp: Dp = 8.dp, // Default space between and around bars
+    barCornerRadiusDp: Dp = 4.dp, // New parameter
+    valueTextColor: Color = labelTextColor, // New parameter
+    valueTextSizeSp: Float = 10f // New parameter
 ) {
     if (data.isEmpty()) {
         // Handle empty data case if necessary, or let the caller handle it.
@@ -47,11 +51,22 @@ fun SimpleBarChart(
             color = labelTextColor.toArgb() // Use toArgb() for correct color conversion
             textAlign = Paint.Align.CENTER
             textSize = with(density) { 12.sp.toPx() }
+            isAntiAlias = true
             // Add typeface or other properties if needed
         }
     }
 
+    val valueTextPaint = remember(valueTextColor, density, valueTextSizeSp) {
+        Paint().apply {
+            color = valueTextColor.toArgb()
+            textAlign = Paint.Align.CENTER
+            textSize = with(density) { valueTextSizeSp.sp.toPx() }
+            isAntiAlias = true
+        }
+    }
+
     val barWidthPx = with(density) { barWidthDp.toPx() }
+    val barCornerRadiusPx = with(density) { barCornerRadiusDp.toPx() }
     val spaceAroundBarsPx = with(density) { spaceAroundBarsDp.toPx() }
     // Total space for one bar + its surrounding space on one side (e.g., right side)
     val itemWidthPx = barWidthPx + spaceAroundBarsPx
@@ -70,36 +85,58 @@ fun SimpleBarChart(
         val yAxisLabelAreaWidth = 0f // No Y-axis value labels for now, so no space reserved
 
         val maxValue = data.maxOfOrNull { it.value } ?: 0f
-        if (maxValue == 0f && data.any { it.value != 0f }) { // Check if not all values are zero before returning
-            // If maxValue is 0 due to all values being 0, we might still want to draw labels or a baseline.
-            // For now, if all actual values are indeed 0, this will prevent division by zero and draw nothing.
-             return@Canvas
-        }
+        // Removed: if (maxValue == 0f && data.any { it.value != 0f }) { return@Canvas }
 
 
         data.forEachIndexed { index, item ->
             // barHeight calculation should use the drawable area height
-            val drawableHeight = canvasHeight - textPaint.textSize * 2 // Space for X-axis labels
+            // Adjust drawableHeight to account for value text as well if it's drawn above the bar
+            val spaceForXAxisLabels = textPaint.textSize * 1.5f // Approximate height for x-axis labels
+            val spaceForValueText = valueTextPaint.textSize + with(density) { 4.dp.toPx() } // Approximate height for value text + gap
+            val drawableHeight = canvasHeight - spaceForXAxisLabels - spaceForValueText // Adjusted drawable height
+
             val barHeight = if (maxValue > 0f) (item.value / maxValue) * drawableHeight else 0f
             val barColor = if (item.isHighlighted) highlightedBarColor else normalBarColor
 
             // Recalculate barLeft and itemWidthPx if yAxisLabelAreaWidth is > 0
             // For now, assuming it's 0f, so original calculations for barLeft are fine relative to yAxisLabelAreaWidth.
             val currentBarLeft = yAxisLabelAreaWidth + spaceAroundBarsPx + (index * itemWidthPx)
-            val barTop = canvasHeight - barHeight - (textPaint.textSize * 1.5f) // Position bar above label
+            // barTop is now calculated from the top of the value text area
+            val barTop = canvasHeight - barHeight - spaceForXAxisLabels
 
             // Draw bar
-            drawRect(
+            drawRoundRect(
                 color = barColor,
                 topLeft = Offset(x = currentBarLeft, y = barTop),
-                size = Size(width = barWidthPx, height = barHeight)
+                size = Size(width = barWidthPx, height = barHeight),
+                cornerRadius = CornerRadius(barCornerRadiusPx, barCornerRadiusPx)
             )
 
-            // Draw label
+            // Draw value text
+            val valueText = item.value.toInt().toString() // Or String.format for decimals
+            // Position value text above the bar
+            val valueTextYPosition = barTop - valueTextPaint.descent() - with(density) { 4.dp.toPx() }
+
+            // Adjust Y position for value text if bar height is too small to avoid overlap with X-axis labels
+            // This ensures value text is drawn within the allocated spaceForValueText or just above X-axis if bar is zero
+            val textYPos = if (barHeight > (valueTextPaint.textSize / 2) ) { // If bar is tall enough to have text clearly above it
+                               valueTextYPosition
+                           } else { // If bar is too short or zero, position text at the top of where the bar would start (within its value text area)
+                               canvasHeight - spaceForXAxisLabels - valueTextPaint.descent() - with(density) { 2.dp.toPx()}
+                           }
+
+            drawContext.canvas.nativeCanvas.drawText(
+                valueText,
+                currentBarLeft + barWidthPx / 2, // Center of the bar
+                textYPos, // Use adjusted Y position
+                valueTextPaint
+            )
+
+            // Draw X-axis label
             drawContext.canvas.nativeCanvas.drawText(
                 item.label,
                 currentBarLeft + barWidthPx / 2, // Center of the bar
-                canvasHeight - textPaint.textSize / 2, // Below the bar
+                canvasHeight - textPaint.textSize / 2, // Below the bar, within its allocated space
                 textPaint
             )
         }
