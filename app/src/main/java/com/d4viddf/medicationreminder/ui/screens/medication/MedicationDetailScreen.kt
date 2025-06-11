@@ -65,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import android.util.Log // Added for logging
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -186,11 +187,14 @@ fun MedicationDetailsScreen(
             }
         }
 
-        if (graphViewModel != null) {
+        if (medicationId > 0 && graphViewModel != null) {
             val today = LocalDate.now()
             val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
             val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
             graphViewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
+        } else if (graphViewModel != null) {
+            graphViewModel.clearGraphData()
+            Log.d("MedicationDetailScreen", "Invalid medicationId ($medicationId), clearing graph data for details screen.")
         }
     }
 

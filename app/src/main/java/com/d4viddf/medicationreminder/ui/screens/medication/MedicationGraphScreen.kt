@@ -54,6 +54,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
 import androidx.compose.ui.platform.LocalDensity // New import, for Px conversion
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
+import android.util.Log // Added for logging
 import androidx.compose.ui.text.style.TextAlign // New import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -191,7 +192,7 @@ fun MedicationGraphScreen(
     val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(medicationId, selectedViewType, currentDisplayedMonth, currentDisplayedYear, viewModel) {
-        if (viewModel != null) {
+        if (medicationId > 0 && viewModel != null) {
             when (selectedViewType) {
                 GraphViewType.WEEK -> {
                     val today = LocalDate.now()
@@ -206,6 +207,10 @@ fun MedicationGraphScreen(
                     viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
                 }
             }
+        } else if (viewModel != null) {
+            // Optionally, if medicationId is invalid, clear existing data or log
+            viewModel.clearGraphData() // Assuming such a function exists or can be added to clear data
+            Log.d("MedicationGraphScreen", "Invalid medicationId ($medicationId), clearing graph data.")
         }
     }
 
