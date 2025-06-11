@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.YearMonth // Added for monthly graph
+// import java.time.YearMonth // No longer needed after removing month view
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException // Added for parseTakenAt helper
 import java.time.format.TextStyle
@@ -36,7 +36,13 @@ class MedicationGraphViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _chartyGraphData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
-    val chartyGraphData: StateFlow<List<ChartyGraphEntry>> = _chartyGraphData.asStateFlow()
+    val chartyGraphData: StateFlow<List<ChartyGraphEntry>> = _chartyGraphData.asStateFlow() // For MedicationDetailScreen compatibility
+
+    private val _weeklyChartData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
+    val weeklyChartData: StateFlow<List<ChartyGraphEntry>> = _weeklyChartData.asStateFlow()
+
+    private val _yearlyChartData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
+    val yearlyChartData: StateFlow<List<ChartyGraphEntry>> = _yearlyChartData.asStateFlow()
 
     private val _medicationName = MutableStateFlow<String>("")
     val medicationName: StateFlow<String> = _medicationName.asStateFlow()
@@ -79,21 +85,25 @@ class MedicationGraphViewModel @Inject constructor(
     }
 
     fun clearGraphData() {
-        _chartyGraphData.value = emptyList() // Updated
+        _chartyGraphData.value = emptyList()
+        _weeklyChartData.value = emptyList()
+        _yearlyChartData.value = emptyList()
         // _medicationName.value = "" // Optionally clear name too, or keep it
-        Log.d(TAG, "Charty graph data cleared.")
+        Log.d(TAG, "All chart data cleared.")
     }
 
     fun loadWeeklyGraphData(medicationId: Int, currentWeekDays: List<LocalDate>) {
         Log.d(TAG, "loadWeeklyGraphData: Called with medicationId: $medicationId, currentWeekDays: $currentWeekDays")
         if (currentWeekDays.isEmpty()) {
-            Log.d(TAG, "currentWeekDays is empty, clearing charty graph data for weekly view.")
-            _chartyGraphData.value = emptyList() // Updated
+            Log.d(TAG, "currentWeekDays is empty, clearing weekly chart data.")
+            _weeklyChartData.value = emptyList()
+            _chartyGraphData.value = emptyList() // Also clear the general one
             return
         }
          if (currentWeekDays.count() != 7) {
             Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.")
-            _chartyGraphData.value = emptyList() // Updated
+            _weeklyChartData.value = emptyList()
+            _chartyGraphData.value = emptyList() // Also clear the general one
             return
         }
 
@@ -168,100 +178,21 @@ class MedicationGraphViewModel @Inject constructor(
                     )
                 }
                 Log.d(TAG, "loadWeeklyGraphData: Final chartEntries: $chartEntries")
-                _chartyGraphData.value = chartEntries
+                _weeklyChartData.value = chartEntries
+                _chartyGraphData.value = chartEntries // For compatibility
 
             } catch (e: Exception) {
                 Log.e(TAG, "loadWeeklyGraphData: Error loading weekly graph data for medId $medicationId", e)
                 _error.value = "Failed to load weekly graph data."
-                _chartyGraphData.value = emptyList() // Updated
+                _weeklyChartData.value = emptyList()
+                _chartyGraphData.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun loadMonthlyGraphData(medicationId: Int, targetMonth: YearMonth) {
-        Log.d(TAG, "loadMonthlyGraphData: Called with medicationId: $medicationId, targetMonth: $targetMonth")
-        viewModelScope.launch(Dispatchers.IO) {
-            _isLoading.value = true
-            _error.value = null
-            Log.i(TAG, "loadMonthlyGraphData: Starting for medId: $medicationId, month: $targetMonth") // Enhanced log
-            try {
-                val medication = medicationRepository.getMedicationById(medicationId)
-                Log.d(TAG, "loadMonthlyGraphData: Fetched medication: ${medication?.name ?: "N/A"} (Dosage: ${medication?.dosage ?: "N/A"})")
-                if (medication?.name != _medicationName.value) { // Ensure name is updated
-                    _medicationName.value = medication?.name ?: "Medication $medicationId"
-                }
-                val dosageQuantity = parseDosageQuantity(medication?.dosage)
-                Log.d(TAG, "loadMonthlyGraphData: Parsed dosage quantity: $dosageQuantity")
-
-                val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "loadMonthlyGraphData: Fetched ${allReminders.size} total raw reminders. Sample: ${allReminders.take(5).map { r -> "ID: ${r.id}, Taken: ${r.isTaken}, Time: ${r.takenAt}" }}")
-
-                val monthStartDateTime = targetMonth.atDay(1).atStartOfDay()
-                val monthEndDateTime = targetMonth.atEndOfMonth().atTime(LocalTime.MAX)
-                Log.d(TAG, "loadMonthlyGraphData: Calculated month date range: $monthStartDateTime to $monthEndDateTime")
-
-                val takenRemindersThisMonth = allReminders.mapNotNull { reminder ->
-                    if (!reminder.isTaken) return@mapNotNull null
-                    val takenDateTime = parseTakenAt(reminder.takenAt)
-                    if (takenDateTime == null) {
-                        Log.w(TAG, "loadMonthlyGraphData: Reminder ID ${reminder.id} skipped (takenAt parsing failed or null). takenAt: '${reminder.takenAt}'")
-                        return@mapNotNull null
-                    }
-                    if (takenDateTime.year == targetMonth.year && takenDateTime.month == targetMonth.month) {
-                        // Pair the day of month with the parsed dosage quantity
-                        Pair(takenDateTime.dayOfMonth, dosageQuantity)
-                    } else {
-                        null
-                    }
-                }
-                Log.d(TAG, "loadMonthlyGraphData: Filtered to ${takenRemindersThisMonth.size} taken reminders (with dosage) in this month.")
-                 if (takenRemindersThisMonth.isNotEmpty()) {
-                     Log.d(TAG, "loadMonthlyGraphData: First 5 taken items this month: ${takenRemindersThisMonth.take(5)}")
-                }
-
-                val dosesByDayOfMonth = takenRemindersThisMonth
-                    .groupBy { it.first } // Group by day of month (Int)
-                    .mapValues { entry ->
-                        // Sum the dosage quantities (it.second) for each group
-                        entry.value.sumOf { pair -> pair.second.toDouble() }.toFloat()
-                    }
-                Log.d(TAG, "loadMonthlyGraphData: Doses summed by day of month: $dosesByDayOfMonth")
-
-                val monthlyDataMap = LinkedHashMap<String, Float>() // Changed type
-                val daysInMonth = targetMonth.lengthOfMonth()
-                for (day in 1..daysInMonth) {
-                    // dosesByDayOfMonth[day] will now be a Float?
-                    monthlyDataMap[day.toString()] = dosesByDayOfMonth[day] ?: 0f // Use 0f
-                }
-                Log.d(TAG, "loadMonthlyGraphData: Constructed monthlyDataMap: $monthlyDataMap")
-
-                val today = LocalDate.now()
-                val currentDayOfMonthForHighlight = if (targetMonth.year == today.year && targetMonth.month == today.month) {
-                    today.dayOfMonth.toString()
-                } else {
-                    null
-                }
-
-                val chartEntries = monthlyDataMap.map { (dayOfMonthStr, totalDosage) -> // totalDosage is Float
-                    ChartyGraphEntry(
-                        xValue = dayOfMonthStr,
-                        yValue = totalDosage, // Already a Float
-                        isHighlighted = dayOfMonthStr == currentDayOfMonthForHighlight
-                    )
-                }
-                Log.d(TAG, "loadMonthlyGraphData: Final chartEntries: $chartEntries")
-                _chartyGraphData.value = chartEntries
-            } catch (e: Exception) {
-                Log.e(TAG, "loadMonthlyGraphData: Error for medId $medicationId, month $targetMonth", e)
-                _error.value = "Failed to load monthly graph data."
-                _chartyGraphData.value = emptyList() // Updated
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+    // loadMonthlyGraphData removed
 
     fun loadYearlyGraphData(medicationId: Int, targetYear: Int) {
         Log.d(TAG, "loadYearlyGraphData: Called with medicationId: $medicationId, targetYear: $targetYear")
@@ -329,11 +260,12 @@ class MedicationGraphViewModel @Inject constructor(
                     )
                 }
                 Log.d(TAG, "loadYearlyGraphData: Final chartEntries: $chartEntries")
-                _chartyGraphData.value = chartEntries
+                _yearlyChartData.value = chartEntries
+                // _chartyGraphData.value = chartEntries // Decide if yearly should also go to the generic one
             } catch (e: Exception) {
                 Log.e(TAG, "loadYearlyGraphData: Error for medId $medicationId, year $targetYear", e)
                 _error.value = "Failed to load yearly graph data."
-                _chartyGraphData.value = emptyList() // Updated
+                _yearlyChartData.value = emptyList()
             } finally {
                 _isLoading.value = false
 

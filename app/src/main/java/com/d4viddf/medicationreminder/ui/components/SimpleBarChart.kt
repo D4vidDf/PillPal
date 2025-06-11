@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.ceil // Added import
 
 data class BarChartItem(
     val label: String,
@@ -102,9 +103,23 @@ fun SimpleBarChart(
 
 
         // Y-Axis Implementation
-        val actualMaxValue = data.maxOfOrNull { it.value } ?: 0f
-        val yAxisMaxValue = if (actualMaxValue < 3f) 3f else actualMaxValue // Ensure at least a few ticks
-        val numberOfYTicks = 4 // Example: 0, max/3, 2*max/3, max
+        val actualMaxValue = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
+        val yAxisTopValue: Float
+        val yTickCount: Int
+
+        if (actualMaxValue == 0f) {
+            yAxisTopValue = 4f // Default scale for all-zero data (e.g., 0, 1, 2, 3, 4)
+            yTickCount = 4
+        } else if (actualMaxValue <= 1f) {
+            yAxisTopValue = 1f
+            yTickCount = 1 // Labels 0, 1
+        } else if (actualMaxValue <= 4f) {
+            yAxisTopValue = ceil(actualMaxValue).toFloat()
+            yTickCount = yAxisTopValue.toInt() // Tick for every whole number
+        } else { // actualMaxValue > 4f
+            yAxisTopValue = ceil(actualMaxValue).toFloat()
+            yTickCount = if (yAxisTopValue <= 10f) yAxisTopValue.toInt() else 4 // Ticks for every int up to 10, else 4 main ticks
+        }
 
         val xAxisLabelHeight = textPaint.textSize * 1.5f // Space for X-axis labels
         val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() } // Approx height for value text
@@ -117,9 +132,9 @@ fun SimpleBarChart(
         val yAxisLineEnd = Offset(yAxisLabelAreaWidth, topPaddingForValueText + chartDrawableHeight)
         drawContext.canvas.drawLine(yAxisLineStart, yAxisLineEnd, yAxisLinePaint)
 
-        for (i in 0..numberOfYTicks) {
-            val tickValue = yAxisMaxValue * (i.toFloat() / numberOfYTicks)
-            val tickY = topPaddingForValueText + chartDrawableHeight * (1f - (tickValue / yAxisMaxValue))
+        for (i in 0..yTickCount) {
+            val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
+            val tickY = topPaddingForValueText + chartDrawableHeight * (1f - (if (yAxisTopValue > 0f) (tickValue / yAxisTopValue) else 0f))
 
             // Optional: Draw horizontal grid line
             // drawLine(
@@ -139,7 +154,7 @@ fun SimpleBarChart(
 
         // Adjust Bar and Label Drawing Coordinates
         data.forEachIndexed { index, item ->
-            val barHeight = if (yAxisMaxValue > 0f) (item.value / yAxisMaxValue) * chartDrawableHeight else 0f
+            val barHeight = if (yAxisTopValue > 0f) (item.value / yAxisTopValue) * chartDrawableHeight else 0f
             val barColor = if (item.isHighlighted) highlightedBarColor else normalBarColor
 
             val currentBarLeft = yAxisLabelAreaWidth + (dynamicSpaceAroundBarsPx / 2) + (index * itemAvailableWidth)
