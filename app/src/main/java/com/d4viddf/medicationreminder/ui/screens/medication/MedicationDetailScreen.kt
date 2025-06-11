@@ -84,17 +84,18 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme // Added 
 import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
-// Updated Charty Imports
-import com.himanshoe.charty.charts.BarChart
-import com.himanshoe.charty.common.Point
-import com.himanshoe.charty.common.config.ChartColor
-import com.himanshoe.charty.common.config.SolidChartColor
-import com.himanshoe.charty.common.extensions.asSolidChartColor
-import com.himanshoe.charty.bar.config.BarChartConfig
-import com.himanshoe.charty.common.config.LabelConfig
-import com.himanshoe.charty.bar.config.BarChartColorConfig
-// Remove old BarData import if present, it's not used with this new API
-// import com.himanshoe.charty.common.bar.BarData // Charty import - This should be removed
+// Custom SimpleBarChart imports
+import com.d4viddf.medicationreminder.ui.components.SimpleBarChart
+import com.d4viddf.medicationreminder.ui.components.BarChartItem
+// Removed Charty Imports
+// import com.himanshoe.charty.charts.BarChart
+// import com.himanshoe.charty.common.Point
+// import com.himanshoe.charty.common.config.ChartColor
+// import com.himanshoe.charty.common.config.SolidChartColor
+// import com.himanshoe.charty.common.extensions.asSolidChartColor
+// import com.himanshoe.charty.bar.config.BarChartConfig
+// import com.himanshoe.charty.common.config.LabelConfig
+// import com.himanshoe.charty.bar.config.BarChartColorConfig
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -493,49 +494,33 @@ fun MedicationDetailsScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    // NEW Charty IMPLEMENTATION:
-                                    val primaryColor = MaterialTheme.colorScheme.primary
-                                    val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
-                                    val transparentChartColor = Color.Transparent.asSolidChartColor()
-                                    val localDensity = LocalDensity.current
-
-                                    val chartyPoints = remember(chartEntries) {
-                                        chartEntries.mapIndexed { index, entry ->
-                                            Point(x = index.toFloat(), y = entry.yValue)
-                                        }
-                                    }
-                                    val chartyColors = remember(chartEntries) {
+                                    // SimpleBarChart IMPLEMENTATION:
+                                    val barChartItems = remember(chartEntries) {
                                         chartEntries.map { entry ->
-                                            if (entry.isHighlighted) primaryColor.asSolidChartColor() else secondaryContainerColor.asSolidChartColor()
+                                            BarChartItem(
+                                                label = entry.xValue, // e.g., "Mon", "Tue"
+                                                value = entry.yValue,
+                                                isHighlighted = entry.isHighlighted
+                                            )
                                         }
                                     }
 
-                                    if (chartyPoints.isNotEmpty()) {
-                                        com.himanshoe.charty.charts.BarChart(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(vertical = 8.dp),
-                                            data = chartyPoints,
-                                            colors = chartyColors,
-                                            barChartConfig = BarChartConfig(
-                                                barWidth = with(localDensity) { 20.dp.toPx() },
-                                                paddingBetweenBars = with(localDensity) { 6.dp.toPx() },
-                                                showZeroLine = false
-                                            ),
-                                            labelConfig = LabelConfig(
-                                                labelTextColor = transparentChartColor,
-                                                axisColor = transparentChartColor
-                                            ),
-                                            barChartColorConfig = BarChartColorConfig(
-                                                showGridLines = false
-                                            )
+                                    if (barChartItems.isNotEmpty()) {
+                                        SimpleBarChart(
+                                            data = barChartItems,
+                                            modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
+                                            highlightedBarColor = MaterialTheme.colorScheme.primary,
+                                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                            // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
                                         )
                                     } else {
+                                        // This Box is from the original code for loading/empty state
                                         Box(
                                             modifier = Modifier.fillMaxSize(),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(stringResource(id = R.string.loading_graph_data))
+                                            Text(stringResource(id = R.string.loading_graph_data)) // Or handle empty specifically
                                         }
                                     }
                                 }
