@@ -171,6 +171,8 @@ fun MedicationGraphScreen(
     onNavigateBack: () -> Unit,
     viewModel: MedicationGraphViewModel? = null // Made nullable for preview
 ) {
+    Log.d("GraphScreenEntry", "MedicationGraphScreen composed. medicationId: $medicationId, viewModel is null: ${viewModel == null}, colorName: $colorName")
+
     val medicationColor = remember(colorName) {
         try {
             MedicationColor.valueOf(colorName)

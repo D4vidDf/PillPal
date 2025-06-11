@@ -162,6 +162,8 @@ fun MedicationDetailsScreen(
     onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit
 ) {
+    Log.d("DetailScreenGraphEntry", "MedicationDetailScreen composed. medicationId: $medicationId, graphViewModel is null: ${graphViewModel == null}")
+
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
