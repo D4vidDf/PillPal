@@ -18,10 +18,11 @@ import androidx.compose.foundation.lazy.items
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.SwapVert // Added import
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,8 +40,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.MediumTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState // New import
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,10 +54,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added
-import androidx.compose.ui.graphics.Color // Added import
+import androidx.compose.ui.text.style.TextOverflow // New import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,7 +67,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry // Use new data class
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
+// Removed ThemedAppBarBackButton import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
@@ -112,93 +116,17 @@ fun MedicationHistoryScreen(
     val currentFilter by viewModel?.dateFilter?.collectAsState() ?: remember { mutableStateOf<Pair<LocalDate?, LocalDate?>?>(null) }
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
 
+    var showDateRangeDialog by remember { mutableStateOf(false) } // Hoisted state variable
+
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
     }
 
-    MedicationSpecificTheme(medicationColor = medicationColor) {
-        Scaffold(
-            topBar = {
-                TopAppBar( // Changed back to TopAppBar
-                    title = { Text(stringResource(id = R.string.medication_history_title)) },
-                    navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = onNavigateBack)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                        // scrolledContainerColor is not applicable here
-                    )
-                )
-            }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp)) // ADDED SPACER HERE
-                FilterControls(
-                    currentFilter = currentFilter,
-                    onFilterChanged = { startDate, endDate ->
-                        viewModel?.setDateFilter(startDate, endDate)
-                    },
-                    onClearDateFilter = { viewModel?.setDateFilter(null, null) }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ActionControls(
-                    sortAscending = sortAscending,
-                    onSortOldestFirst = { viewModel?.setSortOrder(true) },
-                    onSortNewestFirst = { viewModel?.setSortOrder(false) }
-                )
-
-                Divider(modifier = Modifier.padding(vertical = 8.dp)) // This is a Material 3 Divider
-
-                when {
-                    isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    error != null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
-                    }
-                    historyEntries.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            stringResource(id = R.string.med_history_no_history_found),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    else -> {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(historyEntries, key = { it.id }) { entry ->
-                                MedicationHistoryListItem(entry = entry)
-                            }
-                        }
-                    }
-                }
-            } // Closes Column
-        } // Closes Scaffold content lambda
-    } // Closes MedicationSpecificTheme content lambda
-} // Closes MedicationHistoryScreen
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FilterControls(
-    currentFilter: Pair<LocalDate?, LocalDate?>?,
-    onFilterChanged: (startDate: LocalDate?, endDate: LocalDate?) -> Unit,
-    onClearDateFilter: () -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    // DateRangePickerDialog implementation
-    if (showDialog) {
-        val state = rememberDateRangePickerState(
+    // DateRangePickerDialog logic moved here
+    if (showDateRangeDialog) {
+        val dateRangePickerState = rememberDateRangePickerState(
             initialSelectedStartDateMillis = currentFilter?.first?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
             initialSelectedEndDateMillis = currentFilter?.second?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
             selectableDates = object : SelectableDates {
@@ -210,120 +138,180 @@ fun FilterControls(
                 }
             }
         )
-
         DatePickerDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showDateRangeDialog = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val startDateMillis = state.selectedStartDateMillis
-                        val endDateMillis = state.selectedEndDateMillis
+                        val startDateMillis = dateRangePickerState.selectedStartDateMillis
+                        val endDateMillis = dateRangePickerState.selectedEndDateMillis
                         if (startDateMillis != null && endDateMillis != null) {
                             val startDate = Instant.ofEpochMilli(startDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
                             val endDate = Instant.ofEpochMilli(endDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                            onFilterChanged(startDate, endDate)
+                            viewModel?.setDateFilter(startDate, endDate)
                         }
-                        showDialog = false
+                        showDateRangeDialog = false
                     },
-                    enabled = state.selectedStartDateMillis != null && state.selectedEndDateMillis != null
+                    enabled = dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
                 ) {
                     Text(stringResource(id = android.R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showDateRangeDialog = false }) {
                     Text(stringResource(id = android.R.string.cancel))
                 }
             }
         ) {
-            DateRangePicker(state = state, title = null, headline = null, showModeToggle = true)
-        }
-    } // Closes if (showDialog)
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(stringResource(id = R.string.med_history_filter_by_date_label), style = MaterialTheme.typography.titleSmall)
-        OutlinedButton(
-            onClick = { showDialog = true },
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-        ) {
-            Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(id = R.string.med_history_filter_select_date_cd), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                currentFilter?.let {
-                    val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
-                    val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
-                    "$start - $end"
-                } ?: stringResource(id = R.string.med_history_filter_select_range_button),
-                fontSize = 12.sp
-            )
-        }
-    } // Closes Row
-
-    if (currentFilter != null) {
-        OutlinedButton(onClick = onClearDateFilter, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(id = R.string.med_history_filter_clear_button))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-    } // Closes if (currentFilter != null)
-}
-
-@Composable
-fun ActionControls(
-    sortAscending: Boolean,
-    onSortOldestFirst: () -> Unit,
-    onSortNewestFirst: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val oldestFirstButtonColors = if (sortAscending) {
-            ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
-            )
-        } else {
-            ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
-            )
-        }
-        OutlinedButton(
-            onClick = onSortOldestFirst,
-            shape = RoundedCornerShape(8.dp),
-            colors = oldestFirstButtonColors
-        ) {
-            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.med_history_action_sort_oldest_first), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(stringResource(R.string.med_history_action_sort_oldest_first), fontSize = 12.sp)
-        }
-
-        val newestFirstButtonColors = if (!sortAscending) {
-            ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer // Explicitly set
-            )
-        } else {
-            ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary // Keep explicit for unselected
-            )
-        }
-        OutlinedButton(
-            onClick = onSortNewestFirst,
-            shape = RoundedCornerShape(8.dp),
-            colors = newestFirstButtonColors
-        ) {
-            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.med_history_action_sort_newest_first), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(stringResource(R.string.med_history_action_sort_newest_first), fontSize = 12.sp)
+            DateRangePicker(state = dateRangePickerState, title = null, headline = null, showModeToggle = true)
         }
     }
-}
+
+    MedicationSpecificTheme(medicationColor = medicationColor) {
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                MediumTopAppBar(
+                    title = { Text(stringResource(id = R.string.medication_history_title)) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd)
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues) // Applied padding from Scaffold
+            ) {
+                // New Two-Column Layout for Controls
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Overall padding for the controls area
+                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between the two columns
+                ) {
+                    // Left Column for Date Range Filter
+                    Column(
+                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp), // Added internal padding
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            stringResource(id = R.string.med_history_filter_by_date_label),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        // Replaced Row with OutlinedButton
+                        OutlinedButton(
+                            onClick = { showDateRangeDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarToday,
+                                contentDescription = null, // Text on button describes action
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text(
+                                text = currentFilter?.let {
+                                    val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                    val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                    "$start - $end"
+                                } ?: stringResource(id = R.string.med_history_filter_select_range_button_label),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        if (currentFilter != null) {
+                            OutlinedButton(
+                                onClick = { viewModel?.setDateFilter(null, null) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(id = R.string.med_history_filter_clear_button))
+                            }
+                        }
+                    }
+
+                    // Right Column for Sort Order
+                    Column(
+                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp), // Added internal padding
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            stringResource(id = R.string.med_history_sort_order_label),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        // Replaced Row with OutlinedButton for sorting
+                        OutlinedButton(
+                            onClick = { viewModel?.setSortOrder(!sortAscending) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.SwapVert,
+                                contentDescription = null, // Text on button describes action
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text(
+                                text = if (sortAscending) stringResource(id = R.string.med_history_sort_by_oldest_button)
+                                       else stringResource(id = R.string.med_history_sort_by_newest_button),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+
+                Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+
+                // Original LazyColumn for history entries, ensuring it takes remaining space
+                // and has its own padding if needed (horizontal padding is now on the outer Column's Row for controls)
+                val listModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp) // Keep horizontal padding for the list
+
+                when {
+                    isLoading -> Box(modifier = listModifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    error != null -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                    }
+                    historyEntries.isEmpty() -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                        Text(
+                            stringResource(id = R.string.med_history_no_history_found),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    else -> {
+                        LazyColumn(modifier = listModifier) { // Applied listModifier
+                            items(historyEntries, key = { it.id }) { entry ->
+                                MedicationHistoryListItem(entry = entry)
+                            }
+                        }
+                    }
+                }
+            } // Closes Column
+        } // Closes Scaffold content lambda
+    } // Closes MedicationSpecificTheme content lambda
+} // Closes MedicationHistoryScreen
+
+// FilterControls and ActionControls composables are now inlined into MedicationHistoryScreen.
+// They can be removed if they are not used elsewhere.
 
 @Composable
 fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {

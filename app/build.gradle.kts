@@ -131,4 +131,6 @@ dependencies {
 
 // Hilt Extension for WorkManager
     implementation(libs.hilt.work) // Or latest stable version
+
+    implementation(libs.charty)
 }

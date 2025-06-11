@@ -22,14 +22,21 @@ import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
 
+// Data class for Charty
+data class ChartyGraphEntry(
+    val xValue: String,      // Label for X-axis (e.g., "Mon", "15", "Jan")
+    val yValue: Float,       // Value for Y-axis (bar height)
+    val isHighlighted: Boolean // Flag to indicate if this bar should be highlighted
+)
+
 @HiltViewModel
 class MedicationGraphViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository
 ) : ViewModel() {
 
-    private val _graphData = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val graphData: StateFlow<Map<String, Int>> = _graphData.asStateFlow()
+    private val _chartyGraphData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
+    val chartyGraphData: StateFlow<List<ChartyGraphEntry>> = _chartyGraphData.asStateFlow()
 
     private val _medicationName = MutableStateFlow<String>("")
     val medicationName: StateFlow<String> = _medicationName.asStateFlow()
@@ -42,33 +49,50 @@ class MedicationGraphViewModel @Inject constructor(
 
     private val TAG = "MedicationGraphVM"
 
-    private fun parseTakenAt(takenAtString: String?): LocalDateTime? {
-        if (takenAtString.isNullOrEmpty()) return null
+    private fun parseDosageQuantity(dosageString: String?): Float {
+        if (dosageString.isNullOrBlank()) {
+            return 1.0f
+        }
         return try {
-            LocalDateTime.parse(takenAtString) // Assumes ISO_LOCAL_DATE_TIME
+            // Extract leading numbers. Handles cases like "1 tablet", "2.5 mg", "500 units"
+            val regex = Regex("^(\\d*\\.?\\d+)")
+            val matchResult = regex.find(dosageString)
+            matchResult?.groups?.get(1)?.value?.toFloat() ?: 1.0f
+        } catch (e: NumberFormatException) {
+            1.0f // Fallback if conversion fails
+        }
+    }
+
+    private fun parseTakenAt(takenAtString: String?): LocalDateTime? {
+        if (takenAtString.isNullOrEmpty()) {
+            Log.d(TAG, "parseTakenAt: input string is null or empty.") // Added log
+            return null
+        }
+        return try {
+            val parsedTime = LocalDateTime.parse(takenAtString) // Assumes ISO_LOCAL_DATE_TIME
+            Log.d(TAG, "parseTakenAt: Successfully parsed '$takenAtString' to '$parsedTime'") // Added log
+            parsedTime
         } catch (e: DateTimeParseException) {
-            Log.e(TAG, "Error parsing takenAt timestamp: $takenAtString", e)
+            Log.e(TAG, "parseTakenAt: Error parsing takenAt timestamp: '$takenAtString'", e) // Ensure input is logged
             null
         }
     }
 
     fun clearGraphData() {
-        _graphData.value = emptyMap()
+        _chartyGraphData.value = emptyList() // Updated
         // _medicationName.value = "" // Optionally clear name too, or keep it
-        Log.d(TAG, "Graph data cleared.")
+        Log.d(TAG, "Charty graph data cleared.")
     }
 
     fun loadWeeklyGraphData(medicationId: Int, currentWeekDays: List<LocalDate>) {
-        if (currentWeekDays.isEmpty()) { // Allow empty list to clear data
-            Log.d(TAG, "currentWeekDays is empty, clearing graph data for weekly view.")
-            _graphData.value = emptyMap()
-            // Potentially set an error or specific state if a non-empty list was expected but not 7 days
+        if (currentWeekDays.isEmpty()) {
+            Log.d(TAG, "currentWeekDays is empty, clearing charty graph data for weekly view.")
+            _chartyGraphData.value = emptyList() // Updated
             return
         }
-         if (currentWeekDays.count() != 7) { // Changed .size to .count()
-            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.") // Changed .size to .count()
-
-            _graphData.value = emptyMap() // Reset or handle error appropriately
+         if (currentWeekDays.count() != 7) {
+            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.")
+            _chartyGraphData.value = emptyList() // Updated
             return
         }
 
@@ -76,60 +100,77 @@ class MedicationGraphViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
+            Log.i(TAG, "loadWeeklyGraphData: Starting for medId: $medicationId, week: $currentWeekDays") // Enhanced log
             try {
-                Log.d(TAG, "Loading weekly graph data for medicationId: $medicationId, week: $currentWeekDays")
-
                 val medication = medicationRepository.getMedicationById(medicationId)
-                if (medication?.name != _medicationName.value) { // Fetch name only if different or not set
+                // _medicationName.value = medication?.name ?: ... (already exists)
+                if (medication?.name != _medicationName.value) { // Ensure name is updated if it changed
                     _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
-                Log.d(TAG, "Medication name: ${_medicationName.value}")
-
+                val dosageQuantity = parseDosageQuantity(medication?.dosage)
+                Log.d(TAG, "loadWeeklyGraphData: Medication name: ${_medicationName.value}, Dosage quantity: $dosageQuantity")
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "Total reminders fetched: ${allReminders.size}")
+                Log.d(TAG, "loadWeeklyGraphData: Fetched ${allReminders.size} total raw reminders from repository.")
 
                 val weekStartDateTime = currentWeekDays.first().atStartOfDay()
                 val weekEndDateTime = currentWeekDays.last().atTime(LocalTime.MAX)
-                Log.d(TAG, "Week date range: $weekStartDateTime to $weekEndDateTime")
+                Log.d(TAG, "loadWeeklyGraphData: Week date range: $weekStartDateTime to $weekEndDateTime")
 
-                // Filter taken reminders within the current week
                 val takenRemindersThisWeek = allReminders.mapNotNull { reminder ->
-                    if (!reminder.isTaken) return@mapNotNull null
-                    val takenDateTime = parseTakenAt(reminder.takenAt) ?: return@mapNotNull null
+                    if (!reminder.isTaken) {
+                        return@mapNotNull null
+                    }
+                    val takenDateTime = parseTakenAt(reminder.takenAt)
+                    if (takenDateTime == null) {
+                        Log.w(TAG, "loadWeeklyGraphData: Reminder ID ${reminder.id} skipped (takenAt parsing failed or null). takenAt: '${reminder.takenAt}'")
+                        return@mapNotNull null
+                    }
                     if (!takenDateTime.isBefore(weekStartDateTime) && !takenDateTime.isAfter(weekEndDateTime)) {
-                        takenDateTime.toLocalDate() // Return the LocalDate if within range
+                        // Pair the date with the parsed dosage quantity
+                        Pair(takenDateTime.toLocalDate(), dosageQuantity)
                     } else {
                         null
                     }
                 }
-                Log.d(TAG, "Taken reminder dates this week: ${takenRemindersThisWeek.size}")
+                Log.d(TAG, "loadWeeklyGraphData: Filtered to ${takenRemindersThisWeek.size} taken reminders (with dosage) within this week.")
+                if (takenRemindersThisWeek.isNotEmpty()) {
+                     Log.d(TAG, "loadWeeklyGraphData: First 5 taken items this week: ${takenRemindersThisWeek.take(5)}")
+                }
 
-                // Group taken reminders by date
-                val dosesByDate = takenRemindersThisWeek.groupingBy { it }.eachCount()
+                val dosesByDate = takenRemindersThisWeek
+                    .groupBy { it.first } // Group by LocalDate
+                    .mapValues { entry ->
+                        // Sum the dosage quantities (it.second) for each group
+                        entry.value.sumOf { pair -> pair.second.toDouble() }.toFloat()
+                    }
+                Log.d(TAG, "loadWeeklyGraphData: Doses summed by date: $dosesByDate")
 
-                Log.d(TAG, "Doses grouped by date: $dosesByDate")
-
-                // Initialize map for the week with 0 counts
-                val weeklyDataMap = LinkedHashMap<String, Int>() // Use LinkedHashMap to preserve day order
-                val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault()) // Short day name, e.g., "Mon"
+                val weeklyDataMap = LinkedHashMap<String, Float>() // Changed to Float
+                val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
 
                 currentWeekDays.forEach { day ->
-                    // Using getDisplayName for potentially localized short day name might be better
-                    // but EEE is standard. For this example, EEE is fine.
-                    // val dayName = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     val dayName = day.format(dayFormatter)
-                    weeklyDataMap[dayName] = dosesByDate[day] ?: 0
-
+                    weeklyDataMap[dayName] = dosesByDate[day] ?: 0f // Ensure this handles Float
                 }
-                Log.d(TAG, "Final weekly data map: $weeklyDataMap")
 
-                _graphData.value = weeklyDataMap
+                val today = LocalDate.now()
+                val todayShortName = today.format(dayFormatter)
+
+                val chartEntries = weeklyDataMap.map { (dayName, totalDosage) -> // totalDosage is now Float
+                    ChartyGraphEntry(
+                        xValue = dayName,
+                        yValue = totalDosage, // Already a Float
+                        isHighlighted = dayName.equals(todayShortName, ignoreCase = true)
+                    )
+                }
+                Log.i(TAG, "loadWeeklyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                _chartyGraphData.value = chartEntries
 
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading weekly graph data for medId $medicationId", e)
+                Log.e(TAG, "loadWeeklyGraphData: Error loading weekly graph data for medId $medicationId", e)
                 _error.value = "Failed to load weekly graph data."
-                _graphData.value = emptyMap()
+                _chartyGraphData.value = emptyList() // Updated
             } finally {
                 _isLoading.value = false
             }
@@ -140,50 +181,76 @@ class MedicationGraphViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
-            // _graphData.value = emptyMap() // Clear previous graph data immediately
-
+            Log.i(TAG, "loadMonthlyGraphData: Starting for medId: $medicationId, month: $targetMonth") // Enhanced log
             try {
-                Log.d(TAG, "Loading monthly graph data for medicationId: $medicationId, month: $targetMonth")
-
                 val medication = medicationRepository.getMedicationById(medicationId)
-                 if (medication?.name != _medicationName.value) {
+                if (medication?.name != _medicationName.value) { // Ensure name is updated
                     _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
-                Log.d(TAG, "Medication name: ${_medicationName.value}")
+                val dosageQuantity = parseDosageQuantity(medication?.dosage)
+                Log.d(TAG, "loadMonthlyGraphData: Medication name: ${_medicationName.value}, Dosage quantity: $dosageQuantity")
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "Total reminders fetched: ${allReminders.size}")
+                Log.d(TAG, "loadMonthlyGraphData: Fetched ${allReminders.size} total raw reminders.")
 
                 val monthStartDateTime = targetMonth.atDay(1).atStartOfDay()
                 val monthEndDateTime = targetMonth.atEndOfMonth().atTime(LocalTime.MAX)
-                Log.d(TAG, "Month date range: $monthStartDateTime to $monthEndDateTime")
+                Log.d(TAG, "loadMonthlyGraphData: Month date range: $monthStartDateTime to $monthEndDateTime")
 
                 val takenRemindersThisMonth = allReminders.mapNotNull { reminder ->
                     if (!reminder.isTaken) return@mapNotNull null
-                    val takenDateTime = parseTakenAt(reminder.takenAt) ?: return@mapNotNull null
+                    val takenDateTime = parseTakenAt(reminder.takenAt)
+                    if (takenDateTime == null) {
+                        Log.w(TAG, "loadMonthlyGraphData: Reminder ID ${reminder.id} skipped (takenAt parsing failed or null). takenAt: '${reminder.takenAt}'")
+                        return@mapNotNull null
+                    }
                     if (takenDateTime.year == targetMonth.year && takenDateTime.month == targetMonth.month) {
-                        takenDateTime.dayOfMonth // Return day of month if within target month
+                        // Pair the day of month with the parsed dosage quantity
+                        Pair(takenDateTime.dayOfMonth, dosageQuantity)
                     } else {
                         null
                     }
                 }
-                Log.d(TAG, "Taken reminder days this month: ${takenRemindersThisMonth.size}")
+                Log.d(TAG, "loadMonthlyGraphData: Filtered to ${takenRemindersThisMonth.size} taken reminders (with dosage) in this month.")
+                 if (takenRemindersThisMonth.isNotEmpty()) {
+                     Log.d(TAG, "loadMonthlyGraphData: First 5 taken items this month: ${takenRemindersThisMonth.take(5)}")
+                }
 
-                val dosesByDayOfMonth = takenRemindersThisMonth.groupingBy { it }.eachCount()
-                Log.d(TAG, "Doses grouped by day of month: $dosesByDayOfMonth")
+                val dosesByDayOfMonth = takenRemindersThisMonth
+                    .groupBy { it.first } // Group by day of month (Int)
+                    .mapValues { entry ->
+                        // Sum the dosage quantities (it.second) for each group
+                        entry.value.sumOf { pair -> pair.second.toDouble() }.toFloat()
+                    }
+                Log.d(TAG, "loadMonthlyGraphData: Doses summed by day of month: $dosesByDayOfMonth")
 
-                val monthlyDataMap = LinkedHashMap<String, Int>()
+                val monthlyDataMap = LinkedHashMap<String, Float>() // Changed type
                 val daysInMonth = targetMonth.lengthOfMonth()
                 for (day in 1..daysInMonth) {
-                    monthlyDataMap[day.toString()] = dosesByDayOfMonth[day] ?: 0
+                    // dosesByDayOfMonth[day] will now be a Float?
+                    monthlyDataMap[day.toString()] = dosesByDayOfMonth[day] ?: 0f // Use 0f
                 }
-                Log.d(TAG, "Final monthly data map: $monthlyDataMap")
-                _graphData.value = monthlyDataMap
 
+                val today = LocalDate.now()
+                val currentDayOfMonthForHighlight = if (targetMonth.year == today.year && targetMonth.month == today.month) {
+                    today.dayOfMonth.toString()
+                } else {
+                    null
+                }
+
+                val chartEntries = monthlyDataMap.map { (dayOfMonthStr, totalDosage) -> // totalDosage is Float
+                    ChartyGraphEntry(
+                        xValue = dayOfMonthStr,
+                        yValue = totalDosage, // Already a Float
+                        isHighlighted = dayOfMonthStr == currentDayOfMonthForHighlight
+                    )
+                }
+                Log.i(TAG, "loadMonthlyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                _chartyGraphData.value = chartEntries
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading monthly graph data for medId $medicationId, month $targetMonth", e)
+                Log.e(TAG, "loadMonthlyGraphData: Error for medId $medicationId, month $targetMonth", e)
                 _error.value = "Failed to load monthly graph data."
-                _graphData.value = emptyMap()
+                _chartyGraphData.value = emptyList() // Updated
             } finally {
                 _isLoading.value = false
             }
@@ -194,50 +261,73 @@ class MedicationGraphViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
-            // _graphData.value = emptyMap() // Clear previous graph data immediately
-
+            Log.i(TAG, "loadYearlyGraphData: Starting for medId: $medicationId, year: $targetYear") // Enhanced log
             try {
-                Log.d(TAG, "Loading yearly graph data for medicationId: $medicationId, year: $targetYear")
-
                 val medication = medicationRepository.getMedicationById(medicationId)
-                if (medication?.name != _medicationName.value) {
+                if (medication?.name != _medicationName.value) { // Ensure name is updated
                      _medicationName.value = medication?.name ?: "Medication $medicationId"
                 }
-                Log.d(TAG, "Medication name: ${_medicationName.value}")
+                val dosageQuantity = parseDosageQuantity(medication?.dosage)
+                Log.d(TAG, "loadYearlyGraphData: Medication name: ${_medicationName.value}, Dosage quantity: $dosageQuantity")
 
                 val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "Total reminders fetched for yearly graph: ${allReminders.size}")
+                Log.d(TAG, "loadYearlyGraphData: Fetched ${allReminders.size} total raw reminders.")
 
                 val takenRemindersThisYear = allReminders.mapNotNull { reminder ->
                     if (!reminder.isTaken) return@mapNotNull null
-                    val takenDateTime = parseTakenAt(reminder.takenAt) ?: return@mapNotNull null
+                    val takenDateTime = parseTakenAt(reminder.takenAt)
+                    if (takenDateTime == null) {
+                        Log.w(TAG, "loadYearlyGraphData: Reminder ID ${reminder.id} skipped (takenAt parsing failed or null). takenAt: '${reminder.takenAt}'")
+                        return@mapNotNull null
+                    }
                     if (takenDateTime.year == targetYear) {
-                        takenDateTime.month // Return the Month enum
+                        // Pair the Month enum with the parsed dosage quantity
+                        Pair(takenDateTime.month, dosageQuantity)
                     } else {
                         null
                     }
                 }
-                Log.d(TAG, "Taken reminder months this year: ${takenRemindersThisYear.size}")
+                Log.d(TAG, "loadYearlyGraphData: Filtered to ${takenRemindersThisYear.size} taken reminders (with dosage) in this year.")
+                if (takenRemindersThisYear.isNotEmpty()) {
+                     Log.d(TAG, "loadYearlyGraphData: First 5 taken items this year: ${takenRemindersThisYear.take(5)}")
+                }
 
-                val dosesByMonth = takenRemindersThisYear.groupingBy { it }.eachCount()
-                Log.d(TAG, "Doses grouped by month enum: $dosesByMonth")
+                val dosesByMonth = takenRemindersThisYear
+                    .groupBy { it.first } // Group by Month enum
+                    .mapValues { entry ->
+                        // Sum the dosage quantities (it.second) for each group
+                        entry.value.sumOf { pair -> pair.second.toDouble() }.toFloat()
+                    }
+                Log.d(TAG, "loadYearlyGraphData: Doses summed by month enum: $dosesByMonth")
 
-                val yearlyDataMap = LinkedHashMap<String, Int>()
-                val monthFormatter = DateTimeFormatter.ofPattern("MMM", Locale.getDefault()) // Short month name, e.g., "Jan"
-
+                val yearlyDataMap = LinkedHashMap<String, Float>() // Changed type
                 for (month in 1..12) {
                     val monthEnum = java.time.Month.of(month)
-                    val monthName = monthEnum.getDisplayName(TextStyle.SHORT, Locale.getDefault()) // More reliable for short names
-                    // val monthName = YearMonth.of(targetYear, month).format(monthFormatter) // Alternative if full YearMonth needed
-                    yearlyDataMap[monthName] = dosesByMonth[monthEnum] ?: 0
+                    val monthName = monthEnum.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    // dosesByMonth[monthEnum] will now be a Float?
+                    yearlyDataMap[monthName] = dosesByMonth[monthEnum] ?: 0f // Use 0f
                 }
-                Log.d(TAG, "Final yearly data map: $yearlyDataMap")
-                _graphData.value = yearlyDataMap
 
+                val today = LocalDate.now()
+                val currentMonthShortNameForHighlight = if (targetYear == today.year) {
+                    today.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                } else {
+                    null
+                }
+
+                val chartEntries = yearlyDataMap.map { (monthName, totalDosage) -> // totalDosage is Float
+                    ChartyGraphEntry(
+                        xValue = monthName,
+                        yValue = totalDosage, // Already a Float
+                        isHighlighted = monthName.equals(currentMonthShortNameForHighlight, ignoreCase = true)
+                    )
+                }
+                Log.i(TAG, "loadYearlyGraphData: Final ChartyGraphEntry list for medId $medicationId: $chartEntries")
+                _chartyGraphData.value = chartEntries
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading yearly graph data for medId $medicationId, year $targetYear", e)
+                Log.e(TAG, "loadYearlyGraphData: Error for medId $medicationId, year $targetYear", e)
                 _error.value = "Failed to load yearly graph data."
-                _graphData.value = emptyMap()
+                _chartyGraphData.value = emptyList() // Updated
             } finally {
                 _isLoading.value = false
 

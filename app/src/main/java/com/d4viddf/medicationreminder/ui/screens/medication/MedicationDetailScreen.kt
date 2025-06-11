@@ -17,14 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width // Explicit import for Modifier.width
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NavigateNext // Changed from .rounded to .filled for NavigateNext
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft // Ensure this import is present
 // import androidx.compose.material.icons.automirrored.rounded.NavigateNext // Keep only one NavigateNext import
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
@@ -57,8 +57,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+// Removed Canvas import
 import androidx.compose.ui.draw.clip
+// Removed Rect import
 import androidx.compose.ui.graphics.Color
+// Removed Path import
+import androidx.compose.ui.platform.LocalDensity // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,8 +81,21 @@ import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme // Added import
+import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
+// Custom SimpleBarChart imports
+import com.d4viddf.medicationreminder.ui.components.SimpleBarChart
+import com.d4viddf.medicationreminder.ui.components.BarChartItem
+// Removed Charty Imports
+// import com.himanshoe.charty.charts.BarChart
+// import com.himanshoe.charty.common.Point
+// import com.himanshoe.charty.common.config.ChartColor
+// import com.himanshoe.charty.common.config.SolidChartColor
+// import com.himanshoe.charty.common.extensions.asSolidChartColor
+// import com.himanshoe.charty.bar.config.BarChartConfig
+// import com.himanshoe.charty.common.config.LabelConfig
+// import com.himanshoe.charty.bar.config.BarChartColorConfig
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -124,53 +141,7 @@ fun ScheduleItem(
     }
 }
 
-@Composable
-fun WeeklyBarChartDisplay(graphData: Map<String, Int>, modifier: Modifier = Modifier) {
-    if (graphData.isEmpty()) {
-        Box(modifier = modifier.padding(16.dp), contentAlignment = Alignment.Center) {
-            Text(stringResource(id = R.string.loading_graph_data)) // Or "No data for this week"
-        }
-        return
-    }
-
-    val maxCount = graphData.values.maxOrNull() ?: 1
-    // Ensure todayShortName matches exactly how keys are stored in graphData (e.g. "Mon", "Tue")
-    val todayShortName = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-    val chartHeight = 120.dp // Smaller height for the card display
-    val barMaxHeight = 100.dp // Max height for a single bar
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(chartHeight)
-            .padding(top = 8.dp, bottom = 8.dp, start = 4.dp, end = 4.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        graphData.forEach { (dayLabel, count) ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier.weight(1f)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(24.dp) // Narrower bars
-                        .height(if (maxCount > 0) ((count.toFloat() / maxCount.toFloat()) * barMaxHeight.value).dp else 0.dp)
-                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                        .background(
-                            if (dayLabel.equals(todayShortName, ignoreCase = true))
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.secondaryContainer
-                        )
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(dayLabel, style = MaterialTheme.typography.labelSmall) // Smaller label
-            }
-        }
-    }
-}
+// Old WeeklyBarChartDisplay composable removed
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -198,7 +169,8 @@ fun MedicationDetailsScreen(
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val weeklyGraphData by graphViewModel?.graphData?.collectAsState() ?: remember { mutableStateOf(emptyMap()) }
+    val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(initial = emptyList<ChartyGraphEntry>())
+        ?: remember { mutableStateOf(emptyList<ChartyGraphEntry>()) })
 
     LaunchedEffect(medicationId, graphViewModel) {
         viewModel.getMedicationById(medicationId)?.let { med ->
@@ -242,7 +214,7 @@ fun MedicationDetailsScreen(
                         title = { },
                         navigationIcon = {
                             if (!isHostedInPane) {
-                                Box (modifier = Modifier.padding(start = 10.dp)){
+                                Box (modifier = Modifier.padding(start = 10.dp)){ // Original padding
                                     Box(
                                         modifier = Modifier
                                             .size(40.dp)
@@ -252,8 +224,9 @@ fun MedicationDetailsScreen(
                                     ) {
                                         Icon(
                                             Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                            contentDescription = stringResource(id = R.string.back),
-                                            modifier = Modifier.size(28.dp), tint = Color.White
+                                            contentDescription = stringResource(id = R.string.back), // R.string.back was original
+                                            modifier = Modifier.size(28.dp),
+                                            tint = Color.White
                                         )
                                     }
                                 }
@@ -267,12 +240,12 @@ fun MedicationDetailsScreen(
                                         color = Color.Black.copy(alpha = 0.4f),
                                         shape = RoundedCornerShape(20.dp) // Pill/capsule shape
                                     )
-                                    .clickable { /* TODO: Handle edit action */ }
+                                    .clickable { /* TODO: Handle edit action */ } // Keep original action
                                     .padding(horizontal = 16.dp, vertical = 8.dp), // Padding for text inside
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = stringResource(id = R.string.edit),
+                                    text = stringResource(id = R.string.edit), // R.string.edit was original
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp // Explicit font size as before
@@ -280,9 +253,10 @@ fun MedicationDetailsScreen(
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = color.backgroundColor,
-                            navigationIconContentColor = Color.White,
-                            actionIconContentColor = Color.White
+                            containerColor = color.backgroundColor, // Restored
+                            navigationIconContentColor = Color.White, // Restored
+                            actionIconContentColor = Color.White, // Restored for custom action
+                            titleContentColor = Color.White // Assuming title would be white if present
                         )
                     )
                 }
@@ -520,7 +494,35 @@ fun MedicationDetailsScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    WeeklyBarChartDisplay(graphData = weeklyGraphData, modifier = Modifier.fillMaxSize()) // Call to WeeklyBarChartDisplay
+                                    // SimpleBarChart IMPLEMENTATION:
+                                    val barChartItems = remember(chartEntries) {
+                                        chartEntries.map { entry ->
+                                            BarChartItem(
+                                                label = entry.xValue, // e.g., "Mon", "Tue"
+                                                value = entry.yValue,
+                                                isHighlighted = entry.isHighlighted
+                                            )
+                                        }
+                                    }
+
+                                    if (barChartItems.isNotEmpty()) {
+                                        SimpleBarChart(
+                                            data = barChartItems,
+                                            modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
+                                            highlightedBarColor = MaterialTheme.colorScheme.primary,
+                                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                            // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
+                                        )
+                                    } else {
+                                        // This Box is from the original code for loading/empty state
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(stringResource(id = R.string.loading_graph_data)) // Or handle empty specifically
+                                        }
+                                    }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Button(

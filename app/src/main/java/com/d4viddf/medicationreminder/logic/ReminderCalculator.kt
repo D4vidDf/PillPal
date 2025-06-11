@@ -400,23 +400,15 @@ object ReminderCalculator {
                     val adjustedAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using lastTakenDateTime. Adjusted anchorDateTime: $anchorDateTime"
                     Log.i(TAG, adjustedAnchorLog)
                     FileLogger.log(TAG, adjustedAnchorLog)
-                } else {
-                    anchorDateTime = if (medicationStartDateOnly.isEqual(currentDateTime.toLocalDate()) && !currentDateTime.toLocalTime().isBefore(LocalTime.MIN.plusSeconds(1))) {
-                        val anchorToCurrentLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is today. Anchoring to currentDateTime: $currentDateTime"
-                        Log.d(TAG, anchorToCurrentLog)
-                        FileLogger.log(TAG, anchorToCurrentLog)
-                        currentDateTime
-                    } else {
-                        val anchorToStartOfDayLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Medication start date is not today ($medicationStartDateOnly) or it is today but very early. Anchoring to start of medication day: ${medicationStartDateOnly.atStartOfDay()}"
-                        Log.d(TAG, anchorToStartOfDayLog)
-                        FileLogger.log(TAG, anchorToStartOfDayLog)
-                        medicationStartDateOnly.atStartOfDay()
-                    }
-                    val finalAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Original anchor logic. Final anchorDateTime = $anchorDateTime"
-                    Log.d(TAG, finalAnchorLog)
-                    FileLogger.log(TAG, finalAnchorLog)
+                } else { // lastTakenDateTime IS NULL
+                    // NEW LOGIC: Always anchor to the very beginning of the medication's start day.
+                    Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, No lastTaken. Anchoring to start of medication day: ${medicationStartDateOnly.atStartOfDay()}")
+                    anchorDateTime = medicationStartDateOnly.atStartOfDay()
+                    // End of NEW LOGIC for lastTakenDateTime == null
                 }
 
+                // The effectiveCalculationStartAnchor logic below seems to handle advancing the anchor if it's in the past.
+                // This part might need review in context of the new anchorDateTime, but the primary change is above.
                 val effectiveCalculationStartAnchor = if (anchorDateTime.isBefore(currentDateTime) && medicationStartDateOnly.isBefore(currentDateTime.toLocalDate())) {
                     if (currentDateTime.isAfter(anchorDateTime)) {
                          val advanceAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Anchor $anchorDateTime was in past. Med started in past. Advancing anchor to currentDateTime: $currentDateTime for generation start."
