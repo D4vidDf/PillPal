@@ -280,7 +280,9 @@ fun MedicationGraphScreen(
                                 onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
                                 yearlyChartEntries = yearlyChartEntries,
                                 isLoading = isLoadingWeekly,
-                                error = errorWeekly
+                                error = errorWeekly,
+                                today = today, // Added missing parameter
+                                minYear = minYear   // Added missing parameter
                             )
                         }
                     }
@@ -509,7 +511,7 @@ private fun YearlyChartCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYear),
+                text = stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYearInternal), // Corrected to use internal
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -568,7 +570,7 @@ private fun YearlyChartCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .pointerInput(currentDisplayedYear) { // Key by currentDisplayedYear
+                        .pointerInput(currentDisplayedYearInternal) { // Corrected to use internal state
                             var dragConsumed = false
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
