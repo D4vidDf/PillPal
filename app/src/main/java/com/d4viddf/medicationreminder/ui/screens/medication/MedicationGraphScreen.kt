@@ -276,27 +276,16 @@ fun MedicationGraphScreen(
 
                 // Week Picker Dialog
                 if (showWeekPickerDialog) {
-                    val today = LocalDate.now()
-                    val datePickerState = rememberDatePickerState(
+                    // val today = LocalDate.now() // 'today' is already available in this scope
+                    val datePickerState = rememberDatePickerState( // Only one declaration
                         initialSelectedDateMillis = currentWeekMonday.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                        yearRange = IntRange(today.year - 5, today.year),
+                        yearRange = IntRange(minYear, today.year), // Use minYear and today from outer scope
                         selectableDates = object : SelectableDates {
                             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                                 val selectedDate = Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                                return !selectedDate.isAfter(today)
-                            }
-                            override fun isSelectableYear(year: Int): Boolean {
-                                return year <= today.year && year >= today.year - 5
-                            }
-                        }
-                    )
-                    val datePickerState = rememberDatePickerState(
-                        initialSelectedDateMillis = currentWeekMonday.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                        yearRange = IntRange(minYear, today.year),
-                        selectableDates = object : SelectableDates {
-                            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                                val selectedDate = Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                                return !selectedDate.isAfter(today) && !selectedDate.isBefore(minWeekOverallLimitMonday.minusDays(6)) // Allow selecting any day in the min week
+                                // Allow selecting any day in the minWeekOverallLimitMonday's week by checking against start of that week
+                                val startOfWeekForMinOverallLimit = minWeekOverallLimitMonday
+                                return !selectedDate.isAfter(today) && !selectedDate.isBefore(startOfWeekForMinOverallLimit)
                             }
                             override fun isSelectableYear(year: Int): Boolean {
                                 return year <= today.year && year >= minYear
@@ -313,7 +302,7 @@ fun MedicationGraphScreen(
                                     var newMonday = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                                     if (newMonday.isBefore(minWeekOverallLimitMonday)) newMonday = minWeekOverallLimitMonday
                                     if (newMonday.isAfter(currentCalendarWeekMonday)) newMonday = currentCalendarWeekMonday
-                                    onUpdateWeekMonday(newMonday)
+                                     currentWeekMonday = newMonday // Directly update state
                                 }
                                 showWeekPickerDialog = false
                             }) { Text(stringResource(android.R.string.ok)) }
@@ -331,7 +320,7 @@ fun MedicationGraphScreen(
                     val years = remember { (minYear..today.year).toList().reversed() }
                     AlertDialog(
                         onDismissRequest = { showYearPickerDialog = false },
-                        title = { Text(stringResource(R.string.select_year_title)) },
+                        title = { Text("Select Year") }, // Use hardcoded string as per previous fix
                         text = {
                             LazyColumn {
                                 items(years) { year ->
@@ -340,7 +329,7 @@ fun MedicationGraphScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
-                                                onUpdateYear(year)
+                                                currentDisplayedYear = year // Directly update state
                                                 showYearPickerDialog = false
                                             }
                                             .padding(vertical = 12.dp), // Make list items taller
@@ -364,14 +353,19 @@ fun MedicationGraphScreen(
 @Composable
 private fun WeeklyChartCard(
     modifier: Modifier = Modifier,
-    viewModel: MedicationGraphViewModel?, // Pass ViewModel if needed for specific loading/error states
-    currentWeekMonday: LocalDate,
-    onUpdateWeekMonday: (LocalDate) -> Unit, // Changed to onUpdateWeekMonday
+    viewModel: MedicationGraphViewModel?,
+    currentWeekMondayInternal: LocalDate, // Renamed to avoid conflict with outer scope if any, though not strictly necessary here
+    onCurrentWeekMondayChange: (LocalDate) -> Unit, // Callback to update state
     onShowWeekPicker: () -> Unit,
     weeklyChartEntries: List<ChartyGraphEntry>,
     isLoading: Boolean,
     error: String?
 ) {
+    val today = remember { LocalDate.now() } // Define today and limits within the card's scope or pass them
+    val currentCalendarWeekMonday = remember { today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
+    val minYear = remember { today.year - 5 }
+    val minWeekOverallLimitMonday = remember { LocalDate.of(minYear, 1, 1).with(TemporalAdjusters.firstDayOfYear()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
+
     ElevatedCard(modifier = modifier) {
         Column(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -396,17 +390,17 @@ private fun WeeklyChartCard(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = stringResource(R.string.previous_period_cd),
                     onClick = {
-                        val prevWeek = currentWeekMonday.minusWeeks(1)
+                        val prevWeek = currentWeekMondayInternal.minusWeeks(1)
                         if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
-                            onUpdateWeekMonday(prevWeek)
+                            onCurrentWeekMondayChange(prevWeek)
                         }
                     },
-                    enabled = !currentWeekMonday.minusWeeks(1).isBefore(minWeekOverallLimitMonday)
+                    enabled = !currentWeekMondayInternal.minusWeeks(1).isBefore(minWeekOverallLimitMonday)
                 )
 
                 val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
                 Text(
-                    text = "${currentWeekMonday.format(weekDayMonthFormatter)} - ${currentWeekMonday.plusDays(6).format(weekDayMonthFormatter)}",
+                    text = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}",
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.clickable { onShowWeekPicker() }
                 )
@@ -414,21 +408,21 @@ private fun WeeklyChartCard(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = stringResource(R.string.next_period_cd),
                     onClick = {
-                        val nextWeek = currentWeekMonday.plusWeeks(1)
+                        val nextWeek = currentWeekMondayInternal.plusWeeks(1)
                         if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
-                            onUpdateWeekMonday(nextWeek)
+                            onCurrentWeekMondayChange(nextWeek)
                         }
                     },
-                    enabled = !currentWeekMonday.plusWeeks(1).isAfter(currentCalendarWeekMonday)
+                    enabled = !currentWeekMondayInternal.plusWeeks(1).isAfter(currentCalendarWeekMonday)
                 )
             }
 
-            val displayableItems = remember(weeklyChartEntries, isLoading, error, currentWeekMonday) {
+            val displayableItems = remember(weeklyChartEntries, isLoading, error, currentWeekMondayInternal) { // Use internal state
                 if (!isLoading && error == null && weeklyChartEntries.isEmpty()) {
                     val today = LocalDate.now()
                     val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
                     List(7) { i ->
-                        val day = currentWeekMonday.plusDays(i.toLong())
+                        val day = currentWeekMondayInternal.plusDays(i.toLong())
                         BarChartItem(label = day.format(dayFormatter), value = 0f, isHighlighted = day.isEqual(today))
                     }
                 } else {
@@ -445,27 +439,23 @@ private fun WeeklyChartCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp) // Slightly smaller height for cards
-                        .pointerInput(currentWeekMonday) { // Key by currentWeekMonday
+                        .pointerInput(currentWeekMondayInternal) { // Key by internal state
                             var dragConsumed = false
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
                                     change.consume()
                                     if (abs(dragAmount) > 40 && !dragConsumed) {
                                         dragConsumed = true
-                                        val today = LocalDate.now() // Ensure fresh 'today' inside gesture
-                                        val currentCalWeekMon = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                                        val minYr = today.year - 5
-                                        val minWeekOverallMon = LocalDate.of(minYr, 1, 1).with(TemporalAdjusters.firstDayOfYear()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-
+                                        // Use limits defined in the card's scope
                                         if (dragAmount > 0) { // Swiped Left (older dates)
-                                            val prevWeek = currentWeekMonday.minusWeeks(1)
-                                            if (!prevWeek.isBefore(minWeekOverallMon)) {
-                                                onUpdateWeekMonday(prevWeek)
+                                            val prevWeek = currentWeekMondayInternal.minusWeeks(1)
+                                            if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
+                                                onCurrentWeekMondayChange(prevWeek)
                                             }
                                         } else { // Swiped Right (newer dates)
-                                            val nextWeek = currentWeekMonday.plusWeeks(1)
-                                            if (!nextWeek.isAfter(currentCalWeekMon)) {
-                                                onUpdateWeekMonday(nextWeek)
+                                            val nextWeek = currentWeekMondayInternal.plusWeeks(1)
+                                            if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
+                                                onCurrentWeekMondayChange(nextWeek)
                                             }
                                         }
                                     }
