@@ -13,16 +13,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width // Ensure width is imported for bar width
 import androidx.compose.foundation.rememberScrollState // For horizontal and vertical scroll
-// import androidx.compose.foundation.horizontalScroll // For horizontal scroll - Will be removed from chart box
 import androidx.compose.foundation.verticalScroll // For vertical scroll
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.shape.RoundedCornerShape
+// Removed: import androidx.compose.foundation.layout.width - If not used by other elements after this refactor
+// Removed: import androidx.compose.foundation.shape.RoundedCornerShape - If not used by other elements
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+// Removed: import androidx.compose.foundation.BorderStroke - No longer used by GraphViewButton
+// Removed: import androidx.compose.material3.Button - No longer used by GraphViewButton
+// Removed: import androidx.compose.material3.ButtonDefaults - No longer used by GraphViewButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
+// Removed: import androidx.compose.material3.OutlinedButton - No longer used by GraphViewButton
+// Removed: import androidx.compose.material3.TextButton - If it was ever here
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -58,12 +63,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
-import com.d4viddf.medicationreminder.R // Moved import to top
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-// Removed ThemedAppBarBackButton import
-import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
-import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // ViewModel now provides this
+import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
 // Custom SimpleBarChart imports
 import com.d4viddf.medicationreminder.ui.components.SimpleBarChart
@@ -75,11 +79,12 @@ import com.d4viddf.medicationreminder.ui.components.BarChartItem
 // import com.himanshoe.charty.common.config.ChartColor
 // import com.himanshoe.charty.common.config.SolidChartColor
 // import com.himanshoe.charty.common.extensions.asSolidChartColor
-// import com.himanshoe.charty.bar.config.BarChartConfig
-// import com.himanshoe.charty.common.config.LabelConfig
-// import com.himanshoe.charty.bar.config.BarChartColorConfig
+// import com.himanshoe.charty.bar.config.BarChartConfig - Ensure these are removed if not used
+// import com.himanshoe.charty.common.config.LabelConfig - Ensure these are removed if not used
+// import com.himanshoe.charty.bar.config.BarChartColorConfig - Ensure these are removed if not used
 import java.time.DayOfWeek
 import java.time.LocalDate
+// Removed: import java.time.YearMonth - No longer used
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
@@ -89,8 +94,7 @@ enum class GraphViewType {
     WEEK, YEAR // Month removed
 }
 
-// GraphViewButton and DateNavigationControls are removed as their functionality
-// will be replaced by the dropdown and new controls structure.
+// GraphViewButton and DateNavigationControls composables are confirmed removed from previous step.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -330,31 +334,47 @@ fun MedicationGraphScreen(
                             modifier = Modifier
                                 .fillMaxWidth() // This Box defines the viewport width
                                 .height(220.dp) // And height
-                                .horizontalScroll(rememberScrollState())
+                                // Removed: .horizontalScroll(rememberScrollState())
+                                .pointerInput(selectedViewType) { // Key by selectedViewType to re-evaluate swipe logic if view changes
+                                    var dragConsumed = false
+                                    detectHorizontalDragGestures(
+                                        onHorizontalDrag = { change, dragAmount ->
+                                            change.consume()
+                                            if (abs(dragAmount) > 50 && !dragConsumed) { // Threshold and debounce
+                                                dragConsumed = true
+                                                if (dragAmount > 0) { // Swiped Left
+                                                    when (selectedViewType) {
+                                                        GraphViewType.WEEK -> currentWeekMonday = currentWeekMonday.minusWeeks(1)
+                                                        GraphViewType.YEAR -> currentDisplayedYear--
+                                                    }
+                                                } else { // Swiped Right
+                                                    when (selectedViewType) {
+                                                        GraphViewType.WEEK -> currentWeekMonday = currentWeekMonday.plusWeeks(1)
+                                                        GraphViewType.YEAR -> currentDisplayedYear++
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        onDragEnd = { dragConsumed = false }
+                                    )
+                                }
                         ) {
                             SimpleBarChart(
                                 data = displayableBarChartItems, // Use the new list
-                                modifier = Modifier.fillMaxHeight(), // To use the 220.dp from the parent Box
+                                modifier = Modifier.fillMaxSize(), // Chart fills the Box, which has defined height
                                 highlightedBarColor = MaterialTheme.colorScheme.primary,
                                 normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                                 labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            barWidthDp = when(selectedViewType) {
-                                GraphViewType.WEEK -> 24.dp
-                                GraphViewType.MONTH -> 10.dp
-                                GraphViewType.YEAR -> 16.dp
-                            },
-                            spaceAroundBarsDp = when(selectedViewType) {
-                                GraphViewType.WEEK -> 8.dp
-                                GraphViewType.MONTH -> 4.dp
-                                GraphViewType.YEAR -> 6.dp
-                            }
+                                // barWidthDp and spaceAroundBarsDp are now handled dynamically by SimpleBarChart
+                                valueTextColor = MaterialTheme.colorScheme.onSurface // Or specific color
                             )
                         }
                     }
-                }
-            }
-        }
-    }
+                } // Closes Column inside ElevatedCard
+              } // Closes ElevatedCard
+            } // Closes Column inside Scaffold
+        } // Closes Scaffold
+    } // Closes MedicationSpecificTheme
 }
 
 
@@ -372,21 +392,22 @@ fun MedicationGraphScreenPreviewWeek() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, name = "Medication Graph Screen - Month View")
+@Preview(showBackground = true, name = "Medication Graph Screen - Year View") // Renamed
 @Composable
-fun MedicationGraphScreenPreviewMonth() {
+fun MedicationGraphScreenPreviewYear() { // Renamed
     AppTheme {
-        val selectedViewType = GraphViewType.MONTH
+        // val selectedViewType = GraphViewType.YEAR // Set selectedViewType for preview if needed, though it's internal state
         val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
-        val currentMonth = YearMonth.now()
+        val currentYear = LocalDate.now().year
 
-        // Sample data for SimpleBarChart
+        // Sample data for SimpleBarChart - Year View
         val sampleBarChartItems = remember {
-            (1..currentMonth.lengthOfMonth()).mapIndexed { index, day ->
+            List(12) { i ->
+                val month = java.time.Month.of(i + 1)
                 BarChartItem(
-                    label = day.toString(),
-                    value = (0..5).random().toFloat(),
-                    isHighlighted = index % 7 == 0 // Highlight first day of week for variety
+                    label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                    value = (0..25).random().toFloat(), // Example values for yearly data
+                    isHighlighted = month == LocalDate.now().month && currentYear == LocalDate.now().year
                 )
             }
         }
@@ -418,20 +439,21 @@ fun MedicationGraphScreenPreviewMonth() {
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Simplified controls for preview
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    GraphViewButton(stringResource(id = R.string.graph_view_weekly), selectedViewType == GraphViewType.WEEK) { /* No-op for preview state change */ }
-                    GraphViewButton(stringResource(id = R.string.graph_view_monthly), selectedViewType == GraphViewType.MONTH) { /* No-op */ }
-                    GraphViewButton(stringResource(id = R.string.graph_view_yearly), selectedViewType == GraphViewType.YEAR) { /* No-op */ }
+                    IconButton(onClick = { /* No-op */ }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, null) }
+                    Text("Yearly") // Simplified display for preview
+                    IconButton(onClick = { /* No-op */ }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                val chartTitle = stringResource(R.string.monthly_doses_taken_title_template, currentMonth.format(monthFormatter))
+                val chartTitle = stringResource(R.string.yearly_doses_taken_title_template, currentYear)
 
                 Text(
                     text = chartTitle,
@@ -439,30 +461,19 @@ fun MedicationGraphScreenPreviewMonth() {
                     modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
                 )
 
-                // Commenting out problematic block in preview to get build to pass
-                // if (sampleBarChartItems.isNotEmpty()) {
-                //     Box(
-                //         modifier = Modifier
-                //             .fillMaxWidth()
-                //             .height(220.dp)
-                //             .horizontalScroll(rememberScrollState())
-                //     ) {
-                //         SimpleBarChart(
-                //             data = sampleBarChartItems,
-                //             modifier = Modifier, // Simplified for preview - Box already defines height
-                //             highlightedBarColor = MaterialTheme.colorScheme.primary,
-                //             normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                //             labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                //             barWidthDp = 10.dp, // Example for month view
-                //             spaceAroundBarsDp = 4.dp // Example for month view
-                //         )
-                //         Unit // Explicitly return Unit
-                //     }
-                // } else {
-                //     Text("No sample data to display in preview.")
-                //     Unit // Explicitly return Unit
-                // }
-                Text("Chart preview temporarily commented out.") // Placeholder
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                ) {
+                    SimpleBarChart(
+                        data = sampleBarChartItems,
+                        modifier = Modifier.fillMaxSize(),
+                        highlightedBarColor = MaterialTheme.colorScheme.primary,
+                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
