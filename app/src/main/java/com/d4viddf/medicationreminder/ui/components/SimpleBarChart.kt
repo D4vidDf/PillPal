@@ -65,78 +65,109 @@ fun SimpleBarChart(
         }
     }
 
-    val barWidthPx = with(density) { barWidthDp.toPx() }
     val barCornerRadiusPx = with(density) { barCornerRadiusDp.toPx() }
-    val spaceAroundBarsPx = with(density) { spaceAroundBarsDp.toPx() }
-    // Total space for one bar + its surrounding space on one side (e.g., right side)
-    val itemWidthPx = barWidthPx + spaceAroundBarsPx
-    // Minimum width is sum of all item widths + initial space on the left.
-    val calculatedMinWidthPx = (data.size * itemWidthPx) + spaceAroundBarsPx // This is the content width
 
-    Canvas(
-        modifier = modifier.then(
-            Modifier.width(with(density) { calculatedMinWidthPx.toDp() })
-        )
-    ) {
+    // Y-axis Paint (can be same as textPaint or customized)
+    val yAxisTextPaint = remember(labelTextColor, density) {
+        Paint().apply {
+            color = labelTextColor.toArgb()
+            textAlign = Paint.Align.RIGHT // Align to the right for Y-axis labels
+            textSize = with(density) { 10.sp.toPx() } // Smaller text for Y-axis
+            isAntiAlias = true
+        }
+    }
+    val yAxisLinePaint = remember(labelTextColor) { // Paint for the Y-axis line and grid lines
+        androidx.compose.ui.graphics.Paint().apply {
+            color = labelTextColor // Use a slightly dimmer or specific color for grid lines
+            strokeWidth = 1f // Hairline
+        }
+    }
+
+
+    Canvas(modifier = modifier) { // Removed self-calculated width modifier
+        val canvasWidth = size.width
         val canvasHeight = size.height
-        // val canvasWidth = size.width // This would now be calculatedMinWidthPx, effectively
+        val totalItems = data.size
 
-        // val yAxisLabelAreaWidth = 40.dp.toPx() // Example: space for Y-axis labels
-        val yAxisLabelAreaWidth = 0f // No Y-axis value labels for now, so no space reserved
+        if (totalItems == 0) return@Canvas
 
-        val maxValue = data.maxOfOrNull { it.value } ?: 0f
-        // Removed: if (maxValue == 0f && data.any { it.value != 0f }) { return@Canvas }
+        val yAxisLabelAreaWidth = with(density) { 30.dp.toPx() } // Space for Y-axis labels
+        val chartAreaWidth = canvasWidth - yAxisLabelAreaWidth
+
+        // Dynamic bar width and spacing calculation
+        // Let bar width be ~70% and spacing ~30% of the available space per item
+        val itemAvailableWidth = chartAreaWidth / totalItems
+        val dynamicBarWidthPx = itemAvailableWidth * 0.7f
+        val dynamicSpaceAroundBarsPx = itemAvailableWidth * 0.3f
 
 
+        // Y-Axis Implementation
+        val actualMaxValue = data.maxOfOrNull { it.value } ?: 0f
+        val yAxisMaxValue = if (actualMaxValue < 3f) 3f else actualMaxValue // Ensure at least a few ticks
+        val numberOfYTicks = 4 // Example: 0, max/3, 2*max/3, max
+
+        val xAxisLabelHeight = textPaint.textSize * 1.5f // Space for X-axis labels
+        val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() } // Approx height for value text
+        val topPaddingForValueText = valueTextHeight // Space above bars for value text
+
+        val chartDrawableHeight = canvasHeight - xAxisLabelHeight - topPaddingForValueText
+
+        // Draw Y-Axis Line and Labels
+        val yAxisLineStart = Offset(yAxisLabelAreaWidth, topPaddingForValueText)
+        val yAxisLineEnd = Offset(yAxisLabelAreaWidth, topPaddingForValueText + chartDrawableHeight)
+        drawContext.canvas.drawLine(yAxisLineStart, yAxisLineEnd, yAxisLinePaint)
+
+        for (i in 0..numberOfYTicks) {
+            val tickValue = yAxisMaxValue * (i.toFloat() / numberOfYTicks)
+            val tickY = topPaddingForValueText + chartDrawableHeight * (1f - (tickValue / yAxisMaxValue))
+
+            // Optional: Draw horizontal grid line
+            // drawLine(
+            //    color = labelTextColor.copy(alpha = 0.3f), // Light grid lines
+            //    start = Offset(yAxisLabelAreaWidth, tickY),
+            //    end = Offset(canvasWidth, tickY)
+            // )
+
+            // Draw Y-axis label text
+            drawContext.canvas.nativeCanvas.drawText(
+                tickValue.toInt().toString(),
+                yAxisLabelAreaWidth - with(density) { 4.dp.toPx() }, // Position left of Y-axis line
+                tickY + yAxisTextPaint.textSize / 3, // Center text vertically on tick
+                yAxisTextPaint
+            )
+        }
+
+        // Adjust Bar and Label Drawing Coordinates
         data.forEachIndexed { index, item ->
-            // barHeight calculation should use the drawable area height
-            // Adjust drawableHeight to account for value text as well if it's drawn above the bar
-            val spaceForXAxisLabels = textPaint.textSize * 1.5f // Approximate height for x-axis labels
-            val spaceForValueText = valueTextPaint.textSize + with(density) { 4.dp.toPx() } // Approximate height for value text + gap
-            val drawableHeight = canvasHeight - spaceForXAxisLabels - spaceForValueText // Adjusted drawable height
-
-            val barHeight = if (maxValue > 0f) (item.value / maxValue) * drawableHeight else 0f
+            val barHeight = if (yAxisMaxValue > 0f) (item.value / yAxisMaxValue) * chartDrawableHeight else 0f
             val barColor = if (item.isHighlighted) highlightedBarColor else normalBarColor
 
-            // Recalculate barLeft and itemWidthPx if yAxisLabelAreaWidth is > 0
-            // For now, assuming it's 0f, so original calculations for barLeft are fine relative to yAxisLabelAreaWidth.
-            val currentBarLeft = yAxisLabelAreaWidth + spaceAroundBarsPx + (index * itemWidthPx)
-            // barTop is now calculated from the top of the value text area
-            val barTop = canvasHeight - barHeight - spaceForXAxisLabels
+            val currentBarLeft = yAxisLabelAreaWidth + (dynamicSpaceAroundBarsPx / 2) + (index * itemAvailableWidth)
+            val barTop = topPaddingForValueText + chartDrawableHeight - barHeight
 
             // Draw bar
             drawRoundRect(
                 color = barColor,
                 topLeft = Offset(x = currentBarLeft, y = barTop),
-                size = Size(width = barWidthPx, height = barHeight),
+                size = Size(width = dynamicBarWidthPx, height = barHeight),
                 cornerRadius = CornerRadius(barCornerRadiusPx, barCornerRadiusPx)
             )
 
             // Draw value text
-            val valueText = item.value.toInt().toString() // Or String.format for decimals
-            // Position value text above the bar
-            val valueTextYPosition = barTop - valueTextPaint.descent() - with(density) { 4.dp.toPx() }
-
-            // Adjust Y position for value text if bar height is too small to avoid overlap with X-axis labels
-            // This ensures value text is drawn within the allocated spaceForValueText or just above X-axis if bar is zero
-            val textYPos = if (barHeight > (valueTextPaint.textSize / 2) ) { // If bar is tall enough to have text clearly above it
-                               valueTextYPosition
-                           } else { // If bar is too short or zero, position text at the top of where the bar would start (within its value text area)
-                               canvasHeight - spaceForXAxisLabels - valueTextPaint.descent() - with(density) { 2.dp.toPx()}
-                           }
-
-            drawContext.canvas.nativeCanvas.drawText(
-                valueText,
-                currentBarLeft + barWidthPx / 2, // Center of the bar
-                textYPos, // Use adjusted Y position
-                valueTextPaint
-            )
+            val valueText = item.value.toInt().toString()
+            val valueTextX = currentBarLeft + dynamicBarWidthPx / 2
+            val valueTextY = if (barHeight > valueTextPaint.textSize * 0.8f) { // If bar is tall enough
+                barTop - valueTextPaint.descent() - with(density) { 4.dp.toPx() }
+            } else { // If bar is too short or zero
+                topPaddingForValueText + chartDrawableHeight - valueTextPaint.descent() - with(density) {2.dp.toPx() }
+            }
+            drawContext.canvas.nativeCanvas.drawText(valueText, valueTextX, valueTextY, valueTextPaint)
 
             // Draw X-axis label
             drawContext.canvas.nativeCanvas.drawText(
                 item.label,
-                currentBarLeft + barWidthPx / 2, // Center of the bar
-                canvasHeight - textPaint.textSize / 2, // Below the bar, within its allocated space
+                currentBarLeft + dynamicBarWidthPx / 2, // Center of the bar
+                canvasHeight - textPaint.textSize / 2, // Below the bar
                 textPaint
             )
         }

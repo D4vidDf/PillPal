@@ -13,25 +13,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width // Ensure width is imported for bar width
 import androidx.compose.foundation.rememberScrollState // For horizontal and vertical scroll
-import androidx.compose.foundation.horizontalScroll // For horizontal scroll
+// import androidx.compose.foundation.horizontalScroll // For horizontal scroll - Will be removed from chart box
 import androidx.compose.foundation.verticalScroll // For vertical scroll
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.foundation.BorderStroke // Added import
-import androidx.compose.material3.Button // Added import
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator // New import
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton // Added import
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.TopAppBar // Ensure this is imported for the preview
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,19 +46,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-// Removed Canvas import, as it's no longer used by BarChartDisplay
 import androidx.compose.ui.draw.clip
-// Removed Rect import
-import androidx.compose.ui.graphics.Color // Added import
-// Removed Path import
-import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
-import androidx.compose.ui.platform.LocalDensity // New import, for Px conversion
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
-import android.util.Log // Added for logging
-import androidx.compose.ui.text.style.TextAlign // New import
+import androidx.compose.ui.text.font.FontWeight
+import android.util.Log
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import com.d4viddf.medicationreminder.R // Moved import to top
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 // Removed ThemedAppBarBackButton import
@@ -80,88 +80,17 @@ import com.d4viddf.medicationreminder.ui.components.BarChartItem
 // import com.himanshoe.charty.bar.config.BarChartColorConfig
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.YearMonth // Added for currentDisplayedMonth
-import java.time.format.DateTimeFormatter // Added for month formatting
-
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
 enum class GraphViewType {
-    WEEK, MONTH, YEAR
+    WEEK, YEAR // Month removed
 }
 
-@Composable
-fun GraphViewButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val commonModifier = Modifier.padding(horizontal = 4.dp)
-    val shape = RoundedCornerShape(8.dp)
-
-    if (isSelected) {
-        Button( // Filled button for selected state
-            onClick = onClick,
-            shape = shape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            modifier = commonModifier
-        ) {
-            Text(text)
-        }
-    } else {
-        OutlinedButton( // Outlined button for unselected state
-            onClick = onClick,
-            shape = shape,
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), // Simpler border
-            modifier = commonModifier
-        ) {
-            Text(text)
-        }
-    }
-}
-
-@Composable
-fun DateNavigationControls( // Made non-private
-    selectedViewType: GraphViewType,
-    currentPeriodDisplayName: String,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onPrevious) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = stringResource(id = R.string.previous_period_cd)
-            )
-        }
-        Text(
-            text = currentPeriodDisplayName,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium
-        )
-        IconButton(onClick = onNext) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = stringResource(id = R.string.next_period_cd)
-            )
-        }
-    }
-}
-
-// Old BarChartDisplay composable removed
+// GraphViewButton and DateNavigationControls are removed as their functionality
+// will be replaced by the dropdown and new controls structure.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,48 +98,37 @@ fun MedicationGraphScreen(
     medicationId: Int,
     colorName: String,
     onNavigateBack: () -> Unit,
-    viewModel: MedicationGraphViewModel? = null // Made nullable for preview
+    viewModel: MedicationGraphViewModel? = null
 ) {
     Log.d("GraphScreenEntry", "MedicationGraphScreen composed. medicationId: $medicationId, viewModel is null: ${viewModel == null}, colorName: $colorName")
 
     val medicationColor = remember(colorName) {
-        try {
-            MedicationColor.valueOf(colorName)
-        } catch (e: IllegalArgumentException) {
-            MedicationColor.LIGHT_ORANGE // Fallback
-        }
+        try { MedicationColor.valueOf(colorName) } catch (e: IllegalArgumentException) { MedicationColor.LIGHT_ORANGE }
     }
+
     var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
-    var currentDisplayedMonth by remember { mutableStateOf(YearMonth.now()) }
+    var currentWeekMonday by remember { mutableStateOf(LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))) }
     var currentDisplayedYear by remember { mutableStateOf(LocalDate.now().year) }
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
     val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
-    // Collect the new chartyGraphData
     val chartEntries by viewModel?.chartyGraphData?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
-    // The old graphData definition that caused "unresolved reference monday" has been removed.
     val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
     val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(medicationId, selectedViewType, currentDisplayedMonth, currentDisplayedYear, viewModel) {
+    LaunchedEffect(medicationId, selectedViewType, currentWeekMonday, currentDisplayedYear, viewModel) {
         if (medicationId > 0 && viewModel != null) {
             when (selectedViewType) {
                 GraphViewType.WEEK -> {
-                    val today = LocalDate.now()
-                    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                    val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
+                    val currentWeekDays = List(7) { i -> currentWeekMonday.plusDays(i.toLong()) }
                     viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
-                }
-                GraphViewType.MONTH -> {
-                    viewModel.loadMonthlyGraphData(medicationId, currentDisplayedMonth)
                 }
                 GraphViewType.YEAR -> {
                     viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
                 }
             }
         } else if (viewModel != null) {
-            // Optionally, if medicationId is invalid, clear existing data or log
             viewModel.clearGraphData() // Assuming such a function exists or can be added to clear data
             Log.d("MedicationGraphScreen", "Invalid medicationId ($medicationId), clearing graph data.")
         }
@@ -248,116 +166,127 @@ fun MedicationGraphScreen(
                     .verticalScroll(rememberScrollState()), // Make content column scrollable
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    GraphViewButton(
-                        text = stringResource(id = R.string.graph_view_weekly),
-                        isSelected = selectedViewType == GraphViewType.WEEK,
-                        onClick = { selectedViewType = GraphViewType.WEEK }
-                    )
-                    GraphViewButton(
-                        text = stringResource(id = R.string.graph_view_monthly),
-                        isSelected = selectedViewType == GraphViewType.MONTH,
-                        onClick = { selectedViewType = GraphViewType.MONTH }
-                    )
-                    GraphViewButton(
-                        text = stringResource(id = R.string.graph_view_yearly),
-                        isSelected = selectedViewType == GraphViewType.YEAR,
-                        onClick = { selectedViewType = GraphViewType.YEAR }
-                    )
-                }
-
-                if (selectedViewType == GraphViewType.MONTH || selectedViewType == GraphViewType.YEAR) {
-                    val monthYearFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                    val currentDisplayPeriodText = when (selectedViewType) {
-                        GraphViewType.MONTH -> currentDisplayedMonth.format(monthYearFormatter)
-                        GraphViewType.YEAR -> currentDisplayedYear.toString()
-                        else -> ""
-                    }
-                    DateNavigationControls(
-                        selectedViewType = selectedViewType,
-                        currentPeriodDisplayName = currentDisplayPeriodText,
-                        onPrevious = {
-                            if (selectedViewType == GraphViewType.MONTH) {
-                                currentDisplayedMonth = currentDisplayedMonth.minusMonths(1)
-                            } else if (selectedViewType == GraphViewType.YEAR) {
-                                currentDisplayedYear--
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Controls Row: Previous, Dropdown, Next
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = {
+                                when (selectedViewType) {
+                                    GraphViewType.WEEK -> currentWeekMonday = currentWeekMonday.minusWeeks(1)
+                                    GraphViewType.YEAR -> currentDisplayedYear--
+                                }
+                            }) {
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(id = R.string.previous_period_cd))
                             }
-                        },
-                        onNext = {
-                            if (selectedViewType == GraphViewType.MONTH) {
-                                currentDisplayedMonth = currentDisplayedMonth.plusMonths(1)
-                            } else if (selectedViewType == GraphViewType.YEAR) {
-                                currentDisplayedYear++
+
+                            Box(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                                ExposedDropdownMenuBox(
+                                    expanded = dropdownExpanded,
+                                    onExpandedChange = { dropdownExpanded = !dropdownExpanded }
+                                ) {
+                                    TextField(
+                                        value = if (selectedViewType == GraphViewType.WEEK) stringResource(R.string.graph_view_weekly) else stringResource(R.string.graph_view_yearly),
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                            focusedContainerColor = Color.Transparent,
+                                            unfocusedContainerColor = Color.Transparent,
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent
+                                        ),
+                                        textStyle = MaterialTheme.typography.titleSmall.copy(textAlign = TextAlign.Center, fontWeight = FontWeight.Medium)
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = dropdownExpanded,
+                                        onDismissRequest = { dropdownExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.graph_view_weekly)) },
+                                            onClick = {
+                                                selectedViewType = GraphViewType.WEEK
+                                                dropdownExpanded = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.graph_view_yearly)) },
+                                            onClick = {
+                                                selectedViewType = GraphViewType.YEAR
+                                                dropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            IconButton(onClick = {
+                                when (selectedViewType) {
+                                    GraphViewType.WEEK -> currentWeekMonday = currentWeekMonday.plusWeeks(1)
+                                    GraphViewType.YEAR -> currentDisplayedYear++
+                                }
+                            }) {
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(id = R.string.next_period_cd))
                             }
                         }
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                val chartTitle = when (selectedViewType) {
-                    GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
-                    GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentDisplayedMonth.format(monthFormatter))
-                    GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYear)
-                }
-                Text(
-                    text = chartTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
-                )
-
-                // Refactored chart display area
-                val displayableBarChartItems = remember(chartEntries, isLoading, error, selectedViewType, currentDisplayedMonth, currentDisplayedYear) {
-                    if (!isLoading && error == null && chartEntries.isEmpty()) {
-                        // Generate default items if not loading, no error, and chartEntries is empty
-                        when (selectedViewType) {
+                        // Display Current Period
+                        val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
+                        val currentPeriodDisplayName = when (selectedViewType) {
                             GraphViewType.WEEK -> {
-                                val today = LocalDate.now()
-                                val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                                val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
-                                List(7) { i ->
-                                    val day = monday.plusDays(i.toLong())
-                                    BarChartItem(
-                                        label = day.format(dayFormatter),
-                                        value = 0f,
-                                        isHighlighted = day.isEqual(today)
-                                    )
-                                }
+                                val weekEndDate = currentWeekMonday.plusDays(6)
+                                "${currentWeekMonday.format(weekDayMonthFormatter)} - ${weekEndDate.format(weekDayMonthFormatter)}"
                             }
-                            GraphViewType.MONTH -> {
-                                val daysInMonth = currentDisplayedMonth.lengthOfMonth()
-                                val today = LocalDate.now()
-                                List(daysInMonth) { i ->
-                                    val dayOfMonth = i + 1
-                                    BarChartItem(
-                                        label = dayOfMonth.toString(),
-                                        value = 0f,
-                                        isHighlighted = currentDisplayedMonth.year == today.year &&
-                                                currentDisplayedMonth.month == today.month &&
-                                                dayOfMonth == today.dayOfMonth
-                                    )
-                                }
-                            }
-                            GraphViewType.YEAR -> {
-                                val today = LocalDate.now()
-                                List(12) { i ->
-                                    val month = java.time.Month.of(i + 1)
-                                    BarChartItem(
-                                        label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-                                        value = 0f,
-                                        isHighlighted = currentDisplayedYear == today.year && month == today.month
-                                    )
-                                }
-                            }
+                            GraphViewType.YEAR -> currentDisplayedYear.toString()
                         }
-                    } else {
-                        // Otherwise, use chartEntries from ViewModel
+                        Text(
+                            text = currentPeriodDisplayName,
+                            style = MaterialTheme.typography.labelMedium, // Smaller text for period display
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+
+                        val chartTitle = when (selectedViewType) {
+                            GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
+                            GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYear)
+                        }
+                        Text(
+                            text = chartTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
+                        )
+
+                        val displayableBarChartItems = remember(chartEntries, isLoading, error, selectedViewType, currentWeekMonday, currentDisplayedYear) {
+                            if (!isLoading && error == null && chartEntries.isEmpty()) {
+                                when (selectedViewType) {
+                                    GraphViewType.WEEK -> {
+                                        val today = LocalDate.now()
+                                        val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                                        List(7) { i ->
+                                            val day = currentWeekMonday.plusDays(i.toLong())
+                                            BarChartItem(label = day.format(dayFormatter), value = 0f, isHighlighted = day.isEqual(today))
+                                        }
+                                    }
+                                    GraphViewType.YEAR -> {
+                                        val today = LocalDate.now()
+                                        List(12) { i ->
+                                            val month = java.time.Month.of(i + 1)
+                                            BarChartItem(label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()), value = 0f, isHighlighted = currentDisplayedYear == today.year && month == today.month)
+                                        }
+                                    }
+                                }
+                            } else {
                         chartEntries.map { entry ->
                             BarChartItem(
                                 label = entry.xValue,
