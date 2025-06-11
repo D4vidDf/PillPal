@@ -229,22 +229,29 @@ fun MedicationGraphScreen(
                             WeeklyChartCard(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                                 viewModel = viewModel,
-                                currentWeekMonday = currentWeekMonday,
-                                onUpdateWeekMonday = { newMonday -> currentWeekMonday = newMonday },
-                                onShowWeekPicker = { showWeekPickerDialog = true },
-                                weeklyChartEntries = weeklyChartEntries, // Pass collected data
-                                isLoading = isLoadingWeekly, // Pass loading state
-                                error = errorWeekly // Pass error state
+                                currentWeekMondayInternal = currentWeekMonday,
+                                onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
+                                showWeekPickerDialog = showWeekPickerDialog,
+                                onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                weeklyChartEntries = weeklyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                currentCalendarWeekMonday = currentCalendarWeekMonday,
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday
                             )
                             YearlyChartCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 viewModel = viewModel,
-                                currentDisplayedYear = currentDisplayedYear,
-                                onUpdateYear = { newYear -> currentDisplayedYear = newYear },
-                                onShowYearPicker = { showYearPickerDialog = true },
-                                yearlyChartEntries = yearlyChartEntries, // Pass collected data
-                                isLoading = isLoadingWeekly, // Pass loading state (assuming shared for now)
-                                error = errorWeekly // Pass error state (assuming shared for now)
+                                currentDisplayedYearInternal = currentDisplayedYear,
+                                onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
+                                showYearPickerDialog = showYearPickerDialog,
+                                onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                yearlyChartEntries = yearlyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                minYear = minYear
                             )
                         }
                     }
@@ -253,19 +260,24 @@ fun MedicationGraphScreen(
                             WeeklyChartCard(
                                 modifier = Modifier.weight(1f),
                                 viewModel = viewModel,
-                                currentWeekMonday = currentWeekMonday,
-                                onUpdateWeekMonday = { newMonday -> currentWeekMonday = newMonday },
-                                onShowWeekPicker = { showWeekPickerDialog = true },
+                                currentWeekMondayInternal = currentWeekMonday,
+                                onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
+                                showWeekPickerDialog = showWeekPickerDialog,
+                                onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
                                 weeklyChartEntries = weeklyChartEntries,
                                 isLoading = isLoadingWeekly,
-                                error = errorWeekly
+                                error = errorWeekly,
+                                today = today,
+                                currentCalendarWeekMonday = currentCalendarWeekMonday,
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday
                             )
                             YearlyChartCard(
                                 modifier = Modifier.weight(1f),
                                 viewModel = viewModel,
-                                currentDisplayedYear = currentDisplayedYear,
-                                onUpdateYear = { newYear -> currentDisplayedYear = newYear },
-                                onShowYearPicker = { showYearPickerDialog = true },
+                                currentDisplayedYearInternal = currentDisplayedYear,
+                                onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
+                                showYearPickerDialog = showYearPickerDialog,
+                                onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
                                 yearlyChartEntries = yearlyChartEntries,
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly
@@ -354,18 +366,18 @@ fun MedicationGraphScreen(
 private fun WeeklyChartCard(
     modifier: Modifier = Modifier,
     viewModel: MedicationGraphViewModel?,
-    currentWeekMondayInternal: LocalDate, // Renamed to avoid conflict with outer scope if any, though not strictly necessary here
-    onCurrentWeekMondayChange: (LocalDate) -> Unit, // Callback to update state
-    onShowWeekPicker: () -> Unit,
+    currentWeekMondayInternal: LocalDate,
+    onCurrentWeekMondayChange: (LocalDate) -> Unit,
+    showWeekPickerDialog: Boolean, // Added
+    onShowWeekPickerDialogChange: (Boolean) -> Unit, // Added
     weeklyChartEntries: List<ChartyGraphEntry>,
     isLoading: Boolean,
-    error: String?
+    error: String?,
+    // Date limit parameters
+    today: LocalDate,
+    currentCalendarWeekMonday: LocalDate,
+    minWeekOverallLimitMonday: LocalDate
 ) {
-    val today = remember { LocalDate.now() } // Define today and limits within the card's scope or pass them
-    val currentCalendarWeekMonday = remember { today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
-    val minYear = remember { today.year - 5 }
-    val minWeekOverallLimitMonday = remember { LocalDate.of(minYear, 1, 1).with(TemporalAdjusters.firstDayOfYear()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
-
     ElevatedCard(modifier = modifier) {
         Column(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -381,10 +393,7 @@ private fun WeeklyChartCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val today = LocalDate.now() // Re-declare for local context if needed, or pass down
-                val currentCalendarWeekMonday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                val minYear = today.year - 5
-                val minWeekOverallLimitMonday = LocalDate.of(minYear, 1, 1).with(TemporalAdjusters.firstDayOfYear()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                // Removed redundant date limit declarations, use passed-in parameters
 
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
@@ -402,7 +411,7 @@ private fun WeeklyChartCard(
                 Text(
                     text = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}",
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { onShowWeekPicker() }
+                    modifier = Modifier.clickable { onShowWeekPickerDialogChange(true) } // Use callback
                 )
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -446,7 +455,7 @@ private fun WeeklyChartCard(
                                     change.consume()
                                     if (abs(dragAmount) > 40 && !dragConsumed) {
                                         dragConsumed = true
-                                        // Use limits defined in the card's scope
+                                        // Use passed-in limits
                                         if (dragAmount > 0) { // Swiped Left (older dates)
                                             val prevWeek = currentWeekMondayInternal.minusWeeks(1)
                                             if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
@@ -454,7 +463,7 @@ private fun WeeklyChartCard(
                                             }
                                         } else { // Swiped Right (newer dates)
                                             val nextWeek = currentWeekMondayInternal.plusWeeks(1)
-                                            if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
+                                            if (!nextWeek.isAfter(currentCalendarWeekMonday)) { // Use passed-in currentCalendarWeekMonday
                                                 onCurrentWeekMondayChange(nextWeek)
                                             }
                                         }
@@ -483,12 +492,16 @@ private fun WeeklyChartCard(
 private fun YearlyChartCard(
     modifier: Modifier = Modifier,
     viewModel: MedicationGraphViewModel?,
-    currentDisplayedYear: Int,
-    onUpdateYear: (Int) -> Unit,
-    onShowYearPicker: () -> Unit,
+    currentDisplayedYearInternal: Int,
+    onCurrentDisplayedYearChange: (Int) -> Unit,
+    showYearPickerDialog: Boolean, // Added
+    onShowYearPickerDialogChange: (Boolean) -> Unit, // Added
     yearlyChartEntries: List<ChartyGraphEntry>,
     isLoading: Boolean,
-    error: String?
+    error: String?,
+    // Date limit parameters
+    today: LocalDate,
+    minYear: Int
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -505,42 +518,41 @@ private fun YearlyChartCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val today = LocalDate.now() // Re-declare for local context
-                val minYr = today.year - 5
+                // Removed redundant date limit declarations, use passed-in parameters
 
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = stringResource(R.string.previous_period_cd),
                     onClick = {
-                        if (currentDisplayedYear - 1 >= minYr) {
-                            onUpdateYear(currentDisplayedYear - 1)
+                        if (currentDisplayedYearInternal - 1 >= minYear) { // Use passed-in minYear
+                            onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
                         }
                     },
-                    enabled = currentDisplayedYear > minYr
+                    enabled = currentDisplayedYearInternal > minYear // Use passed-in minYear
                 )
                 Text(
-                    text = currentDisplayedYear.toString(),
+                    text = currentDisplayedYearInternal.toString(),
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { onShowYearPicker() }
+                    modifier = Modifier.clickable { onShowYearPickerDialogChange(true) } // Use callback
                 )
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = stringResource(R.string.next_period_cd),
                     onClick = {
-                        if (currentDisplayedYear + 1 <= today.year) {
-                            onUpdateYear(currentDisplayedYear + 1)
+                        if (currentDisplayedYearInternal + 1 <= today.year) { // Use passed-in today
+                            onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
                         }
                     },
-                    enabled = currentDisplayedYear < today.year
+                    enabled = currentDisplayedYearInternal < today.year // Use passed-in today
                 )
             }
 
-             val displayableItems = remember(yearlyChartEntries, isLoading, error, currentDisplayedYear) {
+             val displayableItems = remember(yearlyChartEntries, isLoading, error, currentDisplayedYearInternal) { // Use internal state
                 if (!isLoading && error == null && yearlyChartEntries.isEmpty()) {
-                    val today = LocalDate.now()
+                    // val today = LocalDate.now() // 'today' is passed as parameter
                     List(12) { i ->
                         val month = java.time.Month.of(i + 1)
-                        BarChartItem(label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()), value = 0f, isHighlighted = currentDisplayedYear == today.year && month == today.month)
+                        BarChartItem(label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()), value = 0f, isHighlighted = currentDisplayedYearInternal == today.year && month == today.month)
                     }
                 } else {
                     yearlyChartEntries.map { BarChartItem(it.xValue, it.yValue, it.isHighlighted) }
@@ -563,15 +575,14 @@ private fun YearlyChartCard(
                                     change.consume()
                                     if (abs(dragAmount) > 40 && !dragConsumed) {
                                         dragConsumed = true
-                                        val today = LocalDate.now() // Ensure fresh 'today'
-                                        val minYr = today.year - 5
+                                        // Use limits from card's scope
                                         if (dragAmount > 0) { // Swiped Left (older dates)
-                                            if (currentDisplayedYear - 1 >= minYr) {
-                                                onUpdateYear(currentDisplayedYear - 1)
+                                            if (currentDisplayedYearInternal - 1 >= minYear) { // Use minYear from card scope
+                                                onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
                                             }
                                         } else { // Swiped Right (newer dates)
-                                            if (currentDisplayedYear + 1 <= today.year) {
-                                                onUpdateYear(currentDisplayedYear + 1)
+                                            if (currentDisplayedYearInternal + 1 <= today.year) { // Use today from card scope
+                                                onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
                                             }
                                         }
                                     }

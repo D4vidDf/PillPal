@@ -273,7 +273,8 @@ fun AppNavigation(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
-                    viewModel = medicationGraphViewModel
+                    viewModel = medicationGraphViewModel,
+                    widthSizeClass = widthSizeClass // Add this line
                 )
             }
 
