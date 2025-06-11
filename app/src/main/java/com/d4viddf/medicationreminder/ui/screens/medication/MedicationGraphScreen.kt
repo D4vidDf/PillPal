@@ -50,7 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color // Added import
 // Removed Path import
 import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
-// Removed LocalDensity import
+import androidx.compose.ui.platform.LocalDensity // New import, for Px conversion
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
 import androidx.compose.ui.text.style.TextAlign // New import
@@ -63,8 +63,16 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exi
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // ViewModel now provides this
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
-import com.himanshoe.charty.bar.BarChart // Charty import
-import com.himanshoe.charty.common.bar.BarData // Charty import
+// Updated Charty Imports
+import com.himanshoe.charty.charts.BarChart
+import com.himanshoe.charty.common.ChartData // Might be Point
+import com.himanshoe.charty.common.Point // Preferred for clarity
+import com.himanshoe.charty.common.config.ChartColor
+import com.himanshoe.charty.common.config.SolidChartColor
+import com.himanshoe.charty.common.extensions.asSolidChartColor
+import com.himanshoe.charty.bar.config.BarChartConfig
+import com.himanshoe.charty.common.config.LabelConfig
+import com.himanshoe.charty.bar.config.BarChartColorConfig
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth // Added for currentDisplayedMonth
@@ -333,37 +341,52 @@ fun MedicationGraphScreen(
                     }
                     else -> {
                         val primaryColor = MaterialTheme.colorScheme.primary
+                        val primaryColor = MaterialTheme.colorScheme.primary
                         val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
+                        val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        val onSurfaceAlphaColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                        val localDensity = LocalDensity.current
 
-                        val chartyBarDataList = remember(chartEntries) {
-                            chartEntries.map { entry ->
-                                BarData(
-                                    xValue = entry.xValue,
-                                    yValue = entry.yValue,
-                                    color = if (entry.isHighlighted) primaryColor else secondaryContainerColor
-                                )
+                        val chartyPoints = remember(chartEntries) {
+                            chartEntries.mapIndexed { index, entry ->
+                                Point(x = index.toFloat(), y = entry.yValue)
                             }
                         }
+                        val chartyColors = remember(chartEntries) {
+                            chartEntries.map { entry ->
+                                if (entry.isHighlighted) primaryColor.asSolidChartColor() else secondaryContainerColor.asSolidChartColor()
+                            }
+                        }
+                        // val xAxisLabels = remember(chartEntries) { chartEntries.map { it.xValue } } // For X-axis labels - Charty might not support this directly with List<Point>
 
-                        if (chartyBarDataList.isNotEmpty()) {
-                            BarChart(
+                        if (chartyPoints.isNotEmpty()) {
+                            com.himanshoe.charty.charts.BarChart(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(220.dp),
-                                barData = chartyBarDataList,
-                                gridColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                xAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                yAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                showGridLines = true,
-                                showZeroLine = true,
-                                barWidth = when(selectedViewType) {
-                                    GraphViewType.WEEK -> 30.dp
-                                    else -> 20.dp
-                                },
-                                barSpacing = 8.dp
+                                data = chartyPoints, // Changed from barData
+                                colors = chartyColors, // New colors parameter
+                                barChartConfig = BarChartConfig(
+                                    barWidth = with(localDensity) {
+                                        when(selectedViewType) {
+                                            GraphViewType.WEEK -> 30.dp.toPx()
+                                            else -> 20.dp.toPx()
+                                        }
+                                    },
+                                    paddingBetweenBars = with(localDensity) { 8.dp.toPx() },
+                                    showZeroLine = true
+                                ),
+                                labelConfig = LabelConfig(
+                                    labelTextColor = onSurfaceVariantColor.asSolidChartColor(),
+                                    axisColor = onSurfaceVariantColor.asSolidChartColor()
+                                ),
+                                barChartColorConfig = BarChartColorConfig(
+                                    gridColor = onSurfaceAlphaColor.asSolidChartColor(),
+                                    showGridLines = true
+                                )
                             )
                         } else {
-                             Box( // Fallback if chartyBarDataList is empty after mapping (should be caught by chartEntries.isEmpty() though)
+                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(220.dp)
@@ -402,19 +425,20 @@ fun MedicationGraphScreenPreviewMonth() {
         val selectedViewType = GraphViewType.MONTH // Fixed for this preview
         val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
         val currentMonth = YearMonth.now()
-        // val currentYearForPreview = currentMonth.year // Not strictly needed if selectedViewType is fixed to MONTH for title
 
-        // Sample data for the Charty BarChart in preview
-        val sampleChartyBarData = remember {
-            (1..currentMonth.lengthOfMonth()).map { day ->
-                BarData(
-                    xValue = day.toString(),
-                    yValue = (0..5).random().toFloat(),
-                    color = if (day == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
-                    // Example: Highlight the 1st day of the month
-                )
+        // Sample data for the Charty BarChart in preview (using Point and Color list)
+        val sampleChartyPoints = remember {
+            (1..currentMonth.lengthOfMonth()).mapIndexed { index, day ->
+                Point(x = index.toFloat(), y = (0..5).random().toFloat())
             }
         }
+        val sampleChartyColors = remember {
+            (1..currentMonth.lengthOfMonth()).map { day ->
+                if (day == 1) MaterialTheme.colorScheme.primary.asSolidChartColor()
+                else MaterialTheme.colorScheme.secondaryContainer.asSolidChartColor()
+            }
+        }
+        val localDensity = LocalDensity.current // For preview bar width/spacing
 
         Scaffold(
             topBar = {
@@ -465,18 +489,26 @@ fun MedicationGraphScreenPreviewMonth() {
                     modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
                 )
 
-                if (sampleChartyBarData.isNotEmpty()) {
-                    BarChart(
+                if (sampleChartyPoints.isNotEmpty()) {
+                    com.himanshoe.charty.charts.BarChart(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(220.dp),
-                        barData = sampleChartyBarData,
-                        gridColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        xAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        yAxisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        showGridLines = true,
-                        barWidth = 20.dp,
-                        barSpacing = 8.dp
+                        data = sampleChartyPoints,
+                        colors = sampleChartyColors,
+                        barChartConfig = BarChartConfig(
+                            barWidth = with(localDensity) { 20.dp.toPx() },
+                            paddingBetweenBars = with(localDensity) { 8.dp.toPx() },
+                            showZeroLine = true
+                        ),
+                        labelConfig = LabelConfig(
+                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant.asSolidChartColor(),
+                            axisColor = MaterialTheme.colorScheme.onSurfaceVariant.asSolidChartColor()
+                        ),
+                        barChartColorConfig = BarChartColorConfig(
+                            gridColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f).asSolidChartColor(),
+                            showGridLines = true
+                        )
                     )
                 } else {
                     Text("No sample data to display in preview.")

@@ -62,7 +62,7 @@ import androidx.compose.ui.draw.clip
 // Removed Rect import
 import androidx.compose.ui.graphics.Color
 // Removed Path import
-// Removed LocalDensity import
+import androidx.compose.ui.platform.LocalDensity // New import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -84,8 +84,17 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme // Added 
 import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
-import com.himanshoe.charty.bar.BarChart // Charty import
-import com.himanshoe.charty.common.bar.BarData // Charty import
+// Updated Charty Imports
+import com.himanshoe.charty.charts.BarChart
+import com.himanshoe.charty.common.Point
+import com.himanshoe.charty.common.config.ChartColor
+import com.himanshoe.charty.common.config.SolidChartColor
+import com.himanshoe.charty.common.extensions.asSolidChartColor
+import com.himanshoe.charty.bar.config.BarChartConfig
+import com.himanshoe.charty.common.config.LabelConfig
+import com.himanshoe.charty.bar.config.BarChartColorConfig
+// Remove old BarData import if present, it's not used with this new API
+// import com.himanshoe.charty.common.bar.BarData // Charty import - This should be removed
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -487,29 +496,39 @@ fun MedicationDetailsScreen(
                                     // NEW Charty IMPLEMENTATION:
                                     val primaryColor = MaterialTheme.colorScheme.primary
                                     val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
+                                    val transparentChartColor = Color.Transparent.asSolidChartColor()
+                                    val localDensity = LocalDensity.current
 
-                                    val chartyBarDataList = remember(chartEntries) {
+                                    val chartyPoints = remember(chartEntries) {
+                                        chartEntries.mapIndexed { index, entry ->
+                                            Point(x = index.toFloat(), y = entry.yValue)
+                                        }
+                                    }
+                                    val chartyColors = remember(chartEntries) {
                                         chartEntries.map { entry ->
-                                            BarData(
-                                                xValue = entry.xValue,
-                                                yValue = entry.yValue,
-                                                color = if (entry.isHighlighted) primaryColor else secondaryContainerColor
-                                            )
+                                            if (entry.isHighlighted) primaryColor.asSolidChartColor() else secondaryContainerColor.asSolidChartColor()
                                         }
                                     }
 
-                                    if (chartyBarDataList.isNotEmpty()) {
-                                        BarChart(
+                                    if (chartyPoints.isNotEmpty()) {
+                                        com.himanshoe.charty.charts.BarChart(
                                             modifier = Modifier
                                                 .fillMaxSize()
                                                 .padding(vertical = 8.dp),
-                                            barData = chartyBarDataList,
-                                            barWidth = 20.dp,
-                                            barSpacing = 6.dp,
-                                            showGridLines = false,
-                                            showZeroLine = false,
-                                            xAxisLabelColor = Color.Transparent,
-                                            yAxisLabelColor = Color.Transparent
+                                            data = chartyPoints,
+                                            colors = chartyColors,
+                                            barChartConfig = BarChartConfig(
+                                                barWidth = with(localDensity) { 20.dp.toPx() },
+                                                paddingBetweenBars = with(localDensity) { 6.dp.toPx() },
+                                                showZeroLine = false
+                                            ),
+                                            labelConfig = LabelConfig(
+                                                labelTextColor = transparentChartColor,
+                                                axisColor = transparentChartColor
+                                            ),
+                                            barChartColorConfig = BarChartColorConfig(
+                                                showGridLines = false
+                                            )
                                         )
                                     } else {
                                         Box(
