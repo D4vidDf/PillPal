@@ -120,22 +120,23 @@ fun SimpleBarChart(
 
         // Dynamic Y-Axis Label Area Width
         val yAxisLabelPadding = remember(density) { with(density) { 4.dp.toPx() } }
-        val yAxisMaxLabelWidth = remember(yAxisTopValue, yTickCount, yAxisPaintTextSize, yAxisPaintAlign) {
-            val tempPaint = Paint().apply {
-                textAlign = yAxisPaintAlign
-                textSize = yAxisPaintTextSize
-                isAntiAlias = true
-                // Typeface could be set here if it were variable and passed as a key
-            }
-            if (yTickCount >= 0) {
-                (0..yTickCount).maxOfOrNull { i ->
-                    val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
-                    tempPaint.measureText(tickValue.toInt().toString())
-                } ?: tempPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
-            } else {
-                 tempPaint.measureText("0") // Fallback if yTickCount is somehow negative
-            }
-        }
+        // val yAxisMaxLabelWidth = remember(yAxisTopValue, yTickCount, yAxisPaintTextSize, yAxisPaintAlign) {
+        //     val tempPaint = Paint().apply {
+        //         textAlign = yAxisPaintAlign
+        //         textSize = yAxisPaintTextSize
+        //         isAntiAlias = true
+        //         // Typeface could be set here if it were variable and passed as a key
+        //     }
+        //     if (yTickCount >= 0) {
+        //         (0..yTickCount).maxOfOrNull { i ->
+        //             val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
+        //             tempPaint.measureText(tickValue.toInt().toString())
+        //         } ?: tempPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
+        //     } else {
+        //          tempPaint.measureText("0") // Fallback if yTickCount is somehow negative
+        //     }
+        // }
+        val yAxisMaxLabelWidth = with(density) { 30.dp.toPx() } // Temporary hardcoded value for debugging
         val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2f // Ensure float arithmetic
         Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
 
