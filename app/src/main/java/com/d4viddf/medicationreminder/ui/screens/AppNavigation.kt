@@ -20,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.hilt.navigation.compose.hiltViewModel // Added for ViewModel instantiation
-import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel // Added for ViewModel type
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
@@ -30,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf // For state
 import androidx.compose.runtime.remember // For state
 import androidx.compose.runtime.setValue // For state
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added import
+import com.d4viddf.medicationreminder.ui.screens.medication.AllSchedulesScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationHistoryScreen
