@@ -30,9 +30,10 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ElevatedCard // Keep for other cards
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -491,7 +492,7 @@ fun MedicationDetailsScreen(
 
                         item { // Medication History Card
                             Spacer(modifier = Modifier.height(16.dp))
-                            ElevatedCard(
+                            Card( // Changed from ElevatedCard to Card
                                 onClick = {
                                     onNavigateToMedicationHistory(
                                         medicationId,
@@ -502,8 +503,8 @@ fun MedicationDetailsScreen(
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.elevatedCardColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer // NEW
+                                colors = CardDefaults.cardColors( // Changed to cardColors
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                                 )
                             ) {
                                 Row(
@@ -537,13 +538,13 @@ fun MedicationDetailsScreen(
 
                         item { // Graphics Card
                             Spacer(modifier = Modifier.height(16.dp))
-                            ElevatedCard(
+                            Card( // Changed from ElevatedCard to Card
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.elevatedCardColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer // NEW
+                                colors = CardDefaults.cardColors( // Changed to cardColors
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             ) {
                                 Column(
@@ -554,7 +555,7 @@ fun MedicationDetailsScreen(
                                     Text(
                                         text = stringResource(id = R.string.current_week_dosage_title),
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer, // NEW
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant, // Changed color
                                         modifier = Modifier.padding(bottom = 8.dp)
                                     )
                                     Box(
@@ -647,13 +648,13 @@ fun MedicationDetailsScreen(
                                 !medicationState?.nregistro.isNullOrBlank()
                             if (medicationInfoAvailable) {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                ElevatedCard(
+                                Card( // Changed from ElevatedCard to Card
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp),
                                     shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.elevatedCardColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer // NEW
+                                    colors = CardDefaults.cardColors( // Changed to cardColors
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
                                 ) {
                                     Column(
@@ -668,19 +669,19 @@ fun MedicationDetailsScreen(
                                             Icon(
                                                 imageVector = Icons.Filled.Info,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSecondaryContainer // NEW
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant // Changed color
                                             )
                                             Spacer(modifier = Modifier.size(12.dp))
                                             Text(
                                                 text = stringResource(id = R.string.medication_information_title),
                                                 style = MaterialTheme.typography.titleMedium,
-                                                color = MaterialTheme.colorScheme.onSecondaryContainer // NEW
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant // Changed color
                                             )
                                         }
                                         Text(
                                             text = stringResource(id = R.string.medication_info_description_placeholder),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSecondaryContainer, // NEW
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant, // Changed color
                                             modifier = Modifier.padding(bottom = 12.dp)
                                         )
                                         Button(

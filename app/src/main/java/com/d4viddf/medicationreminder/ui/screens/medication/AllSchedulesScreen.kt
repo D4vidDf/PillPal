@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.CardDefaults // Keep for ElevatedCard a
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -67,13 +67,11 @@ fun FullScheduleItem(
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
 
-    ElevatedCard( // WRAPPER CARD - Changed to ElevatedCard
+    Card( // WRAPPER CARD - Changed to Card
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp), // Padding for the card itself
-        // colors = CardDefaults.cardColors( // Consider if explicit colors are needed or use ElevatedCard defaults
-        // containerColor = MaterialTheme.colorScheme.secondaryContainer // This might make it look like a regular Card
-        // )
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
@@ -104,14 +102,14 @@ fun FullScheduleItem(
                 Text(
                     text = itemName,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface // Set color
+                    color = MaterialTheme.colorScheme.onSurfaceVariant // Set color
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = itemTimeText,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface // Set color
+                    color = MaterialTheme.colorScheme.onSurfaceVariant // Set color
                 )
             }
             if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
