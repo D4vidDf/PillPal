@@ -72,7 +72,7 @@ fun FullScheduleItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp), // Padding for the card itself
-        colors = CardDefaults.cardColors(containerColor = medicationColor.progressBackColor)
+        colors = CardDefaults.cardColors(containerColor = medicationColor.cardColor)
     ) {
         Row(
             modifier = Modifier
@@ -103,14 +103,14 @@ fun FullScheduleItem(
                 Text(
                     text = itemName,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = medicationColor.textColor // Set color
+                    color = medicationColor.onBackgroundColor // Set color
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = itemTimeText,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = medicationColor.textColor // Set color
+                    color = medicationColor.onBackgroundColor // Set color
                 )
             }
             if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
