@@ -146,6 +146,7 @@ fun MedicationDetailsScreen(
     onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit,
     widthSizeClass: WindowWidthSizeClass // Added parameter
 ) {
+    Log.d("MedDetailScreenChart", "MedicationDetailScreen recomposing. graphViewModel instance: ${graphViewModel.hashCode()}, isNull: ${graphViewModel == null}")
     Log.d(
         "DetailScreenGraphEntry",
         "MedicationDetailScreen composed. medicationId: $medicationId, graphViewModel is null: ${graphViewModel == null}, widthSizeClass: $widthSizeClass"
@@ -166,14 +167,14 @@ fun MedicationDetailsScreen(
 
     // Add this logging
     LaunchedEffect(chartEntries) {
-        Log.d("MedDetailScreenChart", "Collected chartEntries. Count: ${chartEntries.size}")
+        Log.d("MedDetailScreenChart", "Collected chartEntries. Count: ${chartEntries.size}. graphViewModel instance for collection: ${graphViewModel.hashCode()}")
         if (chartEntries.isNotEmpty()) {
             Log.d("MedDetailScreenChart", "First entry: ${chartEntries.firstOrNull()}")
         }
     }
 
     LaunchedEffect(medicationId, graphViewModel) {
-        Log.d("MedDetailScreenChart", "LaunchedEffect for medicationId: $medicationId, graphViewModel: ${graphViewModel != null}")
+        Log.d("MedDetailScreenChart", "LaunchedEffect triggered. medId: $medicationId, viewModel valid: ${graphViewModel != null}")
         viewModel.getMedicationById(medicationId)?.let { med ->
             medicationState = med
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
@@ -187,19 +188,19 @@ fun MedicationDetailsScreen(
             }
         }
 
+        Log.d("MedDetailScreenChart", "Before loadWeeklyGraphData check. medId: $medicationId, graphViewModel isNull: ${graphViewModel == null}")
         if (medicationId > 0 && graphViewModel != null) {
             val today = LocalDate.now()
             val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
             val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
-            Log.d("MedDetailScreenChart", "Before calling loadWeeklyGraphData for medId: $medicationId, week: $currentWeekDays")
+            Log.d("MedDetailScreenChart", "CALLING loadWeeklyGraphData. medId: $medicationId, week: $currentWeekDays, viewModel: ${graphViewModel.hashCode()}")
             graphViewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
-            Log.d("MedDetailScreenChart", "After calling loadWeeklyGraphData")
+            Log.d("MedDetailScreenChart", "FINISHED calling loadWeeklyGraphData.")
         } else if (graphViewModel != null) {
+            Log.d("MedDetailScreenChart", "Clearing graph data because medId <= 0. medId: $medicationId")
             graphViewModel.clearGraphData()
-            Log.d(
-                "MedicationDetailScreen",
-                "Invalid medicationId ($medicationId), clearing graph data for details screen."
-            )
+        } else {
+            Log.d("MedDetailScreenChart", "Skipped graph data load/clear because graphViewModel is NULL.")
         }
     }
 
