@@ -101,35 +101,7 @@ fun SimpleBarChart(
 
         if (totalItems == 0) return@Canvas
 
-        // Y-Axis Scale Calculation (Refined) - This part is already updated from previous step.
-        // ... (yAxisTopValue and yTickCount calculation remains here) ...
-
-        // Dynamic Y-Axis Label Area Width
-        val yAxisLabelPadding = with(density) { 4.dp.toPx() }
-        val yAxisMaxLabelWidth = remember(yAxisTopValue, yAxisTextPaint, yTickCount) {
-            if (yTickCount >= 0) { // Ensure yTickCount is not negative, loop 0..0 is valid for single tick "0"
-                (0..yTickCount).maxOfOrNull { i ->
-                    val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
-                    yAxisTextPaint.measureText(tickValue.toInt().toString())
-                } ?: yAxisTextPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
-            } else {
-                 yAxisTextPaint.measureText("0") // Fallback if yTickCount is somehow negative
-            }
-        }
-        val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2
-        Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
-
-
-        val chartAreaWidth = canvasWidth - yAxisLabelAreaWidth
-
-        // Dynamic bar width and spacing calculation
-        // Let bar width be ~70% and spacing ~30% of the available space per item
-        val itemAvailableWidth = chartAreaWidth / totalItems
-        val dynamicBarWidthPx = itemAvailableWidth * 0.7f
-        val dynamicSpaceAroundBarsPx = itemAvailableWidth * 0.3f
-
-
-        // Y-Axis Implementation (The older duplicated block has been removed)
+        // Y-Axis Implementation: Calculate actualMaxValue, yAxisTopValue, and yTickCount first
         val actualMaxValue = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
         val yAxisTopValue: Float
         val yTickCount: Int
@@ -139,12 +111,32 @@ fun SimpleBarChart(
             yTickCount = 5
         } else { // actualMaxValue is > 0 (guaranteed to be integer counts like 1.0, 2.0 etc from ViewModel)
             yAxisTopValue = ceil(actualMaxValue).toFloat()
-            // If yAxisTopValue is 1.0, yTickCount will be 1 (labels 0, 1).
-            // If yAxisTopValue is 3.0, yTickCount will be 3 (labels 0,1,2,3).
-            // If yAxisTopValue is 6.0, yTickCount will be 6 (labels 0,1,2,3,4,5,6).
             yTickCount = yAxisTopValue.toInt().coerceAtLeast(1)
         }
         Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount")
+
+        // Dynamic Y-Axis Label Area Width (Now correctly placed after yAxisTopValue and yTickCount are known)
+        val yAxisLabelPadding = with(density) { 4.dp.toPx() }
+        val yAxisMaxLabelWidth = remember(yAxisTextPaint, yAxisTopValue, yTickCount) { // Keyed correctly
+            if (yTickCount >= 0) {
+                (0..yTickCount).maxOfOrNull { i ->
+                    val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
+                    yAxisTextPaint.measureText(tickValue.toInt().toString())
+                } ?: yAxisTextPaint.measureText("0")
+            } else {
+                 yAxisTextPaint.measureText("0")
+            }
+        }
+        val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2f // Ensure float arithmetic
+        Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
+
+        val chartAreaWidth = canvasWidth - yAxisLabelAreaWidth
+
+        // Dynamic bar width and spacing calculation
+        // Let bar width be ~70% and spacing ~30% of the available space per item
+        val itemAvailableWidth = if (chartAreaWidth > 0 && totalItems > 0) chartAreaWidth / totalItems else 0f // Avoid division by zero
+        val dynamicBarWidthPx = itemAvailableWidth * 0.7f
+        val dynamicSpaceAroundBarsPx = itemAvailableWidth * 0.3f
 
         val xAxisLabelHeight = textPaint.textSize * 1.5f
         val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() }
