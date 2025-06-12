@@ -318,7 +318,8 @@ fun HomeScreen(
                     onNavigateToMedicationHistory = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
                     onNavigateToMedicationGraph = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
                     onNavigateToMedicationInfo = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    graphViewModel = hiltViewModel() // Provide the graphViewModel
+                    graphViewModel = hiltViewModel(), // Provide the graphViewModel
+                    widthSizeClass = widthSizeClass
                 )
             } else {
                 // Placeholder when no medication is selected in detail pane (medium/expanded screens)
