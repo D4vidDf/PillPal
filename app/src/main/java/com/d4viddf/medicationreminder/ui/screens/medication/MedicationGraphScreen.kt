@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.shape.CircleShape // Added for StyledNavigationArrow
+import androidx.compose.foundation.shape.RoundedCornerShape // Added for StyledNavigationArrow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -119,7 +119,7 @@ private fun StyledNavigationArrow(
         modifier = modifier
             .background(
                 color = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), // Adjusted disabled color
-                shape = CircleShape
+                shape = RoundedCornerShape(16.dp)
             )
     ) {
         Icon(

@@ -81,6 +81,11 @@ import java.time.format.FormatStyle
 
 // Removed old placeholder data class MedicationHistoryEntry
 
+// Sealed interface for list items
+sealed interface HistoryListItemType
+data class MonthHeader(val monthYear: String, val id: String = "month_header_$monthYear") : HistoryListItemType
+data class HistoryEntryItem(val entry: MedicationHistoryEntry, val originalId: String) : HistoryListItemType
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -298,9 +303,41 @@ fun MedicationHistoryScreen(
                         )
                     }
                     else -> {
-                        LazyColumn(modifier = listModifier) { // Applied listModifier
-                            items(historyEntries, key = { it.id }) { entry ->
-                                MedicationHistoryListItem(entry = entry)
+                        val groupedItems = remember(historyEntries, sortAscending) {
+                            processHistoryEntries(historyEntries, sortAscending)
+                        }
+                        if (groupedItems.isEmpty()) { // Should ideally not happen if historyEntries is not empty, but as a safeguard
+                            Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                                Text(
+                                    stringResource(id = R.string.med_history_no_history_found),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(16.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        } else {
+                            LazyColumn(modifier = listModifier) {
+                                items(groupedItems, key = { item ->
+                                    when (item) {
+                                        is MonthHeader -> item.id
+                                        is HistoryEntryItem -> item.originalId
+                                    }
+                                }) { item ->
+                                    when (item) {
+                                        is MonthHeader -> {
+                                            Text(
+                                                text = item.monthYear,
+                                                style = MaterialTheme.typography.titleLarge, // Or headlineSmall
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 8.dp, horizontal = 4.dp) // Adjust padding as needed
+                                            )
+                                        }
+                                        is HistoryEntryItem -> {
+                                            MedicationHistoryListItem(entry = item.entry)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -309,6 +346,30 @@ fun MedicationHistoryScreen(
         } // Closes Scaffold content lambda
     } // Closes MedicationSpecificTheme content lambda
 } // Closes MedicationHistoryScreen
+
+// Function to process history entries and insert month headers
+private fun processHistoryEntries(
+    entries: List<MedicationHistoryEntry>,
+    sortAscending: Boolean
+): List<HistoryListItemType> {
+    if (entries.isEmpty()) return emptyList()
+
+    val monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+    val result = mutableListOf<HistoryListItemType>()
+    var currentMonthYear = ""
+
+    // The sorting is now handled by the ViewModel, so we respect the order of `entries`
+    for (entry in entries) {
+        val entryMonthYear = entry.originalDateTimeTaken.format(monthYearFormatter)
+        if (entryMonthYear != currentMonthYear) {
+            currentMonthYear = entryMonthYear
+            result.add(MonthHeader(monthYear = currentMonthYear))
+        }
+        result.add(HistoryEntryItem(entry = entry, originalId = entry.id))
+    }
+    return result
+}
+
 
 // FilterControls and ActionControls composables are now inlined into MedicationHistoryScreen.
 // They can be removed if they are not used elsewhere.

@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CardDefaults // Keep for ElevatedCard a
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch // Needed again for TodayScheduleItem
@@ -42,7 +44,9 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
+// import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton // Will be removed
+import androidx.compose.material.icons.Icons // Added
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Added
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.AllSchedulesViewModel
@@ -63,13 +67,13 @@ fun FullScheduleItem(
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
 
-    Card( // WRAPPER CARD
+    ElevatedCard( // WRAPPER CARD - Changed to ElevatedCard
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp), // Padding for the card itself
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+        // colors = CardDefaults.cardColors( // Consider if explicit colors are needed or use ElevatedCard defaults
+        // containerColor = MaterialTheme.colorScheme.secondaryContainer // This might make it look like a regular Card
+        // )
     ) {
         Row(
             modifier = Modifier
@@ -167,16 +171,19 @@ fun AllSchedulesScreen(
                 TopAppBar( // Changed back to TopAppBar
                     title = { Text(title) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd)
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                        // scrolledContainerColor is not applicable here
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface, // Adjusted for transparent background
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface, // Adjusted for transparent background
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // Adjusted for transparent background
                     )
                 )
             }
@@ -305,15 +312,19 @@ fun AllSchedulesScreenTodayPreview() {
                             )
                         },
                         navigationIcon = {
-                            Box(modifier = Modifier.padding(start = 10.dp)) {
-                                ThemedAppBarBackButton(onClick = {}) // No-op for preview
+                            IconButton(onClick = {}) { // No-op for preview
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(id = R.string.back_button_cd)
+                                )
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                            containerColor = MaterialTheme.colorScheme.primary, // Changed
-                            titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
-                            navigationIconContentColor = Color.White, // Consistent
-                            actionIconContentColor = Color.White     // Consistent
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent, // Changed
+                            scrolledContainerColor = Color.Transparent, // Changed
+                            titleContentColor = MaterialTheme.colorScheme.onSurface, // Changed
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface, // Changed
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface // Changed
                         )
                     )
                 }
