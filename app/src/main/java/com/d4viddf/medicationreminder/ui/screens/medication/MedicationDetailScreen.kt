@@ -544,7 +544,7 @@ fun MedicationDetailsScreen(
                                     .padding(horizontal = 16.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors( // Changed to cardColors
-                                    containerColor = color.cardColor // Use medication-specific color
+                                    containerColor = color.progressBackColor // Use pale medication-specific color
                                 )
                             ) {
                                 Column(
@@ -555,7 +555,7 @@ fun MedicationDetailsScreen(
                                     Text(
                                         text = stringResource(id = R.string.current_week_dosage_title),
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = color.onBackgroundColor, // Changed color
+                                        color = color.textColor, // Changed color
                                         modifier = Modifier.padding(bottom = 8.dp)
                                     )
                                     Box(
@@ -563,7 +563,7 @@ fun MedicationDetailsScreen(
                                             .fillMaxWidth()
                                             .height(150.dp)
                                             .background(
-                                                color.cardColor, // Use medication-specific color
+                                                color.progressBackColor, // Use pale medication-specific color
                                                 RoundedCornerShape(8.dp)
                                             )
                                             .padding(16.dp),
@@ -609,10 +609,10 @@ fun MedicationDetailsScreen(
                                         SimpleBarChart(
                                             data = finalBarChartItems,
                                             modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
-                                            highlightedBarColor = color.onBackgroundColor, // Use medication-specific color
-                                            normalBarColor = color.progressBackColor, // Use medication-specific color
-                                            labelTextColor = color.onBackgroundColor, // Use medication-specific color
-                                            valueTextColor = color.onBackgroundColor, // Use medication-specific color
+                                            highlightedBarColor = color.progressBarColor, // Use medication-specific color
+                                            normalBarColor = color.backgroundColor, // Use medication-specific color
+                                            labelTextColor = color.textColor, // Use medication-specific color
+                                            valueTextColor = color.textColor, // Use medication-specific color
                                             chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}"
                                             // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
                                         )
@@ -655,7 +655,7 @@ fun MedicationDetailsScreen(
                                         .padding(horizontal = 16.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors( // Changed to cardColors
-                                        containerColor = color.cardColor // Use medication-specific color
+                                        containerColor = color.progressBackColor // Use pale medication-specific color
                                     )
                                 ) {
                                     Column(
@@ -670,19 +670,19 @@ fun MedicationDetailsScreen(
                                             Icon(
                                                 imageVector = Icons.Filled.Info,
                                                 contentDescription = null,
-                                                tint = color.onBackgroundColor // Changed color
+                                                tint = color.textColor // Changed color
                                             )
                                             Spacer(modifier = Modifier.size(12.dp))
                                             Text(
                                                 text = stringResource(id = R.string.medication_information_title),
                                                 style = MaterialTheme.typography.titleMedium,
-                                                color = color.onBackgroundColor // Changed color
+                                                color = color.textColor // Changed color
                                             )
                                         }
                                         Text(
                                             text = stringResource(id = R.string.medication_info_description_placeholder),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = color.onBackgroundColor, // Changed color
+                                            color = color.textColor, // Changed color
                                             modifier = Modifier.padding(bottom = 12.dp)
                                         )
                                         Button(
