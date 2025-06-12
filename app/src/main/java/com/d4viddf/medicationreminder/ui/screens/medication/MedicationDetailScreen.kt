@@ -558,7 +558,8 @@ fun MedicationDetailsScreen(
                                         modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
                                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}"
                                         // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
                                     )
                                 }
@@ -667,7 +668,7 @@ fun MedicationDetailsScreen(
             }
         } // Closes the main else block
     } // Closes MedicationSpecificTheme
-} // Closes MedicationDetailsScreen
+// } // THIS EXTRA BRACE WAS THE LIKELY CULPRIT - REMOVING IT
 
 @Preview(showBackground = true, name = "Medication Details Screen")
 @Composable

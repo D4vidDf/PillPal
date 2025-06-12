@@ -134,21 +134,17 @@ fun SimpleBarChart(
         val yAxisTopValue: Float
         val yTickCount: Int
 
-        if (actualMaxValue == 0f) {                                              // This line is part of Y-Axis Scale Calc
-            yAxisTopValue = 5f
+        if (actualMaxValue == 0f) {
+            yAxisTopValue = 5f // Default scale for an all-zero chart, showing ticks up to 5.
             yTickCount = 5
-        } else if (actualMaxValue < 1f) {
-            yAxisTopValue = 1f
-            yTickCount = 1
-        } else {
+        } else { // actualMaxValue is > 0 (guaranteed to be integer counts like 1.0, 2.0 etc from ViewModel)
             yAxisTopValue = ceil(actualMaxValue).toFloat()
-            if (yAxisTopValue < 5f) {
-                yTickCount = yAxisTopValue.toInt()
-            } else {
-                yTickCount = 4
-            }
+            // If yAxisTopValue is 1.0, yTickCount will be 1 (labels 0, 1).
+            // If yAxisTopValue is 3.0, yTickCount will be 3 (labels 0,1,2,3).
+            // If yAxisTopValue is 6.0, yTickCount will be 6 (labels 0,1,2,3,4,5,6).
+            yTickCount = yAxisTopValue.toInt().coerceAtLeast(1)
         }
-        Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount") // This log is already present
+        Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount")
 
         val xAxisLabelHeight = textPaint.textSize * 1.5f
         val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() }

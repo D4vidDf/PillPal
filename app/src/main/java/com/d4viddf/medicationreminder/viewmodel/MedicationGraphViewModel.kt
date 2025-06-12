@@ -139,26 +139,25 @@ class MedicationGraphViewModel @Inject constructor(
                         return@mapNotNull null
                     }
                     if (!takenDateTime.isBefore(weekStartDateTime) && !takenDateTime.isAfter(weekEndDateTime)) {
-                        // Pair the date with the parsed dosage quantity
-                        Pair(takenDateTime.toLocalDate(), dosageQuantity)
+                        takenDateTime.toLocalDate() // Collect only the date for counting events
                     } else {
                         null
                     }
                 }
-                Log.d(TAG, "loadWeeklyGraphData: Filtered to ${takenRemindersThisWeek.size} taken reminders (with dosage) within this week.")
+                Log.d(TAG, "loadWeeklyGraphData: Filtered to ${takenRemindersThisWeek.size} taken reminder events within this week.")
                 if (takenRemindersThisWeek.isNotEmpty()) {
-                     Log.d(TAG, "loadWeeklyGraphData: First 5 taken items this week: ${takenRemindersThisWeek.take(5)}")
+                     Log.d(TAG, "loadWeeklyGraphData: First 5 taken dates this week: ${takenRemindersThisWeek.take(5)}")
                 }
 
                 val dosesByDate = takenRemindersThisWeek
-                    .groupBy { it.first } // Group by LocalDate
+                    .groupBy { it } // Group by LocalDate directly
                     .mapValues { entry ->
-                        // Sum the dosage quantities (it.second) for each group
-                        entry.value.sumOf { pair -> pair.second.toDouble() }.toFloat()
+                        // Count the number of events for each date
+                        entry.value.size.toFloat()
                     }
-                Log.d(TAG, "loadWeeklyGraphData: Doses summed by date: $dosesByDate")
+                Log.d(TAG, "loadWeeklyGraphData: Event counts by date: $dosesByDate")
 
-                val weeklyDataMap = LinkedHashMap<String, Float>() // Changed to Float
+                val weeklyDataMap = LinkedHashMap<String, Float>()
                 val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
 
                 currentWeekDays.forEach { day ->
@@ -220,23 +219,22 @@ class MedicationGraphViewModel @Inject constructor(
                         return@mapNotNull null
                     }
                     if (takenDateTime.year == targetYear) {
-                        // Pair the Month enum with the parsed dosage quantity
-                        Pair(takenDateTime.month, dosageQuantity)
+                        takenDateTime.month // Collect only the month for counting events
                     } else {
                         null
                     }
                 }
-                Log.d(TAG, "loadYearlyGraphData: Filtered to ${takenRemindersThisYear.size} taken reminders (with dosage) in this year. Sample: ${takenRemindersThisYear.take(5)}")
+                Log.d(TAG, "loadYearlyGraphData: Filtered to ${takenRemindersThisYear.size} taken reminder events in this year. Sample: ${takenRemindersThisYear.take(5)}")
 
                 val dosesByMonth = takenRemindersThisYear
-                    .groupBy { it.first } // Group by Month enum
+                    .groupBy { it } // Group by Month enum directly
                     .mapValues { entry ->
-                        // Sum the dosage quantities (it.second) for each group
-                        entry.value.sumOf { pair -> pair.second.toDouble() }.toFloat()
+                        // Count the number of events for each month
+                        entry.value.size.toFloat()
                     }
-                Log.d(TAG, "loadYearlyGraphData: Doses summed by month enum: $dosesByMonth")
+                Log.d(TAG, "loadYearlyGraphData: Event counts by month enum: $dosesByMonth")
 
-                val yearlyDataMap = LinkedHashMap<String, Float>() // Changed type
+                val yearlyDataMap = LinkedHashMap<String, Float>()
                 for (month in 1..12) {
                     val monthEnum = java.time.Month.of(month)
                     val monthName = monthEnum.getDisplayName(TextStyle.SHORT, Locale.getDefault())
