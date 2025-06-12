@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.hilt.navigation.compose.hiltViewModel // Added for ViewModel instantiation
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf // For state
 import androidx.compose.runtime.remember // For state
 import androidx.compose.runtime.setValue // For state
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor // Added import
+import com.d4viddf.medicationreminder.ui.screens.medication.AllSchedulesScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationHistoryScreen
@@ -134,6 +136,7 @@ fun AppNavigation(
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope
                         isHostedInPane = false,
+                        widthSizeClass = widthSizeClass, // Add this line
                         // Navigation callbacks for new screens from MedicationDetailScreen
                         onNavigateToAllSchedules = { medId, colorName ->
                             navController.navigate(
@@ -266,10 +269,13 @@ fun AppNavigation(
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
                 val colorName = backStackEntry.arguments?.getString("colorName")
+                val medicationGraphViewModel: com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel = hiltViewModel()
                 MedicationGraphScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
-                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
+                    viewModel = medicationGraphViewModel,
+                    widthSizeClass = widthSizeClass // Add this line
                 )
             }
 

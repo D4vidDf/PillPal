@@ -11,27 +11,38 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width // Ensure width is imported for bar width
-import androidx.compose.foundation.rememberScrollState // For horizontal and vertical scroll
-import androidx.compose.foundation.horizontalScroll // For horizontal scroll
-import androidx.compose.foundation.verticalScroll // For vertical scroll
-import androidx.compose.foundation.shape.RoundedCornerShape
+// import androidx.compose.foundation.layout.width // Assuming not directly used elsewhere after card setup
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.shape.CircleShape // Added for StyledNavigationArrow
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.foundation.BorderStroke // Added import
-import androidx.compose.material3.Button // Added import
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator // New import
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
+import androidx.compose.material3.SelectableDates // Added for DatePicker
+import androidx.compose.material3.DropdownMenuItem // Will be removed
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox // Will be removed
+import androidx.compose.material3.ExposedDropdownMenuDefaults // Will be removed
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton // Added import
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField // Will be removed
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.foundation.lazy.LazyColumn // Added for Year Picker
+import androidx.compose.foundation.lazy.items // Added for Year Picker
+import androidx.compose.foundation.clickable // Added for clickable text in year picker
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.TopAppBar // Ensure this is imported for the preview
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,24 +56,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-// Removed Canvas import, as it's no longer used by BarChartDisplay
 import androidx.compose.ui.draw.clip
-// Removed Rect import
-import androidx.compose.ui.graphics.Color // Added import
-// Removed Path import
-import androidx.compose.ui.input.nestedscroll.nestedScroll // New import
-import androidx.compose.ui.platform.LocalDensity // New import, for Px conversion
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight // Added import for FontWeight
-import androidx.compose.ui.text.style.TextAlign // New import
+import androidx.compose.ui.text.font.FontWeight
+import android.util.Log
+import androidx.compose.ui.semantics.contentDescription // Added for Semantics
+import androidx.compose.ui.semantics.semantics // Added for Semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.d4viddf.medicationreminder.R // Moved import to top
+import kotlin.math.abs
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-// Removed ThemedAppBarBackButton import
-import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
-import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry // ViewModel now provides this
+import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
 // Custom SimpleBarChart imports
 import com.d4viddf.medicationreminder.ui.components.SimpleBarChart
@@ -74,93 +86,49 @@ import com.d4viddf.medicationreminder.ui.components.BarChartItem
 // import com.himanshoe.charty.common.config.ChartColor
 // import com.himanshoe.charty.common.config.SolidChartColor
 // import com.himanshoe.charty.common.extensions.asSolidChartColor
-// import com.himanshoe.charty.bar.config.BarChartConfig
-// import com.himanshoe.charty.common.config.LabelConfig
-// import com.himanshoe.charty.bar.config.BarChartColorConfig
+// import com.himanshoe.charty.bar.config.BarChartConfig - Ensure these are removed if not used
+// import com.himanshoe.charty.common.config.LabelConfig - Ensure these are removed if not used
+// import com.himanshoe.charty.bar.config.BarChartColorConfig - Ensure these are removed if not used
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.YearMonth // Added for currentDisplayedMonth
-import java.time.format.DateTimeFormatter // Added for month formatting
-
+// Removed: import java.time.YearMonth - No longer used
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+import java.time.Instant
+import java.time.ZoneId
+import androidx.compose.ui.graphics.vector.ImageVector // Added for StyledNavigationArrow
 
-enum class GraphViewType {
-    WEEK, MONTH, YEAR
-}
-
-@Composable
-fun GraphViewButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val commonModifier = Modifier.padding(horizontal = 4.dp)
-    val shape = RoundedCornerShape(8.dp)
-
-    if (isSelected) {
-        Button( // Filled button for selected state
-            onClick = onClick,
-            shape = shape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            modifier = commonModifier
-        ) {
-            Text(text)
-        }
-    } else {
-        OutlinedButton( // Outlined button for unselected state
-            onClick = onClick,
-            shape = shape,
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), // Simpler border
-            modifier = commonModifier
-        ) {
-            Text(text)
-        }
-    }
-}
+// GraphViewType enum can be removed if no longer used internally after this refactor
+// enum class GraphViewType {
+//     WEEK, YEAR
+// }
 
 @Composable
-fun DateNavigationControls( // Made non-private
-    selectedViewType: GraphViewType,
-    currentPeriodDisplayName: String,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
+private fun StyledNavigationArrow(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .background(
+                color = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), // Adjusted disabled color
+                shape = CircleShape
+            )
     ) {
-        IconButton(onClick = onPrevious) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = stringResource(id = R.string.previous_period_cd)
-            )
-        }
-        Text(
-            text = currentPeriodDisplayName,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // Adjust disabled tint
         )
-        IconButton(onClick = onNext) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = stringResource(id = R.string.next_period_cd)
-            )
-        }
     }
 }
-
-// Old BarChartDisplay composable removed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -168,44 +136,59 @@ fun MedicationGraphScreen(
     medicationId: Int,
     colorName: String,
     onNavigateBack: () -> Unit,
-    viewModel: MedicationGraphViewModel? = null // Made nullable for preview
+    viewModel: MedicationGraphViewModel? = null,
+    widthSizeClass: WindowWidthSizeClass // Added parameter
 ) {
+    Log.d("GraphScreenEntry", "MedicationGraphScreen composed. medicationId: $medicationId, viewModel is null: ${viewModel == null}, colorName: $colorName")
+
     val medicationColor = remember(colorName) {
-        try {
-            MedicationColor.valueOf(colorName)
-        } catch (e: IllegalArgumentException) {
-            MedicationColor.LIGHT_ORANGE // Fallback
-        }
+        try { MedicationColor.valueOf(colorName) } catch (e: IllegalArgumentException) { MedicationColor.LIGHT_ORANGE }
     }
-    var selectedViewType by remember { mutableStateOf(GraphViewType.WEEK) }
-    var currentDisplayedMonth by remember { mutableStateOf(YearMonth.now()) }
-    var currentDisplayedYear by remember { mutableStateOf(LocalDate.now().year) }
+
+    val today = remember { LocalDate.now() }
+    val currentCalendarWeekMonday = remember { today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) } // The Monday of the current actual week
+    val minYear = remember { today.year - 5 }
+    // The Monday of the week containing January 1st of the earliest allowed year.
+    val minWeekOverallLimitMonday = remember { LocalDate.of(minYear, 1, 1).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) }
+
+
+    var currentWeekMonday by remember { mutableStateOf(currentCalendarWeekMonday) }
+    var currentDisplayedYear by remember { mutableStateOf(today.year) }
+
+    // State for Date Pickers
+    var showWeekPickerDialog by remember { mutableStateOf(false) }
+    // Year Picker might be a simpler custom dialog or NumberPicker if available/desired
+    var showYearPickerDialog by remember { mutableStateOf(false) }
+
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    // val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") } // Potentially use in AppBar
 
-    val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") }
-    // Collect the new chartyGraphData
-    val chartEntries by viewModel?.chartyGraphData?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
-    // The old graphData definition that caused "unresolved reference monday" has been removed.
-    val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
-    val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
+    // Collect separate data flows
+    val weeklyChartEntries by viewModel?.weeklyChartData?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+    val yearlyChartEntries by viewModel?.yearlyChartData?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
 
-    LaunchedEffect(medicationId, selectedViewType, currentDisplayedMonth, currentDisplayedYear, viewModel) {
-        if (viewModel != null) {
-            when (selectedViewType) {
-                GraphViewType.WEEK -> {
-                    val today = LocalDate.now()
-                    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                    val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
-                    viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
-                }
-                GraphViewType.MONTH -> {
-                    viewModel.loadMonthlyGraphData(medicationId, currentDisplayedMonth)
-                }
-                GraphViewType.YEAR -> {
-                    viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
-                }
-            }
+    val isLoadingWeekly by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) } // Assuming one isLoading for now
+    val errorWeekly by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }   // Assuming one error for now
+    // TODO: ViewModel might need separate isLoading/error states for weekly/yearly if they load independently and can fail independently.
+
+    // Data Loading LaunchedEffects
+    LaunchedEffect(medicationId, currentWeekMonday, viewModel) {
+        if (medicationId > 0 && viewModel != null) {
+            val currentWeekDays = List(7) { i -> currentWeekMonday.plusDays(i.toLong()) }
+            viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
+        } else if (viewModel != null) {
+            viewModel.clearGraphData() // Or specific clear for weekly
+            Log.d("MedicationGraphScreen", "Invalid medicationId ($medicationId) or null ViewModel, clearing weekly graph data.")
+        }
+    }
+
+    LaunchedEffect(medicationId, currentDisplayedYear, viewModel) {
+        if (medicationId > 0 && viewModel != null) {
+            viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
+        } else if (viewModel != null) {
+            viewModel.clearGraphData() // Or specific clear for yearly
+            Log.d("MedicationGraphScreen", "Invalid medicationId ($medicationId) or null ViewModel, clearing yearly graph data.")
         }
     }
 
@@ -224,11 +207,12 @@ fun MedicationGraphScreen(
                         }
                     },
                     scrollBehavior = scrollBehavior, // Added
-                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed here
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // Added
                     )
                 )
             }
@@ -241,145 +225,394 @@ fun MedicationGraphScreen(
                     .verticalScroll(rememberScrollState()), // Make content column scrollable
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    GraphViewButton(
-                        text = stringResource(id = R.string.graph_view_weekly),
-                        isSelected = selectedViewType == GraphViewType.WEEK,
-                        onClick = { selectedViewType = GraphViewType.WEEK }
-                    )
-                    GraphViewButton(
-                        text = stringResource(id = R.string.graph_view_monthly),
-                        isSelected = selectedViewType == GraphViewType.MONTH,
-                        onClick = { selectedViewType = GraphViewType.MONTH }
-                    )
-                    GraphViewButton(
-                        text = stringResource(id = R.string.graph_view_yearly),
-                        isSelected = selectedViewType == GraphViewType.YEAR,
-                        onClick = { selectedViewType = GraphViewType.YEAR }
-                    )
+                // Determine layout based on widthSizeClass
+                when (widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            WeeklyChartCard(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                viewModel = viewModel,
+                                currentWeekMondayInternal = currentWeekMonday,
+                                onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
+                                showWeekPickerDialog = showWeekPickerDialog,
+                                onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                weeklyChartEntries = weeklyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                currentCalendarWeekMonday = currentCalendarWeekMonday,
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday
+                            )
+                            YearlyChartCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                viewModel = viewModel,
+                                currentDisplayedYearInternal = currentDisplayedYear,
+                                onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
+                                showYearPickerDialog = showYearPickerDialog,
+                                onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                yearlyChartEntries = yearlyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                minYear = minYear
+                            )
+                        }
+                    }
+                    else -> { // Medium, Expanded
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            WeeklyChartCard(
+                                modifier = Modifier.weight(1f),
+                                viewModel = viewModel,
+                                currentWeekMondayInternal = currentWeekMonday,
+                                onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
+                                showWeekPickerDialog = showWeekPickerDialog,
+                                onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                weeklyChartEntries = weeklyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                currentCalendarWeekMonday = currentCalendarWeekMonday,
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday
+                            )
+                            YearlyChartCard(
+                                modifier = Modifier.weight(1f),
+                                viewModel = viewModel,
+                                currentDisplayedYearInternal = currentDisplayedYear,
+                                onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
+                                showYearPickerDialog = showYearPickerDialog,
+                                onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                yearlyChartEntries = yearlyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today, // Added missing parameter
+                                minYear = minYear   // Added missing parameter
+                            )
+                        }
+                    }
                 }
 
-                if (selectedViewType == GraphViewType.MONTH || selectedViewType == GraphViewType.YEAR) {
-                    val monthYearFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                    val currentDisplayPeriodText = when (selectedViewType) {
-                        GraphViewType.MONTH -> currentDisplayedMonth.format(monthYearFormatter)
-                        GraphViewType.YEAR -> currentDisplayedYear.toString()
-                        else -> ""
+                // Week Picker Dialog
+                if (showWeekPickerDialog) {
+                    // val today = LocalDate.now() // 'today' is already available in this scope
+                    val datePickerState = rememberDatePickerState( // Only one declaration
+                        initialSelectedDateMillis = currentWeekMonday.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                        yearRange = IntRange(minYear, today.year), // Use minYear and today from outer scope
+                        selectableDates = object : SelectableDates {
+                            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                                val selectedDate = Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                                // Allow selecting any day in the minWeekOverallLimitMonday's week by checking against start of that week
+                                val startOfWeekForMinOverallLimit = minWeekOverallLimitMonday
+                                return !selectedDate.isAfter(today) && !selectedDate.isBefore(startOfWeekForMinOverallLimit)
+                            }
+                            override fun isSelectableYear(year: Int): Boolean {
+                                return year <= today.year && year >= minYear
+                            }
+                        }
+                    )
+                    DatePickerDialog(
+                        onDismissRequest = { showWeekPickerDialog = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                datePickerState.selectedDateMillis?.let { millis ->
+                                    var selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                                    // Ensure the selected Monday is not before the overall limit or after current view limit
+                                    var newMonday = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                                    if (newMonday.isBefore(minWeekOverallLimitMonday)) newMonday = minWeekOverallLimitMonday
+                                    if (newMonday.isAfter(currentCalendarWeekMonday)) newMonday = currentCalendarWeekMonday
+                                     currentWeekMonday = newMonday // Directly update state
+                                }
+                                showWeekPickerDialog = false
+                            }) { Text(stringResource(android.R.string.ok)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showWeekPickerDialog = false }) { Text(stringResource(android.R.string.cancel)) }
+                        }
+                    ) {
+                        DatePicker(state = datePickerState)
                     }
-                    DateNavigationControls(
-                        selectedViewType = selectedViewType,
-                        currentPeriodDisplayName = currentDisplayPeriodText,
-                        onPrevious = {
-                            if (selectedViewType == GraphViewType.MONTH) {
-                                currentDisplayedMonth = currentDisplayedMonth.minusMonths(1)
-                            } else if (selectedViewType == GraphViewType.YEAR) {
-                                currentDisplayedYear--
+                }
+
+                // Year Picker Dialog
+                if (showYearPickerDialog) {
+                    val years = remember { (minYear..today.year).toList().reversed() }
+                    AlertDialog(
+                        onDismissRequest = { showYearPickerDialog = false },
+                        title = { Text("Select Year") }, // Use hardcoded string as per previous fix
+                        text = {
+                            LazyColumn {
+                                items(years) { year ->
+                                    Text(
+                                        text = year.toString(),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                currentDisplayedYear = year // Directly update state
+                                                showYearPickerDialog = false
+                                            }
+                                            .padding(vertical = 12.dp), // Make list items taller
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
                             }
                         },
-                        onNext = {
-                            if (selectedViewType == GraphViewType.MONTH) {
-                                currentDisplayedMonth = currentDisplayedMonth.plusMonths(1)
-                            } else if (selectedViewType == GraphViewType.YEAR) {
-                                currentDisplayedYear++
-                            }
+                        confirmButton = { // Changed to a dismiss button as selection is immediate
+                            TextButton(onClick = { showYearPickerDialog = false }) { Text(stringResource(android.R.string.cancel)) }
                         }
                     )
                 }
+            }
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.height(8.dp))
+// Internal Composable for Weekly Chart Card
+@Composable
+private fun WeeklyChartCard(
+    modifier: Modifier = Modifier,
+    viewModel: MedicationGraphViewModel?,
+    currentWeekMondayInternal: LocalDate,
+    onCurrentWeekMondayChange: (LocalDate) -> Unit,
+    showWeekPickerDialog: Boolean, // Added
+    onShowWeekPickerDialogChange: (Boolean) -> Unit, // Added
+    weeklyChartEntries: List<ChartyGraphEntry>,
+    isLoading: Boolean,
+    error: String?,
+    // Date limit parameters
+    today: LocalDate,
+    currentCalendarWeekMonday: LocalDate,
+    minWeekOverallLimitMonday: LocalDate
+) {
+    ElevatedCard(modifier = modifier) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.weekly_doses_taken_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Removed redundant date limit declarations, use passed-in parameters
 
-                val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                val chartTitle = when (selectedViewType) {
-                    GraphViewType.WEEK -> stringResource(R.string.weekly_doses_taken_title)
-                    GraphViewType.MONTH -> stringResource(R.string.monthly_doses_taken_title_template, currentDisplayedMonth.format(monthFormatter))
-                    GraphViewType.YEAR -> stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYear)
-                }
-                Text(
-                    text = chartTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
+                StyledNavigationArrow(
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Previous week", // Updated to hardcoded string
+                    onClick = {
+                        val prevWeek = currentWeekMondayInternal.minusWeeks(1)
+                        if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
+                            onCurrentWeekMondayChange(prevWeek)
+                        }
+                    },
+                    enabled = !currentWeekMondayInternal.minusWeeks(1).isBefore(minWeekOverallLimitMonday)
                 )
 
-                // Refactored chart display area
-                val barChartItems = remember(chartEntries) {
-                    chartEntries.map { entry ->
-                        BarChartItem(
-                            label = entry.xValue,
-                            value = entry.yValue,
-                            isHighlighted = entry.isHighlighted
-                        )
-                    }
-                }
+                val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
+                val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
+                Text(
+                    text = displayedWeekRange,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier
+                        .clickable { onShowWeekPickerDialogChange(true) }
+                        .semantics { contentDescription = "Change week, current period: $displayedWeekRange" } // Added
+                )
+                StyledNavigationArrow(
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Next week", // Updated to hardcoded string
+                    onClick = {
+                        val nextWeek = currentWeekMondayInternal.plusWeeks(1)
+                        if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
+                            onCurrentWeekMondayChange(nextWeek)
+                        }
+                    },
+                    enabled = !currentWeekMondayInternal.plusWeeks(1).isAfter(currentCalendarWeekMonday)
+                )
+            }
 
-                when {
-                    isLoading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp) // Keep consistent height
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+            val displayableItems = remember(weeklyChartEntries, isLoading, error, currentWeekMondayInternal) { // Use internal state
+                if (!isLoading && error == null && weeklyChartEntries.isEmpty()) {
+                    val today = LocalDate.now()
+                    val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                    List(7) { i ->
+                        val day = currentWeekMondayInternal.plusDays(i.toLong())
+                        BarChartItem(label = day.format(dayFormatter), value = 0f, isHighlighted = day.isEqual(today))
                     }
-                    error != null -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp) // Keep consistent height
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = error ?: stringResource(id = R.string.med_graph_unknown_error),
-                                color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Center
+                } else {
+                    weeklyChartEntries.map { BarChartItem(it.xValue, it.yValue, it.isHighlighted) }
+                }
+            }
+
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp))
+            } else if (error != null) {
+                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp))
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp) // Slightly smaller height for cards
+                        .pointerInput(currentWeekMondayInternal) { // Key by internal state
+                            var dragConsumed = false
+                            detectHorizontalDragGestures(
+                                onHorizontalDrag = { change, dragAmount ->
+                                    change.consume()
+                                    if (abs(dragAmount) > 40 && !dragConsumed) {
+                                        dragConsumed = true
+                                        // Use passed-in limits
+                                        if (dragAmount > 0) { // Swiped Left (older dates)
+                                            val prevWeek = currentWeekMondayInternal.minusWeeks(1)
+                                            if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
+                                                onCurrentWeekMondayChange(prevWeek)
+                                            }
+                                        } else { // Swiped Right (newer dates)
+                                            val nextWeek = currentWeekMondayInternal.plusWeeks(1)
+                                            if (!nextWeek.isAfter(currentCalendarWeekMonday)) { // Use passed-in currentCalendarWeekMonday
+                                                onCurrentWeekMondayChange(nextWeek)
+                                            }
+                                        }
+                                    }
+                                },
+                                onDragEnd = { dragConsumed = false }
                             )
                         }
-                    }
-                    barChartItems.isEmpty() -> { // Check the new barChartItems list
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp) // Keep consistent height
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(stringResource(id = R.string.med_graph_no_data_found))
+                ) {
+                    val weeklyChartDesc = "Weekly doses taken. ${displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    SimpleBarChart(
+                        data = displayableItems,
+                        modifier = Modifier.fillMaxSize(),
+                        highlightedBarColor = MaterialTheme.colorScheme.primary,
+                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        valueTextColor = MaterialTheme.colorScheme.onSurface,
+                        chartContentDescription = weeklyChartDesc // Added
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Internal Composable for Yearly Chart Card
+@Composable
+private fun YearlyChartCard(
+    modifier: Modifier = Modifier,
+    viewModel: MedicationGraphViewModel?,
+    currentDisplayedYearInternal: Int,
+    onCurrentDisplayedYearChange: (Int) -> Unit,
+    showYearPickerDialog: Boolean, // Added
+    onShowYearPickerDialogChange: (Boolean) -> Unit, // Added
+    yearlyChartEntries: List<ChartyGraphEntry>,
+    isLoading: Boolean,
+    error: String?,
+    // Date limit parameters
+    today: LocalDate,
+    minYear: Int
+) {
+    ElevatedCard(modifier = modifier) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYearInternal), // Corrected to use internal
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Removed redundant date limit declarations, use passed-in parameters
+
+                StyledNavigationArrow(
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Previous year", // Updated
+                    onClick = {
+                        if (currentDisplayedYearInternal - 1 >= minYear) { // Use passed-in minYear
+                            onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
                         }
+                    },
+                    enabled = currentDisplayedYearInternal > minYear // Use passed-in minYear
+                )
+                Text(
+                    text = currentDisplayedYearInternal.toString(),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier
+                        .clickable { onShowYearPickerDialogChange(true) } // Use callback
+                        .semantics { contentDescription = "Change year, current year: ${currentDisplayedYearInternal.toString()}" } // Added
+                )
+                StyledNavigationArrow(
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Next year", // Updated
+                    onClick = {
+                        if (currentDisplayedYearInternal + 1 <= today.year) { // Use passed-in today
+                            onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
+                        }
+                    },
+                    enabled = currentDisplayedYearInternal < today.year // Use passed-in today
+                )
+            }
+
+             val displayableItems = remember(yearlyChartEntries, isLoading, error, currentDisplayedYearInternal) { // Use internal state
+                if (!isLoading && error == null && yearlyChartEntries.isEmpty()) {
+                    // val today = LocalDate.now() // 'today' is passed as parameter
+                    List(12) { i ->
+                        val month = java.time.Month.of(i + 1)
+                        BarChartItem(label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()), value = 0f, isHighlighted = currentDisplayedYearInternal == today.year && month == today.month)
                     }
-                    else -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth() // This Box defines the viewport width
-                                .height(220.dp) // And height
-                                .horizontalScroll(rememberScrollState())
-                        ) {
-                            SimpleBarChart(
-                                data = barChartItems,
-                                modifier = Modifier.fillMaxHeight(), // To use the 220.dp from the parent Box
-                                highlightedBarColor = MaterialTheme.colorScheme.primary,
-                                normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                                labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            barWidthDp = when(selectedViewType) {
-                                GraphViewType.WEEK -> 24.dp
-                                GraphViewType.MONTH -> 10.dp
-                                GraphViewType.YEAR -> 16.dp
-                            },
-                            spaceAroundBarsDp = when(selectedViewType) {
-                                GraphViewType.WEEK -> 8.dp
-                                GraphViewType.MONTH -> 4.dp
-                                GraphViewType.YEAR -> 6.dp
-                            }
+                } else {
+                    yearlyChartEntries.map { BarChartItem(it.xValue, it.yValue, it.isHighlighted) }
+                }
+            }
+
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp))
+            } else if (error != null) {
+                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp))
+            } else {
+                 Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .pointerInput(currentDisplayedYearInternal) { // Corrected to use internal state
+                            var dragConsumed = false
+                            detectHorizontalDragGestures(
+                                onHorizontalDrag = { change, dragAmount ->
+                                    change.consume()
+                                    if (abs(dragAmount) > 40 && !dragConsumed) {
+                                        dragConsumed = true
+                                        // Use limits from card's scope
+                                        if (dragAmount > 0) { // Swiped Left (older dates)
+                                            if (currentDisplayedYearInternal - 1 >= minYear) { // Use minYear from card scope
+                                                onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
+                                            }
+                                        } else { // Swiped Right (newer dates)
+                                            if (currentDisplayedYearInternal + 1 <= today.year) { // Use today from card scope
+                                                onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
+                                            }
+                                        }
+                                    }
+                                },
+                                onDragEnd = { dragConsumed = false }
                             )
                         }
-                    }
+                ) {
+                    val yearlyChartDesc = "Yearly doses taken. ${displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    SimpleBarChart(
+                        data = displayableItems,
+                        modifier = Modifier.fillMaxSize(),
+                        highlightedBarColor = MaterialTheme.colorScheme.primary,
+                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        valueTextColor = MaterialTheme.colorScheme.onSurface,
+                        chartContentDescription = yearlyChartDesc // Added
+                    )
                 }
             }
         }
@@ -395,104 +628,49 @@ fun MedicationGraphScreenPreviewWeek() {
             medicationId = 1,
             colorName = "LIGHT_GREEN",
             onNavigateBack = {},
-            viewModel = null // ViewModel is nullable for preview
+            viewModel = null, // ViewModel is nullable for preview
+            widthSizeClass = WindowWidthSizeClass.Compact // Example
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, name = "Medication Graph Screen - Month View")
+@Preview(showBackground = true, name = "Medication Graph Screen - Year View") // Renamed
 @Composable
-fun MedicationGraphScreenPreviewMonth() {
+fun MedicationGraphScreenPreviewYear() { // Renamed
     AppTheme {
-        val selectedViewType = GraphViewType.MONTH
-        val medicationName by remember { mutableStateOf("Sample Medication (Preview)") }
-        val currentMonth = YearMonth.now()
+        val medicationName by remember { mutableStateOf("Sample Medication (Preview)") } // Not directly used by screen, but kept for context
+        val currentYear = LocalDate.now().year
 
-        // Sample data for SimpleBarChart
+        // Sample data for SimpleBarChart - Year View
         val sampleBarChartItems = remember {
-            (1..currentMonth.lengthOfMonth()).mapIndexed { index, day ->
+            List(12) { i ->
+                val month = java.time.Month.of(i + 1)
                 BarChartItem(
-                    label = day.toString(),
-                    value = (0..5).random().toFloat(),
-                    isHighlighted = index % 7 == 0 // Highlight first day of week for variety
+                    label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                    value = (0..25).random().toFloat(), // Example values for yearly data
+                    isHighlighted = month == LocalDate.now().month && currentYear == LocalDate.now().year
                 )
             }
         }
-
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(medicationName) },
-                    navigationIcon = {
-                        IconButton(onClick = { /* Preview no-op */ }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back_button_cd)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    GraphViewButton(stringResource(id = R.string.graph_view_weekly), selectedViewType == GraphViewType.WEEK) { /* No-op for preview state change */ }
-                    GraphViewButton(stringResource(id = R.string.graph_view_monthly), selectedViewType == GraphViewType.MONTH) { /* No-op */ }
-                    GraphViewButton(stringResource(id = R.string.graph_view_yearly), selectedViewType == GraphViewType.YEAR) { /* No-op */ }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
-                val chartTitle = stringResource(R.string.monthly_doses_taken_title_template, currentMonth.format(monthFormatter))
-
-                Text(
-                    text = chartTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally)
-                )
-
-                // Commenting out problematic block in preview to get build to pass
-                // if (sampleBarChartItems.isNotEmpty()) {
-                //     Box(
-                //         modifier = Modifier
-                //             .fillMaxWidth()
-                //             .height(220.dp)
-                //             .horizontalScroll(rememberScrollState())
-                //     ) {
-                //         SimpleBarChart(
-                //             data = sampleBarChartItems,
-                //             modifier = Modifier, // Simplified for preview - Box already defines height
-                //             highlightedBarColor = MaterialTheme.colorScheme.primary,
-                //             normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                //             labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                //             barWidthDp = 10.dp, // Example for month view
-                //             spaceAroundBarsDp = 4.dp // Example for month view
-                //         )
-                //         Unit // Explicitly return Unit
-                //     }
-                // } else {
-                //     Text("No sample data to display in preview.")
-                //     Unit // Explicitly return Unit
-                // }
-                Text("Chart preview temporarily commented out.") // Placeholder
-            }
-        }
+        // Simplified: Directly call the YearlyChartCard for preview if MedicationGraphScreen is too complex to set up
+        // Or pass parameters to MedicationGraphScreen to show yearly view by default if possible
+        MedicationGraphScreen(
+            medicationId = 1,
+            colorName = "LIGHT_BLUE",
+            onNavigateBack = {},
+            viewModel = null,
+            widthSizeClass = WindowWidthSizeClass.Compact // Example
+        )
+        // For a more isolated preview of YearlyChartCard:
+        // YearlyChartCard(
+        //     viewModel = null,
+        //     currentDisplayedYear = currentYear,
+        //     onUpdateYear = {},
+        //     onShowYearPicker = {},
+        //     yearlyChartEntries = sampleBarChartItems,
+        //     isLoading = false,
+        //     error = null
+        // )
     }
 }
