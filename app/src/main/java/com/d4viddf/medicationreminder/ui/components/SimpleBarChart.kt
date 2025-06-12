@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.ceil // Added import
+import android.util.Log // Added for logging
+import androidx.compose.ui.semantics.contentDescription // Added for Semantics
+import androidx.compose.ui.semantics.semantics // Added for Semantics
 
 data class BarChartItem(
     val label: String,
@@ -38,11 +41,15 @@ fun SimpleBarChart(
     spaceAroundBarsDp: Dp = 8.dp, // Default space between and around bars
     barCornerRadiusDp: Dp = 4.dp, // New parameter
     valueTextColor: Color = labelTextColor, // New parameter
-    valueTextSizeSp: Float = 10f // New parameter
+    valueTextSizeSp: Float = 10f, // New parameter
+    chartContentDescription: String // New parameter for accessibility
 ) {
+    // Diagnostic Logging
+    Log.d("SimpleBarChartData", "Input data: ${data.map { it.value }}")
+    val actualMaxValueForLog = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
+    Log.d("SimpleBarChartData", "Calculated actualMaxValueForLog (initial): $actualMaxValueForLog")
+
     if (data.isEmpty()) {
-        // Handle empty data case if necessary, or let the caller handle it.
-        // For now, Canvas won't draw anything if data is empty with current logic.
         return
     }
 
@@ -85,14 +92,34 @@ fun SimpleBarChart(
     }
 
 
-    Canvas(modifier = modifier) { // Removed self-calculated width modifier
+    Canvas(
+        modifier = modifier.semantics { contentDescription = chartContentDescription } // Added semantics
+    ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
         val totalItems = data.size
 
         if (totalItems == 0) return@Canvas
 
-        val yAxisLabelAreaWidth = with(density) { 30.dp.toPx() } // Space for Y-axis labels
+        // Y-Axis Scale Calculation (Refined) - This part is already updated from previous step.
+        // ... (yAxisTopValue and yTickCount calculation remains here) ...
+
+        // Dynamic Y-Axis Label Area Width
+        val yAxisLabelPadding = with(density) { 4.dp.toPx() }
+        val yAxisMaxLabelWidth = remember(yAxisTopValue, yAxisTextPaint, yTickCount) {
+            if (yTickCount >= 0) { // Ensure yTickCount is not negative, loop 0..0 is valid for single tick "0"
+                (0..yTickCount).maxOfOrNull { i ->
+                    val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
+                    yAxisTextPaint.measureText(tickValue.toInt().toString())
+                } ?: yAxisTextPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
+            } else {
+                 yAxisTextPaint.measureText("0") // Fallback if yTickCount is somehow negative
+            }
+        }
+        val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2
+        Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
+
+
         val chartAreaWidth = canvasWidth - yAxisLabelAreaWidth
 
         // Dynamic bar width and spacing calculation
@@ -102,28 +129,30 @@ fun SimpleBarChart(
         val dynamicSpaceAroundBarsPx = itemAvailableWidth * 0.3f
 
 
-        // Y-Axis Implementation
+        // Y-Axis Implementation (The older duplicated block has been removed)
         val actualMaxValue = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
         val yAxisTopValue: Float
         val yTickCount: Int
 
-        if (actualMaxValue == 0f) {
-            yAxisTopValue = 4f // Default scale for all-zero data (e.g., 0, 1, 2, 3, 4)
-            yTickCount = 4
-        } else if (actualMaxValue <= 1f) {
+        if (actualMaxValue == 0f) {                                              // This line is part of Y-Axis Scale Calc
+            yAxisTopValue = 5f
+            yTickCount = 5
+        } else if (actualMaxValue < 1f) {
             yAxisTopValue = 1f
-            yTickCount = 1 // Labels 0, 1
-        } else if (actualMaxValue <= 4f) {
+            yTickCount = 1
+        } else {
             yAxisTopValue = ceil(actualMaxValue).toFloat()
-            yTickCount = yAxisTopValue.toInt() // Tick for every whole number
-        } else { // actualMaxValue > 4f
-            yAxisTopValue = ceil(actualMaxValue).toFloat()
-            yTickCount = if (yAxisTopValue <= 10f) yAxisTopValue.toInt() else 4 // Ticks for every int up to 10, else 4 main ticks
+            if (yAxisTopValue < 5f) {
+                yTickCount = yAxisTopValue.toInt()
+            } else {
+                yTickCount = 4
+            }
         }
+        Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount") // This log is already present
 
-        val xAxisLabelHeight = textPaint.textSize * 1.5f // Space for X-axis labels
-        val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() } // Approx height for value text
-        val topPaddingForValueText = valueTextHeight // Space above bars for value text
+        val xAxisLabelHeight = textPaint.textSize * 1.5f
+        val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() }
+        val topPaddingForValueText = valueTextHeight
 
         val chartDrawableHeight = canvasHeight - xAxisLabelHeight - topPaddingForValueText
 
@@ -142,19 +171,18 @@ fun SimpleBarChart(
             //    start = Offset(yAxisLabelAreaWidth, tickY),
             //    end = Offset(canvasWidth, tickY)
             // )
-
-            // Draw Y-axis label text
+            val tickLabel = tickValue.toInt().toString() // Define the label text
             drawContext.canvas.nativeCanvas.drawText(
-                tickValue.toInt().toString(),
-                yAxisLabelAreaWidth - with(density) { 4.dp.toPx() }, // Position left of Y-axis line
-                tickY + yAxisTextPaint.textSize / 3, // Center text vertically on tick
+                tickLabel, // Use defined tickLabel
+                yAxisLabelAreaWidth - yAxisLabelPadding, // Position text with padding
+                tickY + yAxisTextPaint.textSize / 3f, // Adjust for vertical centering
                 yAxisTextPaint
             )
         }
 
         // Adjust Bar and Label Drawing Coordinates
         data.forEachIndexed { index, item ->
-            val barHeight = if (yAxisTopValue > 0f) (item.value / yAxisTopValue) * chartDrawableHeight else 0f
+            val barHeight = if (yAxisTopValue > 0f) (item.value.coerceAtMost(yAxisTopValue) / yAxisTopValue) * chartDrawableHeight else 0f // Added coerceAtMost
             val barColor = if (item.isHighlighted) highlightedBarColor else normalBarColor
 
             val currentBarLeft = yAxisLabelAreaWidth + (dynamicSpaceAroundBarsPx / 2) + (index * itemAvailableWidth)

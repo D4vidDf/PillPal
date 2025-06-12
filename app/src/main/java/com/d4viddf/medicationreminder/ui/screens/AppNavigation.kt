@@ -136,6 +136,7 @@ fun AppNavigation(
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope
                         isHostedInPane = false,
+                        widthSizeClass = widthSizeClass, // Add this line
                         // Navigation callbacks for new screens from MedicationDetailScreen
                         onNavigateToAllSchedules = { medId, colorName ->
                             navController.navigate(

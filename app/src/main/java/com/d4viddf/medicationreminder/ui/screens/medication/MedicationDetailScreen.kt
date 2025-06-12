@@ -48,6 +48,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added
+import androidx.compose.material3.NavigationRail // Added
+import androidx.compose.material3.NavigationRailItem // Added
+// Icons.Filled.BarChart is already imported
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -160,9 +164,10 @@ fun MedicationDetailsScreen(
     onNavigateToAllSchedules: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationHistory: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
-    onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit
+    onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit,
+    widthSizeClass: WindowWidthSizeClass // Added parameter
 ) {
-    Log.d("DetailScreenGraphEntry", "MedicationDetailScreen composed. medicationId: $medicationId, graphViewModel is null: ${graphViewModel == null}")
+    Log.d("DetailScreenGraphEntry", "MedicationDetailScreen composed. medicationId: $medicationId, graphViewModel is null: ${graphViewModel == null}, widthSizeClass: $widthSizeClass")
 
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
@@ -267,14 +272,36 @@ fun MedicationDetailsScreen(
                     )
                 }
             ) { innerPadding ->
-                val padding =  if (isHostedInPane) PaddingValues(top = innerPadding.calculateTopPadding()) else innerPadding
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                ) {
-                    item {
-                        Column(
+                Row(modifier = Modifier.fillMaxSize().padding(innerPadding)) { // Apply innerPadding to the Row
+                    val showNavRail = (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) && !isHostedInPane
+                    if (showNavRail) {
+                        NavigationRail {
+                            NavigationRailItem(
+                                icon = { Icon(Icons.Filled.BarChart, contentDescription = "View Full Graph") },
+                                label = { Text("Graph") },
+                                selected = false, // This screen isn't a primary nav destination
+                                onClick = {
+                                    Log.d("MedDetailScreen", "NavRail: Graph item clicked (Not fully implemented)")
+                                    medicationState?.let { med -> // Ensure medicationState is not null
+                                        onNavigateToMedicationGraph(medicationId, med.color ?: MedicationColor.LIGHT_ORANGE.name)
+                                    }
+                                }
+                            )
+                            // TODO: Add other NavigationRailItems for History, Info, All Schedules later
+                        }
+                    }
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f) // Make LazyColumn take remaining space
+                            // .padding(padding), // Padding is now handled by the parent Row, but if isHostedInPane, specific padding might be needed.
+                            // For now, assuming the Row's padding from innerPadding is sufficient.
+                            // If isHostedInPane needs different padding logic for LazyColumn, that needs to be handled here.
+                            // The original logic was: val padding =  if (isHostedInPane) PaddingValues(top = innerPadding.calculateTopPadding()) else innerPadding
+                            // This might need to be re-evaluated if the LazyColumn itself needs specific padding when the rail is shown.
+                            // For simplicity, let's assume the Row's padding is the primary driver for now.
+                    ) {
+                        item {
+                            Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
@@ -658,7 +685,8 @@ fun MedicationDetailsScreenPreview() {
             onNavigateToAllSchedules = { _, _ -> }, // Adjusted for new signature
             onNavigateToMedicationHistory = { _, _ -> }, // Adjusted for new signature
             onNavigateToMedicationGraph = { _, _ -> }, // Adjusted for new signature
-            onNavigateToMedicationInfo = { _, _ -> } // Adjusted for new signature
+            onNavigateToMedicationInfo = { _, _ -> }, // Adjusted for new signature
+            widthSizeClass = WindowWidthSizeClass.Compact // Added for preview
         )
     }
 }

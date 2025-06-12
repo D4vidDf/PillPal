@@ -64,6 +64,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import android.util.Log
+import androidx.compose.ui.semantics.contentDescription // Added for Semantics
+import androidx.compose.ui.semantics.semantics // Added for Semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -399,7 +401,7 @@ private fun WeeklyChartCard(
 
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = stringResource(R.string.previous_period_cd),
+                    contentDescription = "Previous week", // Updated
                     onClick = {
                         val prevWeek = currentWeekMondayInternal.minusWeeks(1)
                         if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
@@ -410,14 +412,17 @@ private fun WeeklyChartCard(
                 )
 
                 val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
+                val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
                 Text(
-                    text = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}",
+                    text = displayedWeekRange,
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { onShowWeekPickerDialogChange(true) } // Use callback
+                    modifier = Modifier
+                        .clickable { onShowWeekPickerDialogChange(true) }
+                        .semantics { contentDescription = "Change week, current period: $displayedWeekRange" } // Added
                 )
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.next_period_cd),
+                    contentDescription = "Next week", // Updated
                     onClick = {
                         val nextWeek = currentWeekMondayInternal.plusWeeks(1)
                         if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
@@ -475,13 +480,15 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
+                    val weeklyChartDesc = "Weekly doses taken. ${displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
                     SimpleBarChart(
                         data = displayableItems,
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        valueTextColor = MaterialTheme.colorScheme.onSurface
+                        valueTextColor = MaterialTheme.colorScheme.onSurface,
+                        chartContentDescription = weeklyChartDesc // Added
                     )
                 }
             }
@@ -524,7 +531,7 @@ private fun YearlyChartCard(
 
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = stringResource(R.string.previous_period_cd),
+                    contentDescription = "Previous year", // Updated
                     onClick = {
                         if (currentDisplayedYearInternal - 1 >= minYear) { // Use passed-in minYear
                             onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
@@ -535,11 +542,13 @@ private fun YearlyChartCard(
                 Text(
                     text = currentDisplayedYearInternal.toString(),
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.clickable { onShowYearPickerDialogChange(true) } // Use callback
+                    modifier = Modifier
+                        .clickable { onShowYearPickerDialogChange(true) } // Use callback
+                        .semantics { contentDescription = "Change year, current year: ${currentDisplayedYearInternal.toString()}" } // Added
                 )
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.next_period_cd),
+                    contentDescription = "Next year", // Updated
                     onClick = {
                         if (currentDisplayedYearInternal + 1 <= today.year) { // Use passed-in today
                             onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
@@ -593,13 +602,15 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
+                    val yearlyChartDesc = "Yearly doses taken. ${displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
                     SimpleBarChart(
                         data = displayableItems,
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        valueTextColor = MaterialTheme.colorScheme.onSurface
+                        valueTextColor = MaterialTheme.colorScheme.onSurface,
+                        chartContentDescription = yearlyChartDesc // Added
                     )
                 }
             }
