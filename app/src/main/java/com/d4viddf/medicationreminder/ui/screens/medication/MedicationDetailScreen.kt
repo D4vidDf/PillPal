@@ -174,7 +174,7 @@ fun MedicationDetailsScreen(
     }
 
     LaunchedEffect(medicationId, graphViewModel) {
-        Log.d("MedDetailScreenChart", "LaunchedEffect triggered. medId: $medicationId, viewModel valid: ${graphViewModel != null}")
+        Log.d("MedDetailScreenChart", "Main LaunchedEffect triggered (excluding graph). medId: $medicationId, viewModel valid: ${graphViewModel != null}")
         viewModel.getMedicationById(medicationId)?.let { med ->
             medicationState = med
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
@@ -187,20 +187,25 @@ fun MedicationDetailsScreen(
                 }
             }
         }
+        // Graph data loading removed from here
+    }
 
-        Log.d("MedDetailScreenChart", "Before loadWeeklyGraphData check. medId: $medicationId, graphViewModel isNull: ${graphViewModel == null}")
+    // New LaunchedEffect specifically for graph data
+    LaunchedEffect(medicationId, graphViewModel) {
+        Log.d("MedDetailScreenChart", "Dedicated Graph LaunchedEffect triggered. medId: $medicationId, graphViewModel valid: ${graphViewModel != null}")
+
         if (medicationId > 0 && graphViewModel != null) {
             val today = LocalDate.now()
             val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
             val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
-            Log.d("MedDetailScreenChart", "CALLING loadWeeklyGraphData. medId: $medicationId, week: $currentWeekDays, viewModel: ${graphViewModel.hashCode()}")
+            Log.d("MedDetailScreenChart", "[GraphEffect] CALLING loadWeeklyGraphData. medId: $medicationId, week: $currentWeekDays, viewModel: ${graphViewModel.hashCode()}")
             graphViewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
-            Log.d("MedDetailScreenChart", "FINISHED calling loadWeeklyGraphData.")
-        } else if (graphViewModel != null) {
-            Log.d("MedDetailScreenChart", "Clearing graph data because medId <= 0. medId: $medicationId")
-            graphViewModel.clearGraphData()
+            Log.d("MedDetailScreenChart", "[GraphEffect] FINISHED calling loadWeeklyGraphData.")
+        } else if (graphViewModel != null) { // graphViewModel is not null, but medicationId might be invalid
+            Log.d("MedDetailScreenChart", "[GraphEffect] Clearing graph data because medId <= 0. medId: $medicationId")
+            // graphViewModel.clearGraphData() // Optional: Kept commented out as per instruction
         } else {
-            Log.d("MedDetailScreenChart", "Skipped graph data load/clear because graphViewModel is NULL.")
+            Log.d("MedDetailScreenChart", "[GraphEffect] Skipped graph data load because graphViewModel is NULL.")
         }
     }
 
