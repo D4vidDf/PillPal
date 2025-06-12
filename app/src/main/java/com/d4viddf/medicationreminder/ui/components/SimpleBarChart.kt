@@ -94,6 +94,40 @@ fun SimpleBarChart(
         }
     }
 
+    // Y-Axis Scale Calculation (Moved to top level)
+    val actualMaxValue = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
+    val yAxisTopValue: Float
+    val yTickCount: Int
+
+    if (actualMaxValue == 0f) {
+        yAxisTopValue = 5f // Default scale for an all-zero chart, showing ticks up to 5.
+        yTickCount = 5
+    } else { // actualMaxValue is > 0 (guaranteed to be integer counts like 1.0, 2.0 etc from ViewModel)
+        yAxisTopValue = ceil(actualMaxValue).toFloat()
+        yTickCount = yAxisTopValue.toInt().coerceAtLeast(1)
+    }
+    Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount")
+
+    // Dynamic Y-Axis Label Area Width (Moved to top level)
+    val yAxisLabelPadding = remember(density) { with(density) { 4.dp.toPx() } }
+    val yAxisMaxLabelWidth = remember(yAxisTopValue, yTickCount, yAxisPaintTextSize, yAxisPaintAlign) { // Restored dynamic calculation
+        val tempPaint = Paint().apply {
+            textAlign = yAxisPaintAlign
+            textSize = yAxisPaintTextSize
+            isAntiAlias = true
+            // Typeface could be set here if it were variable and passed as a key
+        }
+        if (yTickCount >= 0) {
+            (0..yTickCount).maxOfOrNull { i ->
+                val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
+                tempPaint.measureText(tickValue.toInt().toString())
+            } ?: tempPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
+        } else {
+             tempPaint.measureText("0") // Fallback if yTickCount is somehow negative
+        }
+    }
+    val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2f // Ensure float arithmetic
+    Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
 
     Canvas(
         modifier = modifier.semantics { contentDescription = chartContentDescription } // Added semantics
@@ -104,42 +138,7 @@ fun SimpleBarChart(
 
         if (totalItems == 0) return@Canvas
 
-        // Y-Axis Implementation: Calculate actualMaxValue, yAxisTopValue, and yTickCount first
-        val actualMaxValue = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
-        val yAxisTopValue: Float
-        val yTickCount: Int
-
-        if (actualMaxValue == 0f) {
-            yAxisTopValue = 5f // Default scale for an all-zero chart, showing ticks up to 5.
-            yTickCount = 5
-        } else { // actualMaxValue is > 0 (guaranteed to be integer counts like 1.0, 2.0 etc from ViewModel)
-            yAxisTopValue = ceil(actualMaxValue).toFloat()
-            yTickCount = yAxisTopValue.toInt().coerceAtLeast(1)
-        }
-        Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount")
-
-        // Dynamic Y-Axis Label Area Width
-        val yAxisLabelPadding = remember(density) { with(density) { 4.dp.toPx() } }
-        // val yAxisMaxLabelWidth = remember(yAxisTopValue, yTickCount, yAxisPaintTextSize, yAxisPaintAlign) {
-        //     val tempPaint = Paint().apply {
-        //         textAlign = yAxisPaintAlign
-        //         textSize = yAxisPaintTextSize
-        //         isAntiAlias = true
-        //         // Typeface could be set here if it were variable and passed as a key
-        //     }
-        //     if (yTickCount >= 0) {
-        //         (0..yTickCount).maxOfOrNull { i ->
-        //             val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
-        //             tempPaint.measureText(tickValue.toInt().toString())
-        //         } ?: tempPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
-        //     } else {
-        //          tempPaint.measureText("0") // Fallback if yTickCount is somehow negative
-        //     }
-        // }
-        val yAxisMaxLabelWidth = with(density) { 30.dp.toPx() } // Temporary hardcoded value for debugging
-        val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2f // Ensure float arithmetic
-        Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
-
+        // Calculations dependent on canvas size remain here
         val chartAreaWidth = canvasWidth - yAxisLabelAreaWidth
 
         // Dynamic bar width and spacing calculation
