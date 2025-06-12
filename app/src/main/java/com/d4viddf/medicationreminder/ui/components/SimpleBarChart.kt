@@ -75,12 +75,15 @@ fun SimpleBarChart(
 
     val barCornerRadiusPx = with(density) { barCornerRadiusDp.toPx() }
 
-    // Y-axis Paint (can be same as textPaint or customized)
-    val yAxisTextPaint = remember(labelTextColor, density) {
+    // Y-axis Paint related properties for keying and measurement
+    val yAxisPaintTextSize = remember(density) { with(density) { 10.sp.toPx() } } // For yAxisTextPaint
+    val yAxisPaintAlign = Paint.Align.RIGHT // Constant for yAxisTextPaint
+
+    val yAxisTextPaint = remember(labelTextColor, density, yAxisPaintTextSize, yAxisPaintAlign) { // labelTextColor can change
         Paint().apply {
             color = labelTextColor.toArgb()
-            textAlign = Paint.Align.RIGHT // Align to the right for Y-axis labels
-            textSize = with(density) { 10.sp.toPx() } // Smaller text for Y-axis
+            textAlign = yAxisPaintAlign
+            textSize = yAxisPaintTextSize
             isAntiAlias = true
         }
     }
@@ -115,16 +118,22 @@ fun SimpleBarChart(
         }
         Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount")
 
-        // Dynamic Y-Axis Label Area Width (Now correctly placed after yAxisTopValue and yTickCount are known)
-        val yAxisLabelPadding = with(density) { 4.dp.toPx() }
-        val yAxisMaxLabelWidth = remember(yAxisTextPaint, yAxisTopValue, yTickCount) { // Keyed correctly
+        // Dynamic Y-Axis Label Area Width
+        val yAxisLabelPadding = remember(density) { with(density) { 4.dp.toPx() } }
+        val yAxisMaxLabelWidth = remember(yAxisTopValue, yTickCount, yAxisPaintTextSize, yAxisPaintAlign) {
+            val tempPaint = Paint().apply {
+                textAlign = yAxisPaintAlign
+                textSize = yAxisPaintTextSize
+                isAntiAlias = true
+                // Typeface could be set here if it were variable and passed as a key
+            }
             if (yTickCount >= 0) {
                 (0..yTickCount).maxOfOrNull { i ->
                     val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
-                    yAxisTextPaint.measureText(tickValue.toInt().toString())
-                } ?: yAxisTextPaint.measureText("0")
+                    tempPaint.measureText(tickValue.toInt().toString())
+                } ?: tempPaint.measureText("0") // Fallback for "0" if maxOfOrNull is null
             } else {
-                 yAxisTextPaint.measureText("0")
+                 tempPaint.measureText("0") // Fallback if yTickCount is somehow negative
             }
         }
         val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding * 2f // Ensure float arithmetic
