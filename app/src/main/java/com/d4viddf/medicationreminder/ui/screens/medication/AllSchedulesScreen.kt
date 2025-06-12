@@ -63,7 +63,8 @@ fun FullScheduleItem(
     medicationId: Int, // Added medicationId parameter
     onToggleTaken: ((itemId: String, isTaken: Boolean, medicationId: Int) -> Unit)? = null,
     isSwitchEnabled: Boolean = false,
-    showSwitch: Boolean = false
+    showSwitch: Boolean = false,
+    medicationColor: MedicationColor // Added parameter
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
 
@@ -71,7 +72,7 @@ fun FullScheduleItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp), // Padding for the card itself
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = medicationColor.cardColor)
     ) {
         Row(
             modifier = Modifier
@@ -102,14 +103,14 @@ fun FullScheduleItem(
                 Text(
                     text = itemName,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant // Set color
+                    color = medicationColor.onBackgroundColor // Set color
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = itemTimeText,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant // Set color
+                    color = medicationColor.onBackgroundColor // Set color
                 )
             }
             if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
@@ -228,6 +229,7 @@ fun AllSchedulesScreen(
                                 itemData = itemData,
                                 medicationName = medicationName ?: "Medication", // Fallback
                                 medicationId = medicationId, // Pass screen's medicationId
+                                medicationColor = medicationColor, // Pass medicationColor
                                 showSwitch = showToday,
                                 onToggleTaken = if (showToday) {
                                     { itemId, newState, mId -> // mId here is the one passed to FullScheduleItem
@@ -338,6 +340,7 @@ fun AllSchedulesScreenTodayPreview() {
                             itemData = item,
                             medicationName = item.medicationName,
                             medicationId = previewMedicationId, // Pass previewMedicationId
+                            medicationColor = medicationColor, // Pass medicationColor for preview
                             showSwitch = true,
                             onToggleTaken = { _, _, _ -> }, // No-op for preview
                             isSwitchEnabled = item.isPast || item.isTaken
