@@ -104,14 +104,14 @@ fun FullScheduleItem(
                 Text(
                     text = itemName,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // Set color
+                    color = MaterialTheme.colorScheme.onSurface // Set color
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = itemTimeText,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // Set color
+                    color = MaterialTheme.colorScheme.onSurface // Set color
                 )
             }
             if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {

@@ -164,7 +164,16 @@ fun MedicationDetailsScreen(
     )
         ?: remember { mutableStateOf(emptyList<ChartyGraphEntry>()) })
 
+    // Add this logging
+    LaunchedEffect(chartEntries) {
+        Log.d("MedDetailScreenChart", "Collected chartEntries. Count: ${chartEntries.size}")
+        if (chartEntries.isNotEmpty()) {
+            Log.d("MedDetailScreenChart", "First entry: ${chartEntries.firstOrNull()}")
+        }
+    }
+
     LaunchedEffect(medicationId, graphViewModel) {
+        Log.d("MedDetailScreenChart", "LaunchedEffect for medicationId: $medicationId, graphViewModel: ${graphViewModel != null}")
         viewModel.getMedicationById(medicationId)?.let { med ->
             medicationState = med
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
@@ -182,7 +191,9 @@ fun MedicationDetailsScreen(
             val today = LocalDate.now()
             val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
             val currentWeekDays = List(7) { i -> monday.plusDays(i.toLong()) }
+            Log.d("MedDetailScreenChart", "Before calling loadWeeklyGraphData for medId: $medicationId, week: $currentWeekDays")
             graphViewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
+            Log.d("MedDetailScreenChart", "After calling loadWeeklyGraphData")
         } else if (graphViewModel != null) {
             graphViewModel.clearGraphData()
             Log.d(
@@ -553,7 +564,7 @@ fun MedicationDetailsScreen(
                                     ) {
                                         // SimpleBarChart IMPLEMENTATION:
                                         val finalBarChartItems = remember(chartEntries) {
-                                            if (chartEntries.isEmpty()) {
+                                            val items = if (chartEntries.isEmpty()) {
                                                 // Generate default items for the current week
                                                 val today = LocalDate.now()
                                                 val monday = today.with(
@@ -580,6 +591,12 @@ fun MedicationDetailsScreen(
                                                     )
                                                 }
                                             }
+                                            // Add this logging
+                                            Log.d("MedDetailScreenChart", "Derived finalBarChartItems. Count: ${items.size}")
+                                            if (items.isNotEmpty()) {
+                                                Log.d("MedDetailScreenChart", "First finalBarChartItem: ${items.firstOrNull()}")
+                                            }
+                                            items
                                         }
 
                                         SimpleBarChart(

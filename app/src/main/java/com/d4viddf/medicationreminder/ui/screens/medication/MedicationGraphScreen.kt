@@ -174,21 +174,41 @@ fun MedicationGraphScreen(
 
     // Data Loading LaunchedEffects
     LaunchedEffect(medicationId, currentWeekMonday, viewModel) {
+        Log.d("MedGraphScreenLog", "Weekly LaunchedEffect triggered. MedId: $medicationId, WeekMonday: $currentWeekMonday, VM: ${viewModel != null}")
         if (medicationId > 0 && viewModel != null) {
             val currentWeekDays = List(7) { i -> currentWeekMonday.plusDays(i.toLong()) }
+            Log.d("MedGraphScreenLog", "Before calling loadWeeklyGraphData. MedId: $medicationId, Days: $currentWeekDays")
             viewModel.loadWeeklyGraphData(medicationId, currentWeekDays)
+            Log.d("MedGraphScreenLog", "After calling loadWeeklyGraphData.")
         } else if (viewModel != null) {
             viewModel.clearGraphData() // Or specific clear for weekly
-            Log.d("MedicationGraphScreen", "Invalid medicationId ($medicationId) or null ViewModel, clearing weekly graph data.")
+            Log.d("MedGraphScreenLog", "Invalid medicationId ($medicationId) or null ViewModel, clearing weekly graph data.")
+        }
+    }
+
+    LaunchedEffect(weeklyChartEntries) {
+        Log.d("MedGraphScreenLog", "Collected weeklyChartEntries. Count: ${weeklyChartEntries.size}")
+        if (weeklyChartEntries.isNotEmpty()) {
+            Log.d("MedGraphScreenLog", "First weekly entry: ${weeklyChartEntries.firstOrNull()}")
         }
     }
 
     LaunchedEffect(medicationId, currentDisplayedYear, viewModel) {
+        Log.d("MedGraphScreenLog", "Yearly LaunchedEffect triggered. MedId: $medicationId, Year: $currentDisplayedYear, VM: ${viewModel != null}")
         if (medicationId > 0 && viewModel != null) {
+            Log.d("MedGraphScreenLog", "Before calling loadYearlyGraphData. MedId: $medicationId, Year: $currentDisplayedYear")
             viewModel.loadYearlyGraphData(medicationId, currentDisplayedYear)
+            Log.d("MedGraphScreenLog", "After calling loadYearlyGraphData.")
         } else if (viewModel != null) {
             viewModel.clearGraphData() // Or specific clear for yearly
-            Log.d("MedicationGraphScreen", "Invalid medicationId ($medicationId) or null ViewModel, clearing yearly graph data.")
+            Log.d("MedGraphScreenLog", "Invalid medicationId ($medicationId) or null ViewModel, clearing yearly graph data.")
+        }
+    }
+
+    LaunchedEffect(yearlyChartEntries) {
+        Log.d("MedGraphScreenLog", "Collected yearlyChartEntries. Count: ${yearlyChartEntries.size}")
+        if (yearlyChartEntries.isNotEmpty()) {
+            Log.d("MedGraphScreenLog", "First yearly entry: ${yearlyChartEntries.firstOrNull()}")
         }
     }
 
