@@ -207,11 +207,12 @@ fun MedicationGraphScreen(
                         }
                     },
                     scrollBehavior = scrollBehavior, // Added
-                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors( // Changed here
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // Added
                     )
                 )
             }
@@ -401,7 +402,7 @@ private fun WeeklyChartCard(
 
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = "Previous week", // Updated
+                    contentDescription = "Previous week", // Updated to hardcoded string
                     onClick = {
                         val prevWeek = currentWeekMondayInternal.minusWeeks(1)
                         if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
@@ -422,7 +423,7 @@ private fun WeeklyChartCard(
                 )
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Next week", // Updated
+                    contentDescription = "Next week", // Updated to hardcoded string
                     onClick = {
                         val nextWeek = currentWeekMondayInternal.plusWeeks(1)
                         if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
