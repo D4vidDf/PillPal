@@ -642,52 +642,45 @@ fun MedicationDetailsScreen(
                             }
                         }
 
-                        item { // Medication Information Card
-                            val medicationInfoAvailable =
-                                !medicationState?.nregistro.isNullOrBlank()
-                            if (medicationInfoAvailable) {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Information",
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            onNavigateToMedicationInfo(
-                                                medicationId,
-                                                color.name // Use color.name from the MedicationColor enum instance
-                                            )
-                                        }
-                                        .padding(horizontal = 16.dp, vertical = 12.dp) // Standard padding for a clickable row
-                                )
-                            }
+                        item { // Medication Information Title Text
+                            // Removed Spacer and if (medicationInfoAvailable) wrapper from Text title
+                            Text(
+                                text = "Information",
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onNavigateToMedicationInfo(
+                                            medicationId,
+                                            color.name
+                                        )
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                            )
                         }
 
+                        // Item for the "View Full Information" button (restored from subtask 15)
                         item {
-                                            onClick = {
-                                                onNavigateToMedicationInfo(
-                                                    medicationId,
-                                                    medicationState?.color
-                                                        ?: MedicationColor.LIGHT_ORANGE.name
-                                                )
-                                            },
-                                            modifier = Modifier.align(Alignment.End),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.primary,
-                                                contentColor = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        ) {
-                                            Text(text = stringResource(id = R.string.view_full_information))
-                                            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                                            )
-                                        }
-                                    }
+                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
+                            if (medicationInfoAvailable) {
+                                Button(
+                                    onClick = {
+                                        onNavigateToMedicationInfo(
+                                            medicationId,
+                                            color.name
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Text(stringResource(id = R.string.view_full_information))
                                 }
                             }
                         }
