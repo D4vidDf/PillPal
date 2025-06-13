@@ -43,6 +43,8 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.foundation.lazy.LazyColumn // Added for Year Picker
 import androidx.compose.foundation.lazy.items // Added for Year Picker
 import androidx.compose.foundation.clickable // Added for clickable text in year picker
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.TopAppBar // Ensure this is imported for the preview
 import androidx.compose.material3.TopAppBarDefaults
@@ -256,6 +258,7 @@ fun MedicationGraphScreen(
                                 onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
                                 showWeekPickerDialog = showWeekPickerDialog,
                                 onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
                                 weeklyChartEntries = weeklyChartEntries,
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly,
@@ -270,6 +273,7 @@ fun MedicationGraphScreen(
                                 onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
                                 showYearPickerDialog = showYearPickerDialog,
                                 onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
                                 yearlyChartEntries = yearlyChartEntries,
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly,
@@ -287,6 +291,7 @@ fun MedicationGraphScreen(
                                 onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
                                 showWeekPickerDialog = showWeekPickerDialog,
                                 onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
                                 weeklyChartEntries = weeklyChartEntries,
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly,
@@ -301,6 +306,7 @@ fun MedicationGraphScreen(
                                 onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
                                 showYearPickerDialog = showYearPickerDialog,
                                 onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
                                 yearlyChartEntries = yearlyChartEntries,
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly,
@@ -401,7 +407,8 @@ private fun WeeklyChartCard(
     // Date limit parameters
     today: LocalDate,
     currentCalendarWeekMonday: LocalDate,
-    minWeekOverallLimitMonday: LocalDate
+    minWeekOverallLimitMonday: LocalDate,
+    medicationColor: MedicationColor // Added parameter
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -434,13 +441,19 @@ private fun WeeklyChartCard(
 
                 val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
                 val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
-                Text(
-                    text = displayedWeekRange,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier
-                        .clickable { onShowWeekPickerDialogChange(true) }
-                        .semantics { contentDescription = "Change week, current period: $displayedWeekRange" } // Added
-                )
+                Button(
+                    onClick = { onShowWeekPickerDialogChange(true) },
+                    modifier = Modifier.semantics { contentDescription = "Change week, current period: $displayedWeekRange" },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = medicationColor.onBackgroundColor,
+                        contentColor = medicationColor.cardColor
+                    )
+                ) {
+                    Text(
+                        text = displayedWeekRange,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Next week", // Updated to hardcoded string
@@ -531,7 +544,8 @@ private fun YearlyChartCard(
     error: String?,
     // Date limit parameters
     today: LocalDate,
-    minYear: Int
+    minYear: Int,
+    medicationColor: MedicationColor // Added parameter
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -560,13 +574,19 @@ private fun YearlyChartCard(
                     },
                     enabled = currentDisplayedYearInternal > minYear // Use passed-in minYear
                 )
-                Text(
-                    text = currentDisplayedYearInternal.toString(),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier
-                        .clickable { onShowYearPickerDialogChange(true) } // Use callback
-                        .semantics { contentDescription = "Change year, current year: ${currentDisplayedYearInternal.toString()}" } // Added
-                )
+                Button(
+                    onClick = { onShowYearPickerDialogChange(true) },
+                    modifier = Modifier.semantics { contentDescription = "Change year, current year: ${currentDisplayedYearInternal.toString()}" },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = medicationColor.onBackgroundColor,
+                        contentColor = medicationColor.cardColor
+                    )
+                ) {
+                    Text(
+                        text = currentDisplayedYearInternal.toString(),
+                        style = MaterialTheme.typography.titleMedium // Changed from labelMedium
+                    )
+                }
                 StyledNavigationArrow(
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Next year", // Updated
