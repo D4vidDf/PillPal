@@ -545,46 +545,45 @@ fun MedicationDetailsScreen(
                         }
 
                         item { // Graphics Card
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Card(
+                            // Spacer(modifier = Modifier.height(16.dp)) // Spacer will be added between this and next item.
+                            ElevatedCard( // Changed Card to ElevatedCard
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                                    .clickable { onNavigateToMedicationGraph(medicationId, color.name) }, // Make card clickable
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = color.backgroundColor // Changed to backgroundColor
-                                )
+                                    .padding(horizontal = 16.dp) // Keep card padding
+                                    .clickable { onNavigateToMedicationGraph(medicationId, color.name) },
+                                shape = RoundedCornerShape(12.dp)
+                                // colors = CardDefaults.cardColors( // Removed specific colors, use ElevatedCard defaults
+                                // containerColor = color.backgroundColor
+                                // )
                             ) {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(16.dp)
                                 ) {
-                                    Row( // New Row for title and icon
+                                    Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "Week Progress", // Changed text
-                                            style = MaterialTheme.typography.titleMedium,
+                                            text = "Week Progress",
+                                            style = MaterialTheme.typography.titleLarge, // Changed to titleLarge
                                             color = color.onBackgroundColor,
-                                            modifier = Modifier.weight(1f) // Text takes available space
+                                            modifier = Modifier.weight(1f)
                                         )
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                                            contentDescription = "View full graph", // Or stringResource
+                                            contentDescription = "View full graph",
                                             tint = color.onBackgroundColor,
-                                            modifier = Modifier.size(24.dp) // Example size
+                                            modifier = Modifier.size(24.dp)
                                         )
                                     }
-                                    // Spacer(modifier = Modifier.height(8.dp)) // Keep spacer if needed after Row
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(150.dp)
+                                            .height(180.dp) // Changed height
                                             .background(
-                                                color.backgroundColor, // Changed to backgroundColor
+                                                Color.Transparent, // Changed to Transparent
                                                 RoundedCornerShape(8.dp)
                                             )
                                             .padding(16.dp),
@@ -642,6 +641,10 @@ fun MedicationDetailsScreen(
                             }
                         }
 
+                        item { // New Spacer item
+                            Spacer(Modifier.height(16.dp))
+                        }
+
                         item { // Medication Information Title Text
                             // Removed Spacer and if (medicationInfoAvailable) wrapper from Text title
                             Text(
@@ -661,29 +664,7 @@ fun MedicationDetailsScreen(
                             )
                         }
 
-                        // Item for the "View Full Information" button (restored from subtask 15)
-                        item {
-                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
-                            if (medicationInfoAvailable) {
-                                Button(
-                                    onClick = {
-                                        onNavigateToMedicationInfo(
-                                            medicationId,
-                                            color.name
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                ) {
-                                    Text(stringResource(id = R.string.view_full_information))
-                                }
-                            }
-                        }
+                        // "View Full Information" Button's item block removed.
 
                         item {
                             Spacer(modifier = Modifier.height(48.dp))
