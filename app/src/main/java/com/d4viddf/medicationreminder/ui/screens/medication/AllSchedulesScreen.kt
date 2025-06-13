@@ -327,11 +327,11 @@ fun AllSchedulesScreenTodayPreview() {
                             }
                         },
                         scrollBehavior = scrollBehavior, // Passed scrollBehavior for preview
-                        colors = TopAppBarDefaults.topAppBarColors(// Changed to largeTopAppBarColors for preview
+                        colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors for preview
                             containerColor = Color.Transparent,
                             scrolledContainerColor = Color.Transparent,
-                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
                             titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
                             actionIconContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     )

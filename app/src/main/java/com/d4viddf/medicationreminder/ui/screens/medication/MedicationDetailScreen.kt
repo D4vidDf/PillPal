@@ -377,6 +377,30 @@ fun MedicationDetailsScreen(
                             }
                         }
 
+                        // New item for the button
+                        item {
+                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
+                            if (medicationInfoAvailable) {
+                                Button(
+                                    onClick = {
+                                        onNavigateToMedicationInfo(
+                                            medicationId,
+                                            color.name
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Text(stringResource(id = R.string.view_full_information))
+                                }
+                            }
+                        }
+
                         item {
                             Row(
                                 modifier = Modifier
@@ -522,12 +546,15 @@ fun MedicationDetailsScreen(
 
                         item { // Graphics Card
                             Spacer(modifier = Modifier.height(16.dp))
-                            ElevatedCard(
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
                                     .clickable { onNavigateToMedicationGraph(medicationId, color.name) }, // Make card clickable
                                 shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = color.backgroundColor // Changed to backgroundColor
+                                )
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -540,7 +567,7 @@ fun MedicationDetailsScreen(
                                     ) {
                                         Text(
                                             text = "Week Progress", // Changed text
-                                            style = MaterialTheme.typography.titleLargeEmphasized,
+                                            style = MaterialTheme.typography.titleMedium,
                                             color = color.onBackgroundColor,
                                             modifier = Modifier.weight(1f) // Text takes available space
                                         )
@@ -555,7 +582,11 @@ fun MedicationDetailsScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(200.dp)
+                                            .height(150.dp)
+                                            .background(
+                                                color.backgroundColor, // Changed to backgroundColor
+                                                RoundedCornerShape(8.dp)
+                                            )
                                             .padding(16.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -616,43 +647,25 @@ fun MedicationDetailsScreen(
                                 !medicationState?.nregistro.isNullOrBlank()
                             if (medicationInfoAvailable) {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Card( // Changed from ElevatedCard to Card
+                                Text(
+                                    text = "Information",
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.cardColors( // Changed to cardColors
-                                        containerColor = color.cardColor // Reverted to cardColor
-                                    )
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(bottom = 8.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Info,
-                                                contentDescription = null,
-                                                tint = color.onBackgroundColor // Reverted color
-                                            )
-                                            Spacer(modifier = Modifier.size(12.dp))
-                                            Text(
-                                                text = stringResource(id = R.string.medication_information_title),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = color.onBackgroundColor // Reverted color
+                                        .clickable {
+                                            onNavigateToMedicationInfo(
+                                                medicationId,
+                                                color.name // Use color.name from the MedicationColor enum instance
                                             )
                                         }
-                                        Text(
-                                            text = stringResource(id = R.string.medication_info_description_placeholder),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = color.onBackgroundColor, // Reverted color
-                                            modifier = Modifier.padding(bottom = 12.dp)
-                                        )
-                                        Button(
+                                        .padding(horizontal = 16.dp, vertical = 12.dp) // Standard padding for a clickable row
+                                )
+                            }
+                        }
+
+                        item {
                                             onClick = {
                                                 onNavigateToMedicationInfo(
                                                     medicationId,
