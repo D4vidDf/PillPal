@@ -492,47 +492,31 @@ fun MedicationDetailsScreen(
 
                         item { // Medication History Card
                             Spacer(modifier = Modifier.height(16.dp))
-                            Card( // Changed from ElevatedCard to Card
-                                onClick = {
-                                    onNavigateToMedicationHistory(
-                                        medicationId,
-                                        medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name
-                                    )
-                                },
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors( // Changed to cardColors
-                                    containerColor = color.progressBackColor // Use pale medication-specific color
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 20.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = Icons.Filled.History,
-                                            contentDescription = null,
-                                            tint = color.textColor // Use pale medication-specific color
-                                        )
-                                        Spacer(modifier = Modifier.size(12.dp))
-                                        Text(
-                                            text = stringResource(id = R.string.medication_history_title),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = color.textColor // Use pale medication-specific color
+                                    .clickable {
+                                        onNavigateToMedicationHistory(
+                                            medicationId,
+                                            color.name
                                         )
                                     }
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                                        contentDescription = null,
-                                        tint = color.textColor // Use pale medication-specific color
-                                    )
-                                }
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.medication_history_title),
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.History,
+                                    contentDescription = stringResource(id = R.string.medication_history_title),
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(28.dp)
+                                )
                             }
                         }
 
