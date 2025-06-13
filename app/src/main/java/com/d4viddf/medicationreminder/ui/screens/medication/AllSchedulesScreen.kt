@@ -305,9 +305,11 @@ fun AllSchedulesScreenTodayPreview() {
 
     AppTheme {
         MedicationSpecificTheme(medicationColor = medicationColor) {
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Added scroll behavior for preview
             Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added modifier for preview
                 topBar = {
-                    TopAppBar( // Changed back to TopAppBar
+                    LargeTopAppBar( // Changed to LargeTopAppBar for preview
                         title = {
                             Text(
                                 stringResource(
@@ -317,19 +319,20 @@ fun AllSchedulesScreenTodayPreview() {
                             )
                         },
                         navigationIcon = {
-                            IconButton(onClick = {}) { // No-op for preview
+                            IconButton(onClick = { /* No-op for preview */ }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(id = R.string.back_button_cd)
+                                    contentDescription = "Back"
                                 )
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent, // Changed
-                            scrolledContainerColor = Color.Transparent, // Changed
-                            titleContentColor = MaterialTheme.colorScheme.onSurface, // Changed
-                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface, // Changed
-                            actionIconContentColor = MaterialTheme.colorScheme.onSurface // Changed
+                        scrollBehavior = scrollBehavior, // Passed scrollBehavior for preview
+                        colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors for preview
+                            containerColor = Color.Transparent,
+                            scrolledContainerColor = Color.Transparent,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }

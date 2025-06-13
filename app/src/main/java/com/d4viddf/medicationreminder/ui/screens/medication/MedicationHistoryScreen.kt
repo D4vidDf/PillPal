@@ -41,7 +41,7 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 // import androidx.compose.material3.TextButton // No longer used directly for dialog buttons
 import androidx.compose.material3.Button // Added for Dialog buttons
-import androidx.compose.material3.ButtonDefaults // Added for Dialog buttons
+// import androidx.compose.material3.ButtonDefaults // Removed redundant import
 import androidx.compose.material3.LargeTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState // New import
@@ -80,6 +80,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.Locale // Added import
 
 // Removed old placeholder data class MedicationHistoryEntry
 
