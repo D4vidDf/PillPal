@@ -505,15 +505,15 @@ fun MedicationDetailsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = stringResource(id = R.string.medication_history_title),
+                                    text = "History", // Changed text
                                     fontSize = 36.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f)
                                 )
                                 Icon(
-                                    imageVector = Icons.Filled.History,
-                                    contentDescription = stringResource(id = R.string.medication_history_title),
+                                    imageVector = Icons.AutoMirrored.Filled.NavigateNext, // Changed icon
+                                    contentDescription = "History", // Changed content description
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(28.dp)
                                 )
