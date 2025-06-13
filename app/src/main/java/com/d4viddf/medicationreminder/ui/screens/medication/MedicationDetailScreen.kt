@@ -522,13 +522,14 @@ fun MedicationDetailsScreen(
 
                         item { // Graphics Card
                             Spacer(modifier = Modifier.height(16.dp))
-                            Card( // Changed from ElevatedCard to Card
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = 16.dp)
+                                    .clickable { onNavigateToMedicationGraph(medicationId, color.name) }, // Make card clickable
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors( // Changed to cardColors
-                                    containerColor = color.cardColor // Reverted to cardColor
+                                colors = CardDefaults.cardColors(
+                                    containerColor = color.cardColor
                                 )
                             ) {
                                 Column(
@@ -536,18 +537,30 @@ fun MedicationDetailsScreen(
                                         .fillMaxWidth()
                                         .padding(16.dp)
                                 ) {
-                                    Text(
-                                        text = stringResource(id = R.string.current_week_dosage_title),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = color.onBackgroundColor, // Reverted to onBackgroundColor
-                                        modifier = Modifier.padding(bottom = 8.dp)
-                                    )
+                                    Row( // New Row for title and icon
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Week Progress", // Changed text
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = color.onBackgroundColor,
+                                            modifier = Modifier.weight(1f) // Text takes available space
+                                        )
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                            contentDescription = "View full graph", // Or stringResource
+                                            tint = color.onBackgroundColor,
+                                            modifier = Modifier.size(24.dp) // Example size
+                                        )
+                                    }
+                                    // Spacer(modifier = Modifier.height(8.dp)) // Keep spacer if needed after Row
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(150.dp)
                                             .background(
-                                                color.cardColor, // Reverted to cardColor
+                                                color.cardColor,
                                                 RoundedCornerShape(8.dp)
                                             )
                                             .padding(16.dp),
@@ -592,38 +605,15 @@ fun MedicationDetailsScreen(
 
                                         SimpleBarChart(
                                             data = finalBarChartItems,
-                                            modifier = Modifier.fillMaxSize(), // The chart will fill the 150.dp Box
-                                            highlightedBarColor = color.onBackgroundColor, // Reverted
-                                            normalBarColor = color.progressBackColor, // Reverted
-                                            labelTextColor = color.onBackgroundColor, // Reverted
-                                            valueTextColor = color.onBackgroundColor, // Reverted
+                                            modifier = Modifier.fillMaxSize(),
+                                            highlightedBarColor = MaterialTheme.colorScheme.primary, // Target color
+                                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer, // Target color
+                                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant, // Target color
+                                            valueTextColor = MaterialTheme.colorScheme.onSurface, // Target color
                                             chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}"
-                                            // barWidthDp and spaceAroundBarsDp will use defaults from SimpleBarChart
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Button(
-                                        onClick = {
-                                            onNavigateToMedicationGraph(
-                                                medicationId,
-                                                medicationState?.color
-                                                    ?: MedicationColor.LIGHT_ORANGE.name
-                                            )
-                                        },
-                                        modifier = Modifier.align(Alignment.End),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    ) {
-                                        Text(text = stringResource(id = R.string.view_more_stats))
-                                        Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                                        Icon(
-                                            imageVector = Icons.Filled.BarChart,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                                        )
-                                    }
+                                    // "View More Stats" Button removed
                                 }
                             }
                         }

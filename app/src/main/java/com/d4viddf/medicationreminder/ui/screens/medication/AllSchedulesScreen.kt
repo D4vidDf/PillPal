@@ -21,8 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch // Needed again for TodayScheduleItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.LargeTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState // Added import
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added import
 import androidx.compose.ui.graphics.Color // Added import
+import androidx.compose.ui.input.nestedscroll.nestedScroll // Added import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -163,11 +165,13 @@ fun AllSchedulesScreen(
     } else {
         stringResource(R.string.all_schedules_title)
     }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Added scroll behavior
 
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added modifier
             topBar = {
-                TopAppBar( // Changed back to TopAppBar
+                LargeTopAppBar( // Changed from TopAppBar
                     title = { Text(title) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
@@ -177,12 +181,13 @@ fun AllSchedulesScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
+                    scrollBehavior = scrollBehavior, // Passed scrollBehavior
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
                         containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface, // Adjusted for transparent background
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface, // Adjusted for transparent background
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // Adjusted for transparent background
+                        scrolledContainerColor = Color.Transparent, // Or MaterialTheme.colorScheme.surface if a fill is desired on scroll
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // If any actions were present
                     )
                 )
             }

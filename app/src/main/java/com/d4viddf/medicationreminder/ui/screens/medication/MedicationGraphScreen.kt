@@ -45,7 +45,7 @@ import androidx.compose.foundation.lazy.items // Added for Year Picker
 import androidx.compose.foundation.clickable // Added for clickable text in year picker
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.LargeTopAppBar // Changed from MediumTopAppBar
 import androidx.compose.material3.TopAppBar // Ensure this is imported for the preview
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -163,7 +163,7 @@ fun MedicationGraphScreen(
     var showYearPickerDialog by remember { mutableStateOf(false) }
 
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Changed scroll behavior
     // val medicationName by viewModel?.medicationName?.collectAsState() ?: remember { mutableStateOf("Sample Medication (Preview)") } // Potentially use in AppBar
 
     // Collect separate data flows
@@ -218,8 +218,8 @@ fun MedicationGraphScreen(
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added
             topBar = {
-                MediumTopAppBar( // Changed
-                    title = { Text(stringResource(id = R.string.medication_statistics_title)) },
+                LargeTopAppBar( // Changed from MediumTopAppBar
+                    title = { Text("Statistics") }, // Changed title
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -228,13 +228,13 @@ fun MedicationGraphScreen(
                             )
                         }
                     },
-                    scrollBehavior = scrollBehavior, // Added
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed here
+                    scrollBehavior = scrollBehavior, // Passed scrollBehavior
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // Added
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // Kept as onSurface for consistency
                     )
                 )
             }

@@ -39,8 +39,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.MediumTopAppBar // Changed import
+// import androidx.compose.material3.TextButton // No longer used directly for dialog buttons
+import androidx.compose.material3.Button // Added for Dialog buttons
+import androidx.compose.material3.ButtonDefaults // Added for Dialog buttons
+import androidx.compose.material3.LargeTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState // New import
 import androidx.compose.material3.rememberDateRangePickerState
@@ -123,7 +125,7 @@ fun MedicationHistoryScreen(
 
     var showDateRangeDialog by remember { mutableStateOf(false) } // Hoisted state variable
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Changed scroll behavior
 
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
@@ -146,7 +148,7 @@ fun MedicationHistoryScreen(
         DatePickerDialog(
             onDismissRequest = { showDateRangeDialog = false },
             confirmButton = {
-                TextButton(
+                Button( // Changed from TextButton
                     onClick = {
                         val startDateMillis = dateRangePickerState.selectedStartDateMillis
                         val endDateMillis = dateRangePickerState.selectedEndDateMillis
@@ -157,13 +159,23 @@ fun MedicationHistoryScreen(
                         }
                         showDateRangeDialog = false
                     },
-                    enabled = dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
+                    enabled = dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null,
+                    colors = ButtonDefaults.buttonColors( // Added colors
+                        containerColor = medicationColor.onBackgroundColor,
+                        contentColor = medicationColor.cardColor
+                    )
                 ) {
                     Text(stringResource(id = android.R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDateRangeDialog = false }) {
+                Button( // Changed from TextButton
+                    onClick = { showDateRangeDialog = false },
+                    colors = ButtonDefaults.buttonColors( // Added colors
+                        containerColor = medicationColor.onBackgroundColor,
+                        contentColor = medicationColor.cardColor
+                    )
+                ) {
                     Text(stringResource(id = android.R.string.cancel))
                 }
             }
@@ -176,8 +188,8 @@ fun MedicationHistoryScreen(
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                MediumTopAppBar(
-                    title = { Text(stringResource(id = R.string.medication_history_title)) },
+                LargeTopAppBar( // Changed from MediumTopAppBar
+                    title = { Text("History") }, // Changed title
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -186,8 +198,8 @@ fun MedicationHistoryScreen(
                             )
                         }
                     },
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    scrollBehavior = scrollBehavior, // Passed scrollBehavior
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
