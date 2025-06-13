@@ -338,20 +338,32 @@ fun MedicationGraphScreen(
                     DatePickerDialog(
                         onDismissRequest = { showWeekPickerDialog = false },
                         confirmButton = {
-                            TextButton(onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    var selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
-                                    // Ensure the selected Monday is not before the overall limit or after current view limit
-                                    var newMonday = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                                    if (newMonday.isBefore(minWeekOverallLimitMonday)) newMonday = minWeekOverallLimitMonday
-                                    if (newMonday.isAfter(currentCalendarWeekMonday)) newMonday = currentCalendarWeekMonday
-                                     currentWeekMonday = newMonday // Directly update state
-                                }
-                                showWeekPickerDialog = false
-                            }) { Text(stringResource(android.R.string.ok)) }
+                            Button(
+                                onClick = {
+                                    datePickerState.selectedDateMillis?.let { millis ->
+                                        var selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                                        // Ensure the selected Monday is not before the overall limit or after current view limit
+                                        var newMonday = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                                        if (newMonday.isBefore(minWeekOverallLimitMonday)) newMonday = minWeekOverallLimitMonday
+                                        if (newMonday.isAfter(currentCalendarWeekMonday)) newMonday = currentCalendarWeekMonday
+                                        currentWeekMonday = newMonday // Directly update state
+                                    }
+                                    showWeekPickerDialog = false
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = medicationColor.onBackgroundColor,
+                                    contentColor = medicationColor.cardColor
+                                )
+                            ) { Text(stringResource(android.R.string.ok)) }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showWeekPickerDialog = false }) { Text(stringResource(android.R.string.cancel)) }
+                            Button(
+                                onClick = { showWeekPickerDialog = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = medicationColor.onBackgroundColor,
+                                    contentColor = medicationColor.cardColor
+                                )
+                            ) { Text(stringResource(android.R.string.cancel)) }
                         }
                     ) {
                         DatePicker(state = datePickerState)
@@ -382,8 +394,16 @@ fun MedicationGraphScreen(
                                 }
                             }
                         },
-                        confirmButton = { // Changed to a dismiss button as selection is immediate
-                            TextButton(onClick = { showYearPickerDialog = false }) { Text(stringResource(android.R.string.cancel)) }
+                        confirmButton = {
+                            Button(
+                                onClick = { showYearPickerDialog = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = medicationColor.onBackgroundColor,
+                                    contentColor = medicationColor.cardColor
+                                )
+                            ) {
+                                Text(stringResource(android.R.string.cancel))
+                            }
                         }
                     )
                 }
