@@ -529,7 +529,7 @@ fun MedicationDetailsScreen(
                                     .clickable { onNavigateToMedicationGraph(medicationId, color.name) }, // Make card clickable
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = color.cardColor
+                                    containerColor = color.backgroundColor // Changed to backgroundColor
                                 )
                             ) {
                                 Column(
@@ -560,7 +560,7 @@ fun MedicationDetailsScreen(
                                             .fillMaxWidth()
                                             .height(150.dp)
                                             .background(
-                                                color.cardColor,
+                                                color.backgroundColor, // Changed to backgroundColor
                                                 RoundedCornerShape(8.dp)
                                             )
                                             .padding(16.dp),
