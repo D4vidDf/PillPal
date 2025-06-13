@@ -522,15 +522,12 @@ fun MedicationDetailsScreen(
 
                         item { // Graphics Card
                             Spacer(modifier = Modifier.height(16.dp))
-                            Card(
+                            ElevatedCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
                                     .clickable { onNavigateToMedicationGraph(medicationId, color.name) }, // Make card clickable
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = color.backgroundColor // Changed to backgroundColor
-                                )
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -543,7 +540,7 @@ fun MedicationDetailsScreen(
                                     ) {
                                         Text(
                                             text = "Week Progress", // Changed text
-                                            style = MaterialTheme.typography.titleMedium,
+                                            style = MaterialTheme.typography.titleLargeEmphasized,
                                             color = color.onBackgroundColor,
                                             modifier = Modifier.weight(1f) // Text takes available space
                                         )
@@ -558,11 +555,7 @@ fun MedicationDetailsScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(150.dp)
-                                            .background(
-                                                color.backgroundColor, // Changed to backgroundColor
-                                                RoundedCornerShape(8.dp)
-                                            )
+                                            .height(200.dp)
                                             .padding(16.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
