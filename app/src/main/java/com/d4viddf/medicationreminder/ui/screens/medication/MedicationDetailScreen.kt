@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController // Added import
+import androidx.navigation.compose.rememberNavController // Added import
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.Screen // Added import
 import com.d4viddf.medicationreminder.data.Medication
@@ -766,7 +767,7 @@ fun MedicationDetailsScreenCompactPreview() {
             onNavigateToMedicationGraph = { _, _ -> },
             onNavigateToMedicationInfo = { _, _ -> },
             widthSizeClass = WindowWidthSizeClass.Compact,
-            navController = NavController(AppTheme {}.context) // Example NavController
+            navController = rememberNavController() // Corrected line
         )
     }
 }
@@ -787,7 +788,7 @@ fun MedicationDetailsScreenMediumPreview() {
             onNavigateToMedicationGraph = { _, _ -> },
             onNavigateToMedicationInfo = { _, _ -> },
             widthSizeClass = WindowWidthSizeClass.Medium,
-            navController = NavController(AppTheme {}.context) // Example NavController
+            navController = rememberNavController() // Corrected line
         )
     }
 }
@@ -808,7 +809,7 @@ fun MedicationDetailsScreenExpandedPreview() {
             onNavigateToMedicationGraph = { _, _ -> },
             onNavigateToMedicationInfo = { _, _ -> },
             widthSizeClass = WindowWidthSizeClass.Expanded,
-            navController = NavController(AppTheme {}.context) // Example NavController
+            navController = rememberNavController() // Corrected line
         )
     }
 }
