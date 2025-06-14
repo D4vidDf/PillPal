@@ -433,7 +433,7 @@ private fun WeeklyChartCard(
                 // Removed redundant date limit declarations, use passed-in parameters
 
                 StyledNavigationArrow(
-                    iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
+                    iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_new_24),
                     contentDescription = "Previous week", // Updated to hardcoded string
                     onClick = {
                         val prevWeek = currentWeekMondayInternal.minusWeeks(1)
@@ -570,7 +570,7 @@ private fun YearlyChartCard(
                 // Removed redundant date limit declarations, use passed-in parameters
 
                 StyledNavigationArrow(
-                    iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
+                    iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_new_24),
                     contentDescription = "Previous year", // Updated
                     onClick = {
                         if (currentDisplayedYearInternal - 1 >= minYear) { // Use passed-in minYear
