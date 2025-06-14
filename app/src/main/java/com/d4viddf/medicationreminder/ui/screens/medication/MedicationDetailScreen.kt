@@ -62,7 +62,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController // Added import
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.screens.Screen // Added import
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationType
@@ -143,7 +145,8 @@ fun MedicationDetailsScreen(
     onNavigateToMedicationHistory: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
     onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit,
-    widthSizeClass: WindowWidthSizeClass // Added parameter
+    widthSizeClass: WindowWidthSizeClass, // Added parameter
+    navController: NavController // Added NavController
 ) {
     Log.d("MedDetailScreenChart", "MedicationDetailScreen recomposing. graphViewModel instance: ${graphViewModel.hashCode()}, isNull: ${graphViewModel == null}")
     Log.d(
@@ -316,24 +319,24 @@ fun MedicationDetailsScreen(
                             }
                             item {
                                 MedicationHistoryContent(
-                                    onNavigateToMedicationHistory = onNavigateToMedicationHistory,
+                                    navController = navController,
                                     medicationId = medicationId,
                                     colorName = color.name
                                 )
                             }
                             item {
                                 WeekProgressContent(
+                                    navController = navController,
                                     chartEntries = chartEntries,
                                     medicationState = medicationState,
-                                    onNavigateToMedicationGraph = onNavigateToMedicationGraph,
                                     medicationId = medicationId,
                                     color = color
                                 )
                             }
                             item {
                                 MedicationInformationContent(
+                                    navController = navController,
                                     medicationState = medicationState,
-                                    onNavigateToMedicationInfo = onNavigateToMedicationInfo,
                                     medicationId = medicationId,
                                     colorName = color.name
                                 )
@@ -385,20 +388,20 @@ fun MedicationDetailsScreen(
                                             .padding(start = 8.dp)
                                     ) {
                                         MedicationHistoryContent(
-                                            onNavigateToMedicationHistory = onNavigateToMedicationHistory,
+                                            navController = navController,
                                             medicationId = medicationId,
                                             colorName = color.name
                                         )
                                         WeekProgressContent(
+                                            navController = navController,
                                             chartEntries = chartEntries,
                                             medicationState = medicationState,
-                                            onNavigateToMedicationGraph = onNavigateToMedicationGraph,
                                             medicationId = medicationId,
                                             color = color
                                         )
                                         MedicationInformationContent(
+                                            navController = navController,
                                             medicationState = medicationState,
-                                            onNavigateToMedicationInfo = onNavigateToMedicationInfo,
                                             medicationId = medicationId,
                                             colorName = color.name
                                         )
@@ -599,7 +602,7 @@ private fun TodayScheduleContent(
 
 @Composable
 private fun MedicationHistoryContent(
-    onNavigateToMedicationHistory: (medicationId: Int, colorName: String) -> Unit,
+    navController: NavController,
     medicationId: Int,
     colorName: String
 ) {
@@ -607,7 +610,7 @@ private fun MedicationHistoryContent(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onNavigateToMedicationHistory(medicationId, colorName) }
+            .clickable { navController.navigate(Screen.MedicationHistory.createRoute(medicationId, colorName)) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -630,9 +633,9 @@ private fun MedicationHistoryContent(
 
 @Composable
 private fun WeekProgressContent(
+    navController: NavController,
     chartEntries: List<ChartyGraphEntry>,
     medicationState: Medication?,
-    onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
     medicationId: Int,
     color: MedicationColor
 ) {
@@ -640,7 +643,7 @@ private fun WeekProgressContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clickable { onNavigateToMedicationGraph(medicationId, color.name) },
+            .clickable { navController.navigate(Screen.MedicationGraph.createRoute(medicationId, color.name)) },
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -714,8 +717,8 @@ private fun WeekProgressContent(
 
 @Composable
 private fun MedicationInformationContent(
+    navController: NavController,
     medicationState: Medication?,
-    onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit,
     medicationId: Int,
     colorName: String
 ) {
@@ -732,7 +735,7 @@ private fun MedicationInformationContent(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         )
         Button(
-            onClick = { onNavigateToMedicationInfo(medicationId, colorName) },
+            onClick = { navController.navigate(Screen.MedicationInfo.createRoute(medicationId, colorName)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -762,7 +765,8 @@ fun MedicationDetailsScreenCompactPreview() {
             onNavigateToMedicationHistory = { _, _ -> },
             onNavigateToMedicationGraph = { _, _ -> },
             onNavigateToMedicationInfo = { _, _ -> },
-            widthSizeClass = WindowWidthSizeClass.Compact
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            navController = NavController(AppTheme {}.context) // Example NavController
         )
     }
 }
@@ -782,7 +786,8 @@ fun MedicationDetailsScreenMediumPreview() {
             onNavigateToMedicationHistory = { _, _ -> },
             onNavigateToMedicationGraph = { _, _ -> },
             onNavigateToMedicationInfo = { _, _ -> },
-            widthSizeClass = WindowWidthSizeClass.Medium
+            widthSizeClass = WindowWidthSizeClass.Medium,
+            navController = NavController(AppTheme {}.context) // Example NavController
         )
     }
 }
@@ -802,7 +807,8 @@ fun MedicationDetailsScreenExpandedPreview() {
             onNavigateToMedicationHistory = { _, _ -> },
             onNavigateToMedicationGraph = { _, _ -> },
             onNavigateToMedicationInfo = { _, _ -> },
-            widthSizeClass = WindowWidthSizeClass.Expanded
+            widthSizeClass = WindowWidthSizeClass.Expanded,
+            navController = NavController(AppTheme {}.context) // Example NavController
         )
     }
 }
