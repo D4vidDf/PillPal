@@ -47,7 +47,7 @@ import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import androidx.compose.material.icons.Icons // Added
-// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Fully Removed
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.AllSchedulesViewModel
@@ -321,7 +321,7 @@ fun AllSchedulesScreenTodayPreview() {
                         navigationIcon = {
                             IconButton(onClick = { /* No-op for preview */ }) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                     contentDescription = "Back"
                                 )
                             }
