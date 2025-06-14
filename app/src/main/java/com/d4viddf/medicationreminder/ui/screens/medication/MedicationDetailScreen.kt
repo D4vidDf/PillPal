@@ -483,6 +483,9 @@ fun MedicationDetailsScreen(
                                 )
                             }
                         }
+                        item { // New Spacer item
+                            Spacer(Modifier.height(16.dp))
+                        }
 
                         item { // Graphics Card
                             // Spacer(modifier = Modifier.height(16.dp)) // Spacer will be added between this and next item.
