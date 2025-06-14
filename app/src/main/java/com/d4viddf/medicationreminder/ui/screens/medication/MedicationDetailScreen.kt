@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints // Added import
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -124,6 +125,34 @@ fun ScheduleItem(
             onCheckedChange = onTakenChange, // Use the callback
             enabled = enabled // Control if switch can be interacted with
         )
+    }
+}
+
+@Preview(showBackground = true, name = "Hosted Narrow Pane (Medium WC)", widthDp = 580)
+@Composable
+fun MedicationDetailsScreenHostedNarrowPreview() {
+    AppTheme {
+        // Outer Box to simulate the constrained width of a pane.
+        // The width here (580.dp) should be less than minWidthForTwoPanes (600.dp).
+        Box(modifier = Modifier.width(580.dp)) {
+            MedicationDetailsScreen(
+                medicationId = 1,
+                navController = rememberNavController(), // From androidx.navigation.compose.rememberNavController
+                onNavigateBack = {},
+                sharedTransitionScope = null,
+                animatedVisibilityScope = null,
+                isHostedInPane = true, // Simulate being hosted in a pane
+                graphViewModel = null,
+                onNavigateToAllSchedules = { _, _ -> },
+                // The following lambdas are still part of MedicationDetailsScreen's signature,
+                // even if NavController is used internally for these specific actions.
+                // Pass empty lambdas or logging for preview purposes.
+                onNavigateToMedicationHistory = { _, _ -> },
+                onNavigateToMedicationGraph = { _, _ -> },
+                onNavigateToMedicationInfo = { _, _ -> },
+                widthSizeClass = WindowWidthSizeClass.Medium // Simulate being on a device classified as Medium
+            )
+        }
     }
 }
 
@@ -282,73 +311,21 @@ fun MedicationDetailsScreen(
                     )
                 }
             ) { innerPadding ->
-                // Apply innerPadding to the root Composable of the content
-                val contentModifier = Modifier.fillMaxSize().padding(innerPadding)
+                val outerContentModifier = Modifier.fillMaxSize().then(if (!isHostedInPane) Modifier.padding(innerPadding) else Modifier)
+                val minWidthForTwoPanes = 600.dp
 
-                when (widthSizeClass) {
-                    WindowWidthSizeClass.Compact -> {
-                        LazyColumn(
-                            modifier = contentModifier
-                        ) {
-                            item {
-                                MedicationHeaderAndProgress(
-                                    medicationState = medicationState,
-                                    progressDetails = progressDetails,
-                                    medicationTypeState = medicationTypeState,
-                                    color = color,
-                                    sharedTransitionScope = sharedTransitionScope,
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    medicationId = medicationId,
-                                    scheduleState = scheduleState
-                                )
-                            }
-                            item {
-                                TodayScheduleContent(
-                                    todayScheduleItems = todayScheduleItems,
-                                    medicationState = medicationState,
-                                    onShowMoreClick = {
-                                        onNavigateToAllSchedules(
-                                            medicationId,
-                                            medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name
-                                        )
-                                    },
-                                    onAddPastDoseClick = { showDialog = true },
-                                    medicationReminderViewModel = medicationReminderViewModel,
-                                    medicationId = medicationId,
-                                    // isTwoPane = false for Compact layout
-                                )
-                            }
-                            item {
-                                MedicationHistoryContent(
-                                    navController = navController,
-                                    medicationId = medicationId,
-                                    colorName = color.name
-                                )
-                            }
-                            item {
-                                WeekProgressContent(
-                                    navController = navController,
-                                    chartEntries = chartEntries,
-                                    medicationState = medicationState,
-                                    medicationId = medicationId,
-                                    color = color
-                                )
-                            }
-                            item {
-                                MedicationInformationContent(
-                                    navController = navController,
-                                    medicationState = medicationState,
-                                    medicationId = medicationId,
-                                    colorName = color.name
-                                )
-                            }
-                            item {
-                                Spacer(modifier = Modifier.height(48.dp))
-                            }
+                BoxWithConstraints(modifier = outerContentModifier) {
+                    val showTwoPanes = when (widthSizeClass) {
+                        WindowWidthSizeClass.Compact -> false
+                        else -> { // Medium or Expanded
+                            if (isHostedInPane) this.maxWidth >= minWidthForTwoPanes else true
                         }
                     }
-                    else -> { // Medium and Expanded
-                        LazyColumn(modifier = contentModifier) {
+
+                    val actualContentModifier = Modifier.fillMaxSize() // For inner LazyColumns
+
+                    if (showTwoPanes) {
+                        LazyColumn(modifier = actualContentModifier) {
                             item {
                                 MedicationHeaderAndProgress(
                                     medicationState = medicationState,
@@ -361,13 +338,9 @@ fun MedicationDetailsScreen(
                                     scheduleState = scheduleState
                                 )
                             }
-                            item {
-                                Row(Modifier.fillMaxWidth()) {
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(0.4f)
-                                            .padding(end = 8.dp)
-                                    ) {
+                            item { // Single item for the two-pane Row
+                                Row(Modifier.fillMaxWidth()) { // Row to hold both panes
+                                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) { // Left pane container, changed weight
                                         TodayScheduleContent(
                                             todayScheduleItems = todayScheduleItems,
                                             medicationState = medicationState,
@@ -380,41 +353,95 @@ fun MedicationDetailsScreen(
                                             onAddPastDoseClick = { showDialog = true },
                                             medicationReminderViewModel = medicationReminderViewModel,
                                             medicationId = medicationId,
-                                            isTwoPane = true
+                                            isTwoPane = true // Two panes are shown
                                         )
                                     }
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(0.6f)
-                                            .padding(start = 8.dp)
-                                    ) {
+                                    Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) { // Right pane container, changed weight
                                         MedicationHistoryContent(
-                                            navController = navController,
-                                            medicationId = medicationId,
-                                            colorName = color.name
-                                        )
-                                        WeekProgressContent(
-                                            navController = navController,
-                                            chartEntries = chartEntries,
-                                            medicationState = medicationState,
-                                            medicationId = medicationId,
-                                            color = color
-                                        )
-                                        MedicationInformationContent(
-                                            navController = navController,
-                                            medicationState = medicationState,
-                                            medicationId = medicationId,
-                                            colorName = color.name
-                                        )
-                                        Spacer(modifier = Modifier.height(48.dp)) // Spacer for the right column if needed
-                                    }
-                                }
+                                    navController = navController,
+                                    medicationId = medicationId,
+                                    colorName = color.name
+                                )
+                                WeekProgressContent(
+                                    navController = navController,
+                                    chartEntries = chartEntries,
+                                    medicationState = medicationState,
+                                    medicationId = medicationId,
+                                    color = color
+                                )
+                                MedicationInformationContent(
+                                    navController = navController,
+                                    medicationState = medicationState,
+                                    medicationId = medicationId,
+                                    colorName = color.name
+                                )
+                                Spacer(modifier = Modifier.height(48.dp))
                             }
                         }
                     }
                 }
-                if (showDialog) {
-                    AddPastMedicationDialog(
+            } else { // Single Pane (Compact or Medium/Expanded but not enough width when hosted)
+                LazyColumn(modifier = actualContentModifier) {
+                    item {
+                        MedicationHeaderAndProgress(
+                            medicationState = medicationState,
+                            progressDetails = progressDetails,
+                            medicationTypeState = medicationTypeState,
+                            color = color,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            medicationId = medicationId,
+                            scheduleState = scheduleState
+                        )
+                    }
+                    item {
+                        TodayScheduleContent(
+                            todayScheduleItems = todayScheduleItems,
+                            medicationState = medicationState,
+                            onShowMoreClick = {
+                                onNavigateToAllSchedules(
+                                    medicationId,
+                                    medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name
+                                )
+                            },
+                            onAddPastDoseClick = { showDialog = true },
+                            medicationReminderViewModel = medicationReminderViewModel,
+                            medicationId = medicationId,
+                            isTwoPane = false // Single pane
+                        )
+                    }
+                    item {
+                        MedicationHistoryContent(
+                            navController = navController,
+                            medicationId = medicationId,
+                            colorName = color.name
+                        )
+                    }
+                    item {
+                        WeekProgressContent(
+                            navController = navController,
+                            chartEntries = chartEntries,
+                            medicationState = medicationState,
+                            medicationId = medicationId,
+                            color = color
+                        )
+                    }
+                    item {
+                        MedicationInformationContent(
+                            navController = navController,
+                            medicationState = medicationState,
+                            medicationId = medicationId,
+                            colorName = color.name
+                        )
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(48.dp))
+                    }
+                }
+            }
+        }
+        if (showDialog) {
+            AddPastMedicationDialog(
                         medicationNameDisplay = medicationState?.name
                             ?: stringResource(id = R.string.medication_name_placeholder),
                         onDismissRequest = { showDialog = false },
