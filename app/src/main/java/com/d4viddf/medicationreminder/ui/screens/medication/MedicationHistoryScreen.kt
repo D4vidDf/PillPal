@@ -76,6 +76,11 @@ sealed interface HistoryListItemType
 data class MonthHeader(val monthYear: String, val id: String = "month_header_$monthYear") : HistoryListItemType
 data class HistoryEntryItem(val entry: MedicationHistoryEntry, val originalId: String) : HistoryListItemType
 
+// Sealed interface for list items
+sealed interface HistoryListItemType
+data class MonthHeader(val monthYear: String, val id: String = "month_header_$monthYear") : HistoryListItemType
+data class HistoryEntryItem(val entry: MedicationHistoryEntry, val originalId: String) : HistoryListItemType
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
