@@ -311,7 +311,7 @@ fun MedicationDetailsScreen(
                     )
                 }
             ) { innerPadding ->
-                val outerContentModifier = Modifier.fillMaxSize().then(if (!isHostedInPane) Modifier.padding(innerPadding) else Modifier)
+                val outerContentModifier = Modifier.fillMaxSize().then(if (!isHostedInPane) Modifier.padding(innerPadding) else Modifier.padding(top = innerPadding.calculateTopPadding()))
                 val minWidthForTwoPanes = 600.dp
 
                 BoxWithConstraints(modifier = outerContentModifier) {
