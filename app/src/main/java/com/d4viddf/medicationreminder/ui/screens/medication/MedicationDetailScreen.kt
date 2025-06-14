@@ -79,6 +79,7 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.ChartyGraphEntry
 import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel
+import com.d4viddf.medicationreminder.viewmodel.MedicationReminderViewModel.TodayScheduleItem // Added import
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
@@ -484,7 +485,7 @@ private fun MedicationHeaderAndProgress(
 // Extracted UI sections into their own Composables / LazyListScope extensions
 
 private fun LazyListScope.todayScheduleItems(
-    todayScheduleItems: List<MedicationReminderViewModel.TodayScheduleItem>,
+    todayScheduleItems: List<TodayScheduleItem>,
     medicationState: Medication?,
     onShowMoreClick: () -> Unit,
     onAddPastDoseClick: () -> Unit,
