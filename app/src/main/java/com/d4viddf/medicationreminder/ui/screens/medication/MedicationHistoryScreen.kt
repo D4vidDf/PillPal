@@ -39,8 +39,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.MediumTopAppBar // Changed import
+// import androidx.compose.material3.TextButton // No longer used directly for dialog buttons
+import androidx.compose.material3.Button // Added for Dialog buttons
+// import androidx.compose.material3.ButtonDefaults // Removed redundant import
+import androidx.compose.material3.LargeTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState // New import
 import androidx.compose.material3.rememberDateRangePickerState
@@ -78,8 +80,14 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.Locale // Added import
 
 // Removed old placeholder data class MedicationHistoryEntry
+
+// Sealed interface for list items
+sealed interface HistoryListItemType
+data class MonthHeader(val monthYear: String, val id: String = "month_header_$monthYear") : HistoryListItemType
+data class HistoryEntryItem(val entry: MedicationHistoryEntry, val originalId: String) : HistoryListItemType
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,7 +126,7 @@ fun MedicationHistoryScreen(
 
     var showDateRangeDialog by remember { mutableStateOf(false) } // Hoisted state variable
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Changed scroll behavior
 
     LaunchedEffect(medicationId, viewModel) {
         viewModel?.loadInitialHistory(medicationId)
@@ -141,7 +149,7 @@ fun MedicationHistoryScreen(
         DatePickerDialog(
             onDismissRequest = { showDateRangeDialog = false },
             confirmButton = {
-                TextButton(
+                Button( // Changed from TextButton
                     onClick = {
                         val startDateMillis = dateRangePickerState.selectedStartDateMillis
                         val endDateMillis = dateRangePickerState.selectedEndDateMillis
@@ -152,13 +160,23 @@ fun MedicationHistoryScreen(
                         }
                         showDateRangeDialog = false
                     },
-                    enabled = dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
+                    enabled = dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null,
+                    colors = ButtonDefaults.buttonColors( // Added colors
+                        containerColor = medicationColor.onBackgroundColor,
+                        contentColor = medicationColor.cardColor
+                    )
                 ) {
                     Text(stringResource(id = android.R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDateRangeDialog = false }) {
+                Button( // Changed from TextButton
+                    onClick = { showDateRangeDialog = false },
+                    colors = ButtonDefaults.buttonColors( // Added colors
+                        containerColor = medicationColor.onBackgroundColor,
+                        contentColor = medicationColor.cardColor
+                    )
+                ) {
                     Text(stringResource(id = android.R.string.cancel))
                 }
             }
@@ -171,8 +189,8 @@ fun MedicationHistoryScreen(
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                MediumTopAppBar(
-                    title = { Text(stringResource(id = R.string.medication_history_title)) },
+                LargeTopAppBar( // Changed from MediumTopAppBar
+                    title = { Text("History") }, // Changed title
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -181,8 +199,8 @@ fun MedicationHistoryScreen(
                             )
                         }
                     },
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    scrollBehavior = scrollBehavior, // Passed scrollBehavior
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
@@ -298,9 +316,41 @@ fun MedicationHistoryScreen(
                         )
                     }
                     else -> {
-                        LazyColumn(modifier = listModifier) { // Applied listModifier
-                            items(historyEntries, key = { it.id }) { entry ->
-                                MedicationHistoryListItem(entry = entry)
+                        val groupedItems = remember(historyEntries, sortAscending) {
+                            processHistoryEntries(historyEntries, sortAscending)
+                        }
+                        if (groupedItems.isEmpty()) { // Should ideally not happen if historyEntries is not empty, but as a safeguard
+                            Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                                Text(
+                                    stringResource(id = R.string.med_history_no_history_found),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(16.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        } else {
+                            LazyColumn(modifier = listModifier) {
+                                items(groupedItems, key = { item ->
+                                    when (item) {
+                                        is MonthHeader -> item.id
+                                        is HistoryEntryItem -> item.originalId
+                                    }
+                                }) { item ->
+                                    when (item) {
+                                        is MonthHeader -> {
+                                            Text(
+                                                text = item.monthYear,
+                                                style = MaterialTheme.typography.titleLarge, // Or headlineSmall
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 8.dp, horizontal = 4.dp) // Adjust padding as needed
+                                            )
+                                        }
+                                        is HistoryEntryItem -> {
+                                            MedicationHistoryListItem(entry = item.entry)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -309,6 +359,30 @@ fun MedicationHistoryScreen(
         } // Closes Scaffold content lambda
     } // Closes MedicationSpecificTheme content lambda
 } // Closes MedicationHistoryScreen
+
+// Function to process history entries and insert month headers
+private fun processHistoryEntries(
+    entries: List<MedicationHistoryEntry>,
+    sortAscending: Boolean
+): List<HistoryListItemType> {
+    if (entries.isEmpty()) return emptyList()
+
+    val monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+    val result = mutableListOf<HistoryListItemType>()
+    var currentMonthYear = ""
+
+    // The sorting is now handled by the ViewModel, so we respect the order of `entries`
+    for (entry in entries) {
+        val entryMonthYear = entry.originalDateTimeTaken.format(monthYearFormatter)
+        if (entryMonthYear != currentMonthYear) {
+            currentMonthYear = entryMonthYear
+            result.add(MonthHeader(monthYear = currentMonthYear))
+        }
+        result.add(HistoryEntryItem(entry = entry, originalId = entry.id))
+    }
+    return result
+}
+
 
 // FilterControls and ActionControls composables are now inlined into MedicationHistoryScreen.
 // They can be removed if they are not used elsewhere.

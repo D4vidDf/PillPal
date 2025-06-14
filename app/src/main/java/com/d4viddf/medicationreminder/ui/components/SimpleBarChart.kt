@@ -158,21 +158,40 @@ fun SimpleBarChart(
         val yAxisLineEnd = Offset(yAxisLabelAreaWidth, topPaddingForValueText + chartDrawableHeight)
         drawContext.canvas.drawLine(yAxisLineStart, yAxisLineEnd, yAxisLinePaint)
 
-        for (i in 0..yTickCount) {
-            val tickValue = if (yTickCount > 0) yAxisTopValue * (i.toFloat() / yTickCount) else 0f
-            val tickY = topPaddingForValueText + chartDrawableHeight * (1f - (if (yAxisTopValue > 0f) (tickValue / yAxisTopValue) else 0f))
+        // Define the Y-axis tick values to draw: 0, middle, and top.
+        val tickValues = mutableListOf<Float>()
+        tickValues.add(0f) // Always show 0
 
-            // Optional: Draw horizontal grid line
+        if (yAxisTopValue > 0f) {
+            val middleValue = yAxisTopValue / 2f
+            // Add middle value if it's distinct enough from 0 and top, and not too close to 0.
+            // This avoids clutter if the scale is very small (e.g. max value is 1 or 2)
+            if (middleValue.toInt() > 0 && middleValue.toInt() < yAxisTopValue.toInt()) {
+                tickValues.add(middleValue)
+            }
+            tickValues.add(yAxisTopValue) // Always show the top value
+        } else { // Case for all zero data, yAxisTopValue is 5f
+            tickValues.add(yAxisTopValue / 2f) // Show 2.5 (which becomes 2)
+            tickValues.add(yAxisTopValue)    // Show 5
+        }
+
+        val distinctTickValues = tickValues.distinctBy { it.toInt() } // Ensure integer values are distinct before drawing
+
+        distinctTickValues.forEach { tickValue ->
+            val tickY = topPaddingForValueText + chartDrawableHeight * (1f - (if (yAxisTopValue > 0f) (tickValue / yAxisTopValue) else 0f))
+            val tickLabel = tickValue.toInt().toString()
+
+            // Optional: Draw horizontal grid line (can be uncommented if desired)
             // drawLine(
-            //    color = labelTextColor.copy(alpha = 0.3f), // Light grid lines
+            //    color = labelTextColor.copy(alpha = 0.3f),
             //    start = Offset(yAxisLabelAreaWidth, tickY),
             //    end = Offset(canvasWidth, tickY)
             // )
-            val tickLabel = tickValue.toInt().toString() // Define the label text
+
             drawContext.canvas.nativeCanvas.drawText(
-                tickLabel, // Use defined tickLabel
-                yAxisLabelAreaWidth - yAxisLabelPadding, // Position text with padding
-                tickY + yAxisTextPaint.textSize / 3f, // Adjust for vertical centering
+                tickLabel,
+                yAxisLabelAreaWidth - yAxisLabelPadding,
+                tickY + yAxisTextPaint.textSize / 3f,
                 yAxisTextPaint
             )
         }

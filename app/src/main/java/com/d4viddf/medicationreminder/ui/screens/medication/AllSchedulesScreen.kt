@@ -15,12 +15,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch // Needed again for TodayScheduleItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.LargeTopAppBar // Changed import
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState // Added import
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign // Added import
 import androidx.compose.ui.graphics.Color // Added import
+import androidx.compose.ui.input.nestedscroll.nestedScroll // Added import
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,7 +46,9 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton
+// import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton // Will be removed
+import androidx.compose.material.icons.Icons // Added
+import androidx.compose.material.icons.automirrored.filled.ArrowBack // Added
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.AllSchedulesViewModel
@@ -59,17 +65,16 @@ fun FullScheduleItem(
     medicationId: Int, // Added medicationId parameter
     onToggleTaken: ((itemId: String, isTaken: Boolean, medicationId: Int) -> Unit)? = null,
     isSwitchEnabled: Boolean = false,
-    showSwitch: Boolean = false
+    showSwitch: Boolean = false,
+    medicationColor: MedicationColor // Added parameter
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
 
-    Card( // WRAPPER CARD
+    Card( // WRAPPER CARD - Changed to Card
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp), // Padding for the card itself
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+        colors = CardDefaults.cardColors(containerColor = medicationColor.cardColor)
     ) {
         Row(
             modifier = Modifier
@@ -100,14 +105,14 @@ fun FullScheduleItem(
                 Text(
                     text = itemName,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // Set color
+                    color = medicationColor.onBackgroundColor // Set color
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = itemTimeText,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // Set color
+                    color = medicationColor.onBackgroundColor // Set color
                 )
             }
             if (showSwitch && itemData is TodayScheduleItem && onToggleTaken != null) {
@@ -160,23 +165,29 @@ fun AllSchedulesScreen(
     } else {
         stringResource(R.string.all_schedules_title)
     }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Added scroll behavior
 
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added modifier
             topBar = {
-                TopAppBar( // Changed back to TopAppBar
+                LargeTopAppBar( // Changed from TopAppBar
                     title = { Text(title) },
                     navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 10.dp)) {
-                            ThemedAppBarBackButton(onClick = onNavigateBack)
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_button_cd)
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                        // scrolledContainerColor is not applicable here
+                    scrollBehavior = scrollBehavior, // Passed scrollBehavior
+                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent, // Or MaterialTheme.colorScheme.surface if a fill is desired on scroll
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface // If any actions were present
                     )
                 )
             }
@@ -223,6 +234,7 @@ fun AllSchedulesScreen(
                                 itemData = itemData,
                                 medicationName = medicationName ?: "Medication", // Fallback
                                 medicationId = medicationId, // Pass screen's medicationId
+                                medicationColor = medicationColor, // Pass medicationColor
                                 showSwitch = showToday,
                                 onToggleTaken = if (showToday) {
                                     { itemId, newState, mId -> // mId here is the one passed to FullScheduleItem
@@ -293,9 +305,11 @@ fun AllSchedulesScreenTodayPreview() {
 
     AppTheme {
         MedicationSpecificTheme(medicationColor = medicationColor) {
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Added scroll behavior for preview
             Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added modifier for preview
                 topBar = {
-                    TopAppBar( // Changed back to TopAppBar
+                    LargeTopAppBar( // Changed to LargeTopAppBar for preview
                         title = {
                             Text(
                                 stringResource(
@@ -305,15 +319,20 @@ fun AllSchedulesScreenTodayPreview() {
                             )
                         },
                         navigationIcon = {
-                            Box(modifier = Modifier.padding(start = 10.dp)) {
-                                ThemedAppBarBackButton(onClick = {}) // No-op for preview
+                            IconButton(onClick = { /* No-op for preview */ }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors( // Changed to topAppBarColors
-                            containerColor = MaterialTheme.colorScheme.primary, // Changed
-                            titleContentColor = MaterialTheme.colorScheme.onPrimary, // Changed
-                            navigationIconContentColor = Color.White, // Consistent
-                            actionIconContentColor = Color.White     // Consistent
+                        scrollBehavior = scrollBehavior, // Passed scrollBehavior for preview
+                        colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors for preview
+                            containerColor = Color.Transparent,
+                            scrolledContainerColor = Color.Transparent,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -329,6 +348,7 @@ fun AllSchedulesScreenTodayPreview() {
                             itemData = item,
                             medicationName = item.medicationName,
                             medicationId = previewMedicationId, // Pass previewMedicationId
+                            medicationColor = medicationColor, // Pass medicationColor for preview
                             showSwitch = true,
                             onToggleTaken = { _, _, _ -> }, // No-op for preview
                             isSwitchEnabled = item.isPast || item.isTaken
