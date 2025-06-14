@@ -25,15 +25,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard // Keep for other cards
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -41,8 +36,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -283,35 +276,7 @@ fun MedicationDetailsScreen(
                 Row(
                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                 ) { // Apply innerPadding to the Row
-                    val showNavRail =
-                        (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) && !isHostedInPane
-                    if (showNavRail) {
-                        NavigationRail {
-                            NavigationRailItem(
-                                icon = {
-                                    Icon(
-                                        Icons.Filled.BarChart,
-                                        contentDescription = "View Full Graph"
-                                    )
-                                },
-                                label = { Text("Graph") },
-                                selected = false, // This screen isn't a primary nav destination
-                                onClick = {
-                                    Log.d(
-                                        "MedDetailScreen",
-                                        "NavRail: Graph item clicked (Not fully implemented)"
-                                    )
-                                    medicationState?.let { med -> // Ensure medicationState is not null
-                                        onNavigateToMedicationGraph(
-                                            medicationId,
-                                            med.color
-                                        )
-                                    }
-                                }
-                            )
-                            // TODO: Add other NavigationRailItems for History, Info, All Schedules later
-                        }
-                    }
+
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f) // Make LazyColumn take remaining space
@@ -371,32 +336,6 @@ fun MedicationDetailsScreen(
                                         schedule = scheduleState,
                                         modifier = Modifier.padding(horizontal = 12.dp)
                                     )
-                                } else {
-                                    // Optional placeholder
-                                }
-                            }
-                        }
-
-                        // New item for the button
-                        item {
-                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
-                            if (medicationInfoAvailable) {
-                                Button(
-                                    onClick = {
-                                        onNavigateToMedicationInfo(
-                                            medicationId,
-                                            color.name
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                ) {
-                                    Text(stringResource(id = R.string.view_full_information))
                                 }
                             }
                         }
@@ -664,7 +603,29 @@ fun MedicationDetailsScreen(
                             )
                         }
 
-                        // "View Full Information" Button's item block removed.
+                        // New item for the button
+                        item {
+                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
+                            if (medicationInfoAvailable) {
+                                Button(
+                                    onClick = {
+                                        onNavigateToMedicationInfo(
+                                            medicationId,
+                                            color.name
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Text(stringResource(id = R.string.view_full_information))
+                                }
+                            }
+                        }
 
                         item {
                             Spacer(modifier = Modifier.height(48.dp))
