@@ -28,8 +28,6 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import android.util.Log // Required for LaunchedEffect error logging
-
-// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
 import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 

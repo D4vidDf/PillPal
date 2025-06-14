@@ -20,12 +20,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration // For Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-// import androidx.compose.ui.platform.LocalContext // Only if child components truly need it
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added import
-// import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // Preferred -> No longer needed here
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController // Add this import
@@ -37,12 +35,10 @@ import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.FrequencyType
 import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationInfo
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.*
-// import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel // Removed if not used
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
@@ -66,10 +62,10 @@ fun AddMedicationScreen(
 
     val stepDetailsList = listOf(
         StepDetails(1, stringResource(R.string.step_title_medication_name), R.drawable.ic_pill_placeholder),
-        StepDetails(2, stringResource(R.string.step_title_type_color), R.drawable.ic_palette), // Use new icon
+        StepDetails(2, stringResource(R.string.step_title_type_color), R.drawable.rounded_palette_24), // Use new icon
         StepDetails(3, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory), // Use new icon
         StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time), // Use new icon
-        StepDetails(5, stringResource(R.string.step_title_summary), R.drawable.ic_check_circle) // Use new icon
+        StepDetails(5, stringResource(R.string.step_title_summary), R.drawable.ic_check) // Use new icon
     )
 
     var currentStep by rememberSaveable { mutableStateOf(0) }

@@ -46,7 +46,6 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-// import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton // Will be removed
 import androidx.compose.material.icons.Icons // Added
 import androidx.compose.material.icons.automirrored.filled.ArrowBack // Added
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
