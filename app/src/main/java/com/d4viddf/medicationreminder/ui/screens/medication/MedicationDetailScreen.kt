@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope // Added import
+import androidx.compose.foundation.lazy.item // Added import
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,6 +72,7 @@ import com.d4viddf.medicationreminder.ui.components.BarChartItem
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailCounters
 import com.d4viddf.medicationreminder.ui.components.MedicationDetailHeader
 import com.d4viddf.medicationreminder.ui.components.MedicationProgressDisplay
+import com.d4viddf.medicationreminder.ui.components.ProgressDetails // Added import
 import com.d4viddf.medicationreminder.ui.components.SimpleBarChart
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
@@ -418,7 +421,7 @@ fun MedicationDetailsScreen(
 @Composable
 private fun MedicationHeaderAndProgress(
     medicationState: Medication?,
-    progressDetails: Triple<Int, Int, Float>?,
+    progressDetails: ProgressDetails?,
     medicationTypeState: MedicationType?,
     color: MedicationColor,
     sharedTransitionScope: SharedTransitionScope?,
