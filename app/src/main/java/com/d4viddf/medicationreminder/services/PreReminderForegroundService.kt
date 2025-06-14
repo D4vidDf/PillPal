@@ -218,7 +218,7 @@ class PreReminderForegroundService : Service() {
             )
             builder.addAction(
                 Notification.Action.Builder(
-                    Icon.createWithResource(this, R.drawable.ic_check_circle),
+                    Icon.createWithResource(this, R.drawable.ic_check),
                     getString(R.string.prereminder_action_taken),
                     markAsTakenPendingIntent
                 ).build()
@@ -265,7 +265,7 @@ class PreReminderForegroundService : Service() {
             val markAsTakenPendingIntent = PendingIntent.getBroadcast(
                 this, currentReminderId + 3001, markAsActionIntent, pendingIntentFlags
             )
-            compatBuilder.addAction(R.drawable.ic_check_circle, getString(R.string.prereminder_action_taken), markAsTakenPendingIntent)
+            compatBuilder.addAction(R.drawable.ic_check, getString(R.string.prereminder_action_taken), markAsTakenPendingIntent)
         }
         return compatBuilder.build()
     }
