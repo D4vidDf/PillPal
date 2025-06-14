@@ -483,9 +483,6 @@ fun MedicationDetailsScreen(
                                 )
                             }
                         }
-                        item { // New Spacer item
-                            Spacer(Modifier.height(16.dp))
-                        }
 
                         item { // Graphics Card
                             // Spacer(modifier = Modifier.height(16.dp)) // Spacer will be added between this and next item.
@@ -589,22 +586,24 @@ fun MedicationDetailsScreen(
                         }
 
                         item { // Medication Information Title Text
-                            // Removed Spacer and if (medicationInfoAvailable) wrapper from Text title
-                            Text(
-                                text = "Information",
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onNavigateToMedicationInfo(
-                                            medicationId,
-                                            color.name
-                                        )
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                            )
+                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
+                            if (medicationInfoAvailable) {
+                                Text(
+                                    text = "Information",
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onNavigateToMedicationInfo(
+                                                medicationId,
+                                                color.name
+                                            )
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                                )
+                            }
                         }
 
                         // New item for the button
