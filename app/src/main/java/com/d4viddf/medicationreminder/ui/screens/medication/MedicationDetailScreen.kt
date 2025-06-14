@@ -274,370 +274,126 @@ fun MedicationDetailsScreen(
                     )
                 }
             ) { innerPadding ->
-                Row(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding)
-                ) { // Apply innerPadding to the Row
+                // Apply innerPadding to the root Composable of the content
+                val contentModifier = Modifier.fillMaxSize().padding(innerPadding)
 
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f) // Make LazyColumn take remaining space
-                        // .padding(padding), // Padding is now handled by the parent Row, but if isHostedInPane, specific padding might be needed.
-                        // For now, assuming the Row's padding from innerPadding is sufficient.
-                        // If isHostedInPane needs different padding logic for LazyColumn, that needs to be handled here.
-                        // The original logic was: val padding =  if (isHostedInPane) PaddingValues(top = innerPadding.calculateTopPadding()) else innerPadding
-                        // This might need to be re-evaluated if the LazyColumn itself needs specific padding when the rail is shown.
-                        // For simplicity, let's assume the Row's padding is the primary driver for now.
-                    ) {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = color.backgroundColor,
-                                        shape = RoundedCornerShape(
-                                            bottomStart = 36.dp,
-                                            bottomEnd = 36.dp
-                                        )
-                                    )
-                                    .then(
-                                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                            with(sharedTransitionScope) {
-                                                Modifier.sharedElement(
-                                                    rememberSharedContentState(key = "medication-background-${medicationId}"),
-                                                    animatedVisibilityScope
-                                                )
-                                            }
-                                        } else Modifier
-                                    )
-                                    .padding(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        bottom = 24.dp
-                                    )
-                            ) {
-                                if (medicationState != null && progressDetails != null) {
-                                    MedicationDetailHeader(
-                                        medicationId = medicationId,
-                                        medicationName = medicationState?.name,
-                                        medicationDosage = medicationState?.dosage,
-                                        medicationImageUrl = medicationTypeState?.imageUrl,
-                                        colorScheme = color,
-                                        modifier = Modifier.padding(top = 16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    MedicationProgressDisplay(
-                                        progressDetails = progressDetails,
-                                        colorScheme = color,
-                                        indicatorSizeDp = 220.dp,
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    MedicationDetailCounters(
-                                        colorScheme = color,
-                                        medication = medicationState,
-                                        schedule = scheduleState,
-                                        modifier = Modifier.padding(horizontal = 12.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        item {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp)
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.medication_detail_today_title),
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                IconButton(
-                                    onClick = { showDialog = true },
-                                    modifier = Modifier
-                                        .background(
-                                            MaterialTheme.colorScheme.primaryContainer, // NEW
-                                            shape = RoundedCornerShape(12.dp)
-                                        )
-                                        .padding(4.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.rounded_add_24),
-                                        contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer, // NEW
-                                        modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
-                                    )
-                                }
-                            }
-                        }
-
-                        if (todayScheduleItems.isEmpty() && medicationState != null) {
+                when (widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> {
+                        LazyColumn(
+                            modifier = contentModifier
+                        ) {
                             item {
-                                Text(
-                                    text = stringResource(id = R.string.medication_detail_no_reminders_today),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(
-                                            horizontal = 16.dp,
-                                            vertical = 16.dp
-                                        ),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
+                                MedicationHeaderAndProgress(
+                                    medicationState = medicationState,
+                                    progressDetails = progressDetails,
+                                    medicationTypeState = medicationTypeState,
+                                    color = color,
+                                    sharedTransitionScope = sharedTransitionScope,
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    medicationId = medicationId,
+                                    scheduleState = scheduleState
                                 )
                             }
-                        }
-
-                        var futureRemindersStarted = false
-                        items(todayScheduleItems.take(5), key = { it.id }) { todayItem ->
-                            val isActuallyPast =
-                                todayItem.time.isBefore(LocalTime.now())
-
-                            if (!isActuallyPast && !futureRemindersStarted) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 8.dp
-                                    ),
-                                    thickness = 3.dp,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                futureRemindersStarted = true
-                            }
-                            ScheduleItem( // This is the call to ScheduleItem
-                                time = todayItem.time.format(
-                                    DateTimeFormatter.ofLocalizedTime(
-                                        FormatStyle.SHORT
-                                    )
-                                ),
-                                label = todayItem.medicationName,
-                                isTaken = todayItem.isTaken,
-                                onTakenChange = { newState ->
-                                    medicationReminderViewModel.updateReminderStatus(
-                                        todayItem.id,
-                                        newState,
-                                        medicationId
+                            todayScheduleItems(
+                                todayScheduleItems = todayScheduleItems,
+                                medicationState = medicationState,
+                                onShowMoreClick = {
+                                    onNavigateToAllSchedules(
+                                        medicationId,
+                                        medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name
                                     )
                                 },
-                                enabled = isActuallyPast || todayItem.isTaken
+                                onAddPastDoseClick = { showDialog = true },
+                                medicationReminderViewModel = medicationReminderViewModel,
+                                medicationId = medicationId
                             )
-                        }
-
-                        if (todayScheduleItems.size > 5) {
+                            medicationHistorySection(
+                                onNavigateToMedicationHistory = onNavigateToMedicationHistory,
+                                medicationId = medicationId,
+                                colorName = color.name
+                            )
+                            weekProgressSection(
+                                chartEntries = chartEntries,
+                                medicationState = medicationState,
+                                onNavigateToMedicationGraph = onNavigateToMedicationGraph,
+                                medicationId = medicationId,
+                                color = color
+                            )
+                            medicationInformationSection(
+                                medicationState = medicationState,
+                                onNavigateToMedicationInfo = onNavigateToMedicationInfo,
+                                medicationId = medicationId,
+                                colorName = color.name
+                            )
                             item {
-                                Box(
+                                Spacer(modifier = Modifier.height(48.dp))
+                            }
+                        }
+                    }
+                    else -> { // Medium and Expanded
+                        Column(modifier = contentModifier) {
+                            MedicationHeaderAndProgress(
+                                medicationState = medicationState,
+                                progressDetails = progressDetails,
+                                medicationTypeState = medicationTypeState,
+                                color = color,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                medicationId = medicationId,
+                                scheduleState = scheduleState
+                            )
+                            Row(Modifier.fillMaxWidth()) {
+                                LazyColumn(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp, horizontal = 16.dp),
-                                    contentAlignment = Alignment.Center
+                                        .weight(0.4f)
+                                        .padding(end = 8.dp) // Add padding between panes
                                 ) {
-                                    Button(
-                                        onClick = {
+                                    todayScheduleItems(
+                                        todayScheduleItems = todayScheduleItems,
+                                        medicationState = medicationState,
+                                        onShowMoreClick = {
                                             onNavigateToAllSchedules(
                                                 medicationId,
-                                                medicationState?.color
-                                                    ?: MedicationColor.LIGHT_ORANGE.name
+                                                medicationState?.color ?: MedicationColor.LIGHT_ORANGE.name
                                             )
                                         },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    ) {
-                                        Text(text = "Show More")
-                                    }
-                                }
-                            }
-                        }
-
-                        item { // Medication History Card
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onNavigateToMedicationHistory(
-                                            medicationId,
-                                            color.name
-                                        )
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "History", // Changed text
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Icon(
-                                    painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                                    contentDescription = "History", // Changed content description
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                        }
-                        item { // New Spacer item
-                            Spacer(Modifier.height(16.dp))
-                        }
-
-                        item { // Graphics Card
-                            // Spacer(modifier = Modifier.height(16.dp)) // Spacer will be added between this and next item.
-                            ElevatedCard( // Changed Card to ElevatedCard
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp) // Keep card padding
-                                    .clickable { onNavigateToMedicationGraph(medicationId, color.name) },
-                                shape = RoundedCornerShape(12.dp)
-                                // colors = CardDefaults.cardColors( // Removed specific colors, use ElevatedCard defaults
-                                // containerColor = color.backgroundColor
-                                // )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "Week Progress",
-                                            style = MaterialTheme.typography.titleLarge, // Changed to titleLarge
-                                            color = color.onBackgroundColor,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                                            contentDescription = "View full graph",
-                                            tint = color.onBackgroundColor,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(180.dp) // Changed height
-                                            .background(
-                                                Color.Transparent, // Changed to Transparent
-                                                RoundedCornerShape(8.dp)
-                                            )
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        // SimpleBarChart IMPLEMENTATION:
-                                        val finalBarChartItems = remember(chartEntries) {
-                                            val items = if (chartEntries.isEmpty()) {
-                                                // Generate default items for the current week
-                                                val today = LocalDate.now()
-                                                val monday = today.with(
-                                                    TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
-                                                )
-                                                val dayFormatter = DateTimeFormatter.ofPattern(
-                                                    "EEE",
-                                                    Locale.getDefault()
-                                                )
-                                                List(7) { i ->
-                                                    val day = monday.plusDays(i.toLong())
-                                                    BarChartItem(
-                                                        label = day.format(dayFormatter),
-                                                        value = 0f,
-                                                        isHighlighted = day.isEqual(today) // Highlight current day
-                                                    )
-                                                }
-                                            } else {
-                                                chartEntries.map { entry ->
-                                                    BarChartItem(
-                                                        label = entry.xValue, // e.g., "Mon", "Tue"
-                                                        value = entry.yValue,
-                                                        isHighlighted = entry.isHighlighted
-                                                    )
-                                                }
-                                            }
-                                            // Add this logging
-                                            Log.d("MedDetailScreenChart", "Derived finalBarChartItems. Count: ${items.size}")
-                                            if (items.isNotEmpty()) {
-                                                Log.d("MedDetailScreenChart", "First finalBarChartItem: ${items.firstOrNull()}")
-                                            }
-                                            items
-                                        }
-
-                                        SimpleBarChart(
-                                            data = finalBarChartItems,
-                                            modifier = Modifier.fillMaxSize(),
-                                            highlightedBarColor = MaterialTheme.colorScheme.primary, // Target color
-                                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer, // Target color
-                                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant, // Target color
-                                            valueTextColor = MaterialTheme.colorScheme.onSurface, // Target color
-                                            chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}"
-                                        )
-                                    }
-                                    // "View More Stats" Button removed
-                                }
-                            }
-                        }
-
-                        item { // New Spacer item
-                            Spacer(Modifier.height(16.dp))
-                        }
-
-                        item { // Medication Information Title Text
-                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
-                            if (medicationInfoAvailable) {
-                                Text(
-                                    text = "Information",
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            onNavigateToMedicationInfo(
-                                                medicationId,
-                                                color.name
-                                            )
-                                        }
-                                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                                )
-                            }
-                        }
-
-                        // New item for the button
-                        item {
-                            val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
-                            if (medicationInfoAvailable) {
-                                Button(
-                                    onClick = {
-                                        onNavigateToMedicationInfo(
-                                            medicationId,
-                                            color.name
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                        onAddPastDoseClick = { showDialog = true },
+                                        medicationReminderViewModel = medicationReminderViewModel,
+                                        medicationId = medicationId,
+                                        isTwoPane = true
                                     )
+                                }
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .weight(0.6f)
+                                        .padding(start = 8.dp) // Add padding between panes
                                 ) {
-                                    Text(stringResource(id = R.string.view_full_information))
+                                    medicationHistorySection(
+                                        onNavigateToMedicationHistory = onNavigateToMedicationHistory,
+                                        medicationId = medicationId,
+                                        colorName = color.name
+                                    )
+                                    weekProgressSection(
+                                        chartEntries = chartEntries,
+                                        medicationState = medicationState,
+                                        onNavigateToMedicationGraph = onNavigateToMedicationGraph,
+                                        medicationId = medicationId,
+                                        color = color
+                                    )
+                                    medicationInformationSection(
+                                        medicationState = medicationState,
+                                        onNavigateToMedicationInfo = onNavigateToMedicationInfo,
+                                        medicationId = medicationId,
+                                        colorName = color.name
+                                    )
+                                    item {
+                                        Spacer(modifier = Modifier.height(48.dp))
+                                    }
                                 }
                             }
                         }
-
-                        item {
-                            Spacer(modifier = Modifier.height(48.dp))
-                        }
-                    } // Closes LazyColumn
-                } // Closes Scaffold content lambda
+                    }
+                }
                 if (showDialog) {
                     AddPastMedicationDialog(
                         medicationNameDisplay = medicationState?.name
@@ -659,24 +415,389 @@ fun MedicationDetailsScreen(
     }
 }
 
-@Preview(showBackground = true, name = "Medication Details Screen")
 @Composable
-fun MedicationDetailsScreenPreview() {
+private fun MedicationHeaderAndProgress(
+    medicationState: Medication?,
+    progressDetails: Triple<Int, Int, Float>?,
+    medicationTypeState: MedicationType?,
+    color: MedicationColor,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    medicationId: Int,
+    scheduleState: MedicationSchedule?
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+                                    .background(
+                                        color = color.backgroundColor,
+                                        shape = RoundedCornerShape(
+                                            bottomStart = 36.dp,
+                                            bottomEnd = 36.dp
+                                        )
+                                    )
+                                    .then(
+                                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                            with(sharedTransitionScope) {
+                                                Modifier.sharedElement(
+                                                    rememberSharedContentState(key = "medication-background-${medicationId}"),
+                                                    animatedVisibilityScope
+                                                )
+                                            }
+                                        } else Modifier
+                                    )
+            .padding(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 24.dp
+            )
+    ) {
+        if (medicationState != null && progressDetails != null) {
+            MedicationDetailHeader(
+                medicationId = medicationId,
+                medicationName = medicationState.name,
+                medicationDosage = medicationState.dosage,
+                medicationImageUrl = medicationTypeState?.imageUrl,
+                colorScheme = color,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            MedicationProgressDisplay(
+                progressDetails = progressDetails,
+                colorScheme = color,
+                indicatorSizeDp = 220.dp,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            MedicationDetailCounters(
+                colorScheme = color,
+                medication = medicationState,
+                schedule = scheduleState,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+        }
+    }
+}
+
+// Extracted UI sections into their own Composables / LazyListScope extensions
+
+private fun LazyListScope.todayScheduleItems(
+    todayScheduleItems: List<MedicationReminderViewModel.TodayScheduleItem>,
+    medicationState: Medication?,
+    onShowMoreClick: () -> Unit,
+    onAddPastDoseClick: () -> Unit,
+    medicationReminderViewModel: MedicationReminderViewModel,
+    medicationId: Int,
+    isTwoPane: Boolean = false // Added to control "Show More" visibility in two-pane
+) {
+    item {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = stringResource(id = R.string.medication_detail_today_title),
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            IconButton(
+                onClick = onAddPastDoseClick,
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.rounded_add_24),
+                    contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
+                )
+            }
+        }
+    }
+
+    if (todayScheduleItems.isEmpty() && medicationState != null) {
+        item {
+            Text(
+                text = stringResource(id = R.string.medication_detail_no_reminders_today),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+
+    var futureRemindersStarted = false
+    val itemsToShow = if (isTwoPane) todayScheduleItems else todayScheduleItems.take(5)
+    items(itemsToShow, key = { it.id }) { todayItem ->
+        val isActuallyPast = todayItem.time.isBefore(LocalTime.now())
+
+        if (!isActuallyPast && !futureRemindersStarted) {
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                thickness = 3.dp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            futureRemindersStarted = true
+        }
+        ScheduleItem(
+            time = todayItem.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+            label = todayItem.medicationName,
+            isTaken = todayItem.isTaken,
+            onTakenChange = { newState ->
+                medicationReminderViewModel.updateReminderStatus(
+                    todayItem.id,
+                    newState,
+                    medicationId
+                )
+            },
+            enabled = isActuallyPast || todayItem.isTaken
+        )
+    }
+
+    if (!isTwoPane && todayScheduleItems.size > 5) {
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    onClick = onShowMoreClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(text = "Show More")
+                }
+            }
+        }
+    }
+}
+
+private fun LazyListScope.medicationHistorySection(
+    onNavigateToMedicationHistory: (medicationId: Int, colorName: String) -> Unit,
+    medicationId: Int,
+    colorName: String
+) {
+    item {
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onNavigateToMedicationHistory(medicationId, colorName) }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "History",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
+                contentDescription = "History",
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Spacer(Modifier.height(16.dp)) // Added spacer after history section
+    }
+}
+
+private fun LazyListScope.weekProgressSection(
+    chartEntries: List<ChartyGraphEntry>,
+    medicationState: Medication?,
+    onNavigateToMedicationGraph: (medicationId: Int, colorName: String) -> Unit,
+    medicationId: Int,
+    color: MedicationColor
+) {
+    item {
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clickable { onNavigateToMedicationGraph(medicationId, color.name) },
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Week Progress",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = color.onBackgroundColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
+                        contentDescription = "View full graph",
+                        tint = color.onBackgroundColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(Color.Transparent, RoundedCornerShape(8.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val finalBarChartItems = remember(chartEntries) {
+                        val items = if (chartEntries.isEmpty()) {
+                            val today = LocalDate.now()
+                            val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                            val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                            List(7) { i ->
+                                val day = monday.plusDays(i.toLong())
+                                BarChartItem(
+                                    label = day.format(dayFormatter),
+                                    value = 0f,
+                                    isHighlighted = day.isEqual(today)
+                                )
+                            }
+                        } else {
+                            chartEntries.map { entry ->
+                                BarChartItem(
+                                    label = entry.xValue,
+                                    value = entry.yValue,
+                                    isHighlighted = entry.isHighlighted
+                                )
+                            }
+                        }
+                        items
+                    }
+                    SimpleBarChart(
+                        data = finalBarChartItems,
+                        modifier = Modifier.fillMaxSize(),
+                        highlightedBarColor = MaterialTheme.colorScheme.primary,
+                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        valueTextColor = MaterialTheme.colorScheme.onSurface,
+                        chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}"
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(16.dp)) // Added spacer after week progress
+    }
+}
+
+private fun LazyListScope.medicationInformationSection(
+    medicationState: Medication?,
+    onNavigateToMedicationInfo: (medicationId: Int, colorName: String) -> Unit,
+    medicationId: Int,
+    colorName: String
+) {
+    val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
+    if (medicationInfoAvailable) {
+        item {
+            Text(
+                text = "Information",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToMedicationInfo(medicationId, colorName) }
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            )
+        }
+        item {
+            Button(
+                onClick = { onNavigateToMedicationInfo(medicationId, colorName) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text(stringResource(id = R.string.view_full_information))
+            }
+        }
+    }
+}
+
+
+@Preview(showBackground = true, name = "Medication Details Screen - Compact")
+@Composable
+fun MedicationDetailsScreenCompactPreview() {
     AppTheme {
-        // ViewModel parameters are omitted to use defaults,
-        // which might result in a preview with no dynamic data.
         MedicationDetailsScreen(
             medicationId = 1,
             onNavigateBack = {},
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null, // Preview won't have a real scope
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
             isHostedInPane = false,
-            graphViewModel = null, // Added for preview
-            onNavigateToAllSchedules = { _, _ -> }, // Adjusted for new signature
-            onNavigateToMedicationHistory = { _, _ -> }, // Adjusted for new signature
-            onNavigateToMedicationGraph = { _, _ -> }, // Adjusted for new signature
-            onNavigateToMedicationInfo = { _, _ -> }, // Adjusted for new signature
-            widthSizeClass = WindowWidthSizeClass.Compact // Added for preview
+            graphViewModel = null,
+            onNavigateToAllSchedules = { _, _ -> },
+            onNavigateToMedicationHistory = { _, _ -> },
+            onNavigateToMedicationGraph = { _, _ -> },
+            onNavigateToMedicationInfo = { _, _ -> },
+            widthSizeClass = WindowWidthSizeClass.Compact
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 700, name = "Medication Details Screen - Medium")
+@Composable
+fun MedicationDetailsScreenMediumPreview() {
+    AppTheme {
+        MedicationDetailsScreen(
+            medicationId = 1,
+            onNavigateBack = {},
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
+            isHostedInPane = false,
+            graphViewModel = null,
+            onNavigateToAllSchedules = { _, _ -> },
+            onNavigateToMedicationHistory = { _, _ -> },
+            onNavigateToMedicationGraph = { _, _ -> },
+            onNavigateToMedicationInfo = { _, _ -> },
+            widthSizeClass = WindowWidthSizeClass.Medium
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 1000, name = "Medication Details Screen - Expanded")
+@Composable
+fun MedicationDetailsScreenExpandedPreview() {
+    AppTheme {
+        MedicationDetailsScreen(
+            medicationId = 1,
+            onNavigateBack = {},
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
+            isHostedInPane = false,
+            graphViewModel = null,
+            onNavigateToAllSchedules = { _, _ -> },
+            onNavigateToMedicationHistory = { _, _ -> },
+            onNavigateToMedicationGraph = { _, _ -> },
+            onNavigateToMedicationInfo = { _, _ -> },
+            widthSizeClass = WindowWidthSizeClass.Expanded
         )
     }
 }
