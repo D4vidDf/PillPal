@@ -97,6 +97,7 @@ fun AppNavigation(
             composable(Screen.Home.route) {
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
+                    navController = navController, // Added this line
                     // Kept
                     onMedicationClick = { medicationId -> // Kept
                         navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = widthSizeClass == WindowWidthSizeClass.Compact))
@@ -133,6 +134,7 @@ fun AppNavigation(
                 if (medicationId != null) {
                     MedicationDetailsScreen(
                         medicationId = medicationId,
+                        navController = navController, // Added this line
                         onNavigateBack = { navController.popBackStack() },
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope

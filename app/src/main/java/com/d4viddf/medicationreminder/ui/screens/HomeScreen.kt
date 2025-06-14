@@ -56,6 +56,8 @@ import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController // Added import
+import androidx.navigation.compose.rememberNavController // Added import
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
@@ -70,12 +72,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier, // This modifier comes from NavHost, potentially with padding
+    navController: NavController, // Added this line
     onMedicationClick: (Int) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
     sharedTransitionScope: SharedTransitionScope?, // Add this
     animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    viewModel: MedicationViewModel = hiltViewModel(),
-
+    viewModel: MedicationViewModel = hiltViewModel()
 ) {
     val medications by viewModel.medications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -299,6 +301,7 @@ fun HomeScreen(
             if (selectedMedicationIdForDetail != null) {
                 MedicationDetailsScreen(
                     medicationId = selectedMedicationIdForDetail,
+                    navController = navController, // Added this line
                     onNavigateBack = {
                         coroutineScope.launch {
                             scaffoldNavigator.navigateBack()
@@ -344,6 +347,7 @@ fun Context.findActivity(): Activity? = when (this) {
 fun HomeScreenCompactPreview() {
     AppTheme {
         HomeScreen(
+            navController = rememberNavController(), // Added
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
             sharedTransitionScope = null, // Pass null for preview
@@ -357,6 +361,7 @@ fun HomeScreenCompactPreview() {
 fun HomeScreenMediumPreview() {
     AppTheme {
         HomeScreen(
+            navController = rememberNavController(), // Added
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Medium,
             sharedTransitionScope = null, // Pass null for preview
@@ -370,6 +375,7 @@ fun HomeScreenMediumPreview() {
 fun HomeScreenExpandedPreview() {
     AppTheme {
         HomeScreen(
+            navController = rememberNavController(), // Added
             onMedicationClick = {},
             widthSizeClass = WindowWidthSizeClass.Expanded,
             sharedTransitionScope = null, // Pass null for preview
