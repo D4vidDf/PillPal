@@ -20,7 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.hilt.navigation.compose.hiltViewModel // Added for ViewModel instantiation
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -174,7 +175,7 @@ fun AppNavigation(
                                 navigationIcon = {
                                     IconButton(onClick = { currentSettingsBackAction.invoke() }) {
                                         Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                            painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                             contentDescription = stringResource(id = R.string.back) // Generic back description
                                         )
                                     }

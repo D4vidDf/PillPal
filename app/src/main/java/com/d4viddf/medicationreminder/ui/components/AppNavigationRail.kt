@@ -3,7 +3,7 @@ package com.d4viddf.medicationreminder.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+// import androidx.compose.material.icons.filled.Add // Removed
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +46,7 @@ fun AppNavigationRail(
                     // contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Add,
+                        painter = painterResource(id = R.drawable.rounded_add_24),
                         contentDescription = stringResource(R.string.add_medication_title)
                     )
                 }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton // Needed for Preview's TopAppBar
@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource // Added Import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,8 +29,6 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import android.util.Log // Required for LaunchedEffect error logging
-
-// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
 import androidx.compose.foundation.layout.fillMaxSize // Ensure fillMaxSize is imported
 
 
@@ -113,7 +112,7 @@ fun DeveloperSettingsScreenPreview() {
                     navigationIcon = {
                         IconButton(onClick = {}) { // Dummy action for preview
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = "Back" // Preview description
                             )
                         }

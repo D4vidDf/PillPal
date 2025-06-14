@@ -161,7 +161,7 @@ object NotificationHelper {
             .setAutoCancel(true)
             .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)
-            .addAction(R.drawable.ic_check_circle, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
+            .addAction(R.drawable.ic_check, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
         // Sound will be set below based on notificationSoundUriString
 

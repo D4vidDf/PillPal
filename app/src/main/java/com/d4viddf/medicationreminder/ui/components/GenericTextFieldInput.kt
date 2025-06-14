@@ -4,11 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+// import androidx.compose.material.icons.filled.Edit // Removed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,7 @@ fun GenericTextFieldInput(
             textStyle = MaterialTheme.typography.bodyLarge,
             singleLine = true,
             trailingIcon = {
-                Icon(Icons.Default.Edit, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.generic_textfield_edit_acc))
+                Icon(painter = painterResource(id = com.d4viddf.medicationreminder.R.drawable.rounded_edit_24), contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.generic_textfield_edit_acc))
             },
             keyboardOptions = keyboardOptions,
             isError = isError,

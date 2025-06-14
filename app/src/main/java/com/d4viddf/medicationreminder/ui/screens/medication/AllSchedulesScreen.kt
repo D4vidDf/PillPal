@@ -46,9 +46,8 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.TodayScheduleItem // Added
 import com.d4viddf.medicationreminder.data.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-// import com.d4viddf.medicationreminder.ui.components.ThemedAppBarBackButton // Will be removed
 import androidx.compose.material.icons.Icons // Added
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Added
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Fully Removed
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.AllSchedulesViewModel
@@ -57,6 +56,7 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import androidx.compose.ui.res.painterResource // Added import
 
 @Composable
 fun FullScheduleItem(
@@ -176,7 +176,7 @@ fun AllSchedulesScreen(
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = stringResource(id = R.string.back_button_cd)
                             )
                         }
@@ -321,7 +321,7 @@ fun AllSchedulesScreenTodayPreview() {
                         navigationIcon = {
                             IconButton(onClick = { /* No-op for preview */ }) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                     contentDescription = "Back"
                                 )
                             }

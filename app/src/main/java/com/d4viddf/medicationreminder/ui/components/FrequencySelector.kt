@@ -19,7 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ThumbUp
+// import androidx.compose.material.icons.filled.ThumbUp // Removed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -109,7 +110,7 @@ fun FrequencySelector(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Icon(Icons.Filled.ThumbUp, null, Modifier.size(ButtonDefaults.IconSize)) // contentDescription can be null for decorative icons
+                    Icon(painter = painterResource(id = R.drawable.rounded_thumb_up_24), null, Modifier.size(ButtonDefaults.IconSize)) // contentDescription can be null for decorative icons
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                     Text(onceADayTime?.format(uiTimeFormatter) ?: stringResource(id = com.d4viddf.medicationreminder.R.string.freq_select_reminder_time_button))
                 }

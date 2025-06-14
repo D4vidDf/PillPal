@@ -17,9 +17,9 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Keep this import
-import androidx.compose.material.icons.automirrored.filled.Subject // For Prospecto
-import androidx.compose.material.icons.filled.DocumentScanner // For Ficha Técnica
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
+// import androidx.compose.material.icons.automirrored.filled.Subject // Removed
+// import androidx.compose.material.icons.filled.DocumentScanner // Removed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -147,7 +147,7 @@ fun InfoRow(label: String, value: String?, showDivider: Boolean = true) { // Mad
 fun LinkButton( // Made non-private (was already non-private)
     text: String,
     url: String?,
-    icon: ImageVector,
+    icon: Any, // Changed to Any to accept Painter or ImageVector
     onClick: (String) -> Unit
 ) {
     Button(
@@ -160,7 +160,10 @@ fun LinkButton( // Made non-private (was already non-private)
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        when (icon) {
+            is ImageVector -> Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            is androidx.compose.ui.graphics.painter.Painter -> Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        }
         Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
         Text(text)
     }
@@ -228,7 +231,7 @@ fun MedicationInfoScreen(
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
                             )
                         }
@@ -297,7 +300,7 @@ fun MedicationInfoScreen(
                                 LinkButton(
                                     text = stringResource(id = R.string.med_info_button_prospecto),
                                     url = prospecto?.urlHtml ?: prospecto?.url,
-                                    icon = Icons.AutoMirrored.Filled.Subject,
+                                    icon = painterResource(id = R.drawable.rounded_subject_24),
                                     onClick = { url -> uriHandler.openUri(url) }
                                 )
                             }
@@ -305,7 +308,7 @@ fun MedicationInfoScreen(
                                 LinkButton(
                                     text = stringResource(id = R.string.med_info_button_ficha_tecnica),
                                     url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
-                                    icon = Icons.Filled.DocumentScanner,
+                                    icon = painterResource(id = R.drawable.rounded_document_scanner_24),
                                     onClick = { url -> uriHandler.openUri(url) }
                                 )
                             }
@@ -343,7 +346,7 @@ fun MedicationInfoScreen(
                                 LinkButton(
                                     text = stringResource(id = R.string.med_info_button_prospecto),
                                     url = prospecto?.urlHtml ?: prospecto?.url,
-                                    icon = Icons.AutoMirrored.Filled.Subject,
+                                    icon = painterResource(id = R.drawable.rounded_subject_24),
                                     onClick = { url -> uriHandler.openUri(url) }
                                 )
                             }
@@ -352,7 +355,7 @@ fun MedicationInfoScreen(
                                 LinkButton(
                                     text = stringResource(id = R.string.med_info_button_ficha_tecnica),
                                     url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
-                                    icon = Icons.Filled.DocumentScanner,
+                                    icon = painterResource(id = R.drawable.rounded_document_scanner_24),
                                     onClick = { url -> uriHandler.openUri(url) }
                                 )
                             }

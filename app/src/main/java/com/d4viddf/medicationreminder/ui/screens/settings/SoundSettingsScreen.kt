@@ -1,7 +1,6 @@
 package com.d4viddf.medicationreminder.ui.screens.settings
 
 import android.app.Activity
-import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,40 +10,39 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
+// import androidx.compose.material.icons.filled.VolumeOff // Removed
+// import androidx.compose.material.icons.filled.VolumeUp // Removed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton // Needed for Preview's TopAppBar
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold // Needed for Preview
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar // Needed for Preview's Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 import kotlin.math.roundToInt
-import androidx.compose.foundation.layout.fillMaxSize // Moved to main import block
-
-// import androidx.compose.foundation.layout.Box // No longer needed for empty topBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +89,7 @@ fun SoundSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(
-                            imageVector = if (currentVolume > 0) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            painter = if (currentVolume > 0) painterResource(id = R.drawable.rounded_volume_up_24) else painterResource(id = R.drawable.rounded_volume_off_24), // Assuming rounded_volume_off_24 exists
                             contentDescription = stringResource(id = if (currentVolume > 0) R.string.volume_up_content_description else R.string.volume_off_content_description)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -186,7 +184,7 @@ fun SoundSettingsScreenPreview() {
                     navigationIcon = {
                         IconButton(onClick = {}) { // Dummy action for preview
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = "Back" // Preview description
                             )
                         }

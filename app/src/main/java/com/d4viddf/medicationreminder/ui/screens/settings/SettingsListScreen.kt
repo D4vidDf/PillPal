@@ -1,26 +1,20 @@
 package com.d4viddf.medicationreminder.ui.screens.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build // For Developer Options
-import androidx.compose.material.icons.filled.Info // Placeholder for General
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.VolumeUp // For Sound
-// import androidx.compose.material3.HorizontalDivider // Removed
+// import androidx.compose.material.icons.filled.Build // Removed
+// import androidx.compose.material.icons.filled.Info // Removed
+// import androidx.compose.material.icons.filled.KeyboardArrowRight // Removed
+// import androidx.compose.material.icons.filled.VolumeUp // Removed
 import androidx.compose.material3.Icon
-// import androidx.compose.material3.ListItem // Removed
-import androidx.compose.material3.OutlinedCard // Added
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,7 +32,7 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 // Data class to represent a settings category item
 data class SettingsCategory(
     val title: String,
-    val icon: ImageVector,
+    val icon: Any, // Changed to Any
     val onClick: () -> Unit,
     val contentDescription: String
 )
@@ -54,19 +49,19 @@ fun SettingsListScreen(
     val categories = listOf(
         SettingsCategory(
             title = stringResource(id = R.string.settings_category_general), // Assume R.string.settings_category_general = "General"
-            icon = Icons.Filled.Info, // Replace with a more appropriate icon if available
+            icon = painterResource(id = R.drawable.rounded_info_i_24),
             onClick = onNavigateToGeneral,
             contentDescription = stringResource(id = R.string.settings_category_general_cd) // Assume cd exists
         ),
         SettingsCategory(
             title = stringResource(id = R.string.settings_category_sound), // Assume R.string.settings_category_sound = "Sound"
-            icon = Icons.Filled.VolumeUp,
+            icon = painterResource(id = R.drawable.rounded_volume_up_24),
             onClick = onNavigateToSound,
             contentDescription = stringResource(id = R.string.settings_category_sound_cd) // Assume cd exists
         ),
         SettingsCategory(
             title = stringResource(id = R.string.settings_category_developer), // Assume R.string.settings_category_developer = "Developer Options"
-            icon = Icons.Filled.Build,
+            icon = painterResource(id = R.drawable.rounded_build_24),
             onClick = onNavigateToDeveloper,
             contentDescription = stringResource(id = R.string.settings_category_developer_cd) // Assume cd exists
         )
@@ -88,7 +83,7 @@ fun SettingsListScreen(
 @Composable
 fun SettingsCategoryItem(
     title: String,
-    icon: ImageVector,
+    icon: Any, // Changed to Any
     contentDescription: String,
     onClick: () -> Unit
 ) {
@@ -105,18 +100,25 @@ fun SettingsCategoryItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between icon and text
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription, // For accessibility
-                modifier = Modifier.size(24.dp) // Consistent icon size
-            )
+            when (icon) {
+                is ImageVector -> Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription, // For accessibility
+                    modifier = Modifier.size(24.dp) // Consistent icon size
+                )
+                is androidx.compose.ui.graphics.painter.Painter -> Icon(
+                    painter = icon,
+                    contentDescription = contentDescription, // For accessibility
+                    modifier = Modifier.size(24.dp) // Consistent icon size
+                )
+            }
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f) // Ensure text takes available space
             )
             Icon(
-                imageVector = Icons.Filled.KeyboardArrowRight,
+                painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
                 contentDescription = null, // Decorative
                 tint = MaterialTheme.colorScheme.onSurfaceVariant // Subtle color
             )

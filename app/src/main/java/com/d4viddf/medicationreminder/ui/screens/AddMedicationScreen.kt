@@ -8,8 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.KeyboardArrowLeft
+// import androidx.compose.material.icons.rounded.Close // Removed
+// import androidx.compose.material.icons.rounded.KeyboardArrowLeft // Removed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,13 +19,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration // For Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
-// import androidx.compose.ui.platform.LocalContext // Only if child components truly need it
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added import
-// import androidx.compose.material3.windowsizeclass.LocalWindowSizeClass // Preferred -> No longer needed here
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController // Add this import
@@ -37,12 +36,10 @@ import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.FrequencyType
 import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationInfo
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.*
-// import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel // Removed if not used
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
@@ -66,10 +63,10 @@ fun AddMedicationScreen(
 
     val stepDetailsList = listOf(
         StepDetails(1, stringResource(R.string.step_title_medication_name), R.drawable.ic_pill_placeholder),
-        StepDetails(2, stringResource(R.string.step_title_type_color), R.drawable.ic_palette), // Use new icon
+        StepDetails(2, stringResource(R.string.step_title_type_color), R.drawable.rounded_palette_24), // Use new icon
         StepDetails(3, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory), // Use new icon
         StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time), // Use new icon
-        StepDetails(5, stringResource(R.string.step_title_summary), R.drawable.ic_check_circle) // Use new icon
+        StepDetails(5, stringResource(R.string.step_title_summary), R.drawable.ic_check) // Use new icon
     )
 
     var currentStep by rememberSaveable { mutableStateOf(0) }
@@ -143,7 +140,7 @@ fun AddMedicationScreen(
                             currentStep--
                             progress = (currentStep + 1) / 5f
                         }) {
-                            Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
+                            Icon(painterResource(id = R.drawable.rounded_arrow_back_ios_24), contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
                         }
                     } else {
                         // If on step 0, this back button could also navigate back past the choice screen
@@ -151,7 +148,7 @@ fun AddMedicationScreen(
                         // For consistency with the close button, let's make it pop AddMedicationScreen only.
                         // The user would then be on AddMedicationChoiceScreen and can use its new close button.
                          IconButton(onClick = { navController.popBackStack() }) { // Pops AddMedicationScreen
-                             Icon(Icons.Rounded.KeyboardArrowLeft, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
+                             Icon(painterResource(id = R.drawable.rounded_arrow_back_ios_24), contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.back))
                          }
                     }
                 },
@@ -160,7 +157,7 @@ fun AddMedicationScreen(
                         // This should take us back to the screen before AddMedicationChoiceScreen
                          navController.popBackStack(Screen.AddMedicationChoice.route, inclusive = true)
                     }) {
-                        Icon(Icons.Rounded.Close, contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.close))
+                        Icon(painterResource(id = R.drawable.rounded_close_24), contentDescription = stringResource(id = com.d4viddf.medicationreminder.R.string.close))
                     }
                 }
             )
