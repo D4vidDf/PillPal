@@ -1,7 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens
 
-// Icons for TopAppBar were removed, but CalendarToday is still needed
 
 import android.util.Log
 import androidx.compose.animation.ExperimentalSharedTransitionApi

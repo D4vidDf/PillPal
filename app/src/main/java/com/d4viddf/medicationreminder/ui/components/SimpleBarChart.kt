@@ -1,28 +1,24 @@
 package com.d4viddf.medicationreminder.ui.components
 
+import android.graphics.Paint
+import android.util.Log
 import androidx.compose.foundation.Canvas
-// import androidx.compose.foundation.layout.fillMaxWidth // Not directly used in SimpleBarChart itself
-// import androidx.compose.foundation.layout.height // Not directly used in SimpleBarChart itself
-import androidx.compose.foundation.layout.width // Added import for Modifier.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius // Added import
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb // Import for toArgb
-import androidx.compose.ui.graphics.Paint as ComposePaint // Alias to avoid conflict if Android Paint is used
-import android.graphics.Paint // For text drawing
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.ceil // Added import
-import android.util.Log // Added for logging
-import androidx.compose.ui.semantics.contentDescription // Added for Semantics
-import androidx.compose.ui.semantics.semantics // Added for Semantics
+import kotlin.math.ceil
 
 data class BarChartItem(
     val label: String,
