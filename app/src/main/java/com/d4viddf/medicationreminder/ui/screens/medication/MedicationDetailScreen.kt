@@ -728,7 +728,7 @@ private fun MedicationInformationContent(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onNavigateToMedicationInfo(medicationId, colorName) }
+                // .clickable { onNavigateToMedicationInfo(medicationId, colorName) } // Removed this line
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         )
         Button(
