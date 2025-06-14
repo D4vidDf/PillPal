@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.SwapVert
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed in previous step
+// import androidx.compose.material.icons.filled.CalendarToday // Removed
+// import androidx.compose.material.icons.filled.SwapVert // Removed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed by previous rule, but ensure it's gone or remove again
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationHistoryViewModel
@@ -180,7 +182,7 @@ fun MedicationHistoryScreen(
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = stringResource(id = R.string.back_button_cd)
                             )
                         }
@@ -223,7 +225,7 @@ fun MedicationHistoryScreen(
                             shape = MaterialTheme.shapes.medium,
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.CalendarToday,
+                                painter = painterResource(id = R.drawable.ic_calendar),
                                 contentDescription = null, // Text on button describes action
                                 modifier = Modifier.size(ButtonDefaults.IconSize)
                             )
@@ -266,7 +268,7 @@ fun MedicationHistoryScreen(
                             shape = MaterialTheme.shapes.medium,
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.SwapVert,
+                                painter = painterResource(id = R.drawable.ic_swap_vert),
                                 contentDescription = null, // Text on button describes action
                                 modifier = Modifier.size(ButtonDefaults.IconSize)
                             )

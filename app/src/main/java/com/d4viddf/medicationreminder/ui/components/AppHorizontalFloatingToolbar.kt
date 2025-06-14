@@ -1,7 +1,7 @@
 package com.d4viddf.medicationreminder.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+// import androidx.compose.material.icons.filled.Add // Removed
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingToolbarDefaults
@@ -34,7 +34,7 @@ fun AppHorizontalFloatingToolbar(
         floatingActionButton = {
             FloatingActionButton(onClick = onAddClick) {
                 Icon(
-                    imageVector = Icons.Filled.Add,
+                    painter = painterResource(id = R.drawable.rounded_add_24),
                     contentDescription = stringResource(id = R.string.add_medication_title)
                 )
             }

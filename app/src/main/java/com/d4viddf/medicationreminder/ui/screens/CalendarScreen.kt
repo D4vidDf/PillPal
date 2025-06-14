@@ -24,7 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
+// import androidx.compose.material.icons.filled.CalendarToday // Removed
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.ParentDataModifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -314,7 +315,7 @@ fun CalendarTopAppBar(
         actions = {
             IconButton(onClick = onDateSelectorClicked) {
                 Icon(
-                    imageVector = Icons.Filled.CalendarToday,
+                    painter = painterResource(id = R.drawable.ic_calendar),
                     contentDescription = stringResource(R.string.select_date)
                 )
             }

@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+// import androidx.compose.material.icons.filled.Check // Removed
+// import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight // Removed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -65,7 +66,7 @@ fun ColorSelector(
             Spacer(modifier = Modifier.width(8.dp))
             Text(selectedColor.colorName) // colorName itself is likely fine as it's a property of MedicationColor
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = expandAccText)
+            Icon(painter = painterResource(id = com.d4viddf.medicationreminder.R.drawable.rounded_arrow_forward_ios_24), contentDescription = expandAccText)
         }
     }
 
@@ -114,7 +115,7 @@ fun ColorSelector(
                         ) {
                             if (isSelected) {
                                 Icon(
-                                    Icons.Default.Check,
+                                    painter = painterResource(id = com.d4viddf.medicationreminder.R.drawable.ic_check),
                                     contentDescription = itemSelectedAccText,
                                     modifier = Modifier
                                         .background(Color.White, CircleShape)

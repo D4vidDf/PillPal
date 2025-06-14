@@ -18,9 +18,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+// import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight // Removed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -84,7 +85,8 @@ import kotlin.math.abs
 
 @Composable
 private fun StyledNavigationArrow(
-    icon: ImageVector,
+    icon: ImageVector? = null, // Made nullable
+    iconPainter: androidx.compose.ui.graphics.painter.Painter? = null, // Added painter
     contentDescription: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
@@ -99,11 +101,19 @@ private fun StyledNavigationArrow(
                 shape = RoundedCornerShape(16.dp)
             )
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // Adjust disabled tint
-        )
+        if (iconPainter != null) {
+            Icon(
+                painter = iconPainter,
+                contentDescription = contentDescription,
+                tint = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // Adjust disabled tint
+            )
+        } else if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // Adjust disabled tint
+            )
+        }
     }
 }
 
@@ -198,7 +208,7 @@ fun MedicationGraphScreen(
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = stringResource(id = R.string.back_button_cd)
                             )
                         }
@@ -450,7 +460,7 @@ private fun WeeklyChartCard(
                     )
                 }
                 StyledNavigationArrow(
-                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    iconPainter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
                     contentDescription = "Next week", // Updated to hardcoded string
                     onClick = {
                         val nextWeek = currentWeekMondayInternal.plusWeeks(1)
@@ -583,7 +593,7 @@ private fun YearlyChartCard(
                     )
                 }
                 StyledNavigationArrow(
-                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    iconPainter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
                     contentDescription = "Next year", // Updated
                     onClick = {
                         if (currentDisplayedYearInternal + 1 <= today.year) { // Use passed-in today

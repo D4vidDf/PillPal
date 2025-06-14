@@ -22,9 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
+// import androidx.compose.material.icons.automirrored.filled.NavigateNext // Removed
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Add
+// import androidx.compose.material.icons.filled.Add // Removed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -364,7 +365,7 @@ fun MedicationDetailsScreen(
                                         .padding(4.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Filled.Add,
+                                        painter = painterResource(id = R.drawable.rounded_add_24),
                                         contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer, // NEW
                                         modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
@@ -475,7 +476,7 @@ fun MedicationDetailsScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.NavigateNext, // Changed icon
+                                    painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
                                     contentDescription = "History", // Changed content description
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(28.dp)
@@ -511,7 +512,7 @@ fun MedicationDetailsScreen(
                                             modifier = Modifier.weight(1f)
                                         )
                                         Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                            painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
                                             contentDescription = "View full graph",
                                             tint = color.onBackgroundColor,
                                             modifier = Modifier.size(24.dp)
