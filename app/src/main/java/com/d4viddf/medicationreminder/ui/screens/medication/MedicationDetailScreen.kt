@@ -182,10 +182,9 @@ fun MedicationDetailsScreen(
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(
-        initial = emptyList<ChartyGraphEntry>()
-    )
-        ?: remember { mutableStateOf(emptyList<ChartyGraphEntry>()) })
+    val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) })
+    val weeklyMaxYForChart by (graphViewModel?.weeklyMaxYValue?.collectAsState() ?: remember { mutableStateOf(5f) }) // Collect new max Y value
+
 
     LaunchedEffect(medicationId, graphViewModel) {
         viewModel.getMedicationById(medicationId)?.let { med ->
@@ -356,7 +355,8 @@ fun MedicationDetailsScreen(
                                     chartEntries = chartEntries,
                                     medicationState = medicationState,
                                     medicationId = medicationId,
-                                    color = color
+                                    color = color,
+                                    maxYValue = weeklyMaxYForChart // Pass it here
                                 )
                                 MedicationInformationContent(
                                     navController = navController,
@@ -418,7 +418,8 @@ fun MedicationDetailsScreen(
                             chartEntries = chartEntries,
                             medicationState = medicationState,
                             medicationId = medicationId,
-                            color = color
+                            color = color,
+                            maxYValue = weeklyMaxYForChart // Pass it here
                         )
                     }
                     item {
@@ -731,7 +732,8 @@ private fun WeekProgressContent(
     chartEntries: List<ChartyGraphEntry>,
     medicationState: Medication?,
     medicationId: Int,
-    color: MedicationColor
+    color: MedicationColor,
+    maxYValue: Float // New parameter
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -815,7 +817,8 @@ private fun WeekProgressContent(
                     normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                     labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     valueTextColor = MaterialTheme.colorScheme.onSurface,
-                    chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}" // Corrected string template
+                    chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}", // Corrected string template
+                    explicitYAxisTopValue = maxYValue // Pass to SimpleBarChart
                 )
             }
         }

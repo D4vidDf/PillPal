@@ -163,6 +163,9 @@ fun MedicationGraphScreen(
     val errorWeekly by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }   // Assuming one error for now
     // TODO: ViewModel might need separate isLoading/error states for weekly/yearly if they load independently and can fail independently.
 
+    val weeklyMaxYForChart by (viewModel?.weeklyMaxYValue?.collectAsState() ?: remember { mutableStateOf(5f) }) // Collect weekly max
+    val yearlyMaxYForChart by (viewModel?.yearlyMaxYValue?.collectAsState() ?: remember { mutableStateOf(30f) }) // Collect yearly max
+
     // Data Loading LaunchedEffects
     LaunchedEffect(medicationId, currentWeekMonday, viewModel) {
         Log.d("MedGraphScreenLog", "Weekly LaunchedEffect triggered. MedId: $medicationId, WeekMonday: $currentWeekMonday, VM: ${viewModel != null}")
@@ -253,7 +256,8 @@ fun MedicationGraphScreen(
                                 error = errorWeekly,
                                 today = today,
                                 currentCalendarWeekMonday = currentCalendarWeekMonday,
-                                minWeekOverallLimitMonday = minWeekOverallLimitMonday
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday,
+                                maxYValue = weeklyMaxYForChart // Pass weekly max
                             )
                             YearlyChartCard(
                                 modifier = Modifier.fillMaxWidth(),
@@ -267,7 +271,8 @@ fun MedicationGraphScreen(
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly,
                                 today = today,
-                                minYear = minYear
+                                minYear = minYear,
+                                maxYValue = yearlyMaxYForChart // Pass yearly max
                             )
                         }
                     }
@@ -286,7 +291,8 @@ fun MedicationGraphScreen(
                                 error = errorWeekly,
                                 today = today,
                                 currentCalendarWeekMonday = currentCalendarWeekMonday,
-                                minWeekOverallLimitMonday = minWeekOverallLimitMonday
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday,
+                                maxYValue = weeklyMaxYForChart // Pass weekly max
                             )
                             YearlyChartCard(
                                 modifier = Modifier.weight(1f),
@@ -300,7 +306,8 @@ fun MedicationGraphScreen(
                                 isLoading = isLoadingWeekly,
                                 error = errorWeekly,
                                 today = today, // Added missing parameter
-                                minYear = minYear   // Added missing parameter
+                                minYear = minYear,   // Added missing parameter
+                                maxYValue = yearlyMaxYForChart // Pass yearly max
                             )
                         }
                     }
@@ -417,7 +424,8 @@ private fun WeeklyChartCard(
     today: LocalDate,
     currentCalendarWeekMonday: LocalDate,
     minWeekOverallLimitMonday: LocalDate,
-    medicationColor: MedicationColor // Added parameter
+    medicationColor: MedicationColor, // Added parameter
+    maxYValue: Float // New parameter
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -552,7 +560,8 @@ private fun WeeklyChartCard(
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         valueTextColor = MaterialTheme.colorScheme.onSurface,
-                        chartContentDescription = weeklyChartDesc // Added
+                        chartContentDescription = weeklyChartDesc, // Added
+                        explicitYAxisTopValue = maxYValue // Pass to SimpleBarChart
                     )
                 }
             }
@@ -575,7 +584,8 @@ private fun YearlyChartCard(
     // Date limit parameters
     today: LocalDate,
     minYear: Int,
-    medicationColor: MedicationColor // Added parameter
+    medicationColor: MedicationColor, // Added parameter
+    maxYValue: Float // New parameter
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -701,7 +711,8 @@ private fun YearlyChartCard(
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         valueTextColor = MaterialTheme.colorScheme.onSurface,
-                        chartContentDescription = yearlyChartDesc // Added
+                        chartContentDescription = yearlyChartDesc, // Added
+                        explicitYAxisTopValue = maxYValue // Pass to SimpleBarChart
                     )
                 }
             }

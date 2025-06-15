@@ -35,13 +35,14 @@ fun SimpleBarChart(
     labelTextColor: Color,
     barWidthDp: Dp = 24.dp, // Default bar width
     spaceAroundBarsDp: Dp = 8.dp, // Default space between and around bars
-    barCornerRadiusDp: Dp = 4.dp, // New parameter
-    valueTextColor: Color = labelTextColor, // New parameter
-    valueTextSizeSp: Float = 10f, // New parameter
-    chartContentDescription: String // New parameter for accessibility
+    barCornerRadiusDp: Dp = 4.dp,
+    valueTextColor: Color = labelTextColor,
+    valueTextSizeSp: Float = 10f,
+    chartContentDescription: String,
+    explicitYAxisTopValue: Float? = null // New parameter
 ) {
     // Diagnostic Logging
-    Log.d("SimpleBarChartData", "Input data: ${data.map { it.value }}")
+    Log.d("SimpleBarChartData", "Input data: ${data.map { it.value }}, explicitYAxisTopValue: $explicitYAxisTopValue")
     val actualMaxValueForLog = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
     Log.d("SimpleBarChartData", "Calculated actualMaxValueForLog (initial): $actualMaxValueForLog")
 
@@ -95,14 +96,27 @@ fun SimpleBarChart(
     val yAxisTopValue: Float
     val yTickCount: Int
 
-    if (actualMaxValue == 0f) {
-        yAxisTopValue = 5f // Default scale for an all-zero chart, showing ticks up to 5.
-        yTickCount = 5
-    } else { // actualMaxValue is > 0 (guaranteed to be integer counts like 1.0, 2.0 etc from ViewModel)
-        yAxisTopValue = ceil(actualMaxValue).toFloat()
-        yTickCount = yAxisTopValue.toInt().coerceAtLeast(1)
+    if (explicitYAxisTopValue != null && explicitYAxisTopValue > 0f) {
+        yAxisTopValue = explicitYAxisTopValue
+        // Determine yTickCount based on this explicit value.
+        // Using ceil for consistency with the else branch, ensuring at least 1 tick if top > 0.
+        yTickCount = ceil(yAxisTopValue).toInt().coerceAtLeast(1)
+        Log.d("SimpleBarChartData", "Using explicitYAxisTopValue: $yAxisTopValue")
+    } else {
+        // Fallback to current behavior if explicitYAxisTopValue is null or not positive
+        val actualMaxValueFromData = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
+        if (actualMaxValueFromData == 0f) {
+            yAxisTopValue = 5f // Default scale for an all-zero chart if no explicit override
+            yTickCount = 5 // Corresponds to 0, 1, 2, 3, 4, 5 (or rather, 0, 2.5, 5 for drawing)
+            Log.d("SimpleBarChartData", "Data is all zero, using default yAxisTopValue: $yAxisTopValue")
+        } else {
+            yAxisTopValue = ceil(actualMaxValueFromData).toFloat()
+            yTickCount = yAxisTopValue.toInt().coerceAtLeast(1)
+            Log.d("SimpleBarChartData", "Derived yAxisTopValue from data: $yAxisTopValue")
+        }
     }
-    Log.d("SimpleBarChartData", "yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount")
+    // Log final decision
+    Log.d("SimpleBarChartData", "Final yAxisTopValue: $yAxisTopValue, yTickCount: $yTickCount (Explicit used: ${explicitYAxisTopValue != null && explicitYAxisTopValue > 0f})")
 
     // Dynamic Y-Axis Label Area Width (Moved to top level)
     val yAxisLabelPadding = remember(density) { with(density) { 4.dp.toPx() } }
