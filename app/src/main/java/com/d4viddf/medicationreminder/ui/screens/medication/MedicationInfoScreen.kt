@@ -71,7 +71,7 @@ import java.util.Locale
 
 // Removed MedicationFullInfo data class as we now use CimaMedicationDetail from ViewModel
 
-private enum class CardType {
+enum class CardType { // Or internal enum class CardType - Kotlin's default top-level visibility is public. To be explicit for clarity, 'internal' is better if it's module-specific. Let's stick to removing 'private' which makes it public.
     GENERAL_INFO,
     ADDITIONAL_INFO
 }
