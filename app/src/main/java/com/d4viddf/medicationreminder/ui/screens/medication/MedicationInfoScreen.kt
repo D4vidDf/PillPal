@@ -176,9 +176,9 @@ fun InfoRow(label: String, value: String?, showDivider: Boolean = true) { // Mad
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, // Changed to onSurfaceVariant
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium, // Changed to titleMedium
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Bold // Remains Bold
         )
         Text(
             text = value ?: stringResource(id = R.string.med_info_value_not_available),
