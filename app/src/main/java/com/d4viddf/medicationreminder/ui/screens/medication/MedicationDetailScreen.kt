@@ -98,7 +98,6 @@ import java.time.format.FormatStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
-// Helper function for endDate check
 fun Medication?.isPastEndDate(): Boolean {
     if (this?.endDate.isNullOrBlank()) return false
     return try {
@@ -231,7 +230,9 @@ fun MedicationDetailsScreen(
             MedicationColor.LIGHT_ORANGE
         }
     }
-
+    val makeAppBarTransparent = isHostedInPane ||
+            widthSizeClass == WindowWidthSizeClass.Medium ||
+            widthSizeClass == WindowWidthSizeClass.Expanded
     MedicationSpecificTheme(medicationColor = color) {
         if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -240,10 +241,6 @@ fun MedicationDetailsScreen(
         } else {
             Scaffold(
                 topBar = {
-                    val makeAppBarTransparent = isHostedInPane ||
-                            widthSizeClass == WindowWidthSizeClass.Medium ||
-                            widthSizeClass == WindowWidthSizeClass.Expanded
-
                     TopAppBar(
                         title = { },
                         navigationIcon = {
@@ -383,7 +380,7 @@ fun MedicationDetailsScreen(
                 }
             } else {
                 LazyColumn(modifier = actualContentModifier
-                    .then(if (!isHostedInPane) Modifier.padding(top = innerPadding.calculateTopPadding()) else Modifier) // Add conditional top padding
+                    .then(if (makeAppBarTransparent) Modifier.padding(horizontal = 16.dp) else Modifier)
                 ) {
                     item {
                         MedicationHeaderAndProgress(
@@ -463,18 +460,6 @@ fun MedicationDetailsScreen(
                 }
             }
         }
-    }
-
-    if (medicationState.isPastEndDate()) {
-        Text(
-            text = stringResource(id = R.string.medication_period_ended),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp), // Or just top padding if preferred
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
     }
 }
 
@@ -671,11 +656,17 @@ private fun TodayScheduleContent(
         }
     }
 
-    // Note: The medicationState.isPastEndDate() check at the beginning of the composable
-    // was removed. The logic below will run.
-    // The ViewModel (loadTodaySchedule) is now responsible for clearing todayScheduleItems if the medication has ended.
-    // The ScheduleItem's enabled state will still use medicationState.isPastEndDate().
-    if (todayScheduleItems.isEmpty() && medicationState != null) {
+    if (medicationState.isPastEndDate()) {
+        Text(
+            text = stringResource(id = R.string.medication_period_ended),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp), // Or just top padding if preferred
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    } else if (todayScheduleItems.isEmpty() && medicationState != null) {
         Text(
             text = stringResource(id = R.string.medication_detail_no_reminders_today),
             modifier = Modifier
