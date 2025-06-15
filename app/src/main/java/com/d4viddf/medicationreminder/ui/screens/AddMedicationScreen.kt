@@ -171,13 +171,20 @@ fun AddMedicationScreen(
                     } else if (currentStep == 4) {
                         coroutineScope.launch {
                             val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) // "yyyy-MM-dd"
+                            val finalStartDate: String?
+                            if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
+                                finalStartDate = startDate
+                            } else {
+                                finalStartDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $finalStartDate")
+                            }
 
                             val medicationId = medicationViewModel.insertMedication(
                                 Medication(
                                     name = medicationName, typeId = selectedTypeId, color = selectedColor.toString(),
                                     dosage = dosage.ifEmpty { null }, packageSize = packageSize.toIntOrNull() ?: 0,
                                     remainingDoses = packageSize.toIntOrNull() ?: 0,
-                                    startDate = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) startDate else null,
+                                    startDate = finalStartDate, // Use the new finalStartDate
                                     endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
                                     reminderTime = null, // This seems to be consistently null here
                                     registrationDate = currentRegistrationDate, // Set the new field
