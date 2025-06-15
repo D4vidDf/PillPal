@@ -488,7 +488,7 @@ private fun MedicationHeaderAndProgress(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.no_dosage_info_short),
+                                text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
                                 fontSize = 20.sp,
                                 color = color.textColor,
                                 modifier = Modifier.align(Alignment.CenterHorizontally),
