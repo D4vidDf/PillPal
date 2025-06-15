@@ -469,6 +469,18 @@ fun MedicationDetailsScreen(
             }
         }
     }
+
+    if (medicationState.isPastEndDate()) {
+        Text(
+            text = stringResource(id = R.string.medication_period_ended),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp), // Or just top padding if preferred
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable
@@ -624,34 +636,7 @@ private fun TodayScheduleContent(
     medicationId: Int,
     isTwoPane: Boolean = false
 ) {
-    if (medicationState.isPastEndDate()) {
-        Text(
-            text = stringResource(id = R.string.medication_period_ended),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        // Row for title now needs to conditionally hide button too
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = stringResource(id = R.string.medication_detail_today_title),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            // IconButton is not shown as medication period has ended.
-        }
-        return // Exit early
-    }
+    // Removed the early return block for medicationState.isPastEndDate()
 
     Row(
         modifier = Modifier
@@ -666,30 +651,29 @@ private fun TodayScheduleContent(
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
         )
-        if (!medicationState.isPastEndDate()) { // Condition for IconButton
-            IconButton(
-                onClick = onAddPastDoseClick,
-                modifier = Modifier
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .padding(4.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.rounded_add_24),
-                    contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
+        // IconButton is now always present
+        IconButton(
+            onClick = onAddPastDoseClick,
+            modifier = Modifier
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(12.dp)
                 )
-            }
+                .padding(4.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.rounded_add_24),
+                contentDescription = stringResource(id = R.string.content_desc_add_past_dose),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize)
+            )
         }
     }
 
     // Note: The medicationState.isPastEndDate() check at the beginning of the composable
-    // will cause it to return early if true, so this section is only reached if medication has not ended.
-    // Thus, the isEmpty check below doesn't strictly need to re-check isPastEndDate for its own display logic,
-    // but the ScheduleItem's enabled state will still use it.
+    // was removed. The logic below will run.
+    // The ViewModel (loadTodaySchedule) is now responsible for clearing todayScheduleItems if the medication has ended.
+    // The ScheduleItem's enabled state will still use medicationState.isPastEndDate().
     if (todayScheduleItems.isEmpty() && medicationState != null) {
         Text(
             text = stringResource(id = R.string.medication_detail_no_reminders_today),
