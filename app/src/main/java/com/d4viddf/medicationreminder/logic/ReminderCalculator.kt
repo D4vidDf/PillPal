@@ -357,24 +357,85 @@ object ReminderCalculator {
 
 
                 val medicationActualStartDateStr = medication.startDate
-                val medStartDateStrLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medicationActualStartDateStr=$medicationActualStartDateStr"
+                var medicationStartDateOnly: LocalDate? = null // Make it nullable initially
+                val medStartDateStrLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medicationActualStartDateStr=$medicationActualStartDateStr, lastTakenDateTime=$lastTakenDateTime"
                 Log.d(TAG, medStartDateStrLog)
                 FileLogger.log(TAG, medStartDateStrLog)
-                if (medicationActualStartDateStr.isNullOrBlank()) {
-                    val blankStartDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Medication start date is null/blank. Cannot proceed."
-                    Log.e(TAG, blankStartDateLog)
-                    FileLogger.log(TAG, blankStartDateLog)
-                    return emptyMap()
+
+                if (!medicationActualStartDateStr.isNullOrBlank()) {
+                    try {
+                        medicationStartDateOnly = LocalDate.parse(medicationActualStartDateStr, dateStorableFormatter)
+                        Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Parsed medication.startDate: $medicationStartDateOnly")
+                        FileLogger.log(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Parsed medication.startDate: $medicationStartDateOnly")
+                    } catch (e: Exception) {
+                        val parseErrorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Error parsing medication.startDate: $medicationActualStartDateStr. Will attempt registrationDate."
+                        Log.e(TAG, parseErrorLog, e)
+                        FileLogger.log(TAG, parseErrorLog, e)
+                        // Fall through to try registrationDate
+                    }
                 }
 
-                val medicationStartDateOnly: LocalDate = try {
-                    LocalDate.parse(medicationActualStartDateStr, dateStorableFormatter)
-                } catch (e: Exception) {
-                    val parseErrorDateStr = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Error parsing medication start date string: $medicationActualStartDateStr."
-                    Log.e(TAG, parseErrorDateStr, e)
-                    FileLogger.log(TAG, parseErrorDateStr, e)
+                if (medicationStartDateOnly == null && lastTakenDateTime == null) { // Only try registrationDate if startDate is invalid AND it's a new-like scenario
+                    val tryRegDateLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medication.startDate is null/invalid and no lastTakenDateTime. Trying medication.registrationDate."
+                    Log.d(TAG, tryRegDateLog)
+                    FileLogger.log(TAG, tryRegDateLog)
+                    if (!medication.registrationDate.isNullOrBlank()) {
+                        try {
+                            medicationStartDateOnly = LocalDate.parse(medication.registrationDate, DateTimeFormatter.ISO_LOCAL_DATE) // ISO_LOCAL_DATE for "yyyy-MM-dd"
+                            val regDateUsedLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Used medication.registrationDate: $medicationStartDateOnly"
+                            Log.i(TAG, regDateUsedLog)
+                            FileLogger.log(TAG, regDateUsedLog)
+                        } catch (e: Exception) {
+                            val regDateErrorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Error parsing medication.registrationDate: ${medication.registrationDate}. Will use LocalDate.now() as fallback."
+                            Log.e(TAG, regDateErrorLog, e)
+                            FileLogger.log(TAG, regDateErrorLog, e)
+                            // Fall through to LocalDate.now()
+                        }
+                    } else {
+                        val regDateNullLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medication.registrationDate is also null or blank."
+                        Log.w(TAG, regDateNullLog)
+                        FileLogger.log(TAG, regDateNullLog)
+                    }
+                    if (medicationStartDateOnly == null) { // If still null after trying registrationDate
+                        medicationStartDateOnly = LocalDate.now()
+                        val fallbackNowLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using LocalDate.now() as fallback for medicationStartDateOnly: $medicationStartDateOnly"
+                        Log.w(TAG, fallbackNowLog)
+                        FileLogger.log(TAG, fallbackNowLog)
+                    }
+                } else if (medicationStartDateOnly == null && lastTakenDateTime != null) {
+                    // This case means startDate was invalid, but we DO have a lastTakenDateTime.
+                    // The anchor will be based on lastTakenDateTime, but we still need a valid medicationStartDateOnly for boundary checks.
+                    val boundaryFallbackLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medication.startDate is null/invalid, but lastTakenDateTime is present. Trying registrationDate for boundary checks."
+                    Log.w(TAG, boundaryFallbackLog)
+                    FileLogger.log(TAG, boundaryFallbackLog)
+                    if (!medication.registrationDate.isNullOrBlank()) {
+                        try {
+                            medicationStartDateOnly = LocalDate.parse(medication.registrationDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                            val regDateBoundaryLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Used medication.registrationDate as fallback for boundary checks: $medicationStartDateOnly"
+                            Log.i(TAG, regDateBoundaryLog)
+                            FileLogger.log(TAG, regDateBoundaryLog)
+                        } catch (e: Exception) {
+                             val regDateBoundaryErrorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Error parsing medication.registrationDate for boundary: ${medication.registrationDate}. Will use distant past date."
+                             Log.e(TAG, regDateBoundaryErrorLog, e)
+                             FileLogger.log(TAG, regDateBoundaryErrorLog, e)
+                             /* Fall through */
+                        }
+                    }
+                    if (medicationStartDateOnly == null) {
+                        medicationStartDateOnly = LocalDate.now().minusYears(10) // Fallback to a distant past date for boundary checks if absolutely needed
+                        val distantPastLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using distant past date as fallback for medicationStartDateOnly for boundary checks: $medicationStartDateOnly"
+                        Log.w(TAG, distantPastLog)
+                        FileLogger.log(TAG, distantPastLog)
+                    }
+                }
+
+                if (medicationStartDateOnly == null) { // If after all attempts, it's still null
+                    val criticalErrorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, medicationStartDateOnly could not be determined. Cannot proceed."
+                    Log.e(TAG, criticalErrorLog)
+                    FileLogger.log(TAG, criticalErrorLog)
                     return emptyMap()
                 }
+                // medicationStartDateOnly is now guaranteed to be non-null here.
 
                 val currentDateTime = LocalDateTime.now()
                 var anchorDateTime: LocalDateTime
@@ -407,24 +468,12 @@ object ReminderCalculator {
                     // End of NEW LOGIC for lastTakenDateTime == null
                 }
 
-                // The effectiveCalculationStartAnchor logic below seems to handle advancing the anchor if it's in the past.
-                // This part might need review in context of the new anchorDateTime, but the primary change is above.
-                val effectiveCalculationStartAnchor = if (anchorDateTime.isBefore(currentDateTime) && medicationStartDateOnly.isBefore(currentDateTime.toLocalDate())) {
-                    if (currentDateTime.isAfter(anchorDateTime)) {
-                         val advanceAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Anchor $anchorDateTime was in past. Med started in past. Advancing anchor to currentDateTime: $currentDateTime for generation start."
-                         Log.d(TAG, advanceAnchorLog)
-                         FileLogger.log(TAG, advanceAnchorLog)
-                         currentDateTime
-                    } else {
-                         anchorDateTime
-                    }
-                } else {
-                  anchorDateTime
-                }
-                anchorDateTime = effectiveCalculationStartAnchor
-                val finalEffectiveAnchorLog = "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, anchorDateTime=$anchorDateTime, effectiveCalculationStartAnchor=$effectiveCalculationStartAnchor"
-                Log.d(TAG, finalEffectiveAnchorLog)
-                FileLogger.log(TAG, finalEffectiveAnchorLog)
+                // anchorDateTime is already calculated based on lastTakenDateTime or medicationStartDateOnly.
+                // We will use this anchorDateTime directly for starting reminder generation.
+                // Filtering of past reminders will be handled by the worker/downstream logic.
+                Log.d(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using anchorDateTime: $anchorDateTime for generation start (not advancing to currentDateTime if in past).")
+                FileLogger.log(TAG, "generateRemindersForPeriod: Continuous Interval: Med ID ${medication.id}, Using anchorDateTime: $anchorDateTime for generation start.")
+                // No change to anchorDateTime based on currentDateTime here.
 
                 var currentReminderTime = anchorDateTime
                 val allGeneratedDateTimes = mutableListOf<LocalDateTime>()

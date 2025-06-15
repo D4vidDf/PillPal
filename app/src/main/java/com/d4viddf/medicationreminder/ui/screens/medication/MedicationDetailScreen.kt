@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class) // Moved OptIn to file-level
 package com.d4viddf.medicationreminder.ui.screens.medication
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -96,6 +97,18 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+
+fun Medication?.isPastEndDate(): Boolean {
+    if (this?.endDate.isNullOrBlank()) return false
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val endDateValue = LocalDate.parse(this.endDate, formatter)
+        endDateValue.isBefore(LocalDate.now())
+    } catch (e: Exception) {
+        Log.e("MedicationDetailScreen", "Error parsing endDate in isPastEndDate: ${this.endDate}", e)
+        false // If parsing fails, assume not past or handle error appropriately
+    }
+}
 
 // ScheduleItem Composable - Adapted
 @Composable
@@ -217,7 +230,9 @@ fun MedicationDetailsScreen(
             MedicationColor.LIGHT_ORANGE
         }
     }
-
+    val makeAppBarTransparent = isHostedInPane ||
+            widthSizeClass == WindowWidthSizeClass.Medium ||
+            widthSizeClass == WindowWidthSizeClass.Expanded
     MedicationSpecificTheme(medicationColor = color) {
         if (medicationState == null && progressDetails == null && todayScheduleItems.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -226,10 +241,6 @@ fun MedicationDetailsScreen(
         } else {
             Scaffold(
                 topBar = {
-                    val makeAppBarTransparent = isHostedInPane ||
-                            widthSizeClass == WindowWidthSizeClass.Medium ||
-                            widthSizeClass == WindowWidthSizeClass.Expanded
-
                     TopAppBar(
                         title = { },
                         navigationIcon = {
@@ -307,13 +318,10 @@ fun MedicationDetailsScreen(
                     val actualContentModifier = Modifier.fillMaxSize()
 
                     if (showTwoPanes) {
-                        LazyColumn(modifier = actualContentModifier.then(
-                            if (showTwoPanes) {
-                                Modifier.padding(horizontal = 16.dp)
-                            } else {
-                                Modifier
-                            }
-                        )) {
+                        LazyColumn(modifier = actualContentModifier
+                            .then(Modifier.padding(horizontal = 16.dp)) // Keep horizontal padding for two-pane
+                            .then(if (!isHostedInPane) Modifier.padding(top = innerPadding.calculateTopPadding()) else Modifier) // Add conditional top padding
+                        ) {
                             item {
                                 MedicationHeaderAndProgress(
                                     medicationState = medicationState,
@@ -323,7 +331,8 @@ fun MedicationDetailsScreen(
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope,
                                     medicationId = medicationId,
-                                    scheduleState = scheduleState
+                                     scheduleState = scheduleState,
+                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
                                 )
                             }
                             item {
@@ -370,13 +379,9 @@ fun MedicationDetailsScreen(
                     }
                 }
             } else {
-                LazyColumn(modifier = actualContentModifier.then(
-                    if (showTwoPanes) {
-                        Modifier.padding(horizontal = 16.dp)
-                    } else {
-                        Modifier
-                    }
-                )) {
+                LazyColumn(modifier = actualContentModifier
+                    .then(if (makeAppBarTransparent) Modifier.padding(horizontal = 16.dp) else Modifier)
+                ) {
                     item {
                         MedicationHeaderAndProgress(
                             medicationState = medicationState,
@@ -386,7 +391,8 @@ fun MedicationDetailsScreen(
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,
                             medicationId = medicationId,
-                            scheduleState = scheduleState
+                                     scheduleState = scheduleState,
+                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
                         )
                     }
                     item {
@@ -466,13 +472,26 @@ private fun MedicationHeaderAndProgress(
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     medicationId: Int,
-    scheduleState: MedicationSchedule?
+    scheduleState: MedicationSchedule?,
+    makeAppBarTransparent: Boolean // New parameter
 ) {
+    val displayProgressDetails = if (medicationState.isPastEndDate()) {
+        Log.d("MedDetailScreen", "Medication ${medicationState?.name} has ended. Displaying completed progress.")
+        ProgressDetails(taken = 1, totalFromPackage = 1, remaining = 0, progressFraction = 1.0f, displayText = stringResource(id = R.string.medication_progress_completed))
+    } else {
+        progressDetails
+    }
+
     val minWidthForHeaderTwoPanes = 500.dp
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val showTwoPanesForHeader = this.maxWidth >= minWidthForHeaderTwoPanes
-        val headerShape = if (showTwoPanesForHeader) RoundedCornerShape(36.dp) else RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+        // NEW SHAPE LOGIC:
+        val headerShape = if (makeAppBarTransparent) {
+            RoundedCornerShape(36.dp)
+        } else {
+            RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+        }
 
         Column(
             modifier = Modifier
@@ -551,7 +570,7 @@ private fun MedicationHeaderAndProgress(
                                 contentAlignment = Alignment.Center
                             ) {
                                 MedicationProgressDisplay(
-                                    progressDetails = progressDetails,
+                                    progressDetails = displayProgressDetails, // Use potentially overridden details
                                     colorScheme = color,
                                     indicatorSizeDp = 180.dp
                                 )
@@ -575,7 +594,7 @@ private fun MedicationHeaderAndProgress(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationProgressDisplay(
-                        progressDetails = progressDetails,
+                        progressDetails = displayProgressDetails, // Use potentially overridden details
                         colorScheme = color,
                         indicatorSizeDp = 220.dp,
                     )
@@ -603,6 +622,8 @@ private fun TodayScheduleContent(
     medicationId: Int,
     isTwoPane: Boolean = false
 ) {
+    // Removed the early return block for medicationState.isPastEndDate()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -616,6 +637,7 @@ private fun TodayScheduleContent(
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
         )
+        // IconButton is now always present
         IconButton(
             onClick = onAddPastDoseClick,
             modifier = Modifier
@@ -634,7 +656,17 @@ private fun TodayScheduleContent(
         }
     }
 
-    if (todayScheduleItems.isEmpty() && medicationState != null) {
+    if (medicationState.isPastEndDate()) {
+        Text(
+            text = stringResource(id = R.string.medication_period_ended),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp), // Or just top padding if preferred
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    } else if (todayScheduleItems.isEmpty() && medicationState != null) {
         Text(
             text = stringResource(id = R.string.medication_detail_no_reminders_today),
             modifier = Modifier
@@ -670,7 +702,7 @@ private fun TodayScheduleContent(
                     medicationId
                 )
             },
-            enabled = isActuallyPast || todayItem.isTaken
+            enabled = (isActuallyPast || todayItem.isTaken) && !medicationState.isPastEndDate()
         )
     }
 

@@ -145,11 +145,13 @@ class ReminderSchedulingWorker constructor(
                 now // Otherwise, for specific scheduling or future meds, use now
             }
         }
-        var calculationWindowEndDate = effectiveSearchStartDateTime.toLocalDate().plusDays(3) // How far out to calculate ideal reminders
+        var calculationWindowEndDate = effectiveSearchStartDateTime.toLocalDate().plusDays(14) // How far out to calculate ideal reminders
+        Log.d(funcTag, "Initial calculation window end date (14 days out or med end date): $calculationWindowEndDate")
         if (medicationEndDate != null && medicationEndDate.isBefore(calculationWindowEndDate)) {
             calculationWindowEndDate = medicationEndDate
+            Log.d(funcTag, "Calculation window end date adjusted to medication end date: $calculationWindowEndDate")
         }
-        Log.d(funcTag, "Calculated effectiveSearchStartDateTime: $effectiveSearchStartDateTime, calculationWindowEndDate: $calculationWindowEndDate")
+        Log.d(funcTag, "Calculated effectiveSearchStartDateTime: $effectiveSearchStartDateTime, FINAL calculationWindowEndDate: $calculationWindowEndDate. Window extended to 14 days (or less if med ends sooner).")
 
         if (calculationWindowEndDate.isBefore(effectiveSearchStartDateTime.toLocalDate())) {
             Log.i(funcTag, "Calculation window end ($calculationWindowEndDate) is before effective start (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule.")
@@ -267,29 +269,31 @@ class ReminderSchedulingWorker constructor(
                 }
 
                 val isIntervalType = schedule.scheduleType == ScheduleType.INTERVAL
-                Log.d(funcTag, "Preparing to schedule with NotificationScheduler: reminderId=${reminderWithActualId.id}, isInterval=$isIntervalType, nextDoseHelperMillis=$nextDoseTimeForHelperMillis")
 
-                try {
-                    notificationScheduler.scheduleNotification(
-                        applicationContext, reminderWithActualId, medication.name, medication.dosage ?: "",
-                        isIntervalType, nextDoseTimeForHelperMillis, actualScheduledTimeMillis
-                    )
-                    if (ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE) {
-                        val preReminderTargetTimeMillis = actualScheduledTimeMillis - TimeUnit.MINUTES.toMillis(PRE_REMINDER_OFFSET_MINUTES)
-                        if (preReminderTargetTimeMillis > System.currentTimeMillis()) {
-                            Log.d(funcTag, "Scheduling pre-reminder for reminderId ${reminderWithActualId.id} at $preReminderTargetTimeMillis")
+                // New condition for actual alarm scheduling
+                if (actualScheduledTimeMillis > System.currentTimeMillis()) {
+                    Log.d(funcTag, "Preparing to schedule alarm with NotificationScheduler for future time: reminderId=${reminderWithActualId.id}, isInterval=$isIntervalType, nextDoseHelperMillis=$nextDoseTimeForHelperMillis, actualScheduledTimeMillis=$actualScheduledTimeMillis")
+                    try {
+                        notificationScheduler.scheduleNotification(
+                            applicationContext, reminderWithActualId, medication.name, medication.dosage ?: "",
+                            isIntervalType, nextDoseTimeForHelperMillis, actualScheduledTimeMillis
+                        )
+                        if (ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE) {
+                            // The pre-reminder target time is calculated inside schedulePreReminderServiceTrigger
+                            // and it also checks if it's in the past. So, direct call is fine.
+                            Log.d(funcTag, "Scheduling pre-reminder for reminderId ${reminderWithActualId.id}")
                             notificationScheduler.schedulePreReminderServiceTrigger(
                                 applicationContext, reminderWithActualId, actualScheduledTimeMillis, medication.name
                             )
-                        } else {
-                            Log.d(funcTag, "Pre-reminder time for reminderId ${reminderWithActualId.id} is in the past ($preReminderTargetTimeMillis). Skipping pre-reminder.")
                         }
+                        Log.i(funcTag, "Successfully scheduled main alarm (and pre-reminder if applicable) for NEW reminder ID ${reminderWithActualId.id} at $idealDateTime.")
+                    } catch (e: IllegalStateException) {
+                        Log.e(funcTag, "ALARM LIMIT EXCEPTION for new reminder ID ${reminderWithActualId.id}: ${e.message}", e)
+                    } catch (e: Exception) {
+                        Log.e(funcTag, "Generic error scheduling alarm for new reminder ID ${reminderWithActualId.id}", e)
                     }
-                    Log.i(funcTag, "Successfully scheduled main and pre-reminder (if applicable) for NEW reminder ID ${reminderWithActualId.id} at $idealDateTime.")
-                } catch (e: IllegalStateException) {
-                    Log.e(funcTag, "ALARM LIMIT EXCEPTION for new reminder ID ${reminderWithActualId.id}: ${e.message}", e)
-                } catch (e: Exception) {
-                    Log.e(funcTag, "Generic error scheduling alarm for new reminder ID ${reminderWithActualId.id}", e)
+                } else {
+                    Log.w(funcTag, "Skipping actual alarm scheduling for reminder ID ${reminderWithActualId.id} because its time ($idealDateTime / $actualScheduledTimeMillis ms) is not in the future. DB entry was still created/updated.")
                 }
             } else {
                 // A reminder already exists for this ideal time

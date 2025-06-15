@@ -707,4 +707,73 @@ class MedicationReminderViewModelTest {
         coVerify(exactly = 0) { mockReminderRepository.insertReminder(any()) }
         coVerify(exactly = 0) { mockReminderRepository.updateReminder(any()) }
     }
+
+    // --- New Tests for endDate logic in loadTodaySchedule ---
+
+    @Test
+    fun `testLoadTodaySchedule_MedicationEnded_TodayScheduleIsEmpty`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val medicationId = 10
+        val pastEndDate = LocalDate.now().minusDays(1).format(ReminderCalculator.dateStorableFormatter)
+        val endedMedication = createTestMedication(id = medicationId, name = "EndedMed", startDateOffset = -10L, endDateOffset = -1L) // endDate is yesterday
+
+        coEvery { mockMedicationRepository.getMedicationById(medicationId) } returns endedMedication
+        // Other repositories might not be called if it returns early, but mock them for safety
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medicationId) } returns flowOf(emptyList())
+        coEvery { mockReminderRepository.getRemindersForMedication(medicationId) } returns flowOf(emptyList())
+
+
+        viewModel.loadTodaySchedule(medicationId)
+        advanceUntilIdle() // Ensure coroutines launched by loadTodaySchedule complete
+
+        assertTrue("Today's schedule should be empty for a medication with a past end date.", viewModel.todayScheduleItems.value.isEmpty())
+    }
+
+    @Test
+    fun `testLoadTodaySchedule_MedicationActive_EndDateInFuture_LoadsSchedule`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val medicationId = 11
+        // endDate is one year in the future
+        val futureEndDate = LocalDate.now().plusYears(1).format(ReminderCalculator.dateStorableFormatter)
+        val activeMedication = createTestMedication(id = medicationId, name = "ActiveMedFutureEnd", startDateOffset = -10L, endDateOffset = 365L)
+
+        val scheduleTime = LocalTime.of(9, 0)
+        val testSchedule = createTestSchedule(
+            id = 1, medId = medicationId, type = ScheduleType.DAILY,
+            specificTimes = scheduleTime.format(ReminderCalculator.timeStorableFormatter),
+            daysOfWeek = LocalDate.now().dayOfWeek.value.toString() // Schedule for today
+        )
+
+        coEvery { mockMedicationRepository.getMedicationById(medicationId) } returns activeMedication
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medicationId) } returns flowOf(listOf(testSchedule))
+        coEvery { mockReminderRepository.getRemindersForMedication(medicationId) } returns flowOf(emptyList()) // No existing DB reminders
+
+        viewModel.loadTodaySchedule(medicationId)
+        advanceUntilIdle()
+
+        // Expect schedule to be processed, so list should not be empty if schedule provides items for today
+        assertEquals("Today's schedule should contain 1 item for an active medication with a future end date.", 1, viewModel.todayScheduleItems.value.size)
+        assertEquals(scheduleTime, viewModel.todayScheduleItems.value.first().time)
+    }
+
+    @Test
+    fun `testLoadTodaySchedule_MedicationActive_NoEndDate_LoadsSchedule`() = mainCoroutineRule.testDispatcher.runBlockingTest {
+        val medicationId = 12
+        val activeMedicationNoEndDate = createTestMedication(id = medicationId, name = "ActiveMedNoEnd", startDateOffset = -10L, endDateOffset = null) // No end date
+
+        val scheduleTime = LocalTime.of(10, 0)
+        val testSchedule = createTestSchedule(
+            id = 2, medId = medicationId, type = ScheduleType.DAILY,
+            specificTimes = scheduleTime.format(ReminderCalculator.timeStorableFormatter),
+            daysOfWeek = LocalDate.now().dayOfWeek.value.toString() // Schedule for today
+        )
+
+        coEvery { mockMedicationRepository.getMedicationById(medicationId) } returns activeMedicationNoEndDate
+        coEvery { mockScheduleRepository.getSchedulesForMedication(medicationId) } returns flowOf(listOf(testSchedule))
+        coEvery { mockReminderRepository.getRemindersForMedication(medicationId) } returns flowOf(emptyList())
+
+        viewModel.loadTodaySchedule(medicationId)
+        advanceUntilIdle()
+
+        assertEquals("Today's schedule should contain 1 item for an active medication with no end date.", 1, viewModel.todayScheduleItems.value.size)
+        assertEquals(scheduleTime, viewModel.todayScheduleItems.value.first().time)
+    }
 }
