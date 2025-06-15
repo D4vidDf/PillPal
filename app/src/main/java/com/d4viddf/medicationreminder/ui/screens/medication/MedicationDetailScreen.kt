@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -226,6 +227,7 @@ fun MedicationDetailsScreen(
         } else {
             Scaffold(
                 topBar = {
+                    val makeAppBarTransparent = !isHostedInPane && (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded)
                     TopAppBar(
                         title = { },
                         navigationIcon = {
@@ -272,8 +274,8 @@ fun MedicationDetailsScreen(
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = if (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) Color.Transparent else color.backgroundColor,
-                            scrolledContainerColor = if (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) Color.Transparent else color.backgroundColor,
+                            containerColor = if (makeAppBarTransparent) Color.Transparent else color.backgroundColor,
+                            scrolledContainerColor = if (makeAppBarTransparent) Color.Transparent else color.backgroundColor,
                             navigationIconContentColor = Color.White,
                             actionIconContentColor = Color.White,
                             titleContentColor = Color.White
@@ -295,7 +297,13 @@ fun MedicationDetailsScreen(
                     val actualContentModifier = Modifier.fillMaxSize()
 
                     if (showTwoPanes) {
-                        LazyColumn(modifier = actualContentModifier) {
+                        LazyColumn(modifier = actualContentModifier.then(
+                            if (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) {
+                                Modifier.padding(horizontal = 16.dp)
+                            } else {
+                                Modifier
+                            }
+                        )) {
                             item {
                                 MedicationHeaderAndProgress(
                                     medicationState = medicationState,
@@ -351,7 +359,13 @@ fun MedicationDetailsScreen(
                     }
                 }
             } else {
-                LazyColumn(modifier = actualContentModifier) {
+                LazyColumn(modifier = actualContentModifier.then(
+                    if (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) {
+                        Modifier.padding(horizontal = 16.dp)
+                    } else {
+                        Modifier
+                    }
+                )) {
                     item {
                         MedicationHeaderAndProgress(
                             medicationState = medicationState,
@@ -467,33 +481,44 @@ private fun MedicationHeaderAndProgress(
             if (medicationState != null && progressDetails != null) {
                 if (showTwoPanesForHeader) {
                     Row(Modifier.fillMaxWidth()) {
-                        Column(Modifier.weight(1f).padding(end = 8.dp)) {
-                            // Manually layout Image, Name, Dosage
+                        Column(Modifier.weight(1f).padding(end = 8.dp).fillMaxHeight()) {
                             Image(
                                 painter = rememberAsyncImagePainter(model = medicationTypeState?.imageUrl ?: "https://placehold.co/100x100.png"),
                                 contentDescription = stringResource(id = R.string.medication_detail_header_image_acc),
-                                modifier = Modifier.size(64.dp).align(Alignment.CenterHorizontally)
+                                modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .weight(1f)
+                                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                                    .align(Alignment.CenterHorizontally)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = medicationState.name,
-                                fontSize = 30.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = color.textColor,
-                                lineHeight = 34.sp,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.align(Alignment.CenterHorizontally),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
-                                fontSize = 20.sp,
-                                color = color.textColor,
-                                modifier = Modifier.align(Alignment.CenterHorizontally),
-                                textAlign = TextAlign.Center
-                            )
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                val medicationNameString = medicationState.name
+                                val words = medicationNameString.split(" ")
+                                val displayName = if (words.size > 3) {
+                                    words.take(3).joinToString(" ") + "..."
+                                } else {
+                                    medicationNameString
+                                }
+                                Text(
+                                    text = displayName,
+                                    fontSize = 30.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = color.textColor,
+                                    lineHeight = 34.sp,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
+                                    fontSize = 20.sp,
+                                    color = color.textColor,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         Column(Modifier.weight(1f).padding(start = 8.dp).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                             MedicationProgressDisplay(
