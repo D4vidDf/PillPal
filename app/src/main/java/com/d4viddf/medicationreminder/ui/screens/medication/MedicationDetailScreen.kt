@@ -334,7 +334,8 @@ fun MedicationDetailsScreen(
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope,
                                     medicationId = medicationId,
-                                    scheduleState = scheduleState
+                                     scheduleState = scheduleState,
+                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
                                 )
                             }
                             item {
@@ -393,7 +394,8 @@ fun MedicationDetailsScreen(
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,
                             medicationId = medicationId,
-                            scheduleState = scheduleState
+                                     scheduleState = scheduleState,
+                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
                         )
                     }
                     item {
@@ -485,7 +487,8 @@ private fun MedicationHeaderAndProgress(
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     medicationId: Int,
-    scheduleState: MedicationSchedule?
+    scheduleState: MedicationSchedule?,
+    makeAppBarTransparent: Boolean // New parameter
 ) {
     val displayProgressDetails = if (medicationState.isPastEndDate()) {
         Log.d("MedDetailScreen", "Medication ${medicationState?.name} has ended. Displaying completed progress.")
@@ -498,7 +501,12 @@ private fun MedicationHeaderAndProgress(
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val showTwoPanesForHeader = this.maxWidth >= minWidthForHeaderTwoPanes
-        val headerShape = if (showTwoPanesForHeader) RoundedCornerShape(36.dp) else RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+        // NEW SHAPE LOGIC:
+        val headerShape = if (makeAppBarTransparent) {
+            RoundedCornerShape(36.dp)
+        } else {
+            RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+        }
 
         Column(
             modifier = Modifier
