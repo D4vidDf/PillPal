@@ -2,7 +2,6 @@ package com.d4viddf.medicationreminder.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
@@ -11,7 +10,7 @@ import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -65,16 +64,17 @@ class MedicationGraphViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow<Boolean>(false) // Added isLoading StateFlow
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _error = MutableStateFlow<String?>(null) // Added missing declaration
     val error: StateFlow<String?> = _error.asStateFlow()
 
     // StateFlows for Max Y-Values
-    private val _weeklyMaxYValue = MutableStateFlow(5f)
+    private val _weeklyMaxYValue = MutableStateFlow<Float>(5f)
     val weeklyMaxYValue: StateFlow<Float> = _weeklyMaxYValue.asStateFlow()
 
-    private val _yearlyMaxYValue = MutableStateFlow(30f) // Default for yearly, e.g. 30
+    private val _yearlyMaxYValue = MutableStateFlow<Float>(30f) // Default for yearly, e.g. 30
     val yearlyMaxYValue: StateFlow<Float> = _yearlyMaxYValue.asStateFlow()
 
-    private var reminderObserverJob: Job? = null // Job to manage reminder observation lifecycle
+    private var reminderObserverJob: Job? = null
 
     private val TAG = "MedicationGraphVM"
 
@@ -178,7 +178,7 @@ class MedicationGraphViewModel @Inject constructor(
             // Calculate Max Y value for weekly chart
             if (medicationForJob != null) {
                 try {
-                    val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull { it.isActive }
+                    val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
                     if (schedule != null) {
                         var maxScheduledDosesForWeek = 0
                         currentWeekDays.forEach { day ->
@@ -313,7 +313,7 @@ class MedicationGraphViewModel @Inject constructor(
 
                 // Calculate Max Y value for yearly chart
                 try {
-                    val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull { it.isActive }
+                    val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
                     if (schedule != null) {
                         var maxScheduledDosesInAnyMonth = 0
                         for (monthValue in 1..12) {
