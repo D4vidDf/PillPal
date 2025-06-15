@@ -132,6 +132,21 @@ class MedicationReminderViewModel @Inject constructor(
             }
             Log.d("MedReminderVM", "$funcTag: Medication found: ${medication.name}")
 
+            // New: Check if medication endDate is in the past
+            if (!medication.endDate.isNullOrBlank()) {
+                try {
+                    val endDateValue = LocalDate.parse(medication.endDate, ReminderCalculator.dateStorableFormatter) // "dd/MM/yyyy"
+                    if (endDateValue.isBefore(LocalDate.now())) {
+                        Log.i("MedReminderVM", "$funcTag: Medication ${medication.name} (ID: $medicationId) has an endDate ($endDateValue) in the past. Clearing today's schedule items.")
+                        _todayScheduleItems.value = emptyList()
+                        return@launch // Stop further processing for today's schedule
+                    }
+                } catch (e: Exception) {
+                    Log.e("MedReminderVM", "$funcTag: Error parsing endDate '${medication.endDate}' for medication ID: $medicationId. Proceeding with schedule loading.", e)
+                    // If endDate is malformed, proceed as if there's no valid end date for now
+                }
+            }
+
             val schedules = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()
             if (schedules.isNullOrEmpty()) {
                 Log.i("MedReminderVM", "$funcTag: No schedules found for medication.")
