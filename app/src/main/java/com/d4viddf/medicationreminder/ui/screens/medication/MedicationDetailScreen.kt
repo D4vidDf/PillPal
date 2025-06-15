@@ -487,18 +487,27 @@ private fun MedicationHeaderAndProgress(
         ) {
             if (medicationState != null && progressDetails != null) {
                 if (showTwoPanesForHeader) {
-                    Row(Modifier.fillMaxWidth()) {
-                        Column(Modifier.weight(1f).padding(end = 8.dp).fillMaxHeight()) {
-                            Image(
-                                painter = rememberAsyncImagePainter(model = medicationTypeState?.imageUrl ?: "https://placehold.co/100x100.png"),
-                                contentDescription = stringResource(id = R.string.medication_detail_header_image_acc),
-                                modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .weight(1f)
-                                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                                    .align(Alignment.CenterHorizontally)
-                            )
-                            Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier.height(212.dp).fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(model = medicationTypeState?.imageUrl ?: "https://placehold.co/100x100.png"),
+                                    contentDescription = stringResource(id = R.string.medication_detail_header_image_acc),
+                                    modifier = Modifier.size(180.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                                 val medicationNameString = medicationState.name
                                 val words = medicationNameString.split(" ")
                                 val displayName = if (words.size > 3) {
@@ -514,7 +523,7 @@ private fun MedicationHeaderAndProgress(
                                     lineHeight = 34.sp,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Start,
+                                    textAlign = TextAlign.Center, // Changed to Center
                                     modifier = Modifier.fillMaxWidth()
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -522,22 +531,31 @@ private fun MedicationHeaderAndProgress(
                                     text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
                                     fontSize = 20.sp,
                                     color = color.textColor,
-                                    textAlign = TextAlign.Start,
+                                    textAlign = TextAlign.Center, // Changed to Center
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
-                        Column(Modifier.weight(1f).padding(start = 8.dp).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
-                            MedicationProgressDisplay(
-                                progressDetails = progressDetails,
-                                colorScheme = color,
-                                indicatorSizeDp = 180.dp,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                        Column(
+                            modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                            // Removed verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier.height(212.dp).fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                MedicationProgressDisplay(
+                                    progressDetails = progressDetails,
+                                    colorScheme = color,
+                                    indicatorSizeDp = 180.dp
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
                             MedicationDetailCounters(
                                 colorScheme = color,
                                 medication = medicationState,
-                                schedule = scheduleState,
+                                schedule = scheduleState
                             )
                         }
                     }
