@@ -1,14 +1,15 @@
 package com.d4viddf.medicationreminder.ui.screens.medication
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,10 +17,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
-// import androidx.compose.material.icons.automirrored.filled.Subject // Removed
-// import androidx.compose.material.icons.filled.DocumentScanner // Removed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,7 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar // Changed import
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,37 +39,35 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign // Added import for TextAlign
-import androidx.compose.ui.graphics.Color // Added Import
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.d4viddf.medicationreminder.R // Moved import to top
-import com.d4viddf.medicationreminder.data.CimaMedicationDetail // Changed to use CimaMedicationDetail
-import com.d4viddf.medicationreminder.data.CimaFormaFarmaceutica // For preview
-import com.d4viddf.medicationreminder.data.CimaViaAdministracion // For preview
-import com.d4viddf.medicationreminder.data.CimaEstado // For preview
-import com.d4viddf.medicationreminder.data.CimaDocumento // For preview
+import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.CimaDocumento
+import com.d4viddf.medicationreminder.data.CimaEstado
+import com.d4viddf.medicationreminder.data.CimaFormaFarmaceutica
+import com.d4viddf.medicationreminder.data.CimaMedicationDetail
+import com.d4viddf.medicationreminder.data.CimaViaAdministracion
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
-// Removed ThemedAppBarBackButton import
-import com.d4viddf.medicationreminder.ui.theme.AppTheme // Assuming AppTheme exists
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Removed MedicationFullInfo data class as we now use CimaMedicationDetail from ViewModel
 
 @Composable
-fun InfoSectionCard(info: CimaMedicationDetail) { // Made non-private (was already non-private)
+fun InfoSectionCard(info: CimaMedicationDetail) {
     val yesText = stringResource(id = R.string.text_yes)
     val noText = stringResource(id = R.string.text_no)
 
@@ -117,11 +112,11 @@ fun InfoSectionCard(info: CimaMedicationDetail) { // Made non-private (was alrea
             InfoRow(label = stringResource(id = R.string.med_info_label_huerfano), value = info.huerfano?.let { if (it) yesText else noText })
             InfoRow(label = stringResource(id = R.string.med_info_label_biosimilar), value = info.biosimilar?.let { if (it) yesText else noText }, showDivider = false)
         }
-     }
+    }
 }
 
 @Composable
-fun InfoRow(label: String, value: String?, showDivider: Boolean = true) { // Made non-private (was already non-private)
+fun InfoRow(label: String, value: String?, showDivider: Boolean = true) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             text = label,
@@ -144,7 +139,7 @@ fun InfoRow(label: String, value: String?, showDivider: Boolean = true) { // Mad
 }
 
 @Composable
-fun LinkButton( // Made non-private (was already non-private)
+fun LinkButton(
     text: String,
     url: String?,
     icon: Any, // Changed to Any to accept Painter or ImageVector
@@ -169,6 +164,7 @@ fun LinkButton( // Made non-private (was already non-private)
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationInfoScreen(
@@ -186,7 +182,7 @@ fun MedicationInfoScreen(
     }
     val cimaMedicationDetail by viewModel?.medicationInfo?.collectAsState() ?: remember { mutableStateOf(null) }
     val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
-    val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
+    val error by viewModel?.error?.collectAsState() ?: remember { mutableStateOf(null) }
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
@@ -364,7 +360,7 @@ fun MedicationInfoScreen(
                     }
                 }
                 else -> {
-                     Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                         Text(stringResource(id = R.string.med_info_not_available_generic))
                     }
                 }
@@ -385,15 +381,3 @@ fun MedicationInfoScreenPreview() {
         )
     }
 }
-
-// Add a new string resource for generic "not available" if needed, e.g., for when info itself is null
-// <string name="med_info_not_available_generic">Medication information not available.</string>
-// And for Yes/No
-// <string name="text_yes">Yes</string>
-// <string name="text_no">No</string>
-// <string name="med_info_label_comercializado">Comercializado</string>
-// <string name="med_info_label_conduccion">Afecta Conducción</string>
-// <string name="med_info_label_triangulo_negro">Triángulo Negro</string>
-// <string name="med_info_label_huerfano">Medicamento Huérfano</string>
-// <string name="med_info_label_biosimilar">Biosimilar</string>
-// <string name="med_info_label_estado_autorizacion_date">Fecha Autorización</string>
