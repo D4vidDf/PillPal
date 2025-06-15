@@ -321,13 +321,10 @@ fun MedicationDetailsScreen(
                     val actualContentModifier = Modifier.fillMaxSize()
 
                     if (showTwoPanes) {
-                        LazyColumn(modifier = actualContentModifier.then(
-                            if (showTwoPanes) {
-                                Modifier.padding(horizontal = 16.dp)
-                            } else {
-                                Modifier
-                            }
-                        )) {
+                        LazyColumn(modifier = actualContentModifier
+                            .then(Modifier.padding(horizontal = 16.dp)) // Keep horizontal padding for two-pane
+                            .then(if (!isHostedInPane) Modifier.padding(top = innerPadding.calculateTopPadding()) else Modifier) // Add conditional top padding
+                        ) {
                             item {
                                 MedicationHeaderAndProgress(
                                     medicationState = medicationState,
@@ -384,13 +381,9 @@ fun MedicationDetailsScreen(
                     }
                 }
             } else {
-                LazyColumn(modifier = actualContentModifier.then(
-                    if (showTwoPanes) {
-                        Modifier.padding(horizontal = 16.dp)
-                    } else {
-                        Modifier
-                    }
-                )) {
+                LazyColumn(modifier = actualContentModifier
+                    .then(if (!isHostedInPane) Modifier.padding(top = innerPadding.calculateTopPadding()) else Modifier) // Add conditional top padding
+                ) {
                     item {
                         MedicationHeaderAndProgress(
                             medicationState = medicationState,
