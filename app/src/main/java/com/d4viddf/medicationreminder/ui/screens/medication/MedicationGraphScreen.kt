@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 // import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
 // import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft // Removed
@@ -472,31 +476,52 @@ private fun WeeklyChartCard(
                 )
             }
 
-            val displayableItems = remember(weeklyChartEntries, isLoading, error, currentWeekMondayInternal) { // Use internal state
-                if (!isLoading && error == null && weeklyChartEntries.isEmpty()) {
-                    val today = LocalDate.now()
+            // Prepare target items (always 7 for weekly)
+            val targetItems = remember(weeklyChartEntries, currentWeekMondayInternal, today) { // Added today to key for highlight
+                if (weeklyChartEntries.isEmpty()) {
+                    // Generate 7 placeholder ChartyGraphEntry items for the current week with 0f values
                     val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
                     List(7) { i ->
                         val day = currentWeekMondayInternal.plusDays(i.toLong())
-                        BarChartItem(label = day.format(dayFormatter), value = 0f, isHighlighted = day.isEqual(today))
+                        ChartyGraphEntry(
+                            xValue = day.format(dayFormatter),
+                            yValue = 0f,
+                            isHighlighted = day.isEqual(today) // Use 'today' from parameter
+                        )
                     }
                 } else {
-                    weeklyChartEntries.map { BarChartItem(it.xValue, it.yValue, it.isHighlighted) }
+                    weeklyChartEntries
                 }
             }
 
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp))
+            // Animate each item
+            val animatedDisplayableItems = targetItems.map { chartEntry ->
+                val animatedYValue by animateFloatAsState(
+                    targetValue = chartEntry.yValue,
+                    animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+                    label = "weeklyBarValue-${chartEntry.xValue}"
+                )
+                BarChartItem(
+                    label = chartEntry.xValue,
+                    value = animatedYValue,
+                    isHighlighted = chartEntry.isHighlighted
+                )
+            }
+
+            // Content display logic
+            if (isLoading && weeklyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
+                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp))
+                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else {
+                // Chart Box (always present if not initial loading or error)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp) // Slightly smaller height for cards
-                        .pointerInput(currentWeekMondayInternal) { // Key by internal state
+                        .height(200.dp)
+                        .pointerInput(currentWeekMondayInternal) {
                             var dragConsumed = false
-                            detectHorizontalDragGestures(
+                            detectHorizontalDragGestures( // No changes needed here, logic seems fine
                                 onHorizontalDrag = { change, dragAmount ->
                                     change.consume()
                                     if (abs(dragAmount) > 40 && !dragConsumed) {
@@ -519,9 +544,9 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = "Weekly doses taken. ${displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    val weeklyChartDesc = "Weekly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
                     SimpleBarChart(
-                        data = displayableItems,
+                        data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -604,30 +629,50 @@ private fun YearlyChartCard(
                 )
             }
 
-             val displayableItems = remember(yearlyChartEntries, isLoading, error, currentDisplayedYearInternal) { // Use internal state
-                if (!isLoading && error == null && yearlyChartEntries.isEmpty()) {
-                    // val today = LocalDate.now() // 'today' is passed as parameter
+            // Prepare target items (always 12 for yearly)
+            val targetItems = remember(yearlyChartEntries, currentDisplayedYearInternal, today) { // Added today to key
+                if (yearlyChartEntries.isEmpty()) {
                     List(12) { i ->
                         val month = java.time.Month.of(i + 1)
-                        BarChartItem(label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()), value = 0f, isHighlighted = currentDisplayedYearInternal == today.year && month == today.month)
+                        ChartyGraphEntry(
+                            xValue = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                            yValue = 0f,
+                            isHighlighted = (currentDisplayedYearInternal == today.year && month == today.month)
+                        )
                     }
                 } else {
-                    yearlyChartEntries.map { BarChartItem(it.xValue, it.yValue, it.isHighlighted) }
+                    yearlyChartEntries
                 }
             }
 
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp))
+            // Animate each item
+            val animatedDisplayableItems = targetItems.map { chartEntry ->
+                val animatedYValue by animateFloatAsState(
+                    targetValue = chartEntry.yValue,
+                    animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+                    label = "yearlyBarValue-${chartEntry.xValue}"
+                )
+                BarChartItem(
+                    label = chartEntry.xValue,
+                    value = animatedYValue,
+                    isHighlighted = chartEntry.isHighlighted
+                )
+            }
+
+            // Content display logic
+            if (isLoading && yearlyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
+                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp))
+                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else {
-                 Box(
+                // Chart Box (always present if not initial loading or error)
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .pointerInput(currentDisplayedYearInternal) { // Corrected to use internal state
+                        .pointerInput(currentDisplayedYearInternal) {
                             var dragConsumed = false
-                            detectHorizontalDragGestures(
+                            detectHorizontalDragGestures( // No changes needed here
                                 onHorizontalDrag = { change, dragAmount ->
                                     change.consume()
                                     if (abs(dragAmount) > 40 && !dragConsumed) {
@@ -648,9 +693,9 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
-                    val yearlyChartDesc = "Yearly doses taken. ${displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    val yearlyChartDesc = "Yearly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
                     SimpleBarChart(
-                        data = displayableItems,
+                        data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
