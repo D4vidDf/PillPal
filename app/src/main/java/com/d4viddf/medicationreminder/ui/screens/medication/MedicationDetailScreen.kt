@@ -177,6 +177,7 @@ fun MedicationDetailsScreen(
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
     var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
+    var internalShowTwoPanesState by remember { mutableStateOf(false) } // Added state variable
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
@@ -227,7 +228,7 @@ fun MedicationDetailsScreen(
         } else {
             Scaffold(
                 topBar = {
-                    val makeAppBarTransparent = !isHostedInPane && (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded)
+                    // val makeAppBarTransparent = !isHostedInPane && (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded)
                     TopAppBar(
                         title = { },
                         navigationIcon = {
@@ -274,8 +275,8 @@ fun MedicationDetailsScreen(
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = if (makeAppBarTransparent) Color.Transparent else color.backgroundColor,
-                            scrolledContainerColor = if (makeAppBarTransparent) Color.Transparent else color.backgroundColor,
+                            containerColor = if (internalShowTwoPanesState) Color.Transparent else color.backgroundColor,
+                            scrolledContainerColor = if (internalShowTwoPanesState) Color.Transparent else color.backgroundColor,
                             navigationIconContentColor = Color.White,
                             actionIconContentColor = Color.White,
                             titleContentColor = Color.White
@@ -294,11 +295,17 @@ fun MedicationDetailsScreen(
                         }
                     }
 
+                    LaunchedEffect(showTwoPanes) {
+                        if (internalShowTwoPanesState != showTwoPanes) {
+                            internalShowTwoPanesState = showTwoPanes
+                        }
+                    }
+
                     val actualContentModifier = Modifier.fillMaxSize()
 
                     if (showTwoPanes) {
                         LazyColumn(modifier = actualContentModifier.then(
-                            if (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) {
+                            if (showTwoPanes) {
                                 Modifier.padding(horizontal = 16.dp)
                             } else {
                                 Modifier
@@ -360,7 +367,7 @@ fun MedicationDetailsScreen(
                 }
             } else {
                 LazyColumn(modifier = actualContentModifier.then(
-                    if (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded) {
+                    if (showTwoPanes) {
                         Modifier.padding(horizontal = 16.dp)
                     } else {
                         Modifier
