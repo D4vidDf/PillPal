@@ -71,8 +71,43 @@ import java.util.Locale
 
 // Removed MedicationFullInfo data class as we now use CimaMedicationDetail from ViewModel
 
+private enum class CardType {
+    GENERAL_INFO,
+    ADDITIONAL_INFO
+}
+
 @Composable
-fun InfoSectionCard(info: CimaMedicationDetail) { // Made non-private (was already non-private)
+private fun InfoCardContent(
+    info: CimaMedicationDetail,
+    cardType: CardType,
+    yesText: String,
+    noText: String,
+    formatDate: (Long?) -> String?
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        when (cardType) {
+            CardType.GENERAL_INFO -> {
+                InfoRow(label = stringResource(id = R.string.med_info_label_nombre_comercial), value = info.nombre)
+                InfoRow(label = stringResource(id = R.string.med_info_label_principio_activo), value = info.pactivos)
+                InfoRow(label = stringResource(id = R.string.med_info_label_forma_farmaceutica), value = info.formaFarmaceutica?.nombre)
+                InfoRow(label = stringResource(id = R.string.med_info_label_vias_administracion), value = info.viasAdministracion?.joinToString { it.nombre ?: "" })
+                InfoRow(label = stringResource(id = R.string.med_info_label_laboratorio_titular), value = info.labtitular)
+                InfoRow(label = stringResource(id = R.string.med_info_label_estado_autorizacion_date), value = formatDate(info.estado?.aut))
+                InfoRow(label = stringResource(id = R.string.med_info_label_condiciones_prescripcion), value = info.condPresc, showDivider = false)
+            }
+            CardType.ADDITIONAL_INFO -> {
+                InfoRow(label = stringResource(id = R.string.med_info_label_comercializado), value = info.comerc?.let { if (it) yesText else noText })
+                InfoRow(label = stringResource(id = R.string.med_info_label_conduccion), value = info.conduc?.let { if (it) yesText else noText })
+                InfoRow(label = stringResource(id = R.string.med_info_label_triangulo_negro), value = info.triangulo?.let { if (it) yesText else noText })
+                InfoRow(label = stringResource(id = R.string.med_info_label_huerfano), value = info.huerfano?.let { if (it) yesText else noText })
+                InfoRow(label = stringResource(id = R.string.med_info_label_biosimilar), value = info.biosimilar?.let { if (it) yesText else noText }, showDivider = false)
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoSectionCard(info: CimaMedicationDetail) { // Keep existing signature and visibility
     val yesText = stringResource(id = R.string.text_yes)
     val noText = stringResource(id = R.string.text_no)
 
@@ -93,15 +128,7 @@ fun InfoSectionCard(info: CimaMedicationDetail) { // Made non-private (was alrea
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            InfoRow(label = stringResource(id = R.string.med_info_label_nombre_comercial), value = info.nombre)
-            InfoRow(label = stringResource(id = R.string.med_info_label_principio_activo), value = info.pactivos)
-            InfoRow(label = stringResource(id = R.string.med_info_label_forma_farmaceutica), value = info.formaFarmaceutica?.nombre)
-            InfoRow(label = stringResource(id = R.string.med_info_label_vias_administracion), value = info.viasAdministracion?.joinToString { it.nombre ?: "" })
-            InfoRow(label = stringResource(id = R.string.med_info_label_laboratorio_titular), value = info.labtitular)
-            InfoRow(label = stringResource(id = R.string.med_info_label_estado_autorizacion_date), value = formatDate(info.estado?.aut))
-            InfoRow(label = stringResource(id = R.string.med_info_label_condiciones_prescripcion), value = info.condPresc, showDivider = false)
-        }
+        InfoCardContent(info, CardType.GENERAL_INFO, yesText, noText, ::formatDate)
     }
     Card(
         modifier = Modifier
@@ -110,14 +137,38 @@ fun InfoSectionCard(info: CimaMedicationDetail) { // Made non-private (was alrea
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            InfoRow(label = stringResource(id = R.string.med_info_label_comercializado), value = info.comerc?.let { if (it) yesText else noText })
-            InfoRow(label = stringResource(id = R.string.med_info_label_conduccion), value = info.conduc?.let { if (it) yesText else noText })
-            InfoRow(label = stringResource(id = R.string.med_info_label_triangulo_negro), value = info.triangulo?.let { if (it) yesText else noText })
-            InfoRow(label = stringResource(id = R.string.med_info_label_huerfano), value = info.huerfano?.let { if (it) yesText else noText })
-            InfoRow(label = stringResource(id = R.string.med_info_label_biosimilar), value = info.biosimilar?.let { if (it) yesText else noText }, showDivider = false)
+        InfoCardContent(info, CardType.ADDITIONAL_INFO, yesText, noText, ::formatDate)
+    }
+}
+
+@Composable
+fun SingleInfoSectionCard(
+    info: CimaMedicationDetail,
+    cardType: CardType,
+    modifier: Modifier = Modifier
+) {
+    val yesText = stringResource(id = R.string.text_yes)
+    val noText = stringResource(id = R.string.text_no)
+
+    fun formatDate(timestamp: Long?): String? {
+        if (timestamp == null || timestamp == -1L) return null
+        return try {
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            sdf.format(Date(timestamp * 1000))
+        } catch (e: Exception) {
+            null
         }
-     }
+    }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
+    ) {
+        InfoCardContent(info, cardType, yesText, noText, ::formatDate)
+    }
 }
 
 @Composable
@@ -126,7 +177,7 @@ fun InfoRow(label: String, value: String?, showDivider: Boolean = true) { // Mad
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, // Changed to onSurfaceVariant
             fontWeight = FontWeight.Bold
         )
         Text(
@@ -295,22 +346,29 @@ fun MedicationInfoScreen(
                                     alignment = Alignment.Center
                                 )
                             }
-                            item { InfoSectionCard(info) }
                             item {
-                                LinkButton(
-                                    text = stringResource(id = R.string.med_info_button_prospecto),
-                                    url = prospecto?.urlHtml ?: prospecto?.url,
-                                    icon = painterResource(id = R.drawable.rounded_subject_24),
-                                    onClick = { url -> uriHandler.openUri(url) }
-                                )
+                                SingleInfoSectionCard(info = info, cardType = CardType.GENERAL_INFO)
                             }
                             item {
-                                LinkButton(
-                                    text = stringResource(id = R.string.med_info_button_ficha_tecnica),
-                                    url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
-                                    icon = painterResource(id = R.drawable.rounded_document_scanner_24),
-                                    onClick = { url -> uriHandler.openUri(url) }
-                                )
+                                SingleInfoSectionCard(info = info, cardType = CardType.ADDITIONAL_INFO)
+                            }
+                            item {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    LinkButton(
+                                        text = stringResource(id = R.string.med_info_button_prospecto),
+                                        url = prospecto?.urlHtml ?: prospecto?.url,
+                                        icon = painterResource(id = R.drawable.rounded_subject_24),
+                                        onClick = { url -> uriHandler.openUri(url) }
+                                    )
+                                    LinkButton(
+                                        text = stringResource(id = R.string.med_info_button_ficha_tecnica),
+                                        url = fichaTecnica?.urlHtml ?: fichaTecnica?.url,
+                                        icon = painterResource(id = R.drawable.rounded_document_scanner_24),
+                                        onClick = { url -> uriHandler.openUri(url) }
+                                    )
+                                }
                             }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 Spacer(modifier = Modifier.height(16.dp))
