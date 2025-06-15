@@ -484,7 +484,7 @@ private fun MedicationHeaderAndProgress(
 ) {
     val displayProgressDetails = if (medicationState.isPastEndDate()) {
         Log.d("MedDetailScreen", "Medication ${medicationState?.name} has ended. Displaying completed progress.")
-        ProgressDetails(currentDose = 1, totalDoses = 1, progress = 1.0f, remainingDoses = 0)
+        ProgressDetails(taken = 1, totalFromPackage = 1, remaining = 0, progressFraction = 1.0f, displayText = stringResource(id = R.string.medication_progress_completed))
     } else {
         progressDetails
     }

@@ -371,4 +371,6 @@
     <!-- It's value is "Medication History". Re-adding it here for completeness of this subtask's list, but it should be the same. -->
     <!-- <string name="medication_history_title">Medication History</string> -->
 
+    <string name="medication_period_ended">Medication period has ended.</string>
+    <string name="medication_progress_completed">Completed</string>
 </resources>
