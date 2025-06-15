@@ -8,9 +8,12 @@ import com.d4viddf.medicationreminder.repository.MedicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
+// import kotlinx.coroutines.flow.firstOrNull // No longer needed directly in loadWeeklyGraphData due to collect
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -44,14 +47,26 @@ class MedicationGraphViewModel @Inject constructor(
     private val _yearlyChartData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
     val yearlyChartData: StateFlow<List<ChartyGraphEntry>> = _yearlyChartData.asStateFlow()
 
-    private val _medicationName = MutableStateFlow<String>("")
+    private val _medicationName = MutableStateFlow<String>("") // This will store current medication name
     val medicationName: StateFlow<String> = _medicationName.asStateFlow()
+
+    // New state flows for tracking current medication and week for reactive updates
+    private val _currentMedicationIdForWeeklyChart = MutableStateFlow<Int?>(null)
+    // No public getter needed for this, it's internal logic
+
+    private val _currentWeekDaysForWeeklyChart = MutableStateFlow<List<LocalDate>>(emptyList())
+    // No public getter needed for this, it's internal logic
+
+    private val _currentDosageQuantity = MutableStateFlow<Float>(1.0f) // Default dosage quantity
+    // No public getter needed for this, it's internal logic
 
     private val _isLoading = MutableStateFlow<Boolean>(false) // Added isLoading StateFlow
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null) // Added error StateFlow
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    private var reminderObserverJob: Job? = null // Job to manage reminder observation lifecycle
 
     private val TAG = "MedicationGraphVM"
 
@@ -93,100 +108,130 @@ class MedicationGraphViewModel @Inject constructor(
     }
 
     fun loadWeeklyGraphData(medicationId: Int, currentWeekDays: List<LocalDate>) {
-        Log.d(TAG, "loadWeeklyGraphData: Called with medicationId: $medicationId, currentWeekDays: $currentWeekDays")
-        if (currentWeekDays.isEmpty()) {
-            Log.d(TAG, "currentWeekDays is empty, clearing weekly chart data.")
+        Log.d(TAG, "loadWeeklyGraphData: Called with medicationId: $medicationId, currentWeekDays count: ${currentWeekDays.size}. First day: ${currentWeekDays.firstOrNull()}, Last day: ${currentWeekDays.lastOrNull()}")
+
+        if (currentWeekDays.count() != 7) {
+            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7. Clearing data and cancelling observer.")
             _weeklyChartData.value = emptyList()
-            _chartyGraphData.value = emptyList() // Also clear the general one
-            return
-        }
-         if (currentWeekDays.count() != 7) {
-            Log.w(TAG, "Invalid currentWeekDays list size: ${currentWeekDays.count()}. Expected 7 or 0 to clear.")
-            _weeklyChartData.value = emptyList()
-            _chartyGraphData.value = emptyList() // Also clear the general one
+            _chartyGraphData.value = emptyList()
+            _currentMedicationIdForWeeklyChart.value = null
+            _currentWeekDaysForWeeklyChart.value = emptyList()
+            reminderObserverJob?.cancel()
+            _isLoading.value = false
             return
         }
 
+        val previousMedicationId = _currentMedicationIdForWeeklyChart.value
+        _currentMedicationIdForWeeklyChart.value = medicationId
+        _currentWeekDaysForWeeklyChart.value = currentWeekDays
 
-        viewModelScope.launch(Dispatchers.IO) {
+        reminderObserverJob?.cancel() // Cancel any existing observer job
+        Log.d(TAG, "Previous reminderObserverJob cancelled.")
+
+        reminderObserverJob = viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
-            Log.i(TAG, "loadWeeklyGraphData: Starting for medId: $medicationId, week: $currentWeekDays") // Enhanced log
-            try {
-                val medication = medicationRepository.getMedicationById(medicationId)
-                Log.d(TAG, "loadWeeklyGraphData: Fetched medication: ${medication?.name ?: "N/A"} (Dosage: ${medication?.dosage ?: "N/A"})")
-                // _medicationName.value = medication?.name ?: ... (already exists)
-                if (medication?.name != _medicationName.value) { // Ensure name is updated if it changed
-                    _medicationName.value = medication?.name ?: "Medication $medicationId"
-                }
-                val dosageQuantity = parseDosageQuantity(medication?.dosage)
-                Log.d(TAG, "loadWeeklyGraphData: Parsed dosage quantity: $dosageQuantity")
+            Log.i(TAG, "ReminderObserverJob: Started for medId: $medicationId, week: $currentWeekDays")
 
-                val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-                Log.d(TAG, "loadWeeklyGraphData: Fetched ${allReminders.size} total raw reminders. Sample: ${allReminders.take(5).map { r -> "ID: ${r.id}, Taken: ${r.isTaken}, Time: ${r.takenAt}" }}")
-
-                val weekStartDateTime = currentWeekDays.first().atStartOfDay()
-                val weekEndDateTime = currentWeekDays.last().atTime(LocalTime.MAX)
-                Log.d(TAG, "loadWeeklyGraphData: Calculated week date range: $weekStartDateTime to $weekEndDateTime")
-
-                val takenRemindersThisWeek = allReminders.mapNotNull { reminder ->
-                    if (!reminder.isTaken) {
-                        return@mapNotNull null
+            // Fetch Medication Details if ID changed or name is missing
+            if (medicationId != previousMedicationId || _medicationName.value.isEmpty()) {
+                try {
+                    Log.d(TAG, "ReminderObserverJob: Fetching medication details for medId: $medicationId")
+                    val medication = medicationRepository.getMedicationById(medicationId)
+                    if (medication == null) {
+                        Log.e(TAG, "ReminderObserverJob: Medication with ID $medicationId not found.")
+                        _error.value = "Medication details not found."
+                        _weeklyChartData.value = emptyList()
+                        _chartyGraphData.value = emptyList()
+                        _isLoading.value = false
+                        return@launch
                     }
-                    val takenDateTime = parseTakenAt(reminder.takenAt)
-                    if (takenDateTime == null) {
-                        Log.w(TAG, "loadWeeklyGraphData: Reminder ID ${reminder.id} skipped (takenAt parsing failed or null). takenAt: '${reminder.takenAt}'")
-                        return@mapNotNull null
+                    _medicationName.value = medication.name ?: "Medication $medicationId"
+                    _currentDosageQuantity.value = parseDosageQuantity(medication.dosage)
+                    Log.d(TAG, "ReminderObserverJob: Fetched medication: Name='${_medicationName.value}', DosageQty=${_currentDosageQuantity.value}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "ReminderObserverJob: Error fetching medication details for medId $medicationId", e)
+                    _error.value = "Failed to load medication details."
+                    _weeklyChartData.value = emptyList()
+                    _chartyGraphData.value = emptyList()
+                    _isLoading.value = false
+                    return@launch
+                }
+            }
+
+            reminderRepository.getRemindersForMedication(medicationId).collect { allReminders ->
+                Log.d(TAG, "ReminderObserverJob: Reminders updated for medId $medicationId. Count: ${allReminders.size}. Current week days: ${_currentWeekDaysForWeeklyChart.value.size}")
+
+                val weekDaysToProcess = _currentWeekDaysForWeeklyChart.value
+                if (weekDaysToProcess.isEmpty()) {
+                    Log.w(TAG, "ReminderObserverJob: weekDaysToProcess is empty inside collect. Clearing chart data.")
+                    _weeklyChartData.value = emptyList()
+                    _chartyGraphData.value = emptyList()
+                    // _isLoading.value = false; // Do not set isLoading to false here, finally block will do it
+                    return@collect
+                }
+
+                try {
+                    val weekStartDateTime = weekDaysToProcess.first().atStartOfDay()
+                    val weekEndDateTime = weekDaysToProcess.last().atTime(LocalTime.MAX)
+                    Log.d(TAG, "ReminderObserverJob: Processing reminders for week: $weekStartDateTime to $weekEndDateTime")
+
+                    val takenRemindersThisWeek = allReminders.mapNotNull { reminder ->
+                        if (!reminder.isTaken) return@mapNotNull null
+                        val takenDateTime = parseTakenAt(reminder.takenAt)
+                        if (takenDateTime == null) {
+                            // Log inside parseTakenAt is sufficient
+                            return@mapNotNull null
+                        }
+                        if (!takenDateTime.isBefore(weekStartDateTime) && !takenDateTime.isAfter(weekEndDateTime)) {
+                            takenDateTime.toLocalDate()
+                        } else {
+                            null
+                        }
                     }
-                    if (!takenDateTime.isBefore(weekStartDateTime) && !takenDateTime.isAfter(weekEndDateTime)) {
-                        takenDateTime.toLocalDate() // Collect only the date for counting events
-                    } else {
-                        null
+                    Log.d(TAG, "ReminderObserverJob: Filtered to ${takenRemindersThisWeek.size} taken reminder dates within this week.")
+
+                    val dosesCountByDate = takenRemindersThisWeek
+                        .groupBy { it }
+                        .mapValues { entry -> entry.value.size.toFloat() }
+                    Log.d(TAG, "ReminderObserverJob: Doses count by date: $dosesCountByDate")
+
+                    val weeklyDataMap = LinkedHashMap<String, Float>()
+                    val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                    val today = LocalDate.now()
+
+                    weekDaysToProcess.forEach { day ->
+                        val dayName = day.format(dayFormatter)
+                        weeklyDataMap[dayName] = dosesCountByDate[day] ?: 0f
                     }
-                }
-                Log.d(TAG, "loadWeeklyGraphData: Filtered to ${takenRemindersThisWeek.size} taken reminder events within this week.")
-                if (takenRemindersThisWeek.isNotEmpty()) {
-                     Log.d(TAG, "loadWeeklyGraphData: First 5 taken dates this week: ${takenRemindersThisWeek.take(5)}")
-                }
 
-                val dosesByDate = takenRemindersThisWeek
-                    .groupBy { it } // Group by LocalDate directly
-                    .mapValues { entry ->
-                        // Count the number of events for each date
-                        entry.value.size.toFloat()
+                    val chartEntries = weeklyDataMap.entries.map { entry ->
+                        val dayDate = weekDaysToProcess.find { day -> day.format(dayFormatter) == entry.key } // Find the date for highlight check
+                        ChartyGraphEntry(
+                            xValue = entry.key,
+                            yValue = entry.value,
+                            isHighlighted = dayDate == today
+                        )
                     }
-                Log.d(TAG, "loadWeeklyGraphData: Event counts by date: $dosesByDate")
+                    Log.d(TAG, "ReminderObserverJob: Reactive update - Final chartEntries size: ${chartEntries.size}. Data: $chartEntries")
 
-                val weeklyDataMap = LinkedHashMap<String, Float>()
-                val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                    _weeklyChartData.value = chartEntries
+                    _chartyGraphData.value = chartEntries // For compatibility
+                    _error.value = null // Clear previous error on success
 
-                currentWeekDays.forEach { day ->
-                    val dayName = day.format(dayFormatter)
-                    weeklyDataMap[dayName] = dosesByDate[day] ?: 0f // Ensure this handles Float
+                } catch (e: Exception) {
+                    Log.e(TAG, "ReminderObserverJob: Error processing reminder update for medId $medicationId, week $weekDaysToProcess", e)
+                    _error.value = "Failed to process reminder update for week."
+                    // Potentially clear chart data here if partial update is not desired
+                    // _weeklyChartData.value = emptyList()
+                    // _chartyGraphData.value = emptyList()
+                } finally {
+                    // This finally is for the collect block's try-catch.
+                    // isLoading should be set to false at the end of the initial data load or if flow collection stops.
+                    // For a continuous flow, isLoading might represent the initial load, then subsequent updates happen "silently".
+                    // However, the prompt implies isLoading should be false after processing each update.
+                    _isLoading.value = false
                 }
-                Log.d(TAG, "loadWeeklyGraphData: Constructed weeklyDataMap: $weeklyDataMap")
-
-                val today = LocalDate.now()
-                val todayShortName = today.format(dayFormatter)
-
-                val chartEntries = weeklyDataMap.map { (dayName, totalDosage) -> // totalDosage is now Float
-                    ChartyGraphEntry(
-                        xValue = dayName,
-                        yValue = totalDosage, // Already a Float
-                        isHighlighted = dayName.equals(todayShortName, ignoreCase = true)
-                    )
-                }
-                Log.d(TAG, "loadWeeklyGraphData: Final chartEntries: $chartEntries")
-                _weeklyChartData.value = chartEntries
-                _chartyGraphData.value = chartEntries // For compatibility
-
-            } catch (e: Exception) {
-                Log.e(TAG, "loadWeeklyGraphData: Error loading weekly graph data for medId $medicationId", e)
-                _error.value = "Failed to load weekly graph data."
-                _weeklyChartData.value = emptyList()
-                _chartyGraphData.value = emptyList()
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -200,15 +245,21 @@ class MedicationGraphViewModel @Inject constructor(
             _error.value = null
             Log.i(TAG, "loadYearlyGraphData: Starting for medId: $medicationId, year: $targetYear") // Enhanced log
             try {
-                val medication = medicationRepository.getMedicationById(medicationId)
-                Log.d(TAG, "loadYearlyGraphData: Fetched medication: ${medication?.name ?: "N/A"} (Dosage: ${medication?.dosage ?: "N/A"})")
-                if (medication?.name != _medicationName.value) { // Ensure name is updated
-                     _medicationName.value = medication?.name ?: "Medication $medicationId"
+                val currentMedName = _medicationName.value // Use the already fetched name
+                val medication = medicationRepository.getMedicationById(medicationId) // Re-fetch to ensure consistency or use stored one
+                if (medication?.name != currentMedName && medication?.name != null) {
+                     _medicationName.value = medication.name // Update if different and not null
                 }
+                // val dosageQuantity = _currentDosageQuantity.value // Use the already parsed dosage
+                // Log.d(TAG, "loadYearlyGraphData: Using Name='${_medicationName.value}', DosageQty=$dosageQuantity")
+                // For yearly, we might still want to fetch dosage again if not guaranteed to be fresh
                 val dosageQuantity = parseDosageQuantity(medication?.dosage)
-                Log.d(TAG, "loadYearlyGraphData: Parsed dosage quantity: $dosageQuantity")
+                if (medication?.name != null && _medicationName.value.isEmpty()) { // If name wasn't set by weekly loader
+                    _medicationName.value = medication.name
+                }
 
-                val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
+
+                val allReminders = reminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList() // Kept firstOrNull for yearly as it's not reactive yet
                 Log.d(TAG, "loadYearlyGraphData: Fetched ${allReminders.size} total raw reminders. Sample: ${allReminders.take(5).map { r -> "ID: ${r.id}, Taken: ${r.isTaken}, Time: ${r.takenAt}" }}")
 
                 val takenRemindersThisYear = allReminders.mapNotNull { reminder ->
@@ -266,7 +317,6 @@ class MedicationGraphViewModel @Inject constructor(
                 _yearlyChartData.value = emptyList()
             } finally {
                 _isLoading.value = false
-
             }
         }
     }

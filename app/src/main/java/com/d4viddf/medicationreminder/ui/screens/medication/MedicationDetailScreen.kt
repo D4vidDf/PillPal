@@ -4,6 +4,9 @@ package com.d4viddf.medicationreminder.ui.screens.medication
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -224,7 +227,10 @@ fun MedicationDetailsScreen(
         } else {
             Scaffold(
                 topBar = {
-                    // val makeAppBarTransparent = !isHostedInPane && (widthSizeClass == WindowWidthSizeClass.Medium || widthSizeClass == WindowWidthSizeClass.Expanded)
+                    val makeAppBarTransparent = isHostedInPane ||
+                            widthSizeClass == WindowWidthSizeClass.Medium ||
+                            widthSizeClass == WindowWidthSizeClass.Expanded
+
                     TopAppBar(
                         title = { },
                         navigationIcon = {
@@ -271,15 +277,17 @@ fun MedicationDetailsScreen(
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = if (internalShowTwoPanesState) Color.Transparent else color.backgroundColor,
-                            scrolledContainerColor = if (internalShowTwoPanesState) Color.Transparent else color.backgroundColor,
-                            navigationIconContentColor = Color.White,
-                            actionIconContentColor = Color.White,
-                            titleContentColor = Color.White
+                            containerColor = if (makeAppBarTransparent) Color.Transparent else color.backgroundColor,
+                            scrolledContainerColor = if (makeAppBarTransparent) Color.Transparent else color.backgroundColor,
+                            navigationIconContentColor = Color.White, // Assuming these remain white or adapt as needed
+                            actionIconContentColor = Color.White,    // Assuming these remain white or adapt as needed
+                            titleContentColor = Color.White          // Assuming these remain white or adapt as needed
                         )
                     )
                 }
             ) { innerPadding ->
+                // The variable 'internalShowTwoPanesState' might still be used for layout decisions (like showing two columns of content),
+                // but it will no longer directly control the AppBar's transparency.
                 val outerContentModifier = Modifier.fillMaxSize().then(if (!isHostedInPane) Modifier.padding(innerPadding) else Modifier.padding(top = innerPadding.calculateTopPadding()))
                 val minWidthForTwoPanes = 600.dp
 
@@ -758,41 +766,56 @@ private fun WeekProgressContent(
                     .fillMaxWidth()
                     .height(180.dp)
                     .background(Color.Transparent, RoundedCornerShape(8.dp))
-                    .padding(16.dp),
+                    .padding(16.dp), // Padding was here, but SimpleBarChart might also have padding. Review for double padding.
                 contentAlignment = Alignment.Center
             ) {
-                val finalBarChartItems = remember(chartEntries) {
-                    val items = if (chartEntries.isEmpty()) {
+                // Data preparation for the chart
+                val itemsForChart = remember(chartEntries) { // Keyed by chartEntries to re-evaluate when they change
+                    if (chartEntries.isEmpty()) {
+                        // Generate placeholder items if chartEntries is empty
                         val today = LocalDate.now()
                         val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                         val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
                         List(7) { i ->
                             val day = monday.plusDays(i.toLong())
-                            BarChartItem(
-                                label = day.format(dayFormatter),
-                                value = 0f,
+                            ChartyGraphEntry( // Use ChartyGraphEntry as the base for consistency before animation
+                                xValue = day.format(dayFormatter), // Corrected: xValue instead of label
+                                yValue = 0f, // Target 0 for empty state
                                 isHighlighted = day.isEqual(today)
                             )
                         }
                     } else {
-                        chartEntries.map { entry ->
-                            BarChartItem(
-                                label = entry.xValue,
-                                value = entry.yValue,
-                                isHighlighted = entry.isHighlighted
-                            )
+                        // Ensure we are mapping to ChartyGraphEntry if chartEntries is already not that,
+                        // but it should be List<ChartyGraphEntry> from the ViewModel.
+                        // If it's already List<ChartyGraphEntry>, this map is just for consistency/safety.
+                        chartEntries.map {
+                            ChartyGraphEntry(xValue = it.xValue, yValue = it.yValue, isHighlighted = it.isHighlighted)
                         }
                     }
-                    items
                 }
+
+                // Animate each item
+                val animatedItems = itemsForChart.map { chartEntry ->
+                    val animatedYValue by animateFloatAsState(
+                        targetValue = chartEntry.yValue,
+                        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+                        label = "barValueAnimation-${chartEntry.xValue}" // Label for animation tooling
+                    )
+                    BarChartItem(
+                        label = chartEntry.xValue,
+                        value = animatedYValue,
+                        isHighlighted = chartEntry.isHighlighted
+                    )
+                }
+
                 SimpleBarChart(
-                    data = finalBarChartItems,
+                    data = animatedItems,
                     modifier = Modifier.fillMaxSize(),
                     highlightedBarColor = MaterialTheme.colorScheme.primary,
                     normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                     labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     valueTextColor = MaterialTheme.colorScheme.onSurface,
-                    chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}"
+                    chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}" // Corrected string template
                 )
             }
         }
