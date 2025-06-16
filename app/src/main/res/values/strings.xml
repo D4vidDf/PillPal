@@ -373,4 +373,8 @@
 
     <string name="medication_period_ended">Medication period has ended.</string>
     <string name="medication_progress_completed">Completed</string>
+
+    <!-- Added for Show More/Less functionality -->
+    <string name="show_more">Show More</string>
+    <string name="show_less">Show Less</string>
 </resources>

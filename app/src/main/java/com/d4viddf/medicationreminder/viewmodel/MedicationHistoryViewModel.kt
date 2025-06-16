@@ -17,37 +17,9 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.YearMonth // Consolidated import
 import java.time.format.DateTimeParseException
-import javax.inject.Inject
-
-@HiltViewModel
-class MedicationHistoryViewModel @Inject constructor(
-    private val reminderRepository: MedicationReminderRepository,
-    private val medicationRepository: MedicationRepository
-) : ViewModel() {
-
-    private val _medicationName = MutableStateFlow<String>("")
-    val medicationName: StateFlow<String> = _medicationName.asStateFlow()
-
-    private val _rawHistory = MutableStateFlow<List<MedicationReminder>>(emptyList())
-
-    private val _filteredAndSortedHistory = MutableStateFlow<List<MedicationHistoryEntry>>(emptyList())
-    val filteredAndSortedHistory: StateFlow<List<MedicationHistoryEntry>> = _filteredAndSortedHistory.asStateFlow()
-
-    private val _isLoading = MutableStateFlow<Boolean>(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
-
-    private val _dateFilter = MutableStateFlow<Pair<LocalDate?, LocalDate?>?>(null)
-    val dateFilter: StateFlow<Pair<LocalDate?, LocalDate?>?> = _dateFilter.asStateFlow()
-
-    private val _sortAscending = MutableStateFlow<Boolean>(false) // Default to descending
-    val sortAscending: StateFlow<Boolean> = _sortAscending.asStateFlow()
-
-import java.time.YearMonth
-import javax.inject.Inject
+import javax.inject.Inject // Consolidated import
 
 @HiltViewModel
 class MedicationHistoryViewModel @Inject constructor(
