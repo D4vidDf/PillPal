@@ -628,7 +628,6 @@ private fun TodayScheduleContent(
     medicationId: Int,
     isTwoPane: Boolean = false
 ) {
-    var showAllTodaySchedules by remember { mutableStateOf(false) }
     // Removed the early return block for medicationState.isPastEndDate()
 
     Row(
@@ -686,11 +685,8 @@ private fun TodayScheduleContent(
     }
 
     var futureRemindersStarted = false
-    val itemsToShow = if (isTwoPane) {
-        if (showAllTodaySchedules) todayScheduleItems else todayScheduleItems.take(5)
-    } else {
-        todayScheduleItems.take(5)
-    }
+    // itemsToShow will always take 5, as "Show More" navigates away.
+    val itemsToShow = todayScheduleItems.take(5)
     itemsToShow.forEach { todayItem ->
         val isActuallyPast = todayItem.time.isBefore(LocalTime.now())
 
@@ -717,40 +713,24 @@ private fun TodayScheduleContent(
         )
     }
 
-    if (isTwoPane && todayScheduleItems.size > 5) {
+    // Unified "Show More" button logic
+    if (todayScheduleItems.size > 5) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp), // Removed horizontal padding to allow centering
+                // Adjust padding: no horizontal padding for isTwoPane to allow centering of a half-width button
+                .padding(vertical = 8.dp, horizontal = if (isTwoPane) 0.dp else 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Button(
-                onClick = { showAllTodaySchedules = !showAllTodaySchedules },
-                modifier = Modifier.fillMaxWidth(0.5f), // Centered button with half width
+                onClick = onShowMoreClick, // Always navigates
+                modifier = if (isTwoPane) Modifier.fillMaxWidth(0.5f) else Modifier.fillMaxWidth(), // Centered for twoPane, full width otherwise
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
-                Text(text = if (showAllTodaySchedules) stringResource(id = R.string.show_less) else stringResource(id = R.string.show_more))
-            }
-        }
-    } else if (!isTwoPane && todayScheduleItems.size > 5) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Button(
-                onClick = onShowMoreClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(text = "Show More")
+                Text(text = stringResource(id = R.string.show_more)) // Text is always "Show More"
             }
         }
     }
