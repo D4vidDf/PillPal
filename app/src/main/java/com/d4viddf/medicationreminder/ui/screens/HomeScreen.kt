@@ -317,8 +317,9 @@ fun HomeScreen(
                     // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
                     animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
                     isHostedInPane = true, // Added parameter
-                    // Add new navigation parameters with empty lambdas for now
-                    onNavigateToAllSchedules = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
+                    onNavigateToAllSchedules = { medId, colorName ->
+                        navController.navigate(Screen.AllSchedules.createRoute(medId, colorName, true))
+                    },
                     onNavigateToMedicationHistory = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
                     onNavigateToMedicationGraph = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
                     onNavigateToMedicationInfo = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
