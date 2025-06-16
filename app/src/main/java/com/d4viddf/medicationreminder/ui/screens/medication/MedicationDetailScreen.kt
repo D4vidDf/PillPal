@@ -782,9 +782,7 @@ private fun WeekProgressContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-        // .clickable { navController.navigate(Screen.MedicationGraph.createRoute(medicationId, color.name)) } // Keep clickable for whole card to go to full graph
-        // Individual bar clicks will be handled by SimpleBarChart's onBarClick
-        ,
+            .clickable { navController.navigate(Screen.MedicationGraph.createRoute(medicationId, color.name)) },
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -804,7 +802,7 @@ private fun WeekProgressContent(
                 Icon(
                     painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
                     contentDescription = "View full graph",
-                    tint = color.onBackgroundColor,
+                    tint = MaterialTheme.colorScheme.primary, // Changed tint for better visibility/indication
                     modifier = Modifier.size(24.dp)
                 )
             }
