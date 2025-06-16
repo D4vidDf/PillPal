@@ -97,7 +97,7 @@ class PreReminderForegroundService : Service() {
 
         if (reminderIdFromIntent == -1 || takeTimeFromIntent == -1L) {
             Log.e(TAG, "Invalid data for starting service: reminderId=$reminderIdFromIntent, takeTime=$takeTimeFromIntent. Stopping.")
-            stopSelf()
+            stopSelfService() // Changed to stopSelfService()
             return START_NOT_STICKY
         }
 
