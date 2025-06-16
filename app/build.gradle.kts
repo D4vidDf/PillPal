@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.material3.window.size.class1.android)
+    implementation(libs.androidx.foundation.layout)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
