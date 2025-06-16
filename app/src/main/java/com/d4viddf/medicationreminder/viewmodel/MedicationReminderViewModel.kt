@@ -459,18 +459,10 @@ class MedicationReminderViewModel @Inject constructor(
                     }
                 }
 
-                // After successfully marking as taken (either update or insert), check for interval schedule
-                val medication = medicationRepository.getMedicationById(medicationId) // KEEP this one
-                val schedule = medication?.id?.let { scheduleRepository.getSchedulesForMedication(it).firstOrNull()?.firstOrNull() } // KEEP this one
-
-                // REMOVE THE DUPLICATES that were here
-
-                if (schedule?.scheduleType == com.d4viddf.medicationreminder.data.ScheduleType.INTERVAL) {
-                    triggerNextReminderScheduling(medicationId)
-                    Log.i("MedReminderVM", "$funcTag: Triggered ReminderSchedulingWorker for interval schedule.")
-                } else {
-                    Log.d("MedReminderVM", "$funcTag: Did not trigger ReminderSchedulingWorker. Schedule type is not INTERVAL (${schedule?.scheduleType}) or schedule/medication not found.")
-                }
+                // After successfully marking as taken (either update or insert)
+                // Always trigger rescheduling to ensure consistency and recalculation for all types.
+                triggerNextReminderScheduling(medicationId)
+                Log.i("MedReminderVM", "$funcTag: Triggered ReminderSchedulingWorker for medication ID $medicationId after marking as taken. Schedule type was ${scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()?.scheduleType}.")
 
             } else { // Unmarking as taken (isTaken = false)
                 if (reminderInDb != null) { // Found by ID, this is the preferred path
