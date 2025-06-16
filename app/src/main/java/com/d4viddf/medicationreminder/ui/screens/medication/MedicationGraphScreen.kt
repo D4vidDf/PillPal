@@ -128,7 +128,9 @@ fun MedicationGraphScreen(
     colorName: String,
     onNavigateBack: () -> Unit,
     viewModel: MedicationGraphViewModel? = null,
-    widthSizeClass: WindowWidthSizeClass // Added parameter
+    widthSizeClass: WindowWidthSizeClass, // Added parameter
+    onNavigateToHistoryForDate: (medicationId: Int, colorName: String, date: LocalDate) -> Unit,
+    onNavigateToHistoryForMonth: (medicationId: Int, colorName: String, yearMonth: YearMonth) -> Unit
 ) {
     Log.d("GraphScreenEntry", "MedicationGraphScreen composed. medicationId: $medicationId, viewModel is null: ${viewModel == null}, colorName: $colorName")
 
@@ -257,7 +259,9 @@ fun MedicationGraphScreen(
                                 today = today,
                                 currentCalendarWeekMonday = currentCalendarWeekMonday,
                                 minWeekOverallLimitMonday = minWeekOverallLimitMonday,
-                                maxYValue = weeklyMaxYForChart // Pass weekly max
+                                maxYValue = weeklyMaxYForChart, // Pass weekly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForDate = onNavigateToHistoryForDate // Pass callback
                             )
                             YearlyChartCard(
                                 modifier = Modifier.fillMaxWidth(),
@@ -272,7 +276,9 @@ fun MedicationGraphScreen(
                                 error = errorWeekly,
                                 today = today,
                                 minYear = minYear,
-                                maxYValue = yearlyMaxYForChart // Pass yearly max
+                                maxYValue = yearlyMaxYForChart, // Pass yearly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForMonth = onNavigateToHistoryForMonth // Pass callback
                             )
                         }
                     }
@@ -292,7 +298,9 @@ fun MedicationGraphScreen(
                                 today = today,
                                 currentCalendarWeekMonday = currentCalendarWeekMonday,
                                 minWeekOverallLimitMonday = minWeekOverallLimitMonday,
-                                maxYValue = weeklyMaxYForChart // Pass weekly max
+                                maxYValue = weeklyMaxYForChart, // Pass weekly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForDate = onNavigateToHistoryForDate // Pass callback
                             )
                             YearlyChartCard(
                                 modifier = Modifier.weight(1f),
@@ -307,7 +315,9 @@ fun MedicationGraphScreen(
                                 error = errorWeekly,
                                 today = today, // Added missing parameter
                                 minYear = minYear,   // Added missing parameter
-                                maxYValue = yearlyMaxYForChart // Pass yearly max
+                                maxYValue = yearlyMaxYForChart, // Pass yearly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForMonth = onNavigateToHistoryForMonth // Pass callback
                             )
                         }
                     }
@@ -425,7 +435,9 @@ private fun WeeklyChartCard(
     currentCalendarWeekMonday: LocalDate,
     minWeekOverallLimitMonday: LocalDate,
     medicationColor: MedicationColor, // Added parameter
-    maxYValue: Float // New parameter
+    maxYValue: Float, // New parameter
+    medicationId: Int,
+    onNavigateToHistoryForDate: (medicationId: Int, colorName: String, date: LocalDate) -> Unit
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -561,7 +573,21 @@ private fun WeeklyChartCard(
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         valueTextColor = MaterialTheme.colorScheme.onSurface,
                         chartContentDescription = weeklyChartDesc, // Added
-                        explicitYAxisTopValue = maxYValue // Pass to SimpleBarChart
+                        explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
+                        onBarClick = { dayLabel ->
+                            val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                            var clickedDate: LocalDate? = null
+                            for (i in 0..6) {
+                                val day = currentWeekMondayInternal.plusDays(i.toLong())
+                                if (day.format(dayFormatter) == dayLabel) {
+                                    clickedDate = day
+                                    break
+                                }
+                            }
+                            clickedDate?.let {
+                                onNavigateToHistoryForDate(medicationId, medicationColor.name, it)
+                            }
+                        }
                     )
                 }
             }
@@ -585,7 +611,9 @@ private fun YearlyChartCard(
     today: LocalDate,
     minYear: Int,
     medicationColor: MedicationColor, // Added parameter
-    maxYValue: Float // New parameter
+    maxYValue: Float, // New parameter
+    medicationId: Int,
+    onNavigateToHistoryForMonth: (medicationId: Int, colorName: String, yearMonth: YearMonth) -> Unit
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
@@ -712,7 +740,18 @@ private fun YearlyChartCard(
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         valueTextColor = MaterialTheme.colorScheme.onSurface,
                         chartContentDescription = yearlyChartDesc, // Added
-                        explicitYAxisTopValue = maxYValue // Pass to SimpleBarChart
+                        explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
+                        onBarClick = { monthLabel ->
+                            // Convert month label (e.g., "Jan") to Month enum, then to YearMonth
+                            val monthFormatter = DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
+                            try {
+                                val month = java.time.Month.from(monthFormatter.parse(monthLabel))
+                                val yearMonth = java.time.YearMonth.of(currentDisplayedYearInternal, month)
+                                onNavigateToHistoryForMonth(medicationId, medicationColor.name, yearMonth)
+                            } catch (e: Exception) {
+                                Log.e("YearlyChartCard", "Error parsing month label: $monthLabel", e)
+                            }
+                        }
                     )
                 }
             }
@@ -730,7 +769,9 @@ fun MedicationGraphScreenPreviewWeek() {
             colorName = "LIGHT_GREEN",
             onNavigateBack = {},
             viewModel = null, // ViewModel is nullable for preview
-            widthSizeClass = WindowWidthSizeClass.Compact // Example
+            widthSizeClass = WindowWidthSizeClass.Compact, // Example
+            onNavigateToHistoryForDate = { _, _, _ -> }, // Dummy lambda for preview
+            onNavigateToHistoryForMonth = { _, _, _ -> } // Dummy lambda for preview
         )
     }
 }
@@ -761,7 +802,9 @@ fun MedicationGraphScreenPreviewYear() { // Renamed
             colorName = "LIGHT_BLUE",
             onNavigateBack = {},
             viewModel = null,
-            widthSizeClass = WindowWidthSizeClass.Compact // Example
+            widthSizeClass = WindowWidthSizeClass.Compact, // Example
+            onNavigateToHistoryForDate = { _, _, _ -> }, // Dummy lambda for preview
+            onNavigateToHistoryForMonth = { _, _, _ -> } // Dummy lambda for preview
         )
         // For a more isolated preview of YearlyChartCard:
         // YearlyChartCard(

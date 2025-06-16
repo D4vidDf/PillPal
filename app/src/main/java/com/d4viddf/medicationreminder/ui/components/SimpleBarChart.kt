@@ -3,11 +3,13 @@ package com.d4viddf.medicationreminder.ui.components
 import android.graphics.Paint
 import android.util.Log
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
@@ -39,7 +41,8 @@ fun SimpleBarChart(
     valueTextColor: Color = labelTextColor,
     valueTextSizeSp: Float = 10f,
     chartContentDescription: String,
-    explicitYAxisTopValue: Float? = null // New parameter
+    explicitYAxisTopValue: Float? = null, // New parameter
+    onBarClick: ((label: String) -> Unit)? = null
 ) {
     // Diagnostic Logging
     Log.d("SimpleBarChartData", "Input data: ${data.map { it.value }}, explicitYAxisTopValue: $explicitYAxisTopValue")
@@ -140,7 +143,52 @@ fun SimpleBarChart(
     Log.d("SimpleBarChartData", "yAxisLabelAreaWidth: $yAxisLabelAreaWidth, yAxisMaxLabelWidth: $yAxisMaxLabelWidth")
 
     Canvas(
-        modifier = modifier.semantics { contentDescription = chartContentDescription } // Added semantics
+        modifier = modifier
+            .semantics { contentDescription = chartContentDescription } // Added semantics
+            .pointerInput(Unit) {
+                detectTapGestures { tapOffset ->
+                    if (onBarClick == null) return@detectTapGestures
+
+                    val canvasWidth = size.width.toFloat() // Use toFloat() for consistency
+                    val canvasHeight = size.height.toFloat()
+                    val totalItems = data.size
+
+                    if (totalItems == 0) return@detectTapGestures
+
+                    val chartAreaWidth = canvasWidth - yAxisLabelAreaWidth
+                    val itemAvailableWidth = if (chartAreaWidth > 0 && totalItems > 0) chartAreaWidth / totalItems else 0f
+                    val dynamicBarWidthPx = itemAvailableWidth * 0.7f
+                    // val dynamicSpaceAroundBarsPx = itemAvailableWidth * 0.3f // Not directly needed for hit testing here but part of itemAvailableWidth
+
+                    val xAxisLabelHeight = textPaint.textSize * 1.5f
+                    val valueTextHeight = valueTextPaint.textSize + with(density) { 4.dp.toPx() }
+                    val topPaddingForValueText = valueTextHeight
+                    val chartDrawableHeight = canvasHeight - xAxisLabelHeight - topPaddingForValueText
+
+                    data.forEachIndexed { index, item ->
+                        val barHeightPx = if (yAxisTopValue > 0f) (item.value.coerceAtMost(yAxisTopValue) / yAxisTopValue) * chartDrawableHeight else 0f
+
+                        val barLeft = yAxisLabelAreaWidth + (itemAvailableWidth - dynamicBarWidthPx) / 2 + (index * itemAvailableWidth)
+                        val barTop = topPaddingForValueText + chartDrawableHeight - barHeightPx
+                        val barRight = barLeft + dynamicBarWidthPx
+                        val barBottom = topPaddingForValueText + chartDrawableHeight // The bottom of the drawable area for bars
+
+                        // Define the clickable area for the bar
+                        // The clickable area for Y is from the top of the bar to the bottom of the chart's drawable area.
+                        val barRect = Rect(
+                            left = barLeft,
+                            top = barTop,
+                            right = barRight,
+                            bottom = barBottom
+                        )
+
+                        if (barRect.contains(tapOffset)) {
+                            onBarClick(item.label)
+                            return@detectTapGestures // Found a clicked bar
+                        }
+                    }
+                }
+            }
     ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
@@ -208,24 +256,25 @@ fun SimpleBarChart(
 
         // Adjust Bar and Label Drawing Coordinates
         data.forEachIndexed { index, item ->
-            val barHeight = if (yAxisTopValue > 0f) (item.value.coerceAtMost(yAxisTopValue) / yAxisTopValue) * chartDrawableHeight else 0f // Added coerceAtMost
+            val barHeightPx = if (yAxisTopValue > 0f) (item.value.coerceAtMost(yAxisTopValue) / yAxisTopValue) * chartDrawableHeight else 0f // Renamed to barHeightPx for clarity
             val barColor = if (item.isHighlighted) highlightedBarColor else normalBarColor
 
-            val currentBarLeft = yAxisLabelAreaWidth + (dynamicSpaceAroundBarsPx / 2) + (index * itemAvailableWidth)
-            val barTop = topPaddingForValueText + chartDrawableHeight - barHeight
+            // Calculation for currentBarLeft should be consistent with tap detection logic
+            val currentBarLeft = yAxisLabelAreaWidth + (itemAvailableWidth - dynamicBarWidthPx) / 2 + (index * itemAvailableWidth)
+            val barTop = topPaddingForValueText + chartDrawableHeight - barHeightPx
 
             // Draw bar
             drawRoundRect(
                 color = barColor,
                 topLeft = Offset(x = currentBarLeft, y = barTop),
-                size = Size(width = dynamicBarWidthPx, height = barHeight),
+                size = Size(width = dynamicBarWidthPx, height = barHeightPx),
                 cornerRadius = CornerRadius(barCornerRadiusPx, barCornerRadiusPx)
             )
 
             // Draw value text
             val valueText = item.value.toInt().toString()
             val valueTextX = currentBarLeft + dynamicBarWidthPx / 2
-            val valueTextY = if (barHeight > valueTextPaint.textSize * 0.8f) { // If bar is tall enough
+            val valueTextY = if (barHeightPx > valueTextPaint.textSize * 0.8f) { // If bar is tall enough
                 barTop - valueTextPaint.descent() - with(density) { 4.dp.toPx() }
             } else { // If bar is too short or zero
                 topPaddingForValueText + chartDrawableHeight - valueTextPaint.descent() - with(density) {2.dp.toPx() }

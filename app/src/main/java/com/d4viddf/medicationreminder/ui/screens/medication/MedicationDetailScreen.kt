@@ -197,6 +197,8 @@ fun MedicationDetailsScreen(
 
     val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) })
     val weeklyMaxYForChart by (graphViewModel?.weeklyMaxYValue?.collectAsState() ?: remember { mutableStateOf(5f) }) // Collect new max Y value
+    val currentWeekDaysForChart by (graphViewModel?.currentWeekDaysForWeeklyChart?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) })
+    val isGraphLoading by graphViewModel?.isLoading?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
 
 
     LaunchedEffect(medicationId, graphViewModel) {
@@ -365,7 +367,9 @@ fun MedicationDetailsScreen(
                                     medicationState = medicationState,
                                     medicationId = medicationId,
                                     color = color,
-                                    maxYValue = weeklyMaxYForChart // Pass it here
+                                    maxYValue = weeklyMaxYForChart, // Pass it here
+                                    currentWeekDays = currentWeekDaysForChart,
+                                    isGraphLoading = isGraphLoading // Pass loading state
                                 )
                                 MedicationInformationContent(
                                     navController = navController,
@@ -425,7 +429,9 @@ fun MedicationDetailsScreen(
                             medicationState = medicationState,
                             medicationId = medicationId,
                             color = color,
-                            maxYValue = weeklyMaxYForChart // Pass it here
+                            maxYValue = weeklyMaxYForChart, // Pass it here
+                            currentWeekDays = currentWeekDaysForChart,
+                            isGraphLoading = isGraphLoading // Pass loading state
                         )
                     }
                     item {
@@ -622,6 +628,7 @@ private fun TodayScheduleContent(
     medicationId: Int,
     isTwoPane: Boolean = false
 ) {
+    var showAllTodaySchedules by remember { mutableStateOf(false) }
     // Removed the early return block for medicationState.isPastEndDate()
 
     Row(
@@ -679,7 +686,11 @@ private fun TodayScheduleContent(
     }
 
     var futureRemindersStarted = false
-    val itemsToShow = if (isTwoPane) todayScheduleItems else todayScheduleItems.take(5)
+    val itemsToShow = if (isTwoPane) {
+        if (showAllTodaySchedules) todayScheduleItems else todayScheduleItems.take(5)
+    } else {
+        todayScheduleItems.take(5)
+    }
     itemsToShow.forEach { todayItem ->
         val isActuallyPast = todayItem.time.isBefore(LocalTime.now())
 
@@ -706,7 +717,25 @@ private fun TodayScheduleContent(
         )
     }
 
-    if (!isTwoPane && todayScheduleItems.size > 5) {
+    if (isTwoPane && todayScheduleItems.size > 5) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp), // Removed horizontal padding to allow centering
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = { showAllTodaySchedules = !showAllTodaySchedules },
+                modifier = Modifier.fillMaxWidth(0.5f), // Centered button with half width
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text(text = if (showAllTodaySchedules) stringResource(id = R.string.show_less) else stringResource(id = R.string.show_more))
+            }
+        }
+    } else if (!isTwoPane && todayScheduleItems.size > 5) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -765,13 +794,17 @@ private fun WeekProgressContent(
     medicationState: Medication?,
     medicationId: Int,
     color: MedicationColor,
-    maxYValue: Float // New parameter
+    maxYValue: Float, // New parameter
+    currentWeekDays: List<LocalDate>,
+    isGraphLoading: Boolean // New parameter
 ) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clickable { navController.navigate(Screen.MedicationGraph.createRoute(medicationId, color.name)) },
+        // .clickable { navController.navigate(Screen.MedicationGraph.createRoute(medicationId, color.name)) } // Keep clickable for whole card to go to full graph
+        // Individual bar clicks will be handled by SimpleBarChart's onBarClick
+        ,
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -800,57 +833,81 @@ private fun WeekProgressContent(
                     .fillMaxWidth()
                     .height(180.dp)
                     .background(Color.Transparent, RoundedCornerShape(8.dp))
-                    .padding(16.dp), // Padding was here, but SimpleBarChart might also have padding. Review for double padding.
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Data preparation for the chart
-                val itemsForChart = remember(chartEntries) { // Keyed by chartEntries to re-evaluate when they change
+                val itemsForChart = remember(chartEntries, currentWeekDays) { // Added currentWeekDays to key
                     if (chartEntries.isEmpty()) {
-                        // Generate placeholder items if chartEntries is empty
+                        // Use currentWeekDays from ViewModel if available and chartEntries is empty,
+                        // ensuring placeholders match the week being loaded.
+                        val referenceMonday = if (currentWeekDays.isNotEmpty()) currentWeekDays.first() else LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                         val today = LocalDate.now()
-                        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                         val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
                         List(7) { i ->
-                            val day = monday.plusDays(i.toLong())
-                            ChartyGraphEntry( // Use ChartyGraphEntry as the base for consistency before animation
-                                xValue = day.format(dayFormatter), // Corrected: xValue instead of label
-                                yValue = 0f, // Target 0 for empty state
+                            val day = referenceMonday.plusDays(i.toLong())
+                            ChartyGraphEntry(
+                                xValue = day.format(dayFormatter),
+                                yValue = 0f,
                                 isHighlighted = day.isEqual(today)
                             )
                         }
                     } else {
-                        // Ensure we are mapping to ChartyGraphEntry if chartEntries is already not that,
-                        // but it should be List<ChartyGraphEntry> from the ViewModel.
-                        // If it's already List<ChartyGraphEntry>, this map is just for consistency/safety.
                         chartEntries.map {
                             ChartyGraphEntry(xValue = it.xValue, yValue = it.yValue, isHighlighted = it.isHighlighted)
                         }
                     }
                 }
 
-                // Animate each item
-                val animatedItems = itemsForChart.map { chartEntry ->
-                    val animatedYValue by animateFloatAsState(
-                        targetValue = chartEntry.yValue,
-                        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
-                        label = "barValueAnimation-${chartEntry.xValue}" // Label for animation tooling
-                    )
-                    BarChartItem(
-                        label = chartEntry.xValue,
-                        value = animatedYValue,
-                        isHighlighted = chartEntry.isHighlighted
-                    )
-                }
-
-                SimpleBarChart(
-                    data = animatedItems,
-                    modifier = Modifier.fillMaxSize(),
-                    highlightedBarColor = MaterialTheme.colorScheme.primary,
+                if (isGraphLoading && chartEntries.isEmpty()) { // Show loader if loading and no data (even placeholders from chartEntries)
+                    CircularProgressIndicator()
+                } else {
+                    val animatedItems = itemsForChart.map { chartEntry ->
+                        val animatedYValue by animateFloatAsState(
+                            targetValue = chartEntry.yValue,
+                            animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+                            label = "barValueAnimation-${chartEntry.xValue}"
+                        )
+                        BarChartItem(
+                            label = chartEntry.xValue,
+                            value = animatedYValue,
+                            isHighlighted = chartEntry.isHighlighted
+                        )
+                    }
+                    SimpleBarChart(
+                        data = animatedItems,
+                        modifier = Modifier.fillMaxSize(),
+                        highlightedBarColor = MaterialTheme.colorScheme.primary,
                     normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                     labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     valueTextColor = MaterialTheme.colorScheme.onSurface,
                     chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}", // Corrected string template
-                    explicitYAxisTopValue = maxYValue // Pass to SimpleBarChart
+                    explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
+                    onBarClick = { dayLabel ->
+                        val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                        val clickedDate = currentWeekDays.find { day ->
+                            try {
+                                day.format(dayFormatter) == dayLabel
+                            } catch (e: Exception) {
+                                Log.e("WeekProgressContent", "Error formatting day from currentWeekDays: $day", e)
+                                false
+                            }
+                        }
+                        if (clickedDate != null) {
+                            val selectedDateStr = clickedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            navController.navigate(
+                                Screen.MedicationHistory.createRoute(
+                                    medicationId = medicationId,
+                                    colorName = color.name,
+                                    selectedDate = selectedDateStr
+                                )
+                            )
+                        } else {
+                            // Fallback or log if date not found, though this shouldn't happen if labels match
+                            Log.w("WeekProgressContent", "Clicked bar label '$dayLabel' not found in currentWeekDays.")
+                            // Optionally navigate to the general MedicationGraph screen as a fallback
+                             navController.navigate(Screen.MedicationGraph.createRoute(medicationId, color.name))
+                        }
+                    }
                 )
             }
         }

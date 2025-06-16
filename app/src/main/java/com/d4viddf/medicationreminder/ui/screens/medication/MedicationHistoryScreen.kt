@@ -84,7 +84,9 @@ fun MedicationHistoryScreen(
     medicationId: Int,
     colorName: String,
     onNavigateBack: () -> Unit,
-    viewModel: MedicationHistoryViewModel? = hiltViewModel() // Made nullable for preview
+    viewModel: MedicationHistoryViewModel? = hiltViewModel(), // Made nullable for preview
+    selectedDate: String? = null, // Existing parameter
+    selectedMonth: String? = null // New parameter for YYYY-MM
 ) {
     val medicationColor = remember(colorName) {
         try {
@@ -116,8 +118,29 @@ fun MedicationHistoryScreen(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Changed scroll behavior
 
-    LaunchedEffect(medicationId, viewModel) {
-        viewModel?.loadInitialHistory(medicationId)
+    LaunchedEffect(medicationId, viewModel, selectedDate, selectedMonth) { // Added selectedMonth to key
+        var parsedSelectedDate: LocalDate? = null
+        var parsedSelectedMonth: YearMonth? = null
+
+        if (selectedDate != null && selectedDate.isNotBlank()) {
+            try {
+                parsedSelectedDate = LocalDate.parse(selectedDate)
+                // Log.d("MedHistoryScreen", "Parsed selectedDate: $parsedSelectedDate")
+            } catch (e: DateTimeParseException) {
+                // Log.e("MedHistoryScreen", "Failed to parse selectedDate string: '$selectedDate'", e)
+            }
+        }
+
+        if (selectedMonth != null && selectedMonth.isNotBlank()) {
+            try {
+                parsedSelectedMonth = YearMonth.parse(selectedMonth) // YearMonth.parse expects "YYYY-MM"
+                // Log.d("MedHistoryScreen", "Parsed selectedMonth: $parsedSelectedMonth")
+            } catch (e: DateTimeParseException) {
+                // Log.e("MedHistoryScreen", "Failed to parse selectedMonth string: '$selectedMonth'", e)
+            }
+        }
+        // ViewModel will prioritize selectedDate if both are somehow provided
+        viewModel?.loadInitialHistory(medicationId, parsedSelectedDate, parsedSelectedMonth)
     }
 
     // DateRangePickerDialog logic moved here

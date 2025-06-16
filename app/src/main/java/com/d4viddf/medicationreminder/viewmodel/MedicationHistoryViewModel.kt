@@ -46,10 +46,39 @@ class MedicationHistoryViewModel @Inject constructor(
     private val _sortAscending = MutableStateFlow<Boolean>(false) // Default to descending
     val sortAscending: StateFlow<Boolean> = _sortAscending.asStateFlow()
 
+import java.time.YearMonth
+import javax.inject.Inject
+
+@HiltViewModel
+class MedicationHistoryViewModel @Inject constructor(
+    private val reminderRepository: MedicationReminderRepository,
+    private val medicationRepository: MedicationRepository
+) : ViewModel() {
+
+    private val _medicationName = MutableStateFlow<String>("")
+    val medicationName: StateFlow<String> = _medicationName.asStateFlow()
+
+    private val _rawHistory = MutableStateFlow<List<MedicationReminder>>(emptyList())
+
+    private val _filteredAndSortedHistory = MutableStateFlow<List<MedicationHistoryEntry>>(emptyList())
+    val filteredAndSortedHistory: StateFlow<List<MedicationHistoryEntry>> = _filteredAndSortedHistory.asStateFlow()
+
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _dateFilter = MutableStateFlow<Pair<LocalDate?, LocalDate?>?>(null)
+    val dateFilter: StateFlow<Pair<LocalDate?, LocalDate?>?> = _dateFilter.asStateFlow()
+
+    private val _sortAscending = MutableStateFlow<Boolean>(false) // Default to descending
+    val sortAscending: StateFlow<Boolean> = _sortAscending.asStateFlow()
+
     private val TAG = "MedHistoryVM"
 
-    fun loadInitialHistory(medicationId: Int) {
-        Log.d(TAG, "loadInitialHistory called for medicationId: $medicationId")
+    fun loadInitialHistory(medicationId: Int, filterDate: LocalDate? = null, filterMonth: YearMonth? = null) {
+        Log.d(TAG, "loadInitialHistory called for medicationId: $medicationId, filterDate: $filterDate, filterMonth: $filterMonth")
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
@@ -64,10 +93,21 @@ class MedicationHistoryViewModel @Inject constructor(
                 _rawHistory.value = allReminders.filter { it.isTaken && !it.takenAt.isNullOrBlank() }
                 Log.d(TAG, "Raw history (taken reminders with takenAt): ${_rawHistory.value.size}")
 
-                processHistory()
+                // Apply the initial date filter if provided
+                if (filterDate != null) {
+                    _dateFilter.value = Pair(filterDate, filterDate)
+                    Log.d(TAG, "Applying date filter: $filterDate")
+                } else if (filterMonth != null) {
+                    _dateFilter.value = Pair(filterMonth.atDay(1), filterMonth.atEndOfMonth())
+                    Log.d(TAG, "Applying month filter: $filterMonth")
+                } else {
+                    _dateFilter.value = null // No filter
+                    Log.d(TAG, "No initial date or month filter applied.")
+                }
+                processHistory() // processHistory will use the _dateFilter value
 
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading initial history for medId $medicationId", e)
+                Log.e(TAG, "Error loading initial history for medId $medicationId, filterDate: $filterDate, filterMonth: $filterMonth", e)
                 _error.value = "Failed to load medication history."
                 _rawHistory.value = emptyList()
                 _filteredAndSortedHistory.value = emptyList()
@@ -79,8 +119,12 @@ class MedicationHistoryViewModel @Inject constructor(
     }
 
     fun setDateFilter(startDate: LocalDate?, endDate: LocalDate?) {
-        Log.d(TAG, "setDateFilter called with startDate: $startDate, endDate: $endDate")
-        _dateFilter.value = Pair(startDate, endDate)
+        Log.d(TAG, "setDateFilter (for UI) called with startDate: $startDate, endDate: $endDate")
+        // This function is primarily for the UI DateRangePicker.
+        // If both are null, it effectively clears the filter.
+        // If one is null and the other is not, it's an open-ended range.
+        _dateFilter.value = if (startDate == null && endDate == null) null else Pair(startDate, endDate)
+        Log.d(TAG, "Date filter set by UI to: ${_dateFilter.value}")
         processHistory()
     }
 

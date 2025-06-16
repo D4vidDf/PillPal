@@ -56,7 +56,7 @@ class MedicationGraphViewModel @Inject constructor(
     // No public getter needed for this, it's internal logic
 
     private val _currentWeekDaysForWeeklyChart = MutableStateFlow<List<LocalDate>>(emptyList())
-    // No public getter needed for this, it's internal logic
+    val currentWeekDaysForWeeklyChart: StateFlow<List<LocalDate>> = _currentWeekDaysForWeeklyChart.asStateFlow()
 
     private val _currentDosageQuantity = MutableStateFlow<Float>(1.0f) // Default dosage quantity
     // No public getter needed for this, it's internal logic

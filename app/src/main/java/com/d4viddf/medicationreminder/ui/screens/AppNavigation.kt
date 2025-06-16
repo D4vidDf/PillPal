@@ -57,7 +57,16 @@ sealed class Screen(val route: String) {
         fun createRoute(medicationId: Int, colorName: String, showToday: Boolean = false) = "all_schedules_screen/$medicationId/$colorName?$SHOW_TODAY_ARG=$showToday"
     }
     object MedicationHistory : Screen("medication_history_screen/{$MEDICATION_ID_ARG}/{colorName}") {
-        fun createRoute(medicationId: Int, colorName: String) = "medication_history_screen/$medicationId/$colorName"
+        fun createRoute(medicationId: Int, colorName: String, selectedDate: String? = null, selectedMonth: String? = null): String {
+            var route = "medication_history_screen/$medicationId/$colorName"
+            val queryParams = mutableListOf<String>()
+            selectedDate?.let { queryParams.add("selectedDate=$it") }
+            selectedMonth?.let { queryParams.add("selectedMonth=$it") }
+            if (queryParams.isNotEmpty()) {
+                route += "?" + queryParams.joinToString("&")
+            }
+            return route
+        }
     }
     object MedicationGraph : Screen("medication_graph_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_graph_screen/$medicationId/$colorName"
@@ -251,15 +260,21 @@ fun AppNavigation(
                 Screen.MedicationHistory.route,
                 arguments = listOf(
                     navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
-                    navArgument("colorName") { type = NavType.StringType }
+                    navArgument("colorName") { type = NavType.StringType },
+                    navArgument("selectedDate") { type = NavType.StringType; nullable = true },
+                    navArgument("selectedMonth") { type = NavType.StringType; nullable = true }
                 )
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
                 val colorName = backStackEntry.arguments?.getString("colorName")
+                val selectedDate = backStackEntry.arguments?.getString("selectedDate")
+                val selectedMonth = backStackEntry.arguments?.getString("selectedMonth") // Extract selectedMonth
                 MedicationHistoryScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
-                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
+                    colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
+                    selectedDate = selectedDate, // Pass the extracted selectedDate
+                    selectedMonth = selectedMonth // Pass selectedMonth
                 )
             }
 
@@ -278,7 +293,25 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
                     viewModel = medicationGraphViewModel,
-                    widthSizeClass = widthSizeClass // Add this line
+                    widthSizeClass = widthSizeClass, // Add this line
+                    onNavigateToHistoryForDate = { medId, colorStr, date ->
+                        navController.navigate(
+                            Screen.MedicationHistory.createRoute(
+                                medicationId = medId,
+                                colorName = colorStr,
+                                selectedDate = date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                            )
+                        )
+                    },
+                    onNavigateToHistoryForMonth = { medId, colorStr, yearMonth ->
+                        navController.navigate(
+                            Screen.MedicationHistory.createRoute(
+                                medicationId = medId,
+                                colorName = colorStr,
+                                selectedMonth = yearMonth.toString() // YearMonth.toString() is "YYYY-MM"
+                            )
+                        )
+                    }
                 )
             }
 
