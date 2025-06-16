@@ -136,13 +136,14 @@ class ReminderSchedulingWorker constructor(
 
         // 1. Determine Search Window for ideal reminder calculation
         val isDailyRefresh = inputData.getBoolean(KEY_IS_DAILY_REFRESH, false)
+        // effectiveSearchStartDateTime is for the ReminderCalculator (conceptually calculatorSearchStartDateTime)
         val effectiveSearchStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) {
             medicationStartDate.atStartOfDay()
         } else {
             if (isDailyRefresh && medicationStartDate.isBefore(now.toLocalDate().plusDays(1))) { // If daily refresh and med has started
-                now.toLocalDate().atStartOfDay() // For today's processing, start from beginning of day
+                now.toLocalDate().atStartOfDay() // For today's processing, start from beginning of day for calculator
             } else {
-                now // Otherwise, for specific scheduling or future meds, use now
+                now // Otherwise, for specific scheduling or future meds, use now for calculator
             }
         }
         var calculationWindowEndDate = effectiveSearchStartDateTime.toLocalDate().plusDays(14) // How far out to calculate ideal reminders
@@ -151,32 +152,55 @@ class ReminderSchedulingWorker constructor(
             calculationWindowEndDate = medicationEndDate
             Log.d(funcTag, "Calculation window end date adjusted to medication end date: $calculationWindowEndDate")
         }
-        Log.d(funcTag, "Calculated effectiveSearchStartDateTime: $effectiveSearchStartDateTime, FINAL calculationWindowEndDate: $calculationWindowEndDate. Window extended to 14 days (or less if med ends sooner).")
+        Log.d(funcTag, "Calculator Search Start DateTime: $effectiveSearchStartDateTime, FINAL calculationWindowEndDate: $calculationWindowEndDate.")
 
         if (calculationWindowEndDate.isBefore(effectiveSearchStartDateTime.toLocalDate())) {
-            Log.i(funcTag, "Calculation window end ($calculationWindowEndDate) is before effective start (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule.")
-            val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication( // Name changed for clarity
+            Log.i(funcTag, "Calculation window end ($calculationWindowEndDate) is before effective start for calculator (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule.")
+            // Cleanup logic remains the same
+            val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
                 medication.id, now.format(storableDateTimeFormatter)
             ).firstOrNull() ?: emptyList()
-            existingFutureUntakenRemindersDb.forEach { staleReminder -> // Changed variable name
-                Log.d(funcTag, "Medication period ended or invalid: Cleaning up stale reminder ID ${staleReminder.id}")
+            existingFutureUntakenRemindersDb.forEach { staleReminder ->
+                Log.d(funcTag, "Medication period ended or invalid (calc window): Cleaning up stale reminder ID ${staleReminder.id}")
                 notificationScheduler.cancelAllAlarmsForReminder(applicationContext, staleReminder.id)
                 medicationReminderRepository.deleteReminderById(staleReminder.id)
             }
             return
         }
 
-        // 2. Fetch ALL Existing Reminders for the defined period (taken and untaken)
-        Log.d(funcTag, "Fetching all existing reminders for medication ID: ${medication.id} within window: $effectiveSearchStartDateTime to $calculationWindowEndDate.")
+        // Define dbQueryStartDateTime for fetching existing reminders from DB
+        val dbQueryStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) {
+            medicationStartDate.atStartOfDay()
+        } else {
+            // If medication has started or starts today, always fetch existing DB entries from the beginning of today
+            now.toLocalDate().atStartOfDay()
+        }
+        Log.d(funcTag, "DB Query Start DateTime for allExistingRemindersForPeriodMap: $dbQueryStartDateTime")
+
+        // 2. Fetch ALL Existing Reminders for the defined period (taken and untaken) using dbQueryStartDateTime
+        val dbQueryWindowStartStr = dbQueryStartDateTime.format(storableDateTimeFormatter)
+        val dbQueryWindowEndStr = calculationWindowEndDate.atTime(23, 59, 59).format(storableDateTimeFormatter) // End of day for calculationWindowEndDate
+        Log.d(funcTag, "DB Query Window for allExistingReminders: Start: $dbQueryWindowStartStr, End: $dbQueryWindowEndStr for MedId: ${medication.id}")
+
         val allExistingRemindersForPeriod = medicationReminderRepository.getRemindersForMedicationInWindow(
             medication.id,
-            effectiveSearchStartDateTime.format(storableDateTimeFormatter),
-            calculationWindowEndDate.atTime(23, 59, 59).format(storableDateTimeFormatter) // End of day for calculationWindowEndDate
+            dbQueryWindowStartStr, // Use the new dbQueryStartDateTime string
+            dbQueryWindowEndStr
         )
-        val allExistingRemindersForPeriodMap = allExistingRemindersForPeriod.associateBy {
-            try { LocalDateTime.parse(it.reminderTime, storableDateTimeFormatter) } catch (e: Exception) { null }
-        }.filterKeys { it != null } as Map<LocalDateTime, MedicationReminder>
-        Log.d(funcTag, "Found ${allExistingRemindersForPeriodMap.size} existing reminders (taken and untaken) in the period.")
+        val tempMap = mutableMapOf<LocalDateTime, MedicationReminder>()
+        Log.d(funcTag, "Building allExistingRemindersForPeriodMap for MedId: ${medication.id}:")
+        allExistingRemindersForPeriod.forEach { reminder ->
+            try {
+                val parsedKey = LocalDateTime.parse(reminder.reminderTime, storableDateTimeFormatter)
+                tempMap[parsedKey] = reminder
+                Log.d(funcTag, "  - Added to map: Key=$parsedKey, ReminderId=${reminder.id}, ReminderTimeStr='${reminder.reminderTime}', IsTaken=${reminder.isTaken}")
+            } catch (e: Exception) {
+                Log.e(funcTag, "  - Failed to parse reminderTime for ReminderId=${reminder.id}, TimeStr='${reminder.reminderTime}'. Skipping.", e)
+            }
+        }
+        val allExistingRemindersForPeriodMap = tempMap.toMap()
+        Log.d(funcTag, "Finished building allExistingRemindersForPeriodMap. Size: ${allExistingRemindersForPeriodMap.size}")
+        Log.d(funcTag, "Found ${allExistingRemindersForPeriodMap.size} existing reminders (taken and untaken) in the period.") // This log seems redundant now but keeping for safety
 
         // Fetch Existing Future Untaken Reminders (still needed for stale cleanup logic)
         Log.d(funcTag, "Fetching existing future untaken reminders for medication ID: ${medication.id} for stale cleanup.")
@@ -252,6 +276,7 @@ class ReminderSchedulingWorker constructor(
             val existingReminderForThisTime = allExistingRemindersForPeriodMap[idealDateTime]
 
             if (existingReminderForThisTime == null) {
+                Log.w(funcTag, "No existing reminder found in map for idealDateTime: $idealDateTime. Will schedule a new one.")
                 // No reminder exists in DB for this ideal time, schedule a new one
                 val reminderObjectToInsert = MedicationReminder(
                     medicationId = medication.id,
