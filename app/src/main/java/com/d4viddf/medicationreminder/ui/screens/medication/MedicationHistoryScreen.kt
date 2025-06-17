@@ -1,6 +1,8 @@
 package com.d4viddf.medicationreminder.ui.screens.medication
 
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -353,24 +355,24 @@ fun MedicationHistoryScreen(
                                         }
                                     } else {
                                         LazyColumn(modifier = listModifier) {
-                                            items(groupedItems, key = { item ->
-                                                when (item) {
-                                                    is MonthHeader -> item.id
-                                                    is HistoryEntryItem -> item.originalId
-                                                }
-                                            }) { item ->
-                                                when (item) {
+                                            groupedItems.forEach { itemData ->
+                                                when (itemData) {
                                                     is MonthHeader -> {
-                                                        Text(
-                                                            text = item.monthYear.uppercase(Locale.getDefault()),
-                                                            style = MaterialTheme.typography.titleLarge,
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .padding(vertical = 8.dp, horizontal = 4.dp)
-                                                        )
+                                                        stickyHeader(key = itemData.id) {
+                                                            Text(
+                                                                text = itemData.monthYear.uppercase(Locale.getDefault()),
+                                                                style = MaterialTheme.typography.titleLarge,
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .background(MaterialTheme.colorScheme.surface)
+                                                                    .padding(vertical = 8.dp, horizontal = 4.dp)
+                                                            )
+                                                        }
                                                     }
                                                     is HistoryEntryItem -> {
-                                                        MedicationHistoryListItem(entry = item.entry, itemModifier = Modifier.widthIn(max = 400.dp)) // MODIFIED call
+                                                        item(key = itemData.originalId) {
+                                                            MedicationHistoryListItem(entry = itemData.entry, itemModifier = Modifier.widthIn(max = 400.dp)) // MODIFIED call
+                                                        }
                                                     }
                                                 }
                                             }
@@ -496,24 +498,24 @@ fun MedicationHistoryScreen(
                                 }
                             } else {
                                 LazyColumn(modifier = listModifier) {
-                                    items(groupedItems, key = { item ->
-                                        when (item) {
-                                            is MonthHeader -> item.id
-                                            is HistoryEntryItem -> item.originalId
-                                        }
-                                    }) { item ->
-                                        when (item) {
+                                            groupedItems.forEach { itemData ->
+                                                when (itemData) {
                                             is MonthHeader -> {
-                                                Text(
-                                                    text = item.monthYear.uppercase(Locale.getDefault()),
-                                                    style = MaterialTheme.typography.titleLarge,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(vertical = 8.dp, horizontal = 4.dp)
-                                                )
+                                                        stickyHeader(key = itemData.id) {
+                                                            Text(
+                                                                text = itemData.monthYear.uppercase(Locale.getDefault()),
+                                                                style = MaterialTheme.typography.titleLarge,
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .background(MaterialTheme.colorScheme.surface)
+                                                                    .padding(vertical = 8.dp, horizontal = 4.dp)
+                                                            )
+                                                        }
                                             }
                                             is HistoryEntryItem -> {
-                                                    MedicationHistoryListItem(entry = item.entry, itemModifier = Modifier.fillMaxWidth()) // MODIFIED call
+                                                        item(key = itemData.originalId) {
+                                                            MedicationHistoryListItem(entry = itemData.entry, itemModifier = Modifier.fillMaxWidth()) // MODIFIED call
+                                                        }
                                             }
                                         }
                                     }
@@ -527,6 +529,7 @@ fun MedicationHistoryScreen(
     } // Closes MedicationSpecificTheme content lambda
 } // Closes MedicationHistoryScreen
 
+@OptIn(ExperimentalFoundationApi::class) // Added for stickyHeader
 // Function to process history entries and insert month headers
 private fun processHistoryEntries(
     entries: List<MedicationHistoryEntry>,
