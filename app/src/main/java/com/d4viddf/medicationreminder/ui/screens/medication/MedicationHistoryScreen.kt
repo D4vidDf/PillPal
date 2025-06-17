@@ -229,15 +229,19 @@ fun MedicationHistoryScreen(
                 if (isLargeScreen) {
                     Row(Modifier.fillMaxSize()) {
                         // Left Pane: Filters
-                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            // Existing filter controls (Row with two Columns)
-                            Row(
-                                modifier = Modifier.fillMaxWidth(), // Takes full width of this pane
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        Column(
+                            modifier = Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally // ADDED
+                        ) {
+                            // This Row becomes a Column
+                            Column(
+                                modifier = Modifier.fillMaxWidth(), // It should still fill the width of its parent Column (the filter pane)
+                                verticalArrangement = Arrangement.spacedBy(16.dp), // ADDED for spacing when stacked
+                                horizontalAlignment = Alignment.CenterHorizontally // ADDED to center filter groups
                             ) {
-                                // Left Column for Date Range Filter
+                                // Original Left Column for Date Range Filter
                                 Column(
-                                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), // CHANGED
                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     Text(
@@ -276,11 +280,11 @@ fun MedicationHistoryScreen(
                                     }
                                 }
 
-                                // Right Column for Sort Order
+                                // Original Right Column for Sort Order
                                 Column(
-                                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    horizontalAlignment = Alignment.Start
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), // CHANGED
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    // horizontalAlignment = Alignment.Start // REMOVED, parent Column centers
                                 ) {
                                     Text(
                                         stringResource(id = R.string.med_history_sort_order_label),
