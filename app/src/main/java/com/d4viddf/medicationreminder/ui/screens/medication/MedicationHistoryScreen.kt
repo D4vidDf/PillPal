@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -241,7 +244,7 @@ fun MedicationHistoryScreen(
                             ) {
                                 // Original Left Column for Date Range Filter
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), // CHANGED
+                                    modifier = Modifier.width(IntrinsicSize.Max).padding(vertical = 4.dp), // CHANGED
                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     Text(
@@ -282,7 +285,7 @@ fun MedicationHistoryScreen(
 
                                 // Original Right Column for Sort Order
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), // CHANGED
+                                    modifier = Modifier.width(IntrinsicSize.Max).padding(vertical = 4.dp), // CHANGED
                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                     // horizontalAlignment = Alignment.Start // REMOVED, parent Column centers
                                 ) {
@@ -314,8 +317,11 @@ fun MedicationHistoryScreen(
                         }
 
                         // Middle Pane: History List
-                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            Divider(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) // Fill width of this pane
+                        Column(
+                            modifier = Modifier.weight(2f).padding(horizontal = 16.dp, vertical = 8.dp), // CHANGED weight
+                            horizontalAlignment = Alignment.CenterHorizontally // ADDED
+                        ) {
+                            // Divider(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) // REMOVED
 
                             val listModifier = Modifier.fillMaxSize() // Padding handled by parent Column
 
@@ -364,7 +370,7 @@ fun MedicationHistoryScreen(
                                                         )
                                                     }
                                                     is HistoryEntryItem -> {
-                                                        MedicationHistoryListItem(entry = item.entry)
+                                                        MedicationHistoryListItem(entry = item.entry, itemModifier = Modifier.widthIn(max = 400.dp)) // MODIFIED call
                                                     }
                                                 }
                                             }
@@ -375,7 +381,7 @@ fun MedicationHistoryScreen(
                         }
 
                         // Right Pane: Empty
-                        Spacer(Modifier.weight(1f))
+                        // Spacer(Modifier.weight(1f)) // REMOVED
                     }
                 } else {
                     // Existing Small Screen Layout (filters above list)
@@ -458,7 +464,7 @@ fun MedicationHistoryScreen(
                         }
                     }
 
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                    // Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) // REMOVED
 
                     val listModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
 
@@ -507,7 +513,7 @@ fun MedicationHistoryScreen(
                                                 )
                                             }
                                             is HistoryEntryItem -> {
-                                                MedicationHistoryListItem(entry = item.entry)
+                                                    MedicationHistoryListItem(entry = item.entry, itemModifier = Modifier.fillMaxWidth()) // MODIFIED call
                                             }
                                         }
                                     }
@@ -549,11 +555,9 @@ private fun processHistoryEntries(
 // They can be removed if they are not used elsewhere.
 
 @Composable
-fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
+fun MedicationHistoryListItem(entry: MedicationHistoryEntry, itemModifier: Modifier = Modifier) { // Added itemModifier
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
+        modifier = itemModifier.padding(vertical = 6.dp), // Used itemModifier, removed .fillMaxWidth()
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -608,7 +612,8 @@ fun MedicationHistoryListItemPreview() {
                 dateTaken = LocalDate.now(),
                 timeTaken = LocalTime.now(),
                 originalDateTimeTaken = LocalDateTime.now()
-            )
+            ),
+            itemModifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // MODIFIED call
         )
     }
 }
