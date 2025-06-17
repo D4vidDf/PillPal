@@ -28,15 +28,14 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,8 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.painterResource // Added import
+// import androidx.compose.ui.input.nestedscroll.nestedScroll // Not needed anymore
+import androidx.compose.ui.platform.LocalConfiguration // Added import
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -117,8 +117,6 @@ fun MedicationHistoryScreen(
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
 
     var showDateRangeDialog by remember { mutableStateOf(false) } // Hoisted state variable
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState()) // Changed scroll behavior
 
     LaunchedEffect(medicationId, viewModel, selectedDate, selectedMonth) { // Added selectedMonth to key
         var parsedSelectedDate: LocalDate? = null
@@ -200,9 +198,9 @@ fun MedicationHistoryScreen(
 
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier,
             topBar = {
-                LargeTopAppBar( // Changed from MediumTopAppBar
+                TopAppBar(
                     title = { Text("History") }, // Changed title
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
@@ -212,155 +210,301 @@ fun MedicationHistoryScreen(
                             )
                         }
                     },
-                    scrollBehavior = scrollBehavior, // Passed scrollBehavior
-                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
         ) { paddingValues ->
-            Column(
+            Column( // This outer column receives paddingValues from Scaffold
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues) // Applied padding from Scaffold
+                    .padding(paddingValues)
             ) {
-                // New Two-Column Layout for Controls
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp), // Overall padding for the controls area
-                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Space between the two columns
-                ) {
-                    // Left Column for Date Range Filter
-                    Column(
-                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp), // Added internal padding
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            stringResource(id = R.string.med_history_filter_by_date_label),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        // Replaced Row with OutlinedButton
-                        OutlinedButton(
-                            onClick = { showDateRangeDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_calendar),
-                                contentDescription = null, // Text on button describes action
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(
-                                text = currentFilter?.let {
-                                    val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
-                                    val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
-                                    "$start - $end"
-                                } ?: stringResource(id = R.string.med_history_filter_select_range_button_label),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        if (currentFilter != null) {
-                            OutlinedButton(
-                                onClick = { viewModel?.setDateFilter(null, null) },
-                                modifier = Modifier.fillMaxWidth()
+                val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+                val isLargeScreen = screenWidthDp >= 600.dp
+
+                if (isLargeScreen) {
+                    Row(Modifier.fillMaxSize()) {
+                        // Left Pane: Filters
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                            // Existing filter controls (Row with two Columns)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(), // Takes full width of this pane
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text(stringResource(id = R.string.med_history_filter_clear_button))
-                            }
-                        }
-                    }
-
-                    // Right Column for Sort Order
-                    Column(
-                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp), // Added internal padding
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Text(
-                            stringResource(id = R.string.med_history_sort_order_label),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        // Replaced Row with OutlinedButton for sorting
-                        OutlinedButton(
-                            onClick = { viewModel?.setSortOrder(!sortAscending) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_swap_vert),
-                                contentDescription = null, // Text on button describes action
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(
-                                text = if (sortAscending) stringResource(id = R.string.med_history_sort_by_oldest_button)
-                                       else stringResource(id = R.string.med_history_sort_by_newest_button),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
-
-                Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-
-                // Original LazyColumn for history entries, ensuring it takes remaining space
-                // and has its own padding if needed (horizontal padding is now on the outer Column's Row for controls)
-                val listModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp) // Keep horizontal padding for the list
-
-                when {
-                    isLoading -> Box(modifier = listModifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    error != null -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
-                        Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
-                    }
-                    historyEntries.isEmpty() -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
-                        Text(
-                            stringResource(id = R.string.med_history_no_history_found),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    else -> {
-                        val groupedItems = remember(historyEntries, sortAscending) {
-                            processHistoryEntries(historyEntries, sortAscending)
-                        }
-                        if (groupedItems.isEmpty()) { // Should ideally not happen if historyEntries is not empty, but as a safeguard
-                            Box(modifier = listModifier, contentAlignment = Alignment.Center) {
-                                Text(
-                                    stringResource(id = R.string.med_history_no_history_found),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(16.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        } else {
-                            LazyColumn(modifier = listModifier) {
-                                items(groupedItems, key = { item ->
-                                    when (item) {
-                                        is MonthHeader -> item.id
-                                        is HistoryEntryItem -> item.originalId
+                                // Left Column for Date Range Filter
+                                Column(
+                                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        stringResource(id = R.string.med_history_filter_by_date_label),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    OutlinedButton(
+                                        onClick = { showDateRangeDialog = true },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = MaterialTheme.shapes.medium,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_calendar),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(
+                                            text = currentFilter?.let {
+                                                val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                                val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                                "$start - $end"
+                                            } ?: stringResource(id = R.string.med_history_filter_select_range_button_label),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                     }
-                                }) { item ->
-                                    when (item) {
-                                        is MonthHeader -> {
+                                    if (currentFilter != null) {
+                                        OutlinedButton(
+                                            onClick = { viewModel?.setDateFilter(null, null) },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(stringResource(id = R.string.med_history_filter_clear_button))
+                                        }
+                                    }
+                                }
+
+                                // Right Column for Sort Order
+                                Column(
+                                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    Text(
+                                        stringResource(id = R.string.med_history_sort_order_label),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    OutlinedButton(
+                                        onClick = { viewModel?.setSortOrder(!sortAscending) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = MaterialTheme.shapes.medium,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_swap_vert),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(
+                                            text = if (sortAscending) stringResource(id = R.string.med_history_sort_by_oldest_button)
+                                                   else stringResource(id = R.string.med_history_sort_by_newest_button),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Middle Pane: History List
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                            Divider(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) // Fill width of this pane
+
+                            val listModifier = Modifier.fillMaxSize() // Padding handled by parent Column
+
+                            when {
+                                isLoading -> Box(modifier = listModifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                                error != null -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                                    Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                                }
+                                historyEntries.isEmpty() -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                                    Text(
+                                        stringResource(id = R.string.med_history_no_history_found),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(16.dp),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                else -> {
+                                    val groupedItems = remember(historyEntries, sortAscending) {
+                                        processHistoryEntries(historyEntries, sortAscending)
+                                    }
+                                    if (groupedItems.isEmpty()) {
+                                        Box(modifier = listModifier, contentAlignment = Alignment.Center) {
                                             Text(
-                                                text = item.monthYear,
-                                                style = MaterialTheme.typography.titleLarge, // Or headlineSmall
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(vertical = 8.dp, horizontal = 4.dp) // Adjust padding as needed
+                                                stringResource(id = R.string.med_history_no_history_found),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                modifier = Modifier.padding(16.dp),
+                                                textAlign = TextAlign.Center
                                             )
                                         }
-                                        is HistoryEntryItem -> {
-                                            MedicationHistoryListItem(entry = item.entry)
+                                    } else {
+                                        LazyColumn(modifier = listModifier) {
+                                            items(groupedItems, key = { item ->
+                                                when (item) {
+                                                    is MonthHeader -> item.id
+                                                    is HistoryEntryItem -> item.originalId
+                                                }
+                                            }) { item ->
+                                                when (item) {
+                                                    is MonthHeader -> {
+                                                        Text(
+                                                            text = item.monthYear.uppercase(Locale.getDefault()),
+                                                            style = MaterialTheme.typography.titleLarge,
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(vertical = 8.dp, horizontal = 4.dp)
+                                                        )
+                                                    }
+                                                    is HistoryEntryItem -> {
+                                                        MedicationHistoryListItem(entry = item.entry)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Right Pane: Empty
+                        Spacer(Modifier.weight(1f))
+                    }
+                } else {
+                    // Existing Small Screen Layout (filters above list)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Left Column for Date Range Filter
+                        Column(
+                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                stringResource(id = R.string.med_history_filter_by_date_label),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            OutlinedButton(
+                                onClick = { showDateRangeDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_calendar),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(
+                                    text = currentFilter?.let {
+                                        val start = it.first?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                        val end = it.second?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "..."
+                                        "$start - $end"
+                                    } ?: stringResource(id = R.string.med_history_filter_select_range_button_label),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            if (currentFilter != null) {
+                                OutlinedButton(
+                                    onClick = { viewModel?.setDateFilter(null, null) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(stringResource(id = R.string.med_history_filter_clear_button))
+                                }
+                            }
+                        }
+
+                        // Right Column for Sort Order
+                        Column(
+                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                stringResource(id = R.string.med_history_sort_order_label),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            OutlinedButton(
+                                onClick = { viewModel?.setSortOrder(!sortAscending) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_swap_vert),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(
+                                    text = if (sortAscending) stringResource(id = R.string.med_history_sort_by_oldest_button)
+                                           else stringResource(id = R.string.med_history_sort_by_newest_button),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+
+                    val listModifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+
+                    when {
+                        isLoading -> Box(modifier = listModifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                        error != null -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                            Text(error!!, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                        }
+                        historyEntries.isEmpty() -> Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                            Text(
+                                stringResource(id = R.string.med_history_no_history_found),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(16.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        else -> {
+                            val groupedItems = remember(historyEntries, sortAscending) {
+                                processHistoryEntries(historyEntries, sortAscending)
+                            }
+                            if (groupedItems.isEmpty()) {
+                                Box(modifier = listModifier, contentAlignment = Alignment.Center) {
+                                    Text(
+                                        stringResource(id = R.string.med_history_no_history_found),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(16.dp),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            } else {
+                                LazyColumn(modifier = listModifier) {
+                                    items(groupedItems, key = { item ->
+                                        when (item) {
+                                            is MonthHeader -> item.id
+                                            is HistoryEntryItem -> item.originalId
+                                        }
+                                    }) { item ->
+                                        when (item) {
+                                            is MonthHeader -> {
+                                                Text(
+                                                    text = item.monthYear.uppercase(Locale.getDefault()),
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                                                )
+                                            }
+                                            is HistoryEntryItem -> {
+                                                MedicationHistoryListItem(entry = item.entry)
+                                            }
                                         }
                                     }
                                 }
@@ -368,7 +512,7 @@ fun MedicationHistoryScreen(
                         }
                     }
                 }
-            } // Closes Column
+            } // Closes Column triggered by if/else
         } // Closes Scaffold content lambda
     } // Closes MedicationSpecificTheme content lambda
 } // Closes MedicationHistoryScreen
@@ -408,7 +552,7 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
             .padding(vertical = 6.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer // Changed
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
@@ -423,13 +567,13 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry) {
                     text = entry.dateTaken.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // Added/Changed
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(id = R.string.med_history_item_taken_at_prefix) + entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // Changed
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
