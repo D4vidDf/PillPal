@@ -35,12 +35,6 @@ fun MedicationReminderApp(
     userPreferencesRepository: UserPreferencesRepository, // Keep this for OnboardingScreen
     onboardingCompleted: Boolean // Add this, make it non-null
 ) {
-    // val onboardingStatus by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = null) // REMOVE THIS
-    // if (onboardingStatus == null) { // REMOVE THIS BLOCK
-    //     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    //         CircularProgressIndicator()
-    //     }
-    // } else { // REMOVE THIS BLOCK's if/else structure, keep the 'else' part's content.
 
     // This logic will now be at the top level inside MedicationReminderApp, after parameters
     val startRoute = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route

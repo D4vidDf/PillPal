@@ -364,7 +364,6 @@ fun MedicationHistoryScreen(
                                                                 style = MaterialTheme.typography.titleLarge,
                                                                 modifier = Modifier
                                                                     .fillMaxWidth()
-                                                                    .background(MaterialTheme.colorScheme.surface)
                                                                     .padding(vertical = 8.dp, horizontal = 4.dp)
                                                             )
                                                         }
@@ -507,7 +506,6 @@ fun MedicationHistoryScreen(
                                                                 style = MaterialTheme.typography.titleLarge,
                                                                 modifier = Modifier
                                                                     .fillMaxWidth()
-                                                                    .background(MaterialTheme.colorScheme.surface)
                                                                     .padding(vertical = 8.dp, horizontal = 4.dp)
                                                             )
                                                         }
