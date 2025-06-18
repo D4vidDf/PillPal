@@ -42,8 +42,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
 
-    // Removed requestPermissionLauncher
-    // Removed requestFullScreenIntentLauncher
 
     companion object {
         private const val TAG_MAIN_ACTIVITY = "MainActivity" // For logging
@@ -99,13 +97,7 @@ class MainActivity : ComponentActivity() {
         localeTagSetByThisInstance = storedLocaleTag // Track the tag we just instructed AppCompat to use.
         Log.d("MainActivity", "onCreate: Called AppCompatDelegate.setApplicationLocales with '${localeListToApply.toLanguageTags()}'. Tracking as '$localeTagSetByThisInstance'.")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationHelper.createNotificationChannels(this)
-        }
-        // REMOVE THESE LINES:
-        // PermissionUtils.requestPostNotificationPermission(this)
-        // PermissionUtils.checkAndRequestExactAlarmPermission(this)
-        // PermissionUtils.checkAndRequestFullScreenIntentPermission(this)
+        NotificationHelper.createNotificationChannels(this)
 
 
         val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build()

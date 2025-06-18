@@ -74,6 +74,7 @@ fun MedicationSpecificTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        shapes = MaterialTheme.shapes,
         typography = AppTypography, // Make sure AppTypography is imported
         content = content
     )

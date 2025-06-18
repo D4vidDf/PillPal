@@ -217,7 +217,7 @@ fun CalendarScreen(
                         onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
                             // sharedTransitionScope = sharedTransitionScope, // Pass this // REMOVED
                             // animatedVisibilityScope = animatedVisibilityScope, // Pass it here // REMOVED
-                        modifier = Modifier.fillMaxWidth().weight(1f)
+                        modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp)
                     )
                 }
 
