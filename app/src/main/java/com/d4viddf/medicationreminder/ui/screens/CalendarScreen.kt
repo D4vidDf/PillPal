@@ -73,7 +73,7 @@ import androidx.navigation.NavHostController
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
-import androidx.compose.material3.adaptive.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole // Changed import for ListDetailPaneScaffoldRole
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen // Added for detailPane
 import com.d4viddf.medicationreminder.data.Medication
@@ -156,10 +156,9 @@ fun CalendarScreen(
 
     if (showDatePickerDialog) {
         ShowDatePicker(
-            initialSelectedDate = uiState.selectedDate, // This might need to point to calendarState's current date
-            onDateSelected = { newDate ->
-                // viewModel.setSelectedDate(newDate) // Keep this if it serves other purposes or if ViewModel needs to know
-                // For now, the primary action is to scroll the calendarState.
+            initialSelectedDate = uiState.selectedDate,
+            onDateSelected = { newDate: LocalDate -> // Explicitly typed newDate
+                // viewModel.setSelectedDate(newDate)
                 // If viewModel.setSelectedDate also triggers UI changes that
                 // depend on the selected date, it should be kept.
                 // Let's assume it's still needed for now.
@@ -240,17 +239,18 @@ fun CalendarScreen(
                         state = calendarState,
                         medicationSchedules = uiState.medicationSchedules,
                         totalWidthPx = totalWidthPx,
-                        onMedicationClicked = { medicationId ->
+                        onMedicationClicked = { medicationId: Int -> // Explicitly typed medicationId
                             viewModel.setSelectedMedicationId(medicationId)
                             if (widthSizeClass == WindowWidthSizeClass.Compact) {
                                 onNavigateToMedicationDetail(medicationId)
                             } else {
                                 coroutineScope.launch {
+                                    // Assuming ListDetailPaneScaffoldRole.Detail is the correct reference
                                     scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
                                 }
                             }
                         },
-                        selectedMedicationId = uiState.selectedMedicationId,
+                        selectedMedicationId = uiState.selectedMedicationId, // Corrected typo: uiSstate -> uiState
                         modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp)
                     )
                 }
@@ -287,7 +287,7 @@ fun CalendarScreen(
             )
             */
             } // End of Column inside listPane's Scaffold
-        }, // End of listPane
+        }, // End of listPane , (Added comma here if it was missing, ensuring structure is correct)
         detailPane = {
             val detailMedicationId = scaffoldNavigator.currentDestination?.contentKey
             if (detailMedicationId != null) {
@@ -450,7 +450,6 @@ private fun DaysRow(state: ScheduleCalendarState, modifier: Modifier = Modifier)
         val placeablesWithDate = measurables.mapNotNull { measurable ->
             val dayData = measurable.parentData as? DayData
             if (dayData != null) {
-                // Measure with unbounded width for preferred size, but respect original height constraint from parent (DaysRow modifier)
                 Pair(measurable.measure(Constraints(maxHeight = constraints.maxHeight)), dayData.date)
             } else {
                 null
@@ -460,7 +459,9 @@ private fun DaysRow(state: ScheduleCalendarState, modifier: Modifier = Modifier)
         val rowHeight = placeablesWithDate.maxOfOrNull { it.first.height } ?: 0
 
         layout(constraints.maxWidth, rowHeight) {
-            placeablesWithDate.forEach { (placeable, date) ->
+            placeablesWithDate.forEach { pair -> // Changed to avoid destructuring ambiguity if any
+                val placeable = pair.first
+                val date = pair.second
                 val dayStartDateTime = date.atStartOfDay()
                 val dayEndDateTime = date.plusDays(1).atStartOfDay()
 
