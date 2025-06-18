@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController // Added for NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
@@ -92,6 +93,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
 @Composable
 fun CalendarScreen(
+    navController: NavHostController, // Added NavController
     onNavigateBack: () -> Unit,
     onNavigateToMedicationDetail: (Int) -> Unit,
     // sharedTransitionScope: SharedTransitionScope?, // Add this // REMOVED
@@ -100,6 +102,7 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState() // Still needed for medicationSchedules
     var showDatePickerDialog by remember { mutableStateOf(false) }
+    // var selectedMedicationId by remember { mutableStateOf<Int?>(null) } // REMOVED: Local state for selected medication
     // val weekCalendarScrollState = rememberLazyListState() // Removed
     // val dayWidth = dayWidthForCalendar // Removed or will be used differently
     // val horizontalScrollOffsetPx calculation removed
@@ -108,6 +111,16 @@ fun CalendarScreen(
 
     val calendarState = rememberScheduleCalendarState() // New calendar state
     val coroutineScope = rememberCoroutineScope() // Added: remember a coroutine scope
+
+    LaunchedEffect(navController.currentBackStackEntry?.savedStateHandle) {
+        navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("medicationDetailClosed")?.let {
+            if (it) {
+                viewModel.setSelectedMedicationId(null)
+                // Important: Remove the value from SavedStateHandle so it doesn't trigger again
+                navController.currentBackStackEntry?.savedStateHandle?.remove<Boolean>("medicationDetailClosed")
+            }
+        }
+    }
 
     // Collect dateAtCenter from calendarState
     // Note: Since dateAtCenter itself is a State<LocalDate> (due to by derivedStateOf),
@@ -214,7 +227,11 @@ fun CalendarScreen(
                         state = calendarState,
                         medicationSchedules = uiState.medicationSchedules,
                         totalWidthPx = totalWidthPx,
-                        onMedicationClicked = { medicationId -> onNavigateToMedicationDetail(medicationId) },
+                        onMedicationClicked = { medicationId ->
+                            viewModel.setSelectedMedicationId(medicationId) // Update selected ID in ViewModel
+                            onNavigateToMedicationDetail(medicationId) // Original navigation
+                        },
+                        selectedMedicationId = uiState.selectedMedicationId, // Pass selected ID from uiState
                             // sharedTransitionScope = sharedTransitionScope, // Pass this // REMOVED
                             // animatedVisibilityScope = animatedVisibilityScope, // Pass it here // REMOVED
                         modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp)
@@ -412,6 +429,7 @@ fun MedicationRowsLayout(
     medicationSchedules: List<MedicationScheduleItem>,
     totalWidthPx: Int,
     onMedicationClicked: (Int) -> Unit,
+    selectedMedicationId: Int?, // Added this new parameter
     // sharedTransitionScope: SharedTransitionScope?, // Add this // REMOVED
     // animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable // REMOVED
     modifier: Modifier = Modifier
@@ -421,7 +439,21 @@ fun MedicationRowsLayout(
 
     LazyColumn(modifier = modifier) {
         items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
-            Box(modifier = Modifier.fillParentMaxWidth().height(55.dp).padding(vertical = 4.dp, horizontal = 8.dp)) { // Changed height and vertical padding
+            val isSelected = selectedMedicationId != null && scheduleItem.medication.id == selectedMedicationId
+            val boxModifier = if (isSelected) {
+                Modifier
+                    .fillParentMaxWidth()
+                    .height(55.dp)
+                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(percent = 50))
+            } else {
+                Modifier
+                    .fillParentMaxWidth()
+                    .height(55.dp)
+                    .padding(vertical = 4.dp, horizontal = 8.dp)
+            }
+
+            Box(modifier = boxModifier) { // Apply the conditional modifier
                 val med = scheduleItem.medication
                 val medStartDate = scheduleItem.actualStartDate
                 val medEndDate = scheduleItem.actualEndDate
@@ -580,6 +612,7 @@ fun CalendarScreenPreviewLight() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { /* Dummy action */ },
+                            selectedMedicationId = 1, // Example: Select the first medication in preview
                             // sharedTransitionScope = null, // Preview // REMOVED
                             // animatedVisibilityScope = null, // Preview // REMOVED
                             modifier = Modifier.fillMaxWidth().weight(1f)
@@ -649,6 +682,7 @@ fun CalendarScreenPreviewDark() {
                             medicationSchedules = previewMedicationSchedules,
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { },
+                            selectedMedicationId = null, // No selection in this preview, or choose one if desired
                             // sharedTransitionScope = null, // Preview // REMOVED
                             // animatedVisibilityScope = null, // Preview // REMOVED
                             modifier = Modifier.fillMaxWidth().weight(1f)
