@@ -71,12 +71,20 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added
-import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole // Changed import for ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.isDetailPaneVisible // Added import
+// Removed NavigableListDetailPaneScaffold imports
+// import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+// import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+// import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+// import androidx.compose.material3.adaptive.navigation.isDetailPaneVisible
+import androidx.compose.material3.adaptive.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.ListDetailPaneScaffoldState
+import androidx.compose.material3.adaptive.PaneExpansionAnchor
+import androidx.compose.material3.adaptive.PaneExpansionState
+import androidx.compose.material3.adaptive.rememberListDetailPaneScaffoldState
+import androidx.compose.material3.adaptive.rememberPaneExpansionState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi // Added OptIn
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen // Added for detailPane
+import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
@@ -96,7 +104,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class) // Restored ExperimentalSharedTransitionApi
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalMaterial3AdaptiveApi::class) // Added ExperimentalMaterial3AdaptiveApi
 @Composable
 fun CalendarScreen(
     navController: NavHostController,
@@ -119,14 +127,25 @@ fun CalendarScreen(
 
     val calendarState = rememberScheduleCalendarState() // New calendar state
     val coroutineScope = rememberCoroutineScope()
-    val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>()
+    // Removed scaffoldNavigator
 
-    // Handles clearing selection when detail pane is closed by scaffoldNavigator's back navigation
-    LaunchedEffect(scaffoldNavigator.currentDestination) {
-        if (scaffoldNavigator.currentDestination?.contentKey == null && uiState.selectedMedicationId != null) {
-            viewModel.setSelectedMedicationId(null)
-        }
-    }
+    // Define PaneExpansionAnchors
+    val expandedAnchor = remember { PaneExpansionAnchor(1.0f) }
+    val narrowAnchor = remember { PaneExpansionAnchor(0.4f) } // List pane takes 40% when detail is shown
+
+    // Create and remember PaneExpansionState
+    val paneExpansionState = rememberPaneExpansionState(
+        initialValue = expandedAnchor,
+        anchors = listOf(expandedAnchor, narrowAnchor),
+        canChange = { true }
+    )
+
+    // Create ListDetailPaneScaffoldState
+    val scaffoldState = rememberListDetailPaneScaffoldState(
+        paneExpansionState = paneExpansionState
+    )
+
+    // Removed LaunchedEffect for scaffoldNavigator.currentDestination
 
     // Handles clearing selection when navigating back from full-screen detail view (compact screens)
     LaunchedEffect(navController.currentBackStackEntry?.savedStateHandle) {
@@ -175,10 +194,26 @@ fun CalendarScreen(
         )
     }
 
-    NavigableListDetailPaneScaffold(
-        navigator = scaffoldNavigator,
+    // LaunchedEffect to Trigger Animations based on selection and screen size
+    LaunchedEffect(uiState.selectedMedicationId, widthSizeClass, paneExpansionState) {
+        if (widthSizeClass != WindowWidthSizeClass.Compact) {
+            if (uiState.selectedMedicationId != null) {
+                paneExpansionState.animateTo(narrowAnchor)
+            } else {
+                paneExpansionState.animateTo(expandedAnchor)
+            }
+        } else {
+            // Ensure list is fully expanded on compact screens
+            if (paneExpansionState.currentValue != expandedAnchor) {
+                 paneExpansionState.animateTo(expandedAnchor)
+            }
+        }
+    }
+
+    ListDetailPaneScaffold( // Changed from NavigableListDetailPaneScaffold
+        scaffoldState = scaffoldState, // Use the new scaffoldState
         listPane = {
-            Scaffold( // This is the existing Scaffold, now nested
+            Scaffold(
                 topBar = {
                     CalendarTopAppBar(
                         currentMonth = YearMonth.from(dateCurrentlyAtCenter),
@@ -240,19 +275,16 @@ fun CalendarScreen(
                         state = calendarState,
                         medicationSchedules = uiState.medicationSchedules,
                         totalWidthPx = totalWidthPx,
-                        onMedicationClicked = { medicationId: Int -> // Explicitly typed medicationId
+                        onMedicationClicked = { medicationId: Int ->
                             viewModel.setSelectedMedicationId(medicationId)
                             if (widthSizeClass == WindowWidthSizeClass.Compact) {
                                 onNavigateToMedicationDetail(medicationId)
-                            } else {
-                                coroutineScope.launch {
-                                    // Assuming ListDetailPaneScaffoldRole.Detail is the correct reference
-                                    scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
-                                }
                             }
+                            // For larger screens, selection change triggers LaunchedEffect for animation
                         },
                         selectedMedicationId = uiState.selectedMedicationId,
-                        shouldApplyBorder = widthSizeClass != WindowWidthSizeClass.Compact && scaffoldNavigator.isDetailPaneVisible(), // Pass the new condition
+                        // Border is now conditional on selection and not being compact
+                        shouldApplyBorder = widthSizeClass != WindowWidthSizeClass.Compact && uiState.selectedMedicationId != null,
                         modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp)
                     )
                 }
@@ -289,27 +321,20 @@ fun CalendarScreen(
             )
             */
             } // End of Column inside listPane's Scaffold
-        }, // End of listPane , (Added comma here if it was missing, ensuring structure is correct)
+        },
         detailPane = {
-            val detailMedicationId = scaffoldNavigator.currentDestination?.contentKey
-            if (detailMedicationId != null) {
-                // Assuming MedicationDetailsScreen is adapted to be hosted in a pane
-                // and AppNavigation provides the necessary SharedTransitionScope if needed for pane transitions.
-                // For simplicity here, we might not pass sharedTransitionScope directly,
-                // as NavigableListDetailPaneScaffold might handle transitions differently or it's managed higher up.
+            // Content depends on uiState.selectedMedicationId and widthSizeClass
+            if (widthSizeClass != WindowWidthSizeClass.Compact && uiState.selectedMedicationId != null) {
                 MedicationDetailsScreen(
-                    medicationId = detailMedicationId,
-                    navController = navController, // Main NavController for potential sub-navigation
-                    onNavigateBack = { // This back is for the pane
-                        coroutineScope.launch { scaffoldNavigator.navigateBack() }
+                    medicationId = uiState.selectedMedicationId!!, // Known not null here
+                    navController = navController,
+                    onNavigateBack = { // This is key for closing the detail pane
+                        viewModel.setSelectedMedicationId(null) // This will trigger animation via LaunchedEffect
                     },
-                    isHostedInPane = true, // New parameter for MedicationDetailsScreen
-                    widthSizeClass = widthSizeClass, // Pass widthSizeClass
-                    // These might not be directly applicable or need specific handling for pane context
-                    sharedTransitionScope = null, // Or a scope if transitions between list/detail are desired & supported this way
-                    animatedVisibilityScope = null, // Similarly
-                    // Navigation callbacks for deeper screens - ensure these are handled correctly
-                    // or perhaps are not callable when hosted in a pane if they imply full-screen navigation.
+                    isHostedInPane = true,
+                    widthSizeClass = widthSizeClass,
+                    sharedTransitionScope = null,
+                    animatedVisibilityScope = null,
                     onNavigateToAllSchedules = { medId, colorName ->
                         navController.navigate(Screen.AllSchedules.createRoute(medId, colorName, true))
                     },
@@ -324,9 +349,9 @@ fun CalendarScreen(
                     }
                 )
             }
-            // Else, the pane is empty, NavigableListDetailPaneScaffold handles showing nothing or a placeholder.
-        } // End of detailPane
-    ) // End of NavigableListDetailPaneScaffold
+            // Else, the detail pane will be empty
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

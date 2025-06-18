@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Close // Added import for Close icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -246,7 +247,25 @@ fun MedicationDetailsScreen(
                     TopAppBar(
                         title = { },
                         navigationIcon = {
-                            if (!isHostedInPane) {
+                            if (isHostedInPane) { // Condition for showing close icon in pane mode
+                                Box(modifier = Modifier.padding(start = 10.dp)) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            // Optional: Use a different background or no background for pane's close button
+                                            // .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                            .clickable { onNavigateBack() },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close, // Changed Icon
+                                            contentDescription = "Close detail view", // Hardcoded string as requested
+                                            modifier = Modifier.size(28.dp),
+                                            tint = if (makeAppBarTransparent) MaterialTheme.colorScheme.onSurface else Color.White // Adjust tint
+                                        )
+                                    }
+                                }
+                            } else { // Existing logic for full screen
                                 Box(modifier = Modifier.padding(start = 10.dp)) {
                                     Box(
                                         modifier = Modifier
