@@ -76,18 +76,16 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.PaneExpansionState
+import androidx.compose.material3.adaptive.PaneExpansionAnchor
+import androidx.compose.material3.adaptive.rememberPaneExpansionState
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen
-// Animation imports
-import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-// androidx.compose.ui.Alignment is already imported via Modifier.align
+// androidx.compose.ui.Alignment is already imported
+// Removed specific animation imports as per subtask (if any were left from erroneous application)
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.ScheduleType
@@ -134,10 +132,47 @@ fun CalendarScreen(
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>()
 
+    // Define PaneExpansionAnchors
+    val collapsedAnchor = remember { PaneExpansionAnchor(1.0f) } // List pane takes 100%
+    val defaultDetailOpenAnchor = remember { PaneExpansionAnchor(0.6f) } // List pane takes 60%, detail takes 40%
+
+    // Create PaneExpansionState
+    val paneExpansionState = rememberPaneExpansionState(
+        initialValue = collapsedAnchor, // Start with list pane fully expanded
+        anchors = listOf(collapsedAnchor, defaultDetailOpenAnchor),
+        canChange = { true } // Allow user dragging and programmatic animation
+    )
+
     // Handles clearing selection when detail pane is closed by scaffoldNavigator's back navigation
+    // This also implies the pane should animate to collapsed state (handled by LaunchedEffect below)
     LaunchedEffect(scaffoldNavigator.currentDestination) {
         if (scaffoldNavigator.currentDestination?.contentKey == null && uiState.selectedMedicationId != null) {
             viewModel.setSelectedMedicationId(null)
+        }
+    }
+
+    // LaunchedEffect to Trigger Animations based on selection and screen size
+    LaunchedEffect(uiState.selectedMedicationId, widthSizeClass, paneExpansionState) {
+        if (widthSizeClass != WindowWidthSizeClass.Compact) {
+            if (uiState.selectedMedicationId != null) {
+                // A medication is selected, and we are on a large screen, ensure pane is open
+                if (scaffoldNavigator.currentDestination?.contentKey != null) { // Check if detail pane is supposed to be open
+                    paneExpansionState.animateTo(defaultDetailOpenAnchor)
+                } else {
+                     // This case might occur if selectedMedicationId is set but scaffoldNavigator hasn't navigated yet.
+                     // Or if detail pane was closed by other means than clearing selectedMedicationId.
+                     // To be safe, if no medication is selected, collapse.
+                    paneExpansionState.animateTo(collapsedAnchor)
+                }
+            } else {
+                // No medication selected (or detail pane closed via onNavigateBack setting ID to null)
+                paneExpansionState.animateTo(collapsedAnchor)
+            }
+        } else {
+            // Always ensure list is fully expanded on compact screens
+            if (paneExpansionState.currentValue != collapsedAnchor) {
+                 paneExpansionState.animateTo(collapsedAnchor)
+            }
         }
     }
 
@@ -190,23 +225,19 @@ fun CalendarScreen(
 
     NavigableListDetailPaneScaffold(
         navigator = scaffoldNavigator,
-        paneAnimationSpec = { // this: AnimatedContentTransitionScope<ListDetailPaneScaffoldRole>
-            val enterFromRight = slideInHorizontally { fullWidth -> fullWidth } + expandHorizontally(expandFrom = Alignment.End)
-            val exitToRight = slideOutHorizontally { fullWidth -> fullWidth } + shrinkHorizontally(shrinkTowards = Alignment.End)
-            val enterFromLeft = slideInHorizontally { fullWidth -> -fullWidth } + expandHorizontally(expandFrom = Alignment.Start)
-            val exitToLeft = slideOutHorizontally { fullWidth -> -fullWidth } + shrinkHorizontally(shrinkTowards = Alignment.Start)
-
-            if (targetState == ListDetailPaneScaffoldRole.Detail && initialState == ListDetailPaneScaffoldRole.List) {
-                // List pane exits to left, Detail pane enters from right
-                exitToLeft togetherWith enterFromRight
-            } else if (targetState == ListDetailPaneScaffoldRole.List && initialState == ListDetailPaneScaffoldRole.Detail) {
-                // Detail pane exits to right, List pane enters from left
-                exitToRight togetherWith enterFromLeft
-            } else {
-                // Default fade for other transitions
-                fadeIn() togetherWith fadeOut()
+        paneExpansionState = paneExpansionState, // Pass the state
+        paneExpansionDragHandle = { // state here is the PaneExpansionState provided by the scaffold
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(8.dp) // Touch target
+                    .pointerInput(Unit) { detectTapGestures() }, // Optional: consume taps
+                contentAlignment = Alignment.Center
+            ) {
+                VerticalDivider() // Default thickness
             }
         },
+        // paneAnimationSpec removed
         listPane = {
             Scaffold( // This is the existing Scaffold, now nested
                 topBar = {
