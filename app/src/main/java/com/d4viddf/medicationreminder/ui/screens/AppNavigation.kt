@@ -224,7 +224,8 @@ fun AppNavigation(
             composable(Screen.Calendar.route) {
                 // `this` is an AnimatedVisibilityScope
                 CalendarScreen(
-                    navController = navController, // Added navController
+                    navController = navController,
+                    widthSizeClass = widthSizeClass, // Added widthSizeClass
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToMedicationDetail = { medicationId ->
                         navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = false))
