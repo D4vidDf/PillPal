@@ -74,6 +74,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // Added
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole // Changed import for ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.isDetailPaneVisible // Added import
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.screens.medication.MedicationDetailsScreen // Added for detailPane
 import com.d4viddf.medicationreminder.data.Medication
@@ -250,7 +251,8 @@ fun CalendarScreen(
                                 }
                             }
                         },
-                        selectedMedicationId = uiState.selectedMedicationId, // Corrected typo: uiSstate -> uiState
+                        selectedMedicationId = uiState.selectedMedicationId,
+                        shouldApplyBorder = widthSizeClass != WindowWidthSizeClass.Compact && scaffoldNavigator.isDetailPaneVisible(), // Pass the new condition
                         modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp)
                     )
                 }
@@ -484,18 +486,16 @@ fun MedicationRowsLayout(
     medicationSchedules: List<MedicationScheduleItem>,
     totalWidthPx: Int,
     onMedicationClicked: (Int) -> Unit,
-    selectedMedicationId: Int?, // Added this new parameter
-    // sharedTransitionScope: SharedTransitionScope?, // Add this // REMOVED
-    // animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable // REMOVED
+    selectedMedicationId: Int?,
+    shouldApplyBorder: Boolean, // New parameter
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
 
     LazyColumn(modifier = modifier) {
         items(medicationSchedules, key = { it.medication.id.toString() + "-" + it.schedule.id.toString() }) { scheduleItem ->
             val isSelected = selectedMedicationId != null && scheduleItem.medication.id == selectedMedicationId
-            val boxModifier = if (isSelected) {
+            val boxModifier = if (isSelected && shouldApplyBorder) { // Updated condition
                 Modifier
                     .fillParentMaxWidth()
                     .height(55.dp)
@@ -668,6 +668,7 @@ fun CalendarScreenPreviewLight() {
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { /* Dummy action */ },
                             selectedMedicationId = 1, // Example: Select the first medication in preview
+                            shouldApplyBorder = true, // Added for preview consistency
                             // sharedTransitionScope = null, // Preview // REMOVED
                             // animatedVisibilityScope = null, // Preview // REMOVED
                             modifier = Modifier.fillMaxWidth().weight(1f)
@@ -738,6 +739,7 @@ fun CalendarScreenPreviewDark() {
                             totalWidthPx = totalWidthPx,
                             onMedicationClicked = { },
                             selectedMedicationId = null, // No selection in this preview, or choose one if desired
+                            shouldApplyBorder = false, // Added for preview (false as no item is selected)
                             // sharedTransitionScope = null, // Preview // REMOVED
                             // animatedVisibilityScope = null, // Preview // REMOVED
                             modifier = Modifier.fillMaxWidth().weight(1f)
