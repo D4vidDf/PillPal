@@ -2,12 +2,12 @@
 package com.d4viddf.medicationreminder.ui.screens
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility // Added
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.expandHorizontally // Added
-import androidx.compose.animation.shrinkHorizontally // Added
-import androidx.compose.animation.slideInHorizontally // Added
-import androidx.compose.animation.slideOutHorizontally // Added
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
