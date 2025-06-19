@@ -44,7 +44,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.PaneExpansionState
-import androidx.compose.material3.adaptive.PaneExpansionStateKeyProvider
+// import androidx.compose.material3.adaptive.PaneExpansionStateKeyProvider // Removed
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -126,11 +126,7 @@ fun CalendarScreen(
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>()
 
     val paneExpansionState = rememberPaneExpansionState(
-        keyProvider = remember {
-            object : PaneExpansionStateKeyProvider {
-                override fun getKey(pane: ListDetailPaneScaffoldRole): Any? = pane
-            }
-        }
+        keyProvider = PaneExpansionState.DefaultKeyProvider // Changed to DefaultKeyProvider
     )
 
     LaunchedEffect(scaffoldNavigator.currentDestination) {
