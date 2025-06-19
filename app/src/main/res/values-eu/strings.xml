@@ -218,7 +218,7 @@
     <string name="time_hr">%1$d o</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">Oraindik ez dago botikarik. Eguneratu edo gehitu bat!</string>
-    <string name="search_medications_placeholder" translatable="false">Search medications...</string>
+    <string name="search_medications_placeholder">Bilatu botikak...</string>
     <string name="search_icon_content_description" translatable="false">Search</string>
     <string name="clear_search_query_button_description">Garbitu bilaketa-kontsulta</string>
     <string name="microphone_icon_content_description" translatable="false">Voice search</string>

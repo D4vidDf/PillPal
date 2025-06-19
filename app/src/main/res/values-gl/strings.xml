@@ -117,7 +117,7 @@
     <string name="dialog_select_time_title" translatable="false">Select Time</string>
     <string name="medication_history_title">Historial da medicación</string>
     <string name="current_week_dosage_title">Dose da semana actual</string>
-    <string name="bar_graph_placeholder">Marcador de posición do gráfico de barras (día actual resaltado)</string>
+    <string name="bar_graph_placeholder">Marcador de posición do gráfico de barres (día actual resaltado)</string>
     <string name="view_more_stats">Ver máis estatísticas</string>
     <string name="medication_information_title">Información da medicación</string>
     <string name="medication_info_description_placeholder">A información detallada sobre este medicamento está dispoñible.</string>
@@ -218,7 +218,7 @@
     <string name="time_hr">%1$d h</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">Aínda non hai medicamentos. Actualiza ou engade un!</string>
-    <string name="search_medications_placeholder" translatable="false">Search medications...</string>
+    <string name="search_medications_placeholder">Buscar medicamentos...</string>
     <string name="search_icon_content_description" translatable="false">Search</string>
     <string name="clear_search_query_button_description">Limpar consulta de busca</string>
     <string name="microphone_icon_content_description" translatable="false">Voice search</string>

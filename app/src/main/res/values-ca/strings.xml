@@ -218,7 +218,7 @@
     <string name="time_hr">%1$d h</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">Encara no hi ha medicaments. Actualitza o afegeix-ne un!</string>
-    <string name="search_medications_placeholder" translatable="false">Search medications...</string>
+    <string name="search_medications_placeholder">Cercar medicaments...</string>
     <string name="search_icon_content_description" translatable="false">Search</string>
     <string name="clear_search_query_button_description">Neteja la consulta de cerca</string>
     <string name="microphone_icon_content_description" translatable="false">Voice search</string>
