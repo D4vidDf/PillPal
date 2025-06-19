@@ -88,6 +88,11 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.material3.window.size.class1.android)
     implementation(libs.androidx.foundation.layout)
+    implementation(libs.foundation)
+    implementation(libs.androidx.adaptive.layout)
+    implementation(libs.androidx.adaptive)
+    implementation(libs.adaptive.layout)
+    implementation(libs.androidx.adaptive.navigation)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 

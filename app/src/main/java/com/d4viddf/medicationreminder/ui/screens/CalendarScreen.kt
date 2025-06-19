@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 package com.d4viddf.medicationreminder.ui.screens
 
+
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -9,28 +10,28 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.animateContentSize // ADDED IMPORT
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-// import androidx.compose.foundation.gestures.detectTapGestures // REMOVED for drag handle
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-// import androidx.compose.foundation.layout.fillMaxHeight // REMOVED for drag handle
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-// import androidx.compose.foundation.layout.width // REMOVED for drag handle
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,14 +43,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-// import androidx.compose.material3.VerticalDivider // REMOVED for drag handle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-// import androidx.compose.material3.adaptive.PaneExpansionState // REMOVED
-// import androidx.compose.material3.adaptive.PaneExpansionStateKeyProvider // REMOVED
+import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
-// import androidx.compose.material3.adaptive.rememberPaneExpansionState // REMOVED
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -66,7 +64,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-// import androidx.compose.ui.input.pointer.pointerInput // REMOVED for drag handle
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.ParentDataModifier
 import androidx.compose.ui.platform.LocalDensity
@@ -169,92 +166,120 @@ fun CalendarScreen(
         // paneExpansionState = null, // Parameter removed to use default internal state
         // paneExpansionDragHandle = null, // Parameter removed
         listPane = {
-            Scaffold(
-                modifier = Modifier.animateContentSize(), // ADDED HERE
-                topBar = {
-                    CalendarTopAppBar(
-                        currentMonth = YearMonth.from(dateCurrentlyAtCenter),
-                        onDateSelectorClicked = { showDatePickerDialog = true }
-                    )
-                }
-            ) { innerPadding ->
-                Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                    Text(
-                        text = accessibilityDateText,
-                        modifier = Modifier
-                            .semantics { liveRegion = LiveRegionMode.Polite }
-                            .alpha(0f)
-                            .size(0.dp)
-                    )
-                    BoxWithConstraints(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .scrollable(
-                                state = calendarState.scrollableState,
-                                orientation = Orientation.Horizontal,
-                                flingBehavior = calendarState.scrollFlingBehavior
-                            )
-                    ) {
-                        val totalWidthPx = constraints.maxWidth
-                        var hasWidthForInitialScroll by remember { mutableStateOf(false) }
-
-                        LaunchedEffect(totalWidthPx) {
-                            if (totalWidthPx > 0) {
-                                Log.d(
-                                    "CalendarScreen",
-                                    "Updating calendarState view width to: $totalWidthPx"
+            AnimatedPane(
+            ) {
+                Scaffold(
+                    topBar = {
+                        CalendarTopAppBar(
+                            currentMonth = YearMonth.from(dateCurrentlyAtCenter),
+                            onDateSelectorClicked = { showDatePickerDialog = true }
+                        )
+                    }
+                ) { innerPadding ->
+                    Column(modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()) {
+                        Text(
+                            text = accessibilityDateText,
+                            modifier = Modifier
+                                .semantics { liveRegion = LiveRegionMode.Polite }
+                                .alpha(0f)
+                                .size(0.dp)
+                        )
+                        BoxWithConstraints(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize(
+                                    animationSpec = tween(
+                                        durationMillis = 600,
+                                        easing = LinearOutSlowInEasing
+                                    )
                                 )
-                                calendarState.updateView(newWidth = totalWidthPx)
-                                if (!hasWidthForInitialScroll) {
-                                    hasWidthForInitialScroll = true
+                                .weight(1f)
+                                .scrollable(
+                                    state = calendarState.scrollableState,
+                                    orientation = Orientation.Horizontal,
+                                    flingBehavior = calendarState.scrollFlingBehavior
+                                )
+                        ) {
+                            val totalWidthPx = constraints.maxWidth
+                            var hasWidthForInitialScroll by remember { mutableStateOf(false) }
+
+                            LaunchedEffect(totalWidthPx) {
+                                if (totalWidthPx > 0) {
+                                    Log.d(
+                                        "CalendarScreen",
+                                        "Updating calendarState view width to: $totalWidthPx"
+                                    )
+                                    calendarState.updateView(newWidth = totalWidthPx)
+                                    if (!hasWidthForInitialScroll) {
+                                        hasWidthForInitialScroll = true
+                                    }
                                 }
                             }
-                        }
-                        LaunchedEffect(hasWidthForInitialScroll) {
-                            if (hasWidthForInitialScroll) {
-                                Log.d("CalendarScreen", "Performing initial scroll to today.")
-                                calendarState.scrollToDate(LocalDate.now(), initialSnap = true)
+                            LaunchedEffect(hasWidthForInitialScroll) {
+                                if (hasWidthForInitialScroll) {
+                                    Log.d("CalendarScreen", "Performing initial scroll to today.")
+                                    calendarState.scrollToDate(LocalDate.now(), initialSnap = true)
+                                }
                             }
-                        }
-                        Column(Modifier.fillMaxSize()) {
-                            DaysRow(
-                                state = calendarState,
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                            )
-                            MedicationRowsLayout(
-                                state = calendarState,
-                                medicationSchedules = uiState.medicationSchedules,
-                                totalWidthPx = totalWidthPx,
-                                onMedicationClicked = { medicationId: Int ->
-                                    viewModel.setSelectedMedicationId(medicationId)
-                                    if (widthSizeClass == WindowWidthSizeClass.Compact) {
-                                        onNavigateToMedicationDetail(medicationId)
-                                    } else {
-                                        coroutineScope.launch {
-                                            scaffoldNavigator.navigateTo(
-                                                ListDetailPaneScaffoldRole.Detail,
-                                                medicationId
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                            ) {
+                                DaysRow(
+                                    state = calendarState,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateContentSize(
+                                            animationSpec = tween(
+                                                durationMillis = 600,
+                                                easing = LinearOutSlowInEasing
                                             )
+                                        )
+                                        .padding(bottom = 16.dp)
+                                )
+                                MedicationRowsLayout(
+                                    state = calendarState,
+                                    medicationSchedules = uiState.medicationSchedules,
+                                    totalWidthPx = totalWidthPx,
+                                    onMedicationClicked = { medicationId: Int ->
+                                        viewModel.setSelectedMedicationId(medicationId)
+                                        if (widthSizeClass == WindowWidthSizeClass.Compact) {
+                                            onNavigateToMedicationDetail(medicationId)
+                                        } else {
+                                            coroutineScope.launch {
+                                                scaffoldNavigator.navigateTo(
+                                                    ListDetailPaneScaffoldRole.Detail,
+                                                    medicationId
+                                                )
+                                            }
                                         }
-                                    }
-                                },
-                                selectedMedicationId = uiState.selectedMedicationId,
-                                modifier = Modifier.fillMaxWidth().weight(1f)
-                                    .padding(bottom = 16.dp)
+                                    },
+                                    selectedMedicationId = uiState.selectedMedicationId,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateContentSize(
+                                            animationSpec = tween(
+                                                durationMillis = 600,
+                                            )
+                                        )
+                                        .weight(1f)
+                                        .padding(bottom = 16.dp)
+                                )
+                            }
+                            val daysRowApproxHeight = 54.dp
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = daysRowApproxHeight + 8.dp)
+                                    .size(8.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primary,
+                                        CircleShape
+                                    )
                             )
                         }
-                        val daysRowApproxHeight = 54.dp
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = daysRowApproxHeight + 8.dp)
-                                .size(8.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.primary,
-                                    CircleShape
-                                )
-                        )
                     }
                 }
             }
@@ -333,6 +358,7 @@ fun CalendarTopAppBar(
     onDateSelectorClicked: () -> Unit
 ) {
     TopAppBar(
+        modifier = Modifier.animateContentSize(),
         title = {
             val monthYearString = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
             val capitalizedMonthYearString = monthYearString.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
@@ -370,10 +396,19 @@ private fun DaysRow(state: ScheduleCalendarState, modifier: Modifier = Modifier)
                     val isCurrentDay = localDate.isEqual(today)
                     Column(
                         modifier = Modifier
+                            .animateContentSize(
+                                animationSpec = tween(
+                                    durationMillis = 600,
+                                    easing = LinearOutSlowInEasing
+                                )
+                            )
                             .then(DayData(localDate))
                             .then(
                                 if (isCurrentDay) Modifier
-                                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
+                                    .background(
+                                        MaterialTheme.colorScheme.secondaryContainer,
+                                        RoundedCornerShape(12.dp)
+                                    )
                                     .padding(horizontal = 10.dp, vertical = 6.dp)
                                 else Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                             ),
@@ -401,7 +436,12 @@ private fun DaysRow(state: ScheduleCalendarState, modifier: Modifier = Modifier)
                 safetyCount++
             }
         },
-        modifier = modifier
+        modifier = modifier.animateContentSize(
+            animationSpec = tween(
+                durationMillis = 600,
+                easing = LinearOutSlowInEasing
+            )
+        )
     ) { measurables, constraints ->
         val placeablesWithDate = measurables.mapNotNull { measurable ->
             val dayData = measurable.parentData as? DayData
@@ -446,7 +486,6 @@ fun MedicationRowsLayout(
                     .fillParentMaxWidth()
                     .height(55.dp)
                     .padding(vertical = 4.dp, horizontal = 8.dp)
-                    .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(percent = 50))
             } else {
                 Modifier
                     .fillParentMaxWidth()
@@ -481,7 +520,10 @@ fun MedicationRowsLayout(
                                 .offset { IntOffset(offsetXpx, 0) }
                                 .width(with(density) { widthPx.toDp() })
                                 .fillMaxHeight()
-                                .background(backgroundColor, shape = RoundedCornerShape(percent = 50))
+                                .background(
+                                    backgroundColor,
+                                    shape = RoundedCornerShape(percent = 50)
+                                )
                                 .clip(RoundedCornerShape(percent = 50))
                                 .clickable { onMedicationClicked(med.id) }
                                 .padding(horizontal = 12.dp, vertical = 4.dp),
@@ -519,13 +561,21 @@ fun CalendarScreenPreviewLight() {
         Scaffold(
             topBar = { CalendarTopAppBar(currentMonth = YearMonth.from(calendarState.startDateTime.toLocalDate()), onDateSelectorClicked = {}) }
         ) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            Column(modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()) {
+                BoxWithConstraints(modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)) {
                     val totalWidthPx = constraints.maxWidth
                     LaunchedEffect(totalWidthPx) { if (totalWidthPx > 0) calendarState.updateView(newWidth = totalWidthPx) }
                     Column(Modifier.fillMaxSize()) {
-                        DaysRow(state = calendarState, modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp))
-                        MedicationRowsLayout(state = calendarState, medicationSchedules = previewMedicationSchedules, totalWidthPx = totalWidthPx, onMedicationClicked = {}, selectedMedicationId = 1, modifier = Modifier.fillMaxWidth().weight(1f))
+                        DaysRow(state = calendarState, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp))
+                        MedicationRowsLayout(state = calendarState, medicationSchedules = previewMedicationSchedules, totalWidthPx = totalWidthPx, onMedicationClicked = {}, selectedMedicationId = 1, modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f))
                     }
                 }
             }
@@ -544,17 +594,25 @@ fun CalendarScreenPreviewDark() {
         Scaffold(
             topBar = { CalendarTopAppBar(currentMonth = YearMonth.from(calendarState.startDateTime.toLocalDate()), onDateSelectorClicked = {}) }
         ) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            Column(modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()) {
+                BoxWithConstraints(modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)) {
                     val totalWidthPx = constraints.maxWidth
                     LaunchedEffect(totalWidthPx) { if (totalWidthPx > 0) calendarState.updateView(newWidth = totalWidthPx) }
                     Column(Modifier.fillMaxSize()) {
-                        DaysRow(state = calendarState, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
-                        MedicationRowsLayout(state = calendarState, medicationSchedules = previewMedicationSchedules, totalWidthPx = totalWidthPx, onMedicationClicked = {}, selectedMedicationId = null, modifier = Modifier.fillMaxWidth().weight(1f))
+                        DaysRow(state = calendarState, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp))
+                        MedicationRowsLayout(state = calendarState, medicationSchedules = previewMedicationSchedules, totalWidthPx = totalWidthPx, onMedicationClicked = {}, selectedMedicationId = null, modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f))
                     }
                 }
             }
         }
     }
 }
-```
+

@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 // import androidx.compose.ui.input.nestedscroll.nestedScroll // Not needed anymore
 import androidx.compose.ui.platform.LocalConfiguration // Added import
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationHistoryEntry
@@ -228,7 +230,7 @@ fun MedicationHistoryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+                val screenWidthDp = LocalWindowInfo.current.containerSize.toSize().width.dp
                 val isLargeScreen = screenWidthDp >= 600.dp
 
                 if (isLargeScreen) {
@@ -362,7 +364,9 @@ fun MedicationHistoryScreen(
                                                             Text(
                                                                 text = itemData.monthYear.uppercase(Locale.getDefault()),
                                                                 style = MaterialTheme.typography.titleLarge,
+
                                                                 modifier = Modifier
+                                                                    .background(color = MaterialTheme.colorScheme.background)
                                                                     .fillMaxWidth()
                                                                     .padding(vertical = 8.dp, horizontal = 4.dp)
                                                             )
@@ -370,7 +374,7 @@ fun MedicationHistoryScreen(
                                                     }
                                                     is HistoryEntryItem -> {
                                                         item(key = itemData.originalId) {
-                                                            MedicationHistoryListItem(entry = itemData.entry, itemModifier = Modifier.widthIn(max = 400.dp)) // MODIFIED call
+                                                            MedicationHistoryListItem(entry = itemData.entry, modifier = Modifier.widthIn(max = 400.dp).padding(horizontal = 8.dp)) // MODIFIED call
                                                         }
                                                     }
                                                 }
@@ -512,7 +516,7 @@ fun MedicationHistoryScreen(
                                             }
                                             is HistoryEntryItem -> {
                                                         item(key = itemData.originalId) {
-                                                            MedicationHistoryListItem(entry = itemData.entry, itemModifier = Modifier.fillMaxWidth()) // MODIFIED call
+                                                            MedicationHistoryListItem(entry = itemData.entry, modifier = Modifier.fillMaxWidth()) // MODIFIED call
                                                         }
                                             }
                                         }
@@ -556,12 +560,11 @@ private fun processHistoryEntries(
 // They can be removed if they are not used elsewhere.
 
 @Composable
-fun MedicationHistoryListItem(entry: MedicationHistoryEntry, itemModifier: Modifier = Modifier) { // Added itemModifier
+fun MedicationHistoryListItem(entry: MedicationHistoryEntry, modifier: Modifier = Modifier) { // Added itemModifier
     Card(
-        modifier = itemModifier.padding(vertical = 6.dp), // Used itemModifier, removed .fillMaxWidth()
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = modifier.padding(vertical = 6.dp), // Used itemModifier, removed .fillMaxWidth()
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Row(
@@ -573,16 +576,16 @@ fun MedicationHistoryListItem(entry: MedicationHistoryEntry, itemModifier: Modif
         ) {
             Column {
                 Text(
-                    text = entry.dateTaken.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
+                    text = entry.dateTaken.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)).uppercase(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(id = R.string.med_history_item_taken_at_prefix) + entry.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -614,7 +617,7 @@ fun MedicationHistoryListItemPreview() {
                 timeTaken = LocalTime.now(),
                 originalDateTimeTaken = LocalDateTime.now()
             ),
-            itemModifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // MODIFIED call
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // MODIFIED call
         )
     }
 }
