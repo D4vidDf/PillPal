@@ -56,7 +56,24 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen() // Before super.onCreate()
 
         enableEdgeToEdge() // Added this line
+
+        // Locale setup BEFORE super.onCreate()
+        // Step 1: Fetch the stored language preference.
+        val storedLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() }
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Fetched storedLocaleTag from repository: '$storedLocaleTag'")
+
+        // Step 2: Prepare LocaleList.
+        val localeListToApply = LocaleListCompat.forLanguageTags(storedLocaleTag)
+
+        // Step 3: Apply this locale using AppCompatDelegate.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Applying localeList: '${localeListToApply.toLanguageTags()}' with AppCompatDelegate.setApplicationLocales()")
+        AppCompatDelegate.setApplicationLocales(localeListToApply)
+        localeTagSetByThisInstance = storedLocaleTag // Track the tag we just instructed AppCompat to use.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: localeTagSetByThisInstance initialized to: '$localeTagSetByThisInstance'")
+
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Calling super.onCreate()")
         super.onCreate(savedInstanceState)
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: super.onCreate() finished")
 
         // Initialize PermissionUtils
         PermissionUtils.init(this)
@@ -76,26 +93,9 @@ class MainActivity : ComponentActivity() {
             isLoading
         }
 
-        // Step 1: Fetch the stored language preference.
-        // Your UserPreferencesRepository defaults to system language if DataStore is empty/key not found.
-        val storedLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() }
-        Log.d("MainActivity", "onCreate: Initial locale tag from DataStore: '$storedLocaleTag'")
-
-        // Step 2: Apply this locale using AppCompatDelegate.
-        // This ensures the app attempts to set its preferred language early.
-        // If storedLocaleTag is empty (which it shouldn't be with your current repo default),
-        // forLanguageTags("") would result in an empty LocaleListCompat, effectively system default.
-        val localeListToApply = LocaleListCompat.forLanguageTags(storedLocaleTag)
-
-        // Only call setApplicationLocales if it's actually different from what AppCompat currently has,
-        // OR if localeTagSetByThisInstance is null (first time after a full app kill, for example).
-        // This is an attempt to reduce redundant calls if the system already matches.
-        // However, given AppCompatDelegate.getApplicationLocales() returns '', this check might be tricky.
-        // The more direct approach is to always set it from our source of truth (DataStore)
-        // and rely on localeTagSetByThisInstance to break loops in LaunchedEffect.
-        AppCompatDelegate.setApplicationLocales(localeListToApply)
-        localeTagSetByThisInstance = storedLocaleTag // Track the tag we just instructed AppCompat to use.
-        Log.d("MainActivity", "onCreate: Called AppCompatDelegate.setApplicationLocales with '${localeListToApply.toLanguageTags()}'. Tracking as '$localeTagSetByThisInstance'.")
+        // The original logging for locale was here, using Log.d. We've added more specific Log.i above.
+        // Log.d("MainActivity", "onCreate: Initial locale tag from DataStore: '$storedLocaleTag'")
+        // Log.d("MainActivity", "onCreate: Called AppCompatDelegate.setApplicationLocales with '${localeListToApply.toLanguageTags()}'. Tracking as '$localeTagSetByThisInstance'.")
 
         NotificationHelper.createNotificationChannels(this)
 
