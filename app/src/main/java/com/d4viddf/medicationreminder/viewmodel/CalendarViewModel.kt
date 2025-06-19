@@ -44,7 +44,8 @@ data class CalendarUiState(
     // val visibleDays: List<CalendarDay> = emptyList(), // Removed
     val medicationSchedules: List<MedicationScheduleItem> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val selectedMedicationId: Int? = null // Added for selected medication
 )
 
 // private fun createCalendarDay(...) // Removed as visibleDays is removed
@@ -180,6 +181,10 @@ class CalendarViewModel @Inject constructor(
     fun onNextWeek() {
         val newSelectedDate = _uiState.value.selectedDate.plusWeeks(1)
         setSelectedDate(newSelectedDate) // This will trigger UI update and data reload
+    }
+
+    fun setSelectedMedicationId(medicationId: Int?) {
+        _uiState.value = _uiState.value.copy(selectedMedicationId = medicationId)
     }
     // loadMorePastDays() and loadMoreFutureDays() removed
 }

@@ -144,7 +144,10 @@ fun AppNavigation(
                     MedicationDetailsScreen(
                         medicationId = medicationId,
                         navController = navController, // Added this line
-                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateBack = {
+                            navController.previousBackStackEntry?.savedStateHandle?.set("medicationDetailClosed", true)
+                            navController.popBackStack()
+                        },
                         sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
                         animatedVisibilityScope = this, // Pass scope
                         isHostedInPane = false,
@@ -221,7 +224,9 @@ fun AppNavigation(
             composable(Screen.Calendar.route) {
                 // `this` is an AnimatedVisibilityScope
                 CalendarScreen(
-                    onNavigateBack = { navController.popBackStack() }, // Removed
+                    navController = navController,
+                    widthSizeClass = widthSizeClass, // Added widthSizeClass
+                    onNavigateBack = { navController.popBackStack() },
                     onNavigateToMedicationDetail = { medicationId ->
                         navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = false))
                     }

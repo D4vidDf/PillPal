@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+// import androidx.compose.material.icons.filled.Close // Import will be removed if not used elsewhere
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -246,7 +247,7 @@ fun MedicationDetailsScreen(
                     TopAppBar(
                         title = { },
                         navigationIcon = {
-                            if (!isHostedInPane) {
+                            if (!isHostedInPane) { // Only show icon if not hosted in pane
                                 Box(modifier = Modifier.padding(start = 10.dp)) {
                                     Box(
                                         modifier = Modifier
@@ -264,6 +265,7 @@ fun MedicationDetailsScreen(
                                     }
                                 }
                             }
+                            // No else block, so nothing is rendered if isHostedInPane is true
                         },
                         actions = {
                             Box(
