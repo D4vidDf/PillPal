@@ -5,6 +5,7 @@
     <string name="settings">Ajustes</string>
     <string name="add">Añadir</string>
     <string name="back">Atrás</string>
+    <string name="back_button_cd">Atrás</string> <!-- Added new string resource -->
     <string name="close">Cerrar</string>
     <string name="next">Siguiente</string>
     <string name="confirm">Confirmar</string>
@@ -14,10 +15,8 @@
     <string name="none_set">Ninguno establecido</string>
     <string name="error_required_field">Este campo es obligatorio o contiene un error</string>
     <string name="info_not_available">Información no disponible</string>
-
     <!-- HomeScreen -->
     <string name="medications_title">Medicamentos</string>
-
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Nuevo medicamento</string>
     <string name="medication_summary_title">Resumen de medicación</string>
@@ -86,7 +85,6 @@
     <string name="medication_name_clear_search_acc">Limpiar búsqueda</string>
     <string name="medication_name_error">Por favor, introduce un nombre de medicamento válido</string>
     <string name="medication_type_selector_title">Selecciona el tipo de medicamento</string>
-
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Hoy</string>
     <string name="medication_detail_after_waking_up">Después de levantarse</string>
@@ -111,14 +109,19 @@
     <string name="medication_progress_display_info_not_available_acc">Progreso de la medicación: Información no disponible.</string>
     <string name="medication_progress_display_title">Progreso</string>
     <string name="medication_detail_no_reminders_today">No hay recordatorios para hoy.</string>
-    <!-- New strings for MedicationDetailScreen -->
-    <string name="content_desc_add_past_dose">Añadir toma pasada</string>
-    <string name="dialog_add_past_dose_title">Añadir Dosis Pasada</string>
-    <string name="label_medication_name_in_dialog">Nombre del Medicamento</string>
-    <string name="button_select_date">Seleccionar Fecha</string>
-    <string name="button_save_dose">Guardar Dosis</string>
-    <string name="dialog_select_time_title">Seleccionar Hora</string>
-
+    <string name="content_desc_add_past_dose" translatable="false">Add past medication dose</string>
+    <string name="dialog_add_past_dose_title" translatable="false">Add Past Dose</string>
+    <string name="label_medication_name_in_dialog" translatable="false">Medication Name</string>
+    <string name="button_select_date" translatable="false">Select Date</string>
+    <string name="button_save_dose" translatable="false">Save Dose</string>
+    <string name="dialog_select_time_title" translatable="false">Select Time</string>
+    <string name="medication_history_title">Historial de medicación</string>
+    <string name="current_week_dosage_title">Dosis de la semana actual</string>
+    <string name="bar_graph_placeholder">Espacio reservado para gráfico de barras (día actual resaltado)</string>
+    <string name="view_more_stats">Ver más estadísticas</string>
+    <string name="medication_information_title">Información de la medicación</string>
+    <string name="medication_info_description_placeholder">La información detallada sobre este medicamento está disponible.</string>
+    <string name="view_full_information">Ver información completa</string>
     <!-- Settings Screen (New) -->
     <string name="settings_screen_title">Ajustes</string>
     <string name="settings_language_label">Idioma</string>
@@ -129,14 +132,15 @@
     <string name="settings_notification_sound_label">Sonido de notificación</string>
     <string name="settings_notification_sound_default">Predeterminado</string>
     <string name="settings_notification_sound_unknown">Sonido desconocido</string>
-
+    <string name="settings_volume_label" translatable="false">Volume Control</string>
+    <string name="volume_up_content_description" translatable="false">Volume Up</string>
+    <string name="volume_off_content_description" translatable="false">Volume Off</string>
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Notificaciones</string>
-    <string name="notification_channel_reminder_name">Recordatorios de Medicación</string>
-    <string name="notification_channel_reminder_description">Notificaciones para recordatorios de toma de medicación</string>
-    <string name="notification_channel_prereminder_name">Pre-Recordatorios de Medicación</string>
-    <string name="notification_channel_prereminder_description">Notificaciones que aparecen antes de la hora de la medicación.</string>
-
+    <string name="notification_channel_reminder_name" translatable="false">Medication Reminders</string>
+    <string name="notification_channel_reminder_description" translatable="false">Notifications for medication intake reminders</string>
+    <string name="notification_channel_prereminder_name" translatable="false">Pre-Medication Reminders</string>
+    <string name="notification_channel_prereminder_description" translatable="false">Notifications that appear before medication is due.</string>
     <!-- Day initialisms for medication summary -->
     <string name="day_mon">Lun</string>
     <string name="day_tue">Mar</string>
@@ -145,7 +149,6 @@
     <string name="day_fri">Vie</string>
     <string name="day_sat">Sáb</string>
     <string name="day_sun">Dom</string>
-
     <!-- Day initialisms for frequency selector -->
     <string name="day_mon_initial">L</string>
     <string name="day_tue_initial">M</string>
@@ -154,58 +157,37 @@
     <string name="day_fri_initial">V</string>
     <string name="day_sat_initial">S</string>
     <string name="day_sun_initial">D</string>
-
-    <string name="info_not_available_short">N/D</string> <!-- Or N.A. -->
-
+    <string name="info_not_available_short">N/D</string>
     <!-- Settings Screen: Language Names (in their own language) -->
     <string name="language_english">English</string>
     <string name="language_spanish">Español</string>
     <string name="language_galician">Galego</string>
     <string name="language_euskera">Euskara</string>
     <string name="language_catalan">Català</string>
-
     <!-- Settings Screen: Theme Options (will be translated) -->
     <string name="settings_theme_light_option">Claro</string>
     <string name="settings_theme_dark_option">Oscuro</string>
     <string name="settings_theme_system_option">Predeterminado del sistema</string>
-
     <!-- FrequencyType Strings -->
     <string name="frequency_once_a_day">Una vez al día</string>
     <string name="frequency_multiple_times_a_day">Varias veces al día</string>
     <string name="frequency_interval">Intervalo</string>
-
     <!-- Dosage Units -->
     <string name="dosage_mg">mg</string>
     <string name="dosage_ml">ml</string>
-    <string name="add_medication_title">Add Medication</string>
-    <string name="add_medication_short_action">Add</string>
-    <string name="home_screen_title">Home</string>
-    <string name="calendar_screen_title">Calendar</string>
-    <string name="profile_screen_title">Profile</string>
-    <string name="select_medication_placeholder">Select a medication to view details</string>
-    <string name="less_than_a_minute">Menos de un minuto</string>
-    <string name="notification_title_time_for">Time for your %1$s!</string>
-    <string name="notification_text_take_dosage">Take %1$s.</string>
-    <string name="notification_action_mark_as_taken">Mark as Taken</string>
-    <string name="notification_text_interval_dose_valid">Take %1$s. Valid for approx. %2$s.</string>
-    <string name="notification_text_interval_dose_window_ended">Take %1$s. Dose window ending/ended.</string>
-    <string name="prereminder_title_medication">%1$s</string>
-    <string name="prereminder_text_in_about_hour">Reminder in about an hour</string>
-    <string name="prereminder_text_in_approx_minutes_plural">Reminder in ~%1$d minutes</string>
-    <string name="prereminder_text_in_approx_minutes_singular">Reminder in ~%1$d minute</string>
-    <string name="prereminder_text_approx_minutes_left_plural">Approx. %1$d minutes left</string>
-    <string name="prereminder_text_approx_minutes_left_singular">Approx. %1$d minute left</string>
-    <string name="prereminder_text_coming_up_plural">Coming up: %1$d min!</string>
-    <string name="prereminder_text_coming_up_singular">Coming up: %1$d min!</string>
-    <string name="prereminder_text_very_soon_plural">Very soon: %1$d min!</string>
-    <string name="prereminder_text_very_soon_singular">Very soon: %1$d min!</string>
-    <string name="prereminder_text_about_time">It\'s about time!</string>
-    <string name="prereminder_action_taken">Taken</string>
-    <string name="time_hr_min">%1$d hr %2$d min</string>
-    <string name="time_hr">%1$d hr</string>
-    <string name="time_min">%1$d min</string>
-    <string name="no_medications_yet">No medications yet. Pull to refresh or add one!</string>
-
+    <!-- Strings for Navigation Components (Task: Add Missing String Resources) -->
+    <string name="add_medication_title">Añadir Medicación</string>
+    <string name="add_medication_short_action">Añadir</string>
+    <string name="home_screen_title">Inicio</string>
+    <string name="calendar_screen_title">Calendario</string>
+    <string name="profile_screen_title">Perfil</string>
+    <string name="select_medication_placeholder">Selecciona un medicamento para ver los detalles</string>
+    <string name="less_than_a_minute">menos de un minuto</string>
+    <string name="notification_title_time_for">¡Hora de tu %1$s!</string>
+    <string name="notification_text_take_dosage">Toma %1$s.</string>
+    <string name="notification_action_mark_as_taken">Marcar como Tomada</string>
+    <string name="notification_text_interval_dose_valid">Toma %1$s. Válido por aprox. %2$s.</string>
+    <string name="notification_text_interval_dose_window_ended">Toma %1$s. Ventana de dosis terminando/terminada.</string>
     <!-- FullScreenNotificationActivity -->
     <string name="fullscreen_notification_action_taken">Marcar como tomada</string>
     <string name="fullscreen_notification_action_dismiss">Descartar</string>
@@ -216,7 +198,36 @@
     <string name="medication_type_drops_image_description">Icono de gotas</string>
     <string name="medication_type_inhaler_image_description">Icono de inhalador</string>
     <string name="medication_type_other_image_description">Icono de medicamento</string>
-
+    <string name="prereminder_title_medication">%1$s</string>
+    <string name="prereminder_text_in_about_hour">Recordatorio en aproximadamente una hora</string>
+    <string name="prereminder_text_in_approx_minutes_plural">Recordatorio en ~%1$d minutos</string>
+    <string name="prereminder_text_in_approx_minutes_singular">Recordatorio en ~%1$d minuto</string>
+    <string name="prereminder_text_approx_minutes_left_plural">Aprox. %1$d minutos restantes</string>
+    <string name="prereminder_text_approx_minutes_left_singular">Aprox. %1$d minuto restante</string>
+    <string name="prereminder_text_coming_up_plural">Próximamente: ¡%1$d min!</string>
+    <string name="prereminder_text_coming_up_singular">Próximamente: ¡%1$d min!</string>
+    <string name="prereminder_text_very_soon_plural">Muy pronto: ¡%1$d min!</string>
+    <string name="prereminder_text_very_soon_singular">Muy pronto: ¡%1$d min!</string>
+    <string name="prereminder_text_about_time">¡Ya es hora!</string>
+    <string name="prereminder_action_taken">Tomada</string>
+    <string name="content_description_tick_mark" translatable="false">Confirmation tick</string>
+    <string name="notification_actions_more_options" translatable="false">More options</string>
+    <string name="split_button_state_expanded" translatable="false">Expanded</string>
+    <string name="split_button_state_collapsed" translatable="false">Collapsed</string>
+    <string name="time_hr_min">%1$d h %2$d min</string>
+    <string name="time_hr">%1$d h</string>
+    <string name="time_min">%1$d min</string>
+    <string name="no_medications_yet">Aún no hay medicamentos. ¡Desliza para actualizar o añade uno!</string>
+    <string name="search_medications_placeholder" translatable="false">Search medications...</string>
+    <string name="search_icon_content_description" translatable="false">Search</string>
+    <string name="clear_search_query_button_description">Limpiar consulta de búsqueda</string>
+    <string name="microphone_icon_content_description" translatable="false">Voice search</string>
+    <string name="speech_prompt_text" translatable="false">Speak now...</string>
+    <!-- Calendar Screen Strings -->
+    <string name="select_date" translatable="false">Select Date</string>
+    <string name="previous_month" translatable="false">Previous Month</string>
+    <string name="next_month" translatable="false">Next Month</string>
+    <string name="no_medications_scheduled_for_this_month" translatable="false">No medications scheduled for this month.</string>
     <!-- Onboarding Screen (Original) -->
     <string name="onboarding_welcome_title">¡Bienvenido/a a PillPal!</string>
     <string name="onboarding_welcome_subtitle">Vamos a configurarlo.</string>
@@ -224,7 +235,6 @@
     <string name="onboarding_permissions_placeholder">[Espacio reservado para Configuración de Permisos]</string>
     <string name="onboarding_pane_welcome_area_description">Área de mensaje de bienvenida</string>
     <string name="onboarding_pane_steps_permissions_area_description">Área de pasos de introducción y permisos</string>
-
     <!-- Onboarding Screen (New Pager Flow) -->
     <string name="onboarding_logo_content_description">Logo de la Aplicación</string>
     <string name="onboarding_step1_pager_title">Empezando</string>
@@ -244,4 +254,93 @@
     <string name="previous_button_text">Anterior</string>
     <string name="start_onboarding_button_text">Iniciar Introducción</string>
     <string name="onboarding_welcome_app_subtitle">Tu compañero de salud para recordatorios de medicación puntuales.</string>
+    <!-- AddMedicationChoiceScreen -->
+    <string name="add_medication_choice_title">Añadir Medicación</string>
+    <string name="add_medication_camera_button">Usar Cámara</string>
+    <string name="add_medication_camera_button_desc">Usa la cámara para identificar el medicamento</string>
+    <string name="add_medication_search_button">Buscar Medicamento</string>
+    <string name="add_medication_search_button_desc">Busca el medicamento por nombre</string>
+    <!-- AddMedicationStepsIndicator -->
+    <string name="step_completed">Paso completado</string>
+    <string name="step_title_medication_name">Nombre</string>
+    <string name="step_title_type_color">Tipo y Color</string>
+    <string name="step_title_dosage_package">Dosis y Envase</string>
+    <string name="step_title_frequency">Frecuencia</string>
+    <string name="step_title_summary">Resumen</string>
+    <string name="settings_category_general">General</string>
+    <string name="settings_category_general_cd">Navegar a ajustes generales</string>
+    <string name="settings_category_sound">Sonido</string>
+    <string name="settings_category_sound_cd">Navegar a ajustes de sonido</string>
+    <string name="settings_category_developer">Opciones de desarrollador</string>
+    <string name="settings_category_developer_cd">Navegar a opciones de desarrollador</string>
+    <string name="settings_developer_options_description">Estas opciones son para fines de depuración y desarrollo.</string>
+    <string name="settings_restart_daily_worker_button">Reiniciar Tarea Diaria</string>
+    <string name="settings_share_app_logs_button">Compartir Registros de la Aplicación</string>
+    <!-- AllSchedulesScreen -->
+    <string name="all_schedules_title">Todos los Horarios</string>
+    <string name="back_button_content_description">Atrás</string>
+    <string name="all_schedules_no_schedules_found">No se encontraron horarios para este medicamento.</string>
+    <string name="todays_full_schedule_title_template">%1$s - Horario de Hoy</string>
+    <!-- MedicationGraphScreen -->
+    <string name="medication_statistics_title">Estadísticas de Medicación</string>
+    <string name="med_stats_navigate_back_cd">Navegar Atrás</string>
+    <string name="graph_view_weekly">Semanal</string>
+    <string name="graph_view_monthly">Mensual</string>
+    <string name="graph_view_yearly">Anual</string>
+    <string name="graph_placeholder_text">Espacio reservado para Gráfico de %1$s\n(para ID de Medicación: %2$d)</string>
+    <string name="weekly_doses_taken_title">Dosis Semanales Tomadas</string>
+    <string name="loading_graph_data">Cargando datos del gráfico...</string>
+    <string name="monthly_doses_taken_title_template">Dosis Mensuales - %1$s</string>
+    <string name="yearly_doses_taken_title_template">Dosis Anuales - %1$d</string>
+    <string name="previous_period_cd">Periodo Anterior</string>
+    <string name="next_period_cd">Periodo Siguiente</string>
+    <string name="med_graph_no_data_found">No se encontraron datos del gráfico para el periodo seleccionado.</string>
+    <string name="med_graph_unknown_error">Ocurrió un error desconocido al cargar los datos del gráfico.</string>
+    <!-- MedicationInfoScreen -->
+    <string name="med_info_navigate_back_cd">Volver a los detalles de la medicación</string>
+    <string name="med_info_loading_details">Cargando información del medicamento...</string>
+    <string name="med_info_image_placeholder_cd">Espacio reservado para Imagen de Medicación</string>
+    <string name="med_info_label_nombre_comercial">Nombre Comercial</string>
+    <string name="med_info_label_principio_activo">Principio Activo</string>
+    <string name="med_info_label_dosis">Dosis</string>
+    <string name="med_info_label_forma_farmaceutica">Forma Farmacéutica</string>
+    <string name="med_info_label_vias_administracion">Vías de Administración</string>
+    <string name="med_info_label_laboratorio_titular">Titular de la Autorización de Comercialización</string>
+    <string name="med_info_label_estado_registro">Estado del Registro</string>
+    <string name="med_info_label_condiciones_prescripcion">Condiciones de Prescripción</string>
+    <string name="med_info_value_not_available">No disponible</string>
+    <string name="med_info_button_prospecto">Ver Prospecto (PDF/Web)</string>
+    <string name="med_info_button_ficha_tecnica">Ver Ficha Técnica (PDF/Web)</string>
+    <string name="text_yes">Sí</string>
+    <string name="text_no">No</string>
+    <string name="med_info_label_comercializado">Comercializado</string>
+    <string name="med_info_label_conduccion">Afecta a la Conducción</string>
+    <string name="med_info_label_triangulo_negro">Triángulo Negro</string>
+    <string name="med_info_label_huerfano">Medicamento Huérfano</string>
+    <string name="med_info_label_biosimilar">Biosimilar</string>
+    <string name="med_info_label_estado_autorizacion_date">Fecha de Autorización</string>
+    <string name="med_info_not_available_generic">Información del medicamento no disponible.</string>
+    <!-- MedicationHistoryScreen -->
+    <string name="med_history_navigate_back_cd">Navegar Atrás</string>
+    <string name="med_history_filter_by_date_label">Filtrar por Fecha:</string>
+    <string name="med_history_filter_select_date_cd">Seleccionar Rango de Fechas</string>
+    <string name="med_history_filter_select_range_button">Seleccionar Rango</string>
+    <string name="med_history_filter_select_range_button_label">Seleccionar Rango de Fechas</string>
+    <string name="med_history_filter_no_range_selected">Todas las Fechas</string>
+    <string name="med_history_filter_clear_button">Limpiar Filtro de Fecha</string>
+    <string name="med_history_no_history_found">No se encontró historial para este medicamento.</string>
+    <string name="med_history_item_taken_at_prefix">Tomada a las: </string>
+    <string name="med_history_action_sort_oldest_first">Más Antiguos Primero</string>
+    <string name="med_history_action_sort_newest_first">Más Recientes Primero</string>
+    <string name="med_history_action_sort_toggle_cd">Cambiar Orden</string>
+    <string name="med_history_sorted_oldest_first">Ordenado: Más Antiguos Primero</string>
+    <string name="med_history_sorted_newest_first">Ordenado: Más Recientes Primero</string>
+    <string name="med_history_sort_order_label">Orden:</string>
+    <string name="med_history_sort_by_oldest_button">Ordenar: Más Antiguos Primero</string>
+    <string name="med_history_sort_by_newest_button">Ordenar: Más Recientes Primero</string>
+    <string name="medication_period_ended">El periodo de medicación ha terminado.</string>
+    <string name="medication_progress_completed">Completado</string>
+    <!-- Added for Show More/Less functionality -->
+    <string name="show_more">Mostrar Más</string>
+    <string name="show_less">Mostrar Menos</string>
 </resources>
