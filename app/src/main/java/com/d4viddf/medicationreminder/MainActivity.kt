@@ -116,10 +116,7 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(userPreferenceTagFromFlow) {
                     Log.d(TAG_MAIN_ACTIVITY, "LanguageEffect: DataStore emitted '$userPreferenceTagFromFlow'. Locale last set by this instance: '$localeTagSetByThisInstance'.")
                     if (userPreferenceTagFromFlow != localeTagSetByThisInstance) {
-                        Log.i(TAG_MAIN_ACTIVITY, "LanguageEffect: User preference changed in DataStore to '$userPreferenceTagFromFlow'. Last set by this instance was '$localeTagSetByThisInstance'. Applying and Recreating.")
-                        val newLocaleList = LocaleListCompat.forLanguageTags(userPreferenceTagFromFlow)
-                        AppCompatDelegate.setApplicationLocales(newLocaleList)
-                        localeTagSetByThisInstance = userPreferenceTagFromFlow
+                        Log.i(TAG_MAIN_ACTIVITY, "LanguageEffect: User preference changed in DataStore to '$userPreferenceTagFromFlow'. Last set by this instance was '$localeTagSetByThisInstance'. Recreating.")
                         recreate()
                     } else {
                         Log.d(TAG_MAIN_ACTIVITY, "LanguageEffect: DataStore value '$userPreferenceTagFromFlow' matches what was last set by this instance ('$localeTagSetByThisInstance'). No action needed from LaunchedEffect.")
