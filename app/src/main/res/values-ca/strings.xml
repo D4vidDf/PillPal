@@ -22,8 +22,8 @@
     <string name="medication_summary_title">Resum de la medicació</string>
     <string name="label_name">Nom:</string>
     <string name="label_dosage">Dosi:</string>
-    <string name="label_package_size">Mida de l&apos;envàs:</string>
-    <string name="label_start_date">Data d&apos;inici:</string>
+    <string name="label_package_size">Mida de l\&apos;envàs:</string>
+    <string name="label_start_date">Data d\&apos;inici:</string>
     <string name="label_end_date">Data de fi:</string>
     <string name="label_color">Color:</string>
     <string name="reminder_details_title">Detalls del recordatori</string>
@@ -42,16 +42,16 @@
     <string name="color_selector_selected_acc">Seleccionat</string>
     <string name="frequency_selector_title">Freqüència</string>
     <string name="freq_daily_reminder_time_days">Hora i dies del recordatori diari</string>
-    <string name="freq_select_reminder_time_button">Selecciona l&apos;hora del recordatori</string>
+    <string name="freq_select_reminder_time_button">Selecciona l\&apos;hora del recordatori</string>
     <string name="freq_repeat_on_days_label">Repeteix els dies:</string>
-    <string name="freq_custom_alarm_times_title">Hores d&apos;alarma personalitzades</string>
-    <string name="freq_add_new_alarm_button">Afegeix nova hora d&apos;alarma</string>
-    <string name="freq_add_alarm_time_dialog_title">Afegeix hora d&apos;alarma</string>
+    <string name="freq_custom_alarm_times_title">Hores d\&apos;alarma personalitzades</string>
+    <string name="freq_add_new_alarm_button">Afegeix nova hora d\&apos;alarma</string>
+    <string name="freq_add_alarm_time_dialog_title">Afegeix hora d\&apos;alarma</string>
     <string name="freq_scheduled_times_label">Hores programades:</string>
-    <string name="freq_delete_time_acc">Elimina l&apos;hora %1$s</string>
+    <string name="freq_delete_time_acc">Elimina l\&apos;hora %1$s</string>
     <string name="freq_repetition_interval_title">Interval de repetició</string>
-    <string name="freq_daily_active_range_label">Rang actiu diari per a l&apos;interval</string>
-    <string name="freq_start_time_button_label">Hora d&apos;inici</string>
+    <string name="freq_daily_active_range_label">Rang actiu diari per a l\&apos;interval</string>
+    <string name="freq_start_time_button_label">Hora d\&apos;inici</string>
     <string name="freq_set_start_placeholder">Estableix inici</string>
     <string name="freq_end_time_button_label">Hora de fi</string>
     <string name="freq_set_end_placeholder">Estableix fi</string>
@@ -63,10 +63,10 @@
     <string name="dosage_label">Dosi</string>
     <string name="dosage_tap_to_set">Toca per establir la dosi</string>
     <string name="dosage_prefilled_info">(Precarregat de CIMA, toca per editar)</string>
-    <string name="package_size_label">Mida de l&apos;envàs</string>
+    <string name="package_size_label">Mida de l\&apos;envàs</string>
     <string name="package_units_label">Unitats</string>
-    <string name="start_date_label">Data d&apos;inici</string>
-    <string name="select_start_date_placeholder">Selecciona data d&apos;inici</string>
+    <string name="start_date_label">Data d\&apos;inici</string>
+    <string name="select_start_date_placeholder">Selecciona data d\&apos;inici</string>
     <string name="end_date_label">Data de fi</string>
     <string name="select_end_date_placeholder">Selecciona data de fi</string>
     <string name="select_dosage_dialog_title">Selecciona dosi</string>
@@ -78,7 +78,7 @@
     <string name="dosage_patches">pegats</string>
     <string name="dosage_wheel_picker_not_available">La selecció de dosi per a aquest tipus no està disponible mitjançant el selector circular. Introdueix manualment si cal.</string>
     <string name="dialog_done_button">Fet</string>
-    <string name="dialog_ok_button">D&apos;acord</string>
+    <string name="dialog_ok_button">D\&apos;acord</string>
     <string name="dialog_cancel_button">Cancel·la</string>
     <string name="medication_name_input_title">Introdueix el nom del medicament</string>
     <string name="medication_name_placeholder">Nom del medicament</string>
@@ -105,7 +105,7 @@
     <string name="medication_detail_counter_days_multiple_weekly">dies/setmana</string>
     <string name="medication_detail_counter_no_details">Sense detalls del recompte.</string>
     <string name="medication_progress_display_acc">Progrés de la medicació: %1$d dosis preses de %2$d. %3$d dosis restants.</string>
-    <string name="medication_progress_display_not_package_based_acc">Medicació: %1$s restants, %2$s preses. Progrés no basat en l&apos;envàs.</string>
+    <string name="medication_progress_display_not_package_based_acc">Medicació: %1$s restants, %2$s preses. Progrés no basat en l\&apos;envàs.</string>
     <string name="medication_progress_display_info_not_available_acc">Progrés de la medicació: Informació no disponible.</string>
     <string name="medication_progress_display_title">Progrés</string>
     <string name="medication_detail_no_reminders_today">No hi ha recordatoris per avui.</string>
@@ -181,9 +181,9 @@
     <string name="home_screen_title">Inici</string>
     <string name="calendar_screen_title">Calendari</string>
     <string name="profile_screen_title">Perfil</string>
-    <string name="select_medication_placeholder">Selecciona un medicament per veure&apos;n els detalls</string>
-    <string name="less_than_a_minute">menys d&apos;un minut</string>
-    <string name="notification_title_time_for">És l&apos;hora del teu %1$s!</string>
+    <string name="select_medication_placeholder">Selecciona un medicament per veure\&apos;n els detalls</string>
+    <string name="less_than_a_minute">menys d\&apos;un minut</string>
+    <string name="notification_title_time_for">És l\&apos;hora del teu %1$s!</string>
     <string name="notification_text_take_dosage">Pren %1$s.</string>
     <string name="notification_action_mark_as_taken">Marca com a Presa</string>
     <string name="notification_text_interval_dose_valid">Pren %1$s. Vàlid durant aprox. %2$s.</string>
@@ -194,21 +194,21 @@
     <string name="medication_type_pill_image_description">Icona de pastilla</string>
     <string name="medication_type_capsule_image_description">Icona de càpsula</string>
     <string name="medication_type_syrup_image_description">Icona de xarop</string>
-    <string name="medication_type_injection_image_description">Icona d&apos;injecció</string>
+    <string name="medication_type_injection_image_description">Icona d\&apos;injecció</string>
     <string name="medication_type_drops_image_description">Icona de gotes</string>
-    <string name="medication_type_inhaler_image_description">Icona d&apos;inhalador</string>
+    <string name="medication_type_inhaler_image_description">Icona d\&apos;inhalador</string>
     <string name="medication_type_other_image_description">Icona de medicament</string>
     <string name="prereminder_title_medication">%1$s</string>
-    <string name="prereminder_text_in_about_hour">Recordatori d&apos;aquí a una hora aproximadament</string>
-    <string name="prereminder_text_in_approx_minutes_plural">Recordatori d&apos;aquí a ~%1$d minuts</string>
-    <string name="prereminder_text_in_approx_minutes_singular">Recordatori d&apos;aquí a ~%1$d minut</string>
+    <string name="prereminder_text_in_about_hour">Recordatori d\&apos;aquí a una hora aproximadament</string>
+    <string name="prereminder_text_in_approx_minutes_plural">Recordatori d\&apos;aquí a ~%1$d minuts</string>
+    <string name="prereminder_text_in_approx_minutes_singular">Recordatori d\&apos;aquí a ~%1$d minut</string>
     <string name="prereminder_text_approx_minutes_left_plural">Queden aprox. %1$d minuts</string>
     <string name="prereminder_text_approx_minutes_left_singular">Queda aprox. %1$d minut</string>
     <string name="prereminder_text_coming_up_plural">Properament: %1$d min!</string>
     <string name="prereminder_text_coming_up_singular">Properament: %1$d min!</string>
     <string name="prereminder_text_very_soon_plural">Molt aviat: %1$d min!</string>
     <string name="prereminder_text_very_soon_singular">Molt aviat: %1$d min!</string>
-    <string name="prereminder_text_about_time">Ja és l&apos;hora!</string>
+    <string name="prereminder_text_about_time">Ja és l\&apos;hora!</string>
     <string name="prereminder_action_taken">Presa</string>
     <string name="content_description_tick_mark" translatable="false">Confirmation tick</string>
     <string name="notification_actions_more_options" translatable="false">More options</string>
@@ -231,18 +231,18 @@
     <!-- Onboarding Screen (Original) -->
     <string name="onboarding_welcome_title">Benvingut/da a PillPal!</string>
     <string name="onboarding_welcome_subtitle">Configurem-ho.</string>
-    <string name="onboarding_steps_placeholder">[Espai reservat per a Passos d&apos;Introducció]</string>
+    <string name="onboarding_steps_placeholder">[Espai reservat per a Passos d\&apos;Introducció]</string>
     <string name="onboarding_permissions_placeholder">[Espai reservat per a Configuració de Permisos]</string>
     <string name="onboarding_pane_welcome_area_description">Àrea de missatge de benvinguda</string>
-    <string name="onboarding_pane_steps_permissions_area_description">Àrea de passos d&apos;introducció i permisos</string>
+    <string name="onboarding_pane_steps_permissions_area_description">Àrea de passos d\&apos;introducció i permisos</string>
     <!-- Onboarding Screen (New Pager Flow) -->
-    <string name="onboarding_logo_content_description">Logotip de l&apos;Aplicació</string>
+    <string name="onboarding_logo_content_description">Logotip de l\&apos;Aplicació</string>
     <string name="onboarding_step1_pager_title">Primers passos</string>
     <string name="onboarding_step1_pager_desc">Aquí tens un recorregut ràpid del que pots fer i els permisos que necessitarem perquè la teva experiència sigui fluida.</string>
     <string name="onboarding_step2_notifications_title">Activa les Notificacions</string>
     <string name="onboarding_step2_notifications_desc">Les notificacions són essencials per enviar-te recordatoris de medicació a temps. Si us plau, concedeix el permís per assegurar que mai no oblidis una dosi.</string>
     <string name="onboarding_step3_exact_alarm_title">Permet Alarmes Exactes</string>
-    <string name="onboarding_step3_exact_alarm_desc">Per assegurar que els teus recordatoris siguin precisos i puntuals, fins i tot quan l&apos;aplicació no està activa, necessitem permís per programar alarmes exactes.</string>
+    <string name="onboarding_step3_exact_alarm_desc">Per assegurar que els teus recordatoris siguin precisos i puntuals, fins i tot quan l\&apos;aplicació no està activa, necessitem permís per programar alarmes exactes.</string>
     <string name="onboarding_step_fullscreen_title">Activa les Notificacions a Pantalla Completa</string>
     <string name="onboarding_step_fullscreen_desc">Per a recordatoris crítics, permetre notificacions a pantalla completa assegura que els vegis immediatament, fins i tot si el teu dispositiu està bloquejat o estàs utilitzant una altra aplicació.</string>
     <string name="onboarding_step4_finish_title">Tot a Punt!</string>
@@ -275,12 +275,12 @@
     <string name="settings_category_developer_cd">Navega a les opcions de desenvolupador</string>
     <string name="settings_developer_options_description">Aquestes opcions són per a finalitats de depuració i desenvolupament.</string>
     <string name="settings_restart_daily_worker_button">Reinicia el Treballador Diari</string>
-    <string name="settings_share_app_logs_button">Comparteix els Registres de l&apos;App</string>
+    <string name="settings_share_app_logs_button">Comparteix els Registres de l\&apos;App</string>
     <!-- AllSchedulesScreen -->
     <string name="all_schedules_title">Tots els Horaris</string>
     <string name="back_button_content_description">Enrere</string>
-    <string name="all_schedules_no_schedules_found">No s&apos;han trobat horaris per a aquest medicament.</string>
-    <string name="todays_full_schedule_title_template">%1$s - Horari d&apos;Avui</string>
+    <string name="all_schedules_no_schedules_found">No s\&apos;han trobat horaris per a aquest medicament.</string>
+    <string name="todays_full_schedule_title_template">%1$s - Horari d\&apos;Avui</string>
     <!-- MedicationGraphScreen -->
     <string name="medication_statistics_title">Estadístiques de la Medicació</string>
     <string name="med_stats_navigate_back_cd">Navega Enrere</string>
@@ -294,18 +294,18 @@
     <string name="yearly_doses_taken_title_template">Dosis Anuals - %1$d</string>
     <string name="previous_period_cd">Període Anterior</string>
     <string name="next_period_cd">Període Següent</string>
-    <string name="med_graph_no_data_found">No s&apos;han trobat dades del gràfic per al període seleccionat.</string>
-    <string name="med_graph_unknown_error">S&apos;ha produït un error desconegut en carregar les dades del gràfic.</string>
+    <string name="med_graph_no_data_found">No s\&apos;han trobat dades del gràfic per al període seleccionat.</string>
+    <string name="med_graph_unknown_error">S\&apos;ha produït un error desconegut en carregar les dades del gràfic.</string>
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Torna als detalls de la medicació</string>
     <string name="med_info_loading_details">Carregant informació del medicament...</string>
-    <string name="med_info_image_placeholder_cd">Marcador d&apos;Imatge de la Medicació</string>
+    <string name="med_info_image_placeholder_cd">Marcador d\&apos;Imatge de la Medicació</string>
     <string name="med_info_label_nombre_comercial">Nom Comercial</string>
     <string name="med_info_label_principio_activo">Principi Actiu</string>
     <string name="med_info_label_dosis">Dosi</string>
     <string name="med_info_label_forma_farmaceutica">Forma Farmacèutica</string>
-    <string name="med_info_label_vias_administracion">Vies d&apos;Administració</string>
-    <string name="med_info_label_laboratorio_titular">Titular de l&apos;Autorització de Comercialització</string>
+    <string name="med_info_label_vias_administracion">Vies d\&apos;Administració</string>
+    <string name="med_info_label_laboratorio_titular">Titular de l\&apos;Autorització de Comercialització</string>
     <string name="med_info_label_estado_registro">Estat del Registre</string>
     <string name="med_info_label_condiciones_prescripcion">Condicions de Prescripció</string>
     <string name="med_info_value_not_available">No disponible</string>
@@ -318,7 +318,7 @@
     <string name="med_info_label_triangulo_negro">Triangle Negre</string>
     <string name="med_info_label_huerfano">Medicament Orfe</string>
     <string name="med_info_label_biosimilar">Biosimilar</string>
-    <string name="med_info_label_estado_autorizacion_date">Data d&apos;Autorització</string>
+    <string name="med_info_label_estado_autorizacion_date">Data d\&apos;Autorització</string>
     <string name="med_info_not_available_generic">Informació del medicament no disponible.</string>
     <!-- MedicationHistoryScreen -->
     <string name="med_history_navigate_back_cd">Navega Enrere</string>
@@ -328,11 +328,11 @@
     <string name="med_history_filter_select_range_button_label">Selecciona Rang de Dates</string>
     <string name="med_history_filter_no_range_selected">Totes les Dates</string>
     <string name="med_history_filter_clear_button">Neteja Filtre de Data</string>
-    <string name="med_history_no_history_found">No s&apos;ha trobat historial per a aquest medicament.</string>
+    <string name="med_history_no_history_found">No s\&apos;ha trobat historial per a aquest medicament.</string>
     <string name="med_history_item_taken_at_prefix">Presa a les: </string>
     <string name="med_history_action_sort_oldest_first">Més Antics Primer</string>
     <string name="med_history_action_sort_newest_first">Més Recents Primer</string>
-    <string name="med_history_action_sort_toggle_cd">Canvia l&apos;Ordre</string>
+    <string name="med_history_action_sort_toggle_cd">Canvia l\&apos;Ordre</string>
     <string name="med_history_sorted_oldest_first">Ordenat: Més Antics Primer</string>
     <string name="med_history_sorted_newest_first">Ordenat: Més Recents Primer</string>
     <string name="med_history_sort_order_label">Ordre:</string>
