@@ -12,19 +12,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.detectTapGestures
+// import androidx.compose.foundation.gestures.detectTapGestures // REMOVED for drag handle
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+// import androidx.compose.foundation.layout.fillMaxHeight // REMOVED for drag handle
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+// import androidx.compose.foundation.layout.width // REMOVED for drag handle
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -41,14 +41,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.VerticalDivider
+// import androidx.compose.material3.VerticalDivider // REMOVED for drag handle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.PaneExpansionState
-// import androidx.compose.material3.adaptive.PaneExpansionStateKeyProvider // Removed
+// import androidx.compose.material3.adaptive.PaneExpansionState // REMOVED
+// import androidx.compose.material3.adaptive.PaneExpansionStateKeyProvider // REMOVED
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
-import androidx.compose.material3.adaptive.rememberPaneExpansionState
+// import androidx.compose.material3.adaptive.rememberPaneExpansionState // REMOVED
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -65,7 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+// import androidx.compose.ui.input.pointer.pointerInput // REMOVED for drag handle
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.ParentDataModifier
 import androidx.compose.ui.platform.LocalDensity
@@ -125,9 +125,7 @@ fun CalendarScreen(
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>()
 
-    val paneExpansionState = rememberPaneExpansionState(
-        keyProvider = PaneExpansionState.DefaultKeyProvider // Changed to DefaultKeyProvider
-    )
+    // Explicit PaneExpansionState declaration and rememberPaneExpansionState call REMOVED
 
     LaunchedEffect(scaffoldNavigator.currentDestination) {
         if (scaffoldNavigator.currentDestination?.contentKey == null && uiState.selectedMedicationId != null) {
@@ -169,18 +167,11 @@ fun CalendarScreen(
 
     NavigableListDetailPaneScaffold(
         navigator = scaffoldNavigator,
-        paneExpansionState = paneExpansionState,
-        paneExpansionDragHandle = {
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .width(8.dp)
-                    .pointerInput(Unit) { detectTapGestures() },
-                contentAlignment = Alignment.Center
-            ) {
-                VerticalDivider()
-            }
-        },
+        // paneExpansionState = null, // This line can be removed entirely if null is the default, or kept as null.
+                                    // For clarity of removal, ensure it's not trying to pass a removed variable.
+                                    // If the parameter expects a non-null PaneExpansionState, this will be an issue.
+                                    // However, user provided signature shows it's nullable: paneExpansionState: PaneExpansionState? = null
+        // paneExpansionDragHandle = { ... }, // REMOVED
         listPane = {
             Scaffold(
                 topBar = {
@@ -569,3 +560,4 @@ fun CalendarScreenPreviewDark() {
         }
     }
 }
+```
