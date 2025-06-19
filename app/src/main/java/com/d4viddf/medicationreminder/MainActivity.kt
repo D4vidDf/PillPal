@@ -53,57 +53,47 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("FlowOperatorInvokedInComposition")
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen() // Before super.onCreate()
+        val splashScreen = installSplashScreen() // 1.
+        enableEdgeToEdge() // 2.
 
-        enableEdgeToEdge() // Added this line
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Calling super.onCreate()") // 3.
+        super.onCreate(savedInstanceState) // 4.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: super.onCreate() finished") // 5.
 
-        // Locale setup BEFORE super.onCreate()
-        // Step 1: Fetch the stored language preference.
-        val storedLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() }
-        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Fetched storedLocaleTag from repository: '$storedLocaleTag'")
+        // userPreferencesRepository is now available after super.onCreate()
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Initializing locale settings...") // 6.
+        val storedLocaleTag = runBlocking { userPreferencesRepository.languageTagFlow.first() } // 7.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Fetched storedLocaleTag from repository: '$storedLocaleTag'") // 8.
+        val localeListToApply = LocaleListCompat.forLanguageTags(storedLocaleTag) // 9.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Applying localeList: '${localeListToApply.toLanguageTags()}' with AppCompatDelegate.setApplicationLocales()") // 10.
+        AppCompatDelegate.setApplicationLocales(localeListToApply) // 11.
+        localeTagSetByThisInstance = storedLocaleTag // 12.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: localeTagSetByThisInstance initialized to: '$localeTagSetByThisInstance'") // 13.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Locale settings initialized.") // 14.
 
-        // Step 2: Prepare LocaleList.
-        val localeListToApply = LocaleListCompat.forLanguageTags(storedLocaleTag)
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Initializing other utilities (PermissionUtils, NotificationHelper, WorkManager)...") // 15.
+        PermissionUtils.init(this) // 16.
+        NotificationHelper.createNotificationChannels(this) // 17.
+        val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build() // 18.
+        WorkManager.getInstance(applicationContext).enqueue(testWorkRequest) // 19.
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Other utilities initialized.") // 20.
 
-        // Step 3: Apply this locale using AppCompatDelegate.
-        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Applying localeList: '${localeListToApply.toLanguageTags()}' with AppCompatDelegate.setApplicationLocales()")
-        AppCompatDelegate.setApplicationLocales(localeListToApply)
-        localeTagSetByThisInstance = storedLocaleTag // Track the tag we just instructed AppCompat to use.
-        Log.i(TAG_MAIN_ACTIVITY, "onCreate: localeTagSetByThisInstance initialized to: '$localeTagSetByThisInstance'")
-
-        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Calling super.onCreate()")
-        super.onCreate(savedInstanceState)
-        Log.i(TAG_MAIN_ACTIVITY, "onCreate: super.onCreate() finished")
-
-        // Initialize PermissionUtils
-        PermissionUtils.init(this)
-
-        // Logic to set isLoadingOnboardingStatus (new) -> onboardingStatusHolder
-        lifecycleScope.launch {
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Setting up onboarding status observer...") // 21.
+        lifecycleScope.launch { // 22.
             Log.d(TAG_MAIN_ACTIVITY, "Waiting for onboarding status from DataStore...")
             val status = userPreferencesRepository.onboardingCompletedFlow.first()
             Log.d(TAG_MAIN_ACTIVITY, "Onboarding status loaded: $status")
             onboardingStatusHolder.value = status
         }
 
-        // Set the condition for the splash screen (new)
-        splashScreen.setKeepOnScreenCondition {
+        splashScreen.setKeepOnScreenCondition { // 23.
             val isLoading = onboardingStatusHolder.value == null
             Log.d(TAG_MAIN_ACTIVITY, "setKeepOnScreenCondition check: isLoading = $isLoading (status is null: ${onboardingStatusHolder.value == null})")
             isLoading
         }
 
-        // The original logging for locale was here, using Log.d. We've added more specific Log.i above.
-        // Log.d("MainActivity", "onCreate: Initial locale tag from DataStore: '$storedLocaleTag'")
-        // Log.d("MainActivity", "onCreate: Called AppCompatDelegate.setApplicationLocales with '${localeListToApply.toLanguageTags()}'. Tracking as '$localeTagSetByThisInstance'.")
-
-        NotificationHelper.createNotificationChannels(this)
-
-
-        val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build()
-        WorkManager.getInstance(applicationContext).enqueue(testWorkRequest)
-
-        setContent {
+        Log.i(TAG_MAIN_ACTIVITY, "onCreate: Calling setContent { ... }") // 24.
+        setContent { // 25.
             val loadedOnboardingCompletedStatus by onboardingStatusHolder.collectAsState()
 
             if (loadedOnboardingCompletedStatus != null) {
@@ -111,7 +101,7 @@ class MainActivity : ComponentActivity() {
                 val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
                 val userPreferenceTagFromFlow by userPreferencesRepository.languageTagFlow
                     .distinctUntilChanged()
-                    .collectAsState(initial = storedLocaleTag)
+                    .collectAsState(initial = storedLocaleTag) // Ensure storedLocaleTag is available here
 
                 LaunchedEffect(userPreferenceTagFromFlow) {
                     Log.d(TAG_MAIN_ACTIVITY, "LanguageEffect: DataStore emitted '$userPreferenceTagFromFlow'. Locale last set by this instance: '$localeTagSetByThisInstance'.")
