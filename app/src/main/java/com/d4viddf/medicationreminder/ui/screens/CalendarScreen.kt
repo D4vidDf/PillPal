@@ -8,6 +8,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.animateContentSize // ADDED IMPORT
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -125,8 +126,6 @@ fun CalendarScreen(
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>()
 
-    // Explicit PaneExpansionState declaration and rememberPaneExpansionState call REMOVED
-
     LaunchedEffect(scaffoldNavigator.currentDestination) {
         if (scaffoldNavigator.currentDestination?.contentKey == null && uiState.selectedMedicationId != null) {
             viewModel.setSelectedMedicationId(null)
@@ -167,13 +166,11 @@ fun CalendarScreen(
 
     NavigableListDetailPaneScaffold(
         navigator = scaffoldNavigator,
-        // paneExpansionState = null, // This line can be removed entirely if null is the default, or kept as null.
-                                    // For clarity of removal, ensure it's not trying to pass a removed variable.
-                                    // If the parameter expects a non-null PaneExpansionState, this will be an issue.
-                                    // However, user provided signature shows it's nullable: paneExpansionState: PaneExpansionState? = null
-        // paneExpansionDragHandle = { ... }, // REMOVED
+        // paneExpansionState = null, // Parameter removed to use default internal state
+        // paneExpansionDragHandle = null, // Parameter removed
         listPane = {
             Scaffold(
+                modifier = Modifier.animateContentSize(), // ADDED HERE
                 topBar = {
                     CalendarTopAppBar(
                         currentMonth = YearMonth.from(dateCurrentlyAtCenter),
