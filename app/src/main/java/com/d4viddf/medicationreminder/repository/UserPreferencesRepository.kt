@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
-import java.util.Locale
+// import java.util.Locale // Removed
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,29 +23,29 @@ class UserPreferencesRepository @Inject constructor(
 ) {
 
     private companion object {
-        val SELECTED_LANGUAGE_KEY = stringPreferencesKey("selected_language_tag")
+        // val SELECTED_LANGUAGE_KEY = stringPreferencesKey("selected_language_tag") // Remove this line
         val SELECTED_THEME_KEY = stringPreferencesKey("selected_theme_key")
         val SELECTED_NOTIFICATION_SOUND_URI_KEY = stringPreferencesKey("selected_notification_sound_uri")
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
     }
 
-    val languageTagFlow: Flow<String> = context.dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
-        .map { preferences ->
-            preferences[SELECTED_LANGUAGE_KEY] ?: getDefaultLanguageTag()
-        }
+    // val languageTagFlow: Flow<String> = context.dataStore.data // Remove this entire block
+    //     .catch { exception ->
+    //         if (exception is IOException) {
+    //             emit(emptyPreferences())
+    //         } else {
+    //             throw exception
+    //         }
+    //     }
+    //     .map { preferences ->
+    //         preferences[SELECTED_LANGUAGE_KEY] ?: getDefaultLanguageTag()
+    //     }
 
-    suspend fun setLanguageTag(tag: String) {
-        context.dataStore.edit { preferences ->
-            preferences[SELECTED_LANGUAGE_KEY] = tag
-        }
-    }
+    // suspend fun setLanguageTag(tag: String) { // Remove this entire block
+    //     context.dataStore.edit { preferences ->
+    //         preferences[SELECTED_LANGUAGE_KEY] = tag
+    //     }
+    // }
 
     val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
@@ -105,7 +105,7 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    private fun getDefaultLanguageTag(): String {
-        return Locale.getDefault().toLanguageTag()
-    }
+    // private fun getDefaultLanguageTag(): String { // Remove this entire block
+    //     return Locale.getDefault().toLanguageTag()
+    // }
 }

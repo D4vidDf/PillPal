@@ -753,7 +753,7 @@ private fun MedicationHistoryContent(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "History",
+            text = stringResource(R.string.medDetail_history_section_title),
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -761,7 +761,7 @@ private fun MedicationHistoryContent(
         )
         Icon(
             painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-            contentDescription = "History",
+            contentDescription = stringResource(R.string.medDetail_history_navigateToFull_cd),
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(28.dp)
         )
@@ -797,13 +797,13 @@ private fun WeekProgressContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Week Progress",
+                    text = stringResource(R.string.medDetail_weekProgress_section_title),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                    contentDescription = "View full graph",
+                    contentDescription = stringResource(R.string.medDetail_weekProgress_navigateToFull_cd),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -870,7 +870,7 @@ private fun WeekProgressContent(
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
                         labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         valueTextColor = MaterialTheme.colorScheme.onSurface,
-                        chartContentDescription = "Weekly doses for ${medicationState?.name ?: "this medication"}", // Corrected string template
+                            chartContentDescription = stringResource(R.string.medDetail_graph_weeklyDosesFor_prefix) + " " + (medicationState?.name ?: stringResource(R.string.medDetail_graph_thisMedication_fallbackName)),
                         explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
                         onBarClick = { dayLabel ->
                             val dayFormatter =
@@ -930,7 +930,7 @@ private fun WeekProgressContent(
         val medicationInfoAvailable = !medicationState?.nregistro.isNullOrBlank()
         if (medicationInfoAvailable) {
             Text(
-                text = "Information",
+                text = stringResource(R.string.medDetail_information_section_title),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,

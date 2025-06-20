@@ -343,4 +343,24 @@
     <!-- Added for Show More/Less functionality -->
     <string name="show_more">Mostrar Más</string>
     <string name="show_less">Mostrar Menos</string>
+
+   <string name="medDetail_history_section_title">Historial</string>
+   <string name="medDetail_history_navigateToFull_cd">Historial</string>
+   <string name="medDetail_weekProgress_section_title">Progreso Semanal</string>
+   <string name="medDetail_weekProgress_navigateToFull_cd">Ver gráfico completo</string>
+   <string name="medDetail_information_section_title">Información</string>
+   <string name="medDetail_graph_weeklyDosesFor_prefix">Dosis semanales de</string>
+   <string name="medDetail_graph_thisMedication_fallbackName">este medicamento</string>
+   <string name="medHistory_screen_title">Historial</string>
+   <string name="medGraph_screen_title">Estadísticas</string>
+   <string name="medGraph_weekly_previousWeek_cd">Semana anterior</string>
+   <string name="medGraph_weekly_nextWeek_cd">Próxima semana</string>
+   <string name="medGraph_yearly_previousYear_cd">Año anterior</string>
+   <string name="medGraph_yearly_nextYear_cd">Próximo año</string>
+   <string name="medGraph_yearPickerDialog_title">Seleccionar Año</string>
+   <string name="medGraph_weekly_changeWeek_cd_prefix">Cambiar semana, período actual:</string>
+   <string name="medGraph_weekly_chart_description_prefix">Dosis semanales tomadas.</string>
+   <string name="medGraph_chart_doses_suffix">dosis</string>
+   <string name="medGraph_yearly_changeYear_cd_prefix">Cambiar año, año actual:</string>
+   <string name="medGraph_yearly_chart_description_prefix">Dosis anuales tomadas.</string>
 </resources>

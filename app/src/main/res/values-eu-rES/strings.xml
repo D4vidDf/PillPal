@@ -343,4 +343,24 @@
     <!-- Added for Show More/Less functionality -->
     <string name="show_more">Gehiago Erakutsi</string>
     <string name="show_less">Gutxiago Erakutsi</string>
+
+   <string name="medDetail_history_section_title">Historia</string>
+   <string name="medDetail_history_navigateToFull_cd">Historia</string>
+   <string name="medDetail_weekProgress_section_title">Asteko Aurrerapena</string>
+   <string name="medDetail_weekProgress_navigateToFull_cd">Ikusi grafiko osoa</string>
+   <string name="medDetail_information_section_title">Informazioa</string>
+   <string name="medDetail_graph_weeklyDosesFor_prefix">Asteroko dosiak honentzat:</string>
+   <string name="medDetail_graph_thisMedication_fallbackName">botika hau</string>
+   <string name="medHistory_screen_title">Historia</string>
+   <string name="medGraph_screen_title">Estatistikak</string>
+   <string name="medGraph_weekly_previousWeek_cd">Aurreko astea</string>
+   <string name="medGraph_weekly_nextWeek_cd">Hurrengo astea</string>
+   <string name="medGraph_yearly_previousYear_cd">Aurreko urtea</string>
+   <string name="medGraph_yearly_nextYear_cd">Hurrengo urtea</string>
+   <string name="medGraph_yearPickerDialog_title">Aukeratu Urtea</string>
+   <string name="medGraph_weekly_changeWeek_cd_prefix">Aldatu astea, uneko aldia:</string>
+   <string name="medGraph_weekly_chart_description_prefix">Hartutako asteroko dosiak.</string>
+   <string name="medGraph_chart_doses_suffix">dosi</string>
+   <string name="medGraph_yearly_changeYear_cd_prefix">Aldatu urtea, uneko urtea:</string>
+   <string name="medGraph_yearly_chart_description_prefix">Hartutako urteko dosiak.</string>
 </resources>

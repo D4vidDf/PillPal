@@ -41,7 +41,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
 
-data class LanguageOption(val displayName: String, val tag: String)
+// data class LanguageOption(val displayName: String, val tag: String) // Remove this line
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,22 +50,22 @@ fun GeneralSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val currentLanguageTag by viewModel.currentLanguageTag.collectAsState()
+    // val currentLanguageTag by viewModel.currentLanguageTag.collectAsState() // Remove this line
     val currentThemeKey by viewModel.currentTheme.collectAsState()
 
-    val languages = remember {
-        listOf(
-            LanguageOption(context.getString(R.string.language_english), "en"),
-            LanguageOption(context.getString(R.string.language_spanish), "es"),
-            LanguageOption(context.getString(R.string.language_galician), "gl"),
-            LanguageOption(context.getString(R.string.language_euskera), "eu"),
-            LanguageOption(context.getString(R.string.language_catalan), "ca")
-        )
-    }
-    var expandedLanguageDropdown by remember { mutableStateOf(false) }
-    val selectedLanguageDisplay = remember(currentLanguageTag, languages) {
-        languages.find { it.tag == currentLanguageTag }?.displayName ?: languages.firstOrNull()?.displayName ?: ""
-    }
+    // val languages = remember { // Remove this entire block
+    //     listOf(
+    //         LanguageOption(context.getString(R.string.language_english), "en-US"),
+    //         LanguageOption(context.getString(R.string.language_spanish), "es-ES"),
+    //         LanguageOption(context.getString(R.string.language_galician), "gl-ES"),
+    //         LanguageOption(context.getString(R.string.language_euskera), "eu-ES"),
+    //         LanguageOption(context.getString(R.string.language_catalan), "ca-ES")
+    //     )
+    // }
+    // var expandedLanguageDropdown by remember { mutableStateOf(false) } // Remove this line
+    // val selectedLanguageDisplay = remember(currentLanguageTag, languages) { // Remove this line (and its multi-line block if applicable)
+    //     languages.find { it.tag == currentLanguageTag }?.displayName ?: languages.firstOrNull()?.displayName ?: ""
+    // }
 
     val themeOptions = remember {
         listOf(
@@ -81,48 +81,48 @@ fun GeneralSettingsScreen(
             .padding(16.dp)
     ) {
         // Language Selection Group
-        Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.settings_language_label),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                    ExposedDropdownMenuBox(
-                        expanded = expandedLanguageDropdown,
-                        onExpandedChange = { expandedLanguageDropdown = !expandedLanguageDropdown },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = selectedLanguageDisplay,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(id = R.string.settings_language_label)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLanguageDropdown) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            textStyle = MaterialTheme.typography.bodyLarge
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expandedLanguageDropdown,
-                            onDismissRequest = { expandedLanguageDropdown = false }
-                        ) {
-                            languages.forEach { languageOption ->
-                                DropdownMenuItem(
-                                    text = { Text(languageOption.displayName, style = MaterialTheme.typography.bodyLarge) },
-                                    onClick = {
-                                        viewModel.updateLanguageTag(languageOption.tag)
-                                        expandedLanguageDropdown = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+        // Surface( // Remove this entire Surface block
+        //         modifier = Modifier.fillMaxWidth(),
+        //         shape = MaterialTheme.shapes.medium,
+        //         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        //     ) {
+        //         Column(modifier = Modifier.padding(16.dp)) {
+        //             Text(
+        //                 text = stringResource(id = R.string.settings_language_label),
+        //                 style = MaterialTheme.typography.titleMedium,
+        //                 modifier = Modifier.padding(bottom = 12.dp)
+        //             )
+        //             ExposedDropdownMenuBox(
+        //                 expanded = expandedLanguageDropdown,
+        //                 onExpandedChange = { expandedLanguageDropdown = !expandedLanguageDropdown },
+        //                 modifier = Modifier.fillMaxWidth()
+        //             ) {
+        //                 OutlinedTextField(
+        //                     value = selectedLanguageDisplay,
+        //                     onValueChange = {},
+        //                     readOnly = true,
+        //                     label = { Text(stringResource(id = R.string.settings_language_label)) },
+        //                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLanguageDropdown) },
+        //                     modifier = Modifier.menuAnchor().fillMaxWidth(),
+        //                     textStyle = MaterialTheme.typography.bodyLarge
+        //                 )
+        //                 ExposedDropdownMenu(
+        //                     expanded = expandedLanguageDropdown,
+        //                     onDismissRequest = { expandedLanguageDropdown = false }
+        //                 ) {
+        //                     languages.forEach { languageOption ->
+        //                         DropdownMenuItem(
+        //                             text = { Text(languageOption.displayName, style = MaterialTheme.typography.bodyLarge) },
+        //                             onClick = {
+        //                                 viewModel.updateLanguageTag(languageOption.tag)
+        //                                 expandedLanguageDropdown = false
+        //                             }
+        //                         )
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
 
             Spacer(modifier = Modifier.height(16.dp))
 

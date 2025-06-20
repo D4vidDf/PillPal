@@ -343,4 +343,24 @@
     <!-- Added for Show More/Less functionality -->
     <string name="show_more">Mostra Més</string>
     <string name="show_less">Mostra Menys</string>
+
+   <string name="medDetail_history_section_title">Historial</string>
+   <string name="medDetail_history_navigateToFull_cd">Historial</string>
+   <string name="medDetail_weekProgress_section_title">Progrés Setmanal</string>
+   <string name="medDetail_weekProgress_navigateToFull_cd">Veure gràfic complet</string>
+   <string name="medDetail_information_section_title">Informació</string>
+   <string name="medDetail_graph_weeklyDosesFor_prefix">Dosis setmanals de</string>
+   <string name="medDetail_graph_thisMedication_fallbackName">aquest medicament</string>
+   <string name="medHistory_screen_title">Historial</string>
+   <string name="medGraph_screen_title">Estadístiques</string>
+   <string name="medGraph_weekly_previousWeek_cd">Setmana anterior</string>
+   <string name="medGraph_weekly_nextWeek_cd">Setmana vinent</string>
+   <string name="medGraph_yearly_previousYear_cd">Any anterior</string>
+   <string name="medGraph_yearly_nextYear_cd">Any vinent</string>
+   <string name="medGraph_yearPickerDialog_title">Seleccionar Any</string>
+   <string name="medGraph_weekly_changeWeek_cd_prefix">Canviar setmana, període actual:</string>
+   <string name="medGraph_weekly_chart_description_prefix">Dosis setmanals preses.</string>
+   <string name="medGraph_chart_doses_suffix">dosis</string>
+   <string name="medGraph_yearly_changeYear_cd_prefix">Canviar any, any actual:</string>
+   <string name="medGraph_yearly_chart_description_prefix">Dosis anuals preses.</string>
 </resources>
