@@ -53,7 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 // import androidx.compose.ui.input.nestedscroll.nestedScroll // Not needed anymore
 import androidx.compose.ui.platform.LocalConfiguration // Added import
-import androidx.compose.ui.platform.LocalWindowInfo
+// import androidx.compose.ui.platform.LocalWindowInfo // To be removed
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -208,7 +208,7 @@ fun MedicationHistoryScreen(
             modifier = Modifier,
             topBar = {
                 TopAppBar(
-                    title = { Text("History") }, // Changed title
+                    title = { Text(stringResource(R.string.medHistory_screen_title)) }, // Changed title
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -230,7 +230,7 @@ fun MedicationHistoryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                val screenWidthDp = LocalWindowInfo.current.containerSize.toSize().width.dp
+                val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
                 val isLargeScreen = screenWidthDp >= 600.dp
 
                 if (isLargeScreen) {

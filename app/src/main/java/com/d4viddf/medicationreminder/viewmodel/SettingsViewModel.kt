@@ -94,18 +94,18 @@ class SettingsViewModel @Inject constructor(
     }
 
     // Language Preference
-    val currentLanguageTag: StateFlow<String> = userPreferencesRepository.languageTagFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
+    // val currentLanguageTag: StateFlow<String> = userPreferencesRepository.languageTagFlow
+    //     .stateIn(
+    //         scope = viewModelScope,
+    //         started = SharingStarted.WhileSubscribed(5000),
+    //         initialValue = ""
+    //     ) // Remove this entire block
 
-    fun updateLanguageTag(newTag: String) {
-        viewModelScope.launch {
-            userPreferencesRepository.setLanguageTag(newTag)
-        }
-    }
+    // fun updateLanguageTag(newTag: String) {
+    //     viewModelScope.launch {
+    //         userPreferencesRepository.setLanguageTag(newTag)
+    //     }
+    // } // Remove this entire block
 
     // Theme Preference
     val currentTheme: StateFlow<String> = userPreferencesRepository.themeFlow

@@ -214,7 +214,7 @@ fun MedicationGraphScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added
             topBar = {
                 LargeTopAppBar( // Changed from MediumTopAppBar
-                    title = { Text("Statistics") }, // Changed title
+                    title = { Text(stringResource(R.string.medGraph_screen_title)) }, // Changed title
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -382,7 +382,7 @@ fun MedicationGraphScreen(
                     val years = remember { (minYear..today.year).toList().reversed() }
                     AlertDialog(
                         onDismissRequest = { showYearPickerDialog = false },
-                        title = { Text("Select Year") }, // Use hardcoded string as per previous fix
+                        title = { Text(stringResource(R.string.medGraph_yearPickerDialog_title)) }, // Use hardcoded string as per previous fix
                         text = {
                             LazyColumn {
                                 items(years) { year ->
@@ -459,7 +459,7 @@ private fun WeeklyChartCard(
 
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_new_24),
-                    contentDescription = "Previous week", // Updated to hardcoded string
+                    contentDescription = stringResource(R.string.medGraph_weekly_previousWeek_cd), // Updated to hardcoded string
                     onClick = {
                         val prevWeek = currentWeekMondayInternal.minusWeeks(1)
                         if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
@@ -473,7 +473,7 @@ private fun WeeklyChartCard(
                 val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
                 Button(
                     onClick = { onShowWeekPickerDialogChange(true) },
-                    modifier = Modifier.semantics { contentDescription = "Change week, current period: $displayedWeekRange" },
+                    modifier = Modifier.semantics { contentDescription = stringResource(R.string.medGraph_weekly_changeWeek_cd_prefix) + " " + displayedWeekRange },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = medicationColor.onBackgroundColor,
                         contentColor = medicationColor.cardColor
@@ -486,7 +486,7 @@ private fun WeeklyChartCard(
                 }
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                    contentDescription = "Next week", // Updated to hardcoded string
+                    contentDescription = stringResource(R.string.medGraph_weekly_nextWeek_cd), // Updated to hardcoded string
                     onClick = {
                         val nextWeek = currentWeekMondayInternal.plusWeeks(1)
                         if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
@@ -565,7 +565,7 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = "Weekly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + stringResource(R.string.medGraph_chart_doses_suffix) }
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
@@ -635,7 +635,7 @@ private fun YearlyChartCard(
 
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_new_24),
-                    contentDescription = "Previous year", // Updated
+                    contentDescription = stringResource(R.string.medGraph_yearly_previousYear_cd), // Updated
                     onClick = {
                         if (currentDisplayedYearInternal - 1 >= minYear) { // Use passed-in minYear
                             onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
@@ -645,7 +645,7 @@ private fun YearlyChartCard(
                 )
                 Button(
                     onClick = { onShowYearPickerDialogChange(true) },
-                    modifier = Modifier.semantics { contentDescription = "Change year, current year: ${currentDisplayedYearInternal.toString()}" },
+                    modifier = Modifier.semantics { contentDescription = stringResource(R.string.medGraph_yearly_changeYear_cd_prefix) + " " + currentDisplayedYearInternal.toString() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = medicationColor.onBackgroundColor,
                         contentColor = medicationColor.cardColor
@@ -658,7 +658,7 @@ private fun YearlyChartCard(
                 }
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                    contentDescription = "Next year", // Updated
+                    contentDescription = stringResource(R.string.medGraph_yearly_nextYear_cd), // Updated
                     onClick = {
                         if (currentDisplayedYearInternal + 1 <= today.year) { // Use passed-in today
                             onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
@@ -732,7 +732,7 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
-                    val yearlyChartDesc = "Yearly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + stringResource(R.string.medGraph_chart_doses_suffix) }
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
