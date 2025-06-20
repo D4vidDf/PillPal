@@ -18,9 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+// import androidx.compose.animation.core.LinearOutSlowInEasing // Removed
+// import androidx.compose.animation.core.animateFloatAsState // Removed
+// import androidx.compose.animation.core.tween // Removed
 import androidx.compose.material.icons.Icons
 // import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
 // import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft // Removed
@@ -516,15 +516,10 @@ private fun WeeklyChartCard(
             }
 
             // Animate each item
-            val animatedDisplayableItems = targetItems.map { chartEntry ->
-                val animatedYValue by animateFloatAsState(
-                    targetValue = chartEntry.yValue,
-                    animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
-                    label = "weeklyBarValue-${chartEntry.xValue}"
-                )
+            val displayableItems = targetItems.map { chartEntry ->
                 BarChartItem(
                     label = chartEntry.xValue,
-                    value = animatedYValue,
+                    value = chartEntry.yValue, // Direct value, animation removed
                     isHighlighted = chartEntry.isHighlighted
                 )
             }
@@ -566,9 +561,9 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
                     SimpleBarChart(
-                        data = animatedDisplayableItems, // Use animated items
+                        data = displayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -686,15 +681,10 @@ private fun YearlyChartCard(
             }
 
             // Animate each item
-            val animatedDisplayableItems = targetItems.map { chartEntry ->
-                val animatedYValue by animateFloatAsState(
-                    targetValue = chartEntry.yValue,
-                    animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
-                    label = "yearlyBarValue-${chartEntry.xValue}"
-                )
+            val displayableItems = targetItems.map { chartEntry ->
                 BarChartItem(
                     label = chartEntry.xValue,
-                    value = animatedYValue,
+                    value = chartEntry.yValue, // Direct value, animation removed
                     isHighlighted = chartEntry.isHighlighted
                 )
             }
@@ -734,9 +724,9 @@ private fun YearlyChartCard(
                         }
                 ) {
                     val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
-                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
                     SimpleBarChart(
-                        data = animatedDisplayableItems, // Use animated items
+                        data = displayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
