@@ -499,9 +499,10 @@ private fun WeeklyChartCard(
 
                 val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
                 val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
+                val changeWeekContentDesc = stringResource(R.string.medGraph_weekly_changeWeek_cd_prefix) + " " + displayedWeekRange
                 Button(
                     onClick = { onShowWeekPickerDialogChange(true) },
-                    modifier = Modifier.semantics { contentDescription = stringResource(R.string.medGraph_weekly_changeWeek_cd_prefix) + " " + displayedWeekRange },
+                    modifier = Modifier.semantics { contentDescription = changeWeekContentDesc },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = medicationColor.onBackgroundColor,
                         contentColor = medicationColor.cardColor
@@ -664,9 +665,10 @@ private fun YearlyChartCard(
                     },
                     enabled = currentDisplayedYearInternal > minYear // Use passed-in minYear
                 )
+                val changeYearContentDesc = stringResource(R.string.medGraph_yearly_changeYear_cd_prefix) + " " + currentDisplayedYearInternal.toString()
                 Button(
                     onClick = { onShowYearPickerDialogChange(true) },
-                    modifier = Modifier.semantics { contentDescription = stringResource(R.string.medGraph_yearly_changeYear_cd_prefix) + " " + currentDisplayedYearInternal.toString() },
+                    modifier = Modifier.semantics { contentDescription = changeYearContentDesc },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = medicationColor.onBackgroundColor,
                         contentColor = medicationColor.cardColor
