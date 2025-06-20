@@ -55,7 +55,7 @@ fun GeneralSettingsScreen(
 
     val languages = remember {
         listOf(
-            LanguageOption(context.getString(R.string.language_english), "en"),
+            LanguageOption(context.getString(R.string.language_english), "en-US"),
             LanguageOption(context.getString(R.string.language_spanish), "es"),
             LanguageOption(context.getString(R.string.language_galician), "gl"),
             LanguageOption(context.getString(R.string.language_euskera), "eu"),
