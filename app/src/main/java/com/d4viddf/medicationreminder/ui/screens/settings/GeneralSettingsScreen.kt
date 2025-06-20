@@ -56,10 +56,10 @@ fun GeneralSettingsScreen(
     val languages = remember {
         listOf(
             LanguageOption(context.getString(R.string.language_english), "en-US"),
-            LanguageOption(context.getString(R.string.language_spanish), "es"),
-            LanguageOption(context.getString(R.string.language_galician), "gl"),
-            LanguageOption(context.getString(R.string.language_euskera), "eu"),
-            LanguageOption(context.getString(R.string.language_catalan), "ca")
+            LanguageOption(context.getString(R.string.language_spanish), "es-ES"),
+            LanguageOption(context.getString(R.string.language_galician), "gl-ES"),
+            LanguageOption(context.getString(R.string.language_euskera), "eu-ES"),
+            LanguageOption(context.getString(R.string.language_catalan), "ca-ES")
         )
     }
     var expandedLanguageDropdown by remember { mutableStateOf(false) }
