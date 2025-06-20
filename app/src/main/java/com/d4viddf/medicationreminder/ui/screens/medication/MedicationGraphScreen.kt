@@ -445,6 +445,34 @@ private fun WeeklyChartCard(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Prepare target items (always 7 for weekly)
+            val targetItems = remember(weeklyChartEntries, currentWeekMondayInternal, today) { // Added today to key for highlight
+                if (weeklyChartEntries.isEmpty()) {
+                    // Generate 7 placeholder ChartyGraphEntry items for the current week with 0f values
+                    val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                    List(7) { i ->
+                        val day = currentWeekMondayInternal.plusDays(i.toLong())
+                        ChartyGraphEntry(
+                            xValue = day.format(dayFormatter),
+                            yValue = 0f,
+                            isHighlighted = day.isEqual(today) // Use 'today' from parameter
+                        )
+                    }
+                } else {
+                    weeklyChartEntries
+                }
+            }
+
+            val displayableItems = targetItems.map { chartEntry ->
+                BarChartItem(
+                    label = chartEntry.xValue,
+                    value = chartEntry.yValue, // Direct value, animation removed
+                    isHighlighted = chartEntry.isHighlighted
+                )
+            }
+            val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
+            val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+
             Text(
                 text = stringResource(R.string.weekly_doses_taken_title),
                 style = MaterialTheme.typography.titleMedium,
@@ -495,35 +523,6 @@ private fun WeeklyChartCard(
                     },
                     enabled = !currentWeekMondayInternal.plusWeeks(1).isAfter(currentCalendarWeekMonday)
                 )
-            }
-
-            // Prepare target items (always 7 for weekly)
-            val targetItems = remember(weeklyChartEntries, currentWeekMondayInternal, today) { // Added today to key for highlight
-                if (weeklyChartEntries.isEmpty()) {
-                    // Generate 7 placeholder ChartyGraphEntry items for the current week with 0f values
-                    val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
-                    List(7) { i ->
-                        val day = currentWeekMondayInternal.plusDays(i.toLong())
-                        ChartyGraphEntry(
-                            xValue = day.format(dayFormatter),
-                            yValue = 0f,
-                            isHighlighted = day.isEqual(today) // Use 'today' from parameter
-                        )
-                    }
-                } else {
-                    weeklyChartEntries
-                }
-            }
-
-            // Animate each item
-            val displayableItems = targetItems.map { chartEntry ->
-                BarChartItem(
-                    label = chartEntry.xValue,
-                    value = chartEntry.yValue, // Direct value, animation removed
-                    isHighlighted = chartEntry.isHighlighted
-                )
-            }
-
             // Content display logic
             if (isLoading && weeklyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
                 CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
@@ -531,7 +530,7 @@ private fun WeeklyChartCard(
                 Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else {
                 // Chart Box (always present if not initial loading or error)
-                val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
+                // val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix) // Moved up
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -561,9 +560,9 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+                    // val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix } // Moved up
                     SimpleBarChart(
-                        data = displayableItems, // Use animated items
+                        data = displayableItems,
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -617,6 +616,32 @@ private fun YearlyChartCard(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Prepare target items (always 12 for yearly)
+            val targetItems = remember(yearlyChartEntries, currentDisplayedYearInternal, today) { // Added today to key
+                if (yearlyChartEntries.isEmpty()) {
+                    List(12) { i ->
+                        val month = java.time.Month.of(i + 1)
+                        ChartyGraphEntry(
+                            xValue = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                            yValue = 0f,
+                            isHighlighted = (currentDisplayedYearInternal == today.year && month == today.month)
+                        )
+                    }
+                } else {
+                    yearlyChartEntries
+                }
+            }
+
+            val displayableItems = targetItems.map { chartEntry ->
+                BarChartItem(
+                    label = chartEntry.xValue,
+                    value = chartEntry.yValue, // Direct value, animation removed
+                    isHighlighted = chartEntry.isHighlighted
+                )
+            }
+            val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
+            val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+
             Text(
                 text = stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYearInternal), // Corrected to use internal
                 style = MaterialTheme.typography.titleMedium,
@@ -662,33 +687,6 @@ private fun YearlyChartCard(
                     },
                     enabled = currentDisplayedYearInternal < today.year // Use passed-in today
                 )
-            }
-
-            // Prepare target items (always 12 for yearly)
-            val targetItems = remember(yearlyChartEntries, currentDisplayedYearInternal, today) { // Added today to key
-                if (yearlyChartEntries.isEmpty()) {
-                    List(12) { i ->
-                        val month = java.time.Month.of(i + 1)
-                        ChartyGraphEntry(
-                            xValue = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-                            yValue = 0f,
-                            isHighlighted = (currentDisplayedYearInternal == today.year && month == today.month)
-                        )
-                    }
-                } else {
-                    yearlyChartEntries
-                }
-            }
-
-            // Animate each item
-            val displayableItems = targetItems.map { chartEntry ->
-                BarChartItem(
-                    label = chartEntry.xValue,
-                    value = chartEntry.yValue, // Direct value, animation removed
-                    isHighlighted = chartEntry.isHighlighted
-                )
-            }
-
             // Content display logic
             if (isLoading && yearlyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
                 CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
@@ -696,6 +694,7 @@ private fun YearlyChartCard(
                 Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else {
                 // Chart Box (always present if not initial loading or error)
+                // val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix) // Moved up
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -723,10 +722,9 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
-                    val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
-                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+                    // val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix } // Moved up
                     SimpleBarChart(
-                        data = displayableItems, // Use animated items
+                        data = displayableItems,
                         modifier = Modifier.fillMaxSize(),
                         highlightedBarColor = MaterialTheme.colorScheme.primary,
                         normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
