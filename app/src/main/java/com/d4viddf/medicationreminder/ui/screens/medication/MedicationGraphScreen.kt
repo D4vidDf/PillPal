@@ -536,6 +536,7 @@ private fun WeeklyChartCard(
                 Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
             } else {
                 // Chart Box (always present if not initial loading or error)
+                val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -565,7 +566,7 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + stringResource(R.string.medGraph_chart_doses_suffix) }
+                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
@@ -732,7 +733,8 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
-                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + stringResource(R.string.medGraph_chart_doses_suffix) }
+                    val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
+                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
