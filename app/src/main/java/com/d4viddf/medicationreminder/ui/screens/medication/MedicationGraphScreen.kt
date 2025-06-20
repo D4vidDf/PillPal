@@ -446,7 +446,11 @@ private fun WeeklyChartCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Prepare target items (always 7 for weekly)
-            val targetItems = remember(weeklyChartEntries, currentWeekMondayInternal, today) { // Added today to key for highlight
+            val targetItems = remember(
+                weeklyChartEntries,
+                currentWeekMondayInternal,
+                today
+            ) { // Added today to key for highlight
                 if (weeklyChartEntries.isEmpty()) {
                     // Generate 7 placeholder ChartyGraphEntry items for the current week with 0f values
                     val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
@@ -471,7 +475,8 @@ private fun WeeklyChartCard(
                 )
             }
             val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
-            val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+            val weeklyChartDesc =
+                stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
 
             Text(
                 text = stringResource(R.string.weekly_doses_taken_title),
@@ -494,12 +499,18 @@ private fun WeeklyChartCard(
                             onCurrentWeekMondayChange(prevWeek)
                         }
                     },
-                    enabled = !currentWeekMondayInternal.minusWeeks(1).isBefore(minWeekOverallLimitMonday)
+                    enabled = !currentWeekMondayInternal.minusWeeks(1)
+                        .isBefore(minWeekOverallLimitMonday)
                 )
 
-                val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
-                val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
-                val changeWeekContentDesc = stringResource(R.string.medGraph_weekly_changeWeek_cd_prefix) + " " + displayedWeekRange
+                val weekDayMonthFormatter =
+                    remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
+                val displayedWeekRange =
+                    "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${
+                        currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)
+                    }"
+                val changeWeekContentDesc =
+                    stringResource(R.string.medGraph_weekly_changeWeek_cd_prefix) + " " + displayedWeekRange
                 Button(
                     onClick = { onShowWeekPickerDialogChange(true) },
                     modifier = Modifier.semantics { contentDescription = changeWeekContentDesc },
@@ -522,70 +533,85 @@ private fun WeeklyChartCard(
                             onCurrentWeekMondayChange(nextWeek)
                         }
                     },
-                    enabled = !currentWeekMondayInternal.plusWeeks(1).isAfter(currentCalendarWeekMonday)
+                    enabled = !currentWeekMondayInternal.plusWeeks(1)
+                        .isAfter(currentCalendarWeekMonday)
                 )
-            // Content display logic
-            if (isLoading && weeklyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
-                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
-            } else if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
-            } else {
-                // Chart Box (always present if not initial loading or error)
-                // val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix) // Moved up
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .pointerInput(currentWeekMondayInternal) {
-                            var dragConsumed = false
-                            detectHorizontalDragGestures( // No changes needed here, logic seems fine
-                                onHorizontalDrag = { change, dragAmount ->
-                                    change.consume()
-                                    if (abs(dragAmount) > 40 && !dragConsumed) {
-                                        dragConsumed = true
-                                        // Use passed-in limits
-                                        if (dragAmount > 0) { // Swiped Left (older dates)
-                                            val prevWeek = currentWeekMondayInternal.minusWeeks(1)
-                                            if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
-                                                onCurrentWeekMondayChange(prevWeek)
-                                            }
-                                        } else { // Swiped Right (newer dates)
-                                            val nextWeek = currentWeekMondayInternal.plusWeeks(1)
-                                            if (!nextWeek.isAfter(currentCalendarWeekMonday)) { // Use passed-in currentCalendarWeekMonday
-                                                onCurrentWeekMondayChange(nextWeek)
+                // Content display logic
+                if (isLoading && weeklyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(vertical = 80.dp)
+                    )
+                } else if (error != null) {
+                    Text(
+                        error,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(vertical = 80.dp)
+                    )
+                } else {
+                    // Chart Box (always present if not initial loading or error)
+                    // val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix) // Moved up
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .pointerInput(currentWeekMondayInternal) {
+                                var dragConsumed = false
+                                detectHorizontalDragGestures( // No changes needed here, logic seems fine
+                                    onHorizontalDrag = { change, dragAmount ->
+                                        change.consume()
+                                        if (abs(dragAmount) > 40 && !dragConsumed) {
+                                            dragConsumed = true
+                                            // Use passed-in limits
+                                            if (dragAmount > 0) { // Swiped Left (older dates)
+                                                val prevWeek =
+                                                    currentWeekMondayInternal.minusWeeks(1)
+                                                if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
+                                                    onCurrentWeekMondayChange(prevWeek)
+                                                }
+                                            } else { // Swiped Right (newer dates)
+                                                val nextWeek =
+                                                    currentWeekMondayInternal.plusWeeks(1)
+                                                if (!nextWeek.isAfter(currentCalendarWeekMonday)) { // Use passed-in currentCalendarWeekMonday
+                                                    onCurrentWeekMondayChange(nextWeek)
+                                                }
                                             }
                                         }
+                                    },
+                                    onDragEnd = { dragConsumed = false }
+                                )
+                            }
+                    ) {
+                        // val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix } // Moved up
+                        SimpleBarChart(
+                            data = displayableItems,
+                            modifier = Modifier.fillMaxSize(),
+                            highlightedBarColor = MaterialTheme.colorScheme.primary,
+                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            valueTextColor = MaterialTheme.colorScheme.onSurface,
+                            chartContentDescription = weeklyChartDesc, // Added
+                            explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
+                            onBarClick = { dayLabel ->
+                                val dayFormatter =
+                                    DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+                                var clickedDate: LocalDate? = null
+                                for (i in 0..6) {
+                                    val day = currentWeekMondayInternal.plusDays(i.toLong())
+                                    if (day.format(dayFormatter) == dayLabel) {
+                                        clickedDate = day
+                                        break
                                     }
-                                },
-                                onDragEnd = { dragConsumed = false }
-                            )
-                        }
-                ) {
-                    // val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix } // Moved up
-                    SimpleBarChart(
-                        data = displayableItems,
-                        modifier = Modifier.fillMaxSize(),
-                        highlightedBarColor = MaterialTheme.colorScheme.primary,
-                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        valueTextColor = MaterialTheme.colorScheme.onSurface,
-                        chartContentDescription = weeklyChartDesc, // Added
-                        explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
-                        onBarClick = { dayLabel ->
-                            val dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
-                            var clickedDate: LocalDate? = null
-                            for (i in 0..6) {
-                                val day = currentWeekMondayInternal.plusDays(i.toLong())
-                                if (day.format(dayFormatter) == dayLabel) {
-                                    clickedDate = day
-                                    break
+                                }
+                                clickedDate?.let {
+                                    onNavigateToHistoryForDate(
+                                        medicationId,
+                                        medicationColor.name,
+                                        it
+                                    )
                                 }
                             }
-                            clickedDate?.let {
-                                onNavigateToHistoryForDate(medicationId, medicationColor.name, it)
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -618,7 +644,11 @@ private fun YearlyChartCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Prepare target items (always 12 for yearly)
-            val targetItems = remember(yearlyChartEntries, currentDisplayedYearInternal, today) { // Added today to key
+            val targetItems = remember(
+                yearlyChartEntries,
+                currentDisplayedYearInternal,
+                today
+            ) { // Added today to key
                 if (yearlyChartEntries.isEmpty()) {
                     List(12) { i ->
                         val month = java.time.Month.of(i + 1)
@@ -641,10 +671,14 @@ private fun YearlyChartCard(
                 )
             }
             val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix)
-            val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
+            val yearlyChartDesc =
+                stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix }
 
             Text(
-                text = stringResource(R.string.yearly_doses_taken_title_template, currentDisplayedYearInternal), // Corrected to use internal
+                text = stringResource(
+                    R.string.yearly_doses_taken_title_template,
+                    currentDisplayedYearInternal
+                ), // Corrected to use internal
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -665,7 +699,8 @@ private fun YearlyChartCard(
                     },
                     enabled = currentDisplayedYearInternal > minYear // Use passed-in minYear
                 )
-                val changeYearContentDesc = stringResource(R.string.medGraph_yearly_changeYear_cd_prefix) + " " + currentDisplayedYearInternal.toString()
+                val changeYearContentDesc =
+                    stringResource(R.string.medGraph_yearly_changeYear_cd_prefix) + " " + currentDisplayedYearInternal.toString()
                 Button(
                     onClick = { onShowYearPickerDialogChange(true) },
                     modifier = Modifier.semantics { contentDescription = changeYearContentDesc },
@@ -689,63 +724,85 @@ private fun YearlyChartCard(
                     },
                     enabled = currentDisplayedYearInternal < today.year // Use passed-in today
                 )
-            // Content display logic
-            if (isLoading && yearlyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
-                CircularProgressIndicator(modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
-            } else if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 80.dp).align(Alignment.CenterHorizontally))
-            } else {
-                // Chart Box (always present if not initial loading or error)
-                // val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix) // Moved up
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .pointerInput(currentDisplayedYearInternal) {
-                            var dragConsumed = false
-                            detectHorizontalDragGestures( // No changes needed here
-                                onHorizontalDrag = { change, dragAmount ->
-                                    change.consume()
-                                    if (abs(dragAmount) > 40 && !dragConsumed) {
-                                        dragConsumed = true
-                                        // Use limits from card's scope
-                                        if (dragAmount > 0) { // Swiped Left (older dates)
-                                            if (currentDisplayedYearInternal - 1 >= minYear) { // Use minYear from card scope
-                                                onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
-                                            }
-                                        } else { // Swiped Right (newer dates)
-                                            if (currentDisplayedYearInternal + 1 <= today.year) { // Use today from card scope
-                                                onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
+                // Content display logic
+                if (isLoading && yearlyChartEntries.isEmpty() && error == null) { // Show loader only if loading AND no data at all (initial load)
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(vertical = 80.dp)
+                    )
+                } else if (error != null) {
+                    Text(
+                        error,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(vertical = 80.dp)
+                    )
+                } else {
+                    // Chart Box (always present if not initial loading or error)
+                    // val dosesSuffix = stringResource(R.string.medGraph_chart_doses_suffix) // Moved up
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .pointerInput(currentDisplayedYearInternal) {
+                                var dragConsumed = false
+                                detectHorizontalDragGestures( // No changes needed here
+                                    onHorizontalDrag = { change, dragAmount ->
+                                        change.consume()
+                                        if (abs(dragAmount) > 40 && !dragConsumed) {
+                                            dragConsumed = true
+                                            // Use limits from card's scope
+                                            if (dragAmount > 0) { // Swiped Left (older dates)
+                                                if (currentDisplayedYearInternal - 1 >= minYear) { // Use minYear from card scope
+                                                    onCurrentDisplayedYearChange(
+                                                        currentDisplayedYearInternal - 1
+                                                    )
+                                                }
+                                            } else { // Swiped Right (newer dates)
+                                                if (currentDisplayedYearInternal + 1 <= today.year) { // Use today from card scope
+                                                    onCurrentDisplayedYearChange(
+                                                        currentDisplayedYearInternal + 1
+                                                    )
+                                                }
                                             }
                                         }
-                                    }
-                                },
-                                onDragEnd = { dragConsumed = false }
-                            )
-                        }
-                ) {
-                    // val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix } // Moved up
-                    SimpleBarChart(
-                        data = displayableItems,
-                        modifier = Modifier.fillMaxSize(),
-                        highlightedBarColor = MaterialTheme.colorScheme.primary,
-                        normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
-                        labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        valueTextColor = MaterialTheme.colorScheme.onSurface,
-                        chartContentDescription = yearlyChartDesc, // Added
-                        explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
-                        onBarClick = { monthLabel ->
-                            // Convert month label (e.g., "Jan") to Month enum, then to YearMonth
-                            val monthFormatter = DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
-                            try {
-                                val month = java.time.Month.from(monthFormatter.parse(monthLabel))
-                                val yearMonth = java.time.YearMonth.of(currentDisplayedYearInternal, month)
-                                onNavigateToHistoryForMonth(medicationId, medicationColor.name, yearMonth)
-                            } catch (e: Exception) {
-                                Log.e("YearlyChartCard", "Error parsing month label: $monthLabel", e)
+                                    },
+                                    onDragEnd = { dragConsumed = false }
+                                )
                             }
-                        }
-                    )
+                    ) {
+                        // val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + displayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} " + dosesSuffix } // Moved up
+                        SimpleBarChart(
+                            data = displayableItems,
+                            modifier = Modifier.fillMaxSize(),
+                            highlightedBarColor = MaterialTheme.colorScheme.primary,
+                            normalBarColor = MaterialTheme.colorScheme.secondaryContainer,
+                            labelTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            valueTextColor = MaterialTheme.colorScheme.onSurface,
+                            chartContentDescription = yearlyChartDesc, // Added
+                            explicitYAxisTopValue = maxYValue, // Pass to SimpleBarChart
+                            onBarClick = { monthLabel ->
+                                // Convert month label (e.g., "Jan") to Month enum, then to YearMonth
+                                val monthFormatter =
+                                    DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
+                                try {
+                                    val month =
+                                        java.time.Month.from(monthFormatter.parse(monthLabel))
+                                    val yearMonth =
+                                        java.time.YearMonth.of(currentDisplayedYearInternal, month)
+                                    onNavigateToHistoryForMonth(
+                                        medicationId,
+                                        medicationColor.name,
+                                        yearMonth
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e(
+                                        "YearlyChartCard",
+                                        "Error parsing month label: $monthLabel",
+                                        e
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
