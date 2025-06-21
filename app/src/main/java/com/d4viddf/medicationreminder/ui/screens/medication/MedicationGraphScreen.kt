@@ -214,7 +214,7 @@ fun MedicationGraphScreen(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added
             topBar = {
                 LargeTopAppBar( // Changed from MediumTopAppBar
-                    title = { Text(stringResource(R.string.statistics_title)) }, // Changed title
+                    title = { Text("Statistics") }, // Reverted to hardcoded
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -382,7 +382,7 @@ fun MedicationGraphScreen(
                     val years = remember { (minYear..today.year).toList().reversed() }
                     AlertDialog(
                         onDismissRequest = { showYearPickerDialog = false },
-                        title = { Text(stringResource(R.string.select_year_title)) }, // Use stringResource
+                        title = { Text("Select Year") }, // Reverted to hardcoded
                         text = {
                             LazyColumn {
                                 items(years) { year ->
@@ -459,7 +459,7 @@ private fun WeeklyChartCard(
 
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_new_24),
-                    contentDescription = stringResource(R.string.previous_week_cd), // Updated to stringResource
+                    contentDescription = "Previous week", // Reverted to hardcoded
                     onClick = {
                         val prevWeek = currentWeekMondayInternal.minusWeeks(1)
                         if (!prevWeek.isBefore(minWeekOverallLimitMonday)) {
@@ -471,10 +471,10 @@ private fun WeeklyChartCard(
 
                 val weekDayMonthFormatter = remember { DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault()) }
                 val displayedWeekRange = "${currentWeekMondayInternal.format(weekDayMonthFormatter)} - ${currentWeekMondayInternal.plusDays(6).format(weekDayMonthFormatter)}"
-                val changeWeekContentDesc = stringResource(R.string.change_week_cd_prefix) + " " + displayedWeekRange
+                // val changeWeekContentDesc = stringResource(R.string.change_week_cd_prefix) + " " + displayedWeekRange // Reverted
                 Button(
                     onClick = { onShowWeekPickerDialogChange(true) },
-                    modifier = Modifier.semantics { contentDescription = changeWeekContentDesc },
+                    modifier = Modifier.semantics { contentDescription = "Change week, current period: $displayedWeekRange" }, // Reverted
                     colors = ButtonDefaults.buttonColors(
                         containerColor = medicationColor.onBackgroundColor,
                         contentColor = medicationColor.cardColor
@@ -487,7 +487,7 @@ private fun WeeklyChartCard(
                 }
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                    contentDescription = stringResource(R.string.next_week_cd), // Updated to stringResource
+                    contentDescription = "Next week", // Reverted to hardcoded
                     onClick = {
                         val nextWeek = currentWeekMondayInternal.plusWeeks(1)
                         if (!nextWeek.isAfter(currentCalendarWeekMonday)) {
@@ -636,7 +636,7 @@ private fun YearlyChartCard(
 
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_back_ios_new_24),
-                    contentDescription = stringResource(R.string.previous_year_cd), // Updated
+                    contentDescription = "Previous year", // Reverted to hardcoded
                     onClick = {
                         if (currentDisplayedYearInternal - 1 >= minYear) { // Use passed-in minYear
                             onCurrentDisplayedYearChange(currentDisplayedYearInternal - 1)
@@ -646,7 +646,7 @@ private fun YearlyChartCard(
                 )
                 Button(
                     onClick = { onShowYearPickerDialogChange(true) },
-                    modifier = Modifier.semantics { contentDescription = stringResource(R.string.change_year_cd_prefix) + " " + currentDisplayedYearInternal.toString() },
+                    modifier = Modifier.semantics { contentDescription = "Change year, current year: ${currentDisplayedYearInternal.toString()}" }, // Reverted
                     colors = ButtonDefaults.buttonColors(
                         containerColor = medicationColor.onBackgroundColor,
                         contentColor = medicationColor.cardColor
@@ -659,7 +659,7 @@ private fun YearlyChartCard(
                 }
                 StyledNavigationArrow(
                     iconPainter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24),
-                    contentDescription = stringResource(R.string.next_year_cd), // Updated
+                    contentDescription = "Next year", // Reverted to hardcoded
                     onClick = {
                         if (currentDisplayedYearInternal + 1 <= today.year) { // Use passed-in today
                             onCurrentDisplayedYearChange(currentDisplayedYearInternal + 1)
@@ -733,7 +733,7 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
-                    val yearlyChartDesc = stringResource(R.string.medGraph_yearly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} ${stringResource(R.string.medGraph_chart_doses_suffix)}" }
+                    val weeklyChartDesc = "Weekly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
