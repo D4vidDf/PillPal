@@ -1,6 +1,9 @@
 package com.d4viddf.medicationreminder.ui.screens.medication
 
 import android.util.Log
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -11,20 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.material.icons.Icons
-// import androidx.compose.material.icons.automirrored.filled.ArrowBack // Removed
-// import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft // Removed
-// import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight // Removed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,11 +30,11 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTopAppBarState
@@ -48,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,9 +51,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource // Added import
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -90,12 +85,12 @@ import kotlin.math.abs
 
 @Composable
 private fun StyledNavigationArrow(
+    modifier: Modifier = Modifier,
     icon: ImageVector? = null, // Made nullable
     iconPainter: androidx.compose.ui.graphics.painter.Painter? = null, // Added painter
     contentDescription: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier
 ) {
     IconButton(
         onClick = onClick,
@@ -147,7 +142,7 @@ fun MedicationGraphScreen(
 
 
     var currentWeekMonday by remember { mutableStateOf(currentCalendarWeekMonday) }
-    var currentDisplayedYear by remember { mutableStateOf(today.year) }
+    var currentDisplayedYear by remember { mutableIntStateOf(today.year) }
 
     // State for Date Pickers
     var showWeekPickerDialog by remember { mutableStateOf(false) }
@@ -211,10 +206,9 @@ fun MedicationGraphScreen(
 
     MedicationSpecificTheme(medicationColor = medicationColor) {
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Added
             topBar = {
-                LargeTopAppBar( // Changed from MediumTopAppBar
-                    title = { Text("Statistics") }, // Reverted to hardcoded
+                TopAppBar( // Changed from MediumTopAppBar
+                    title = { Text(stringResource(R.string.medication_statistics_title)) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -224,7 +218,7 @@ fun MedicationGraphScreen(
                         }
                     },
                     scrollBehavior = scrollBehavior, // Passed scrollBehavior
-                    colors = TopAppBarDefaults.largeTopAppBarColors( // Changed to largeTopAppBarColors
+                    colors = TopAppBarDefaults.topAppBarColors(// Changed to largeTopAppBarColors
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
@@ -248,10 +242,8 @@ fun MedicationGraphScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             WeeklyChartCard(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                                viewModel = viewModel,
                                 currentWeekMondayInternal = currentWeekMonday,
                                 onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
-                                showWeekPickerDialog = showWeekPickerDialog,
                                 onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
                                 medicationColor = medicationColor, // Pass medicationColor
                                 weeklyChartEntries = weeklyChartEntries,
@@ -266,10 +258,8 @@ fun MedicationGraphScreen(
                             )
                             YearlyChartCard(
                                 modifier = Modifier.fillMaxWidth(),
-                                viewModel = viewModel,
                                 currentDisplayedYearInternal = currentDisplayedYear,
                                 onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
-                                showYearPickerDialog = showYearPickerDialog,
                                 onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
                                 medicationColor = medicationColor, // Pass medicationColor
                                 yearlyChartEntries = yearlyChartEntries,
@@ -287,10 +277,8 @@ fun MedicationGraphScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             WeeklyChartCard(
                                 modifier = Modifier.weight(1f),
-                                viewModel = viewModel,
                                 currentWeekMondayInternal = currentWeekMonday,
                                 onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
-                                showWeekPickerDialog = showWeekPickerDialog,
                                 onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
                                 medicationColor = medicationColor, // Pass medicationColor
                                 weeklyChartEntries = weeklyChartEntries,
@@ -305,10 +293,8 @@ fun MedicationGraphScreen(
                             )
                             YearlyChartCard(
                                 modifier = Modifier.weight(1f),
-                                viewModel = viewModel,
                                 currentDisplayedYearInternal = currentDisplayedYear,
                                 onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
-                                showYearPickerDialog = showYearPickerDialog,
                                 onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
                                 medicationColor = medicationColor, // Pass medicationColor
                                 yearlyChartEntries = yearlyChartEntries,
@@ -348,7 +334,7 @@ fun MedicationGraphScreen(
                             Button(
                                 onClick = {
                                     datePickerState.selectedDateMillis?.let { millis ->
-                                        var selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                                        val selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
                                         // Ensure the selected Monday is not before the overall limit or after current view limit
                                         var newMonday = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                                         if (newMonday.isBefore(minWeekOverallLimitMonday)) newMonday = minWeekOverallLimitMonday
@@ -423,10 +409,9 @@ fun MedicationGraphScreen(
 @Composable
 private fun WeeklyChartCard(
     modifier: Modifier = Modifier,
-    viewModel: MedicationGraphViewModel?,
     currentWeekMondayInternal: LocalDate,
     onCurrentWeekMondayChange: (LocalDate) -> Unit,
-    showWeekPickerDialog: Boolean, // Added
+    // Added
     onShowWeekPickerDialogChange: (Boolean) -> Unit, // Added
     weeklyChartEntries: List<ChartyGraphEntry>,
     isLoading: Boolean,
@@ -566,7 +551,8 @@ private fun WeeklyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} ${stringResource(R.string.medGraph_chart_doses_suffix)}" }
+                    val medGraphChartDesSuffix= stringResource(R.string.medGraph_chart_doses_suffix)
+                    val weeklyChartDesc = stringResource(R.string.medGraph_weekly_chart_description_prefix) + " " + animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} $medGraphChartDesSuffix" }
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
@@ -601,10 +587,9 @@ private fun WeeklyChartCard(
 @Composable
 private fun YearlyChartCard(
     modifier: Modifier = Modifier,
-    viewModel: MedicationGraphViewModel?,
     currentDisplayedYearInternal: Int,
     onCurrentDisplayedYearChange: (Int) -> Unit,
-    showYearPickerDialog: Boolean, // Added
+    // Added
     onShowYearPickerDialogChange: (Boolean) -> Unit, // Added
     yearlyChartEntries: List<ChartyGraphEntry>,
     isLoading: Boolean,
@@ -748,7 +733,7 @@ private fun YearlyChartCard(
                             val monthFormatter = DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
                             try {
                                 val month = java.time.Month.from(monthFormatter.parse(monthLabel))
-                                val yearMonth = java.time.YearMonth.of(currentDisplayedYearInternal, month)
+                                val yearMonth = YearMonth.of(currentDisplayedYearInternal, month)
                                 onNavigateToHistoryForMonth(medicationId, medicationColor.name, yearMonth)
                             } catch (e: Exception) {
                                 Log.e("YearlyChartCard", "Error parsing month label: $monthLabel", e)
@@ -783,7 +768,6 @@ fun MedicationGraphScreenPreviewWeek() {
 @Composable
 fun MedicationGraphScreenPreviewYear() { // Renamed
     AppTheme {
-        val medicationName by remember { mutableStateOf("Sample Medication (Preview)") } // Not directly used by screen, but kept for context
         val currentYear = LocalDate.now().year
 
         // Sample data for SimpleBarChart - Year View
@@ -797,8 +781,6 @@ fun MedicationGraphScreenPreviewYear() { // Renamed
                 )
             }
         }
-        // Simplified: Directly call the YearlyChartCard for preview if MedicationGraphScreen is too complex to set up
-        // Or pass parameters to MedicationGraphScreen to show yearly view by default if possible
         MedicationGraphScreen(
             medicationId = 1,
             colorName = "LIGHT_BLUE",
@@ -808,15 +790,5 @@ fun MedicationGraphScreenPreviewYear() { // Renamed
             onNavigateToHistoryForDate = { _, _, _ -> }, // Dummy lambda for preview
             onNavigateToHistoryForMonth = { _, _, _ -> } // Dummy lambda for preview
         )
-        // For a more isolated preview of YearlyChartCard:
-        // YearlyChartCard(
-        //     viewModel = null,
-        //     currentDisplayedYear = currentYear,
-        //     onUpdateYear = {},
-        //     onShowYearPicker = {},
-        //     yearlyChartEntries = sampleBarChartItems,
-        //     isLoading = false,
-        //     error = null
-        // )
     }
 }
