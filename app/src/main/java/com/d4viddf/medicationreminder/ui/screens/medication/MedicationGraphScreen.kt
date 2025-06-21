@@ -733,7 +733,7 @@ private fun YearlyChartCard(
                             )
                         }
                 ) {
-                    val weeklyChartDesc = "Weekly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
+                    val yearlyChartDesc = "Yearly doses taken. ${animatedDisplayableItems.joinToString { item -> "${item.label}: ${item.value.toInt()} doses" }}"
                     SimpleBarChart(
                         data = animatedDisplayableItems, // Use animated items
                         modifier = Modifier.fillMaxSize(),
