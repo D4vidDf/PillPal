@@ -57,7 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-// Removed import androidx.compose.ui.zIndex
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.res.painterResource // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -243,43 +243,86 @@ fun MedicationGraphScreen(
                     .verticalScroll(rememberScrollState()), // Make content column scrollable
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Always lay out cards in a Column
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    WeeklyChartCard(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                        viewModel = viewModel,
-                        currentWeekMondayInternal = currentWeekMonday,
-                        onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
-                        showWeekPickerDialog = showWeekPickerDialog,
-                        onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
-                        medicationColor = medicationColor, // Pass medicationColor
-                        weeklyChartEntries = weeklyChartEntries,
-                        isLoading = isLoadingWeekly,
-                        error = errorWeekly,
-                        today = today,
-                        currentCalendarWeekMonday = currentCalendarWeekMonday,
-                        minWeekOverallLimitMonday = minWeekOverallLimitMonday,
-                        maxYValue = weeklyMaxYForChart, // Pass weekly max
-                        medicationId = medicationId, // Pass medicationId
-                        onNavigateToHistoryForDate = onNavigateToHistoryForDate // Pass callback
-                    )
-                    YearlyChartCard(
-                        modifier = Modifier.fillMaxWidth(), // Ensure it fills width, padding handled by the Column or individual cards if needed
-                        viewModel = viewModel,
-                        currentDisplayedYearInternal = currentDisplayedYear,
-                        onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
-                        showYearPickerDialog = showYearPickerDialog,
-                        onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
-                        medicationColor = medicationColor, // Pass medicationColor
-                        yearlyChartEntries = yearlyChartEntries,
-                        isLoading = isLoadingWeekly,
-                        error = errorWeekly,
-                        today = today,
-                        minYear = minYear,
-                        maxYValue = yearlyMaxYForChart, // Pass yearly max
-                        medicationId = medicationId, // Pass medicationId
-                        onNavigateToHistoryForMonth = onNavigateToHistoryForMonth // Pass callback
-                    )
+                // Determine layout based on widthSizeClass
+                when (widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            WeeklyChartCard(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                viewModel = viewModel,
+                                currentWeekMondayInternal = currentWeekMonday,
+                                onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
+                                showWeekPickerDialog = showWeekPickerDialog,
+                                onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
+                                weeklyChartEntries = weeklyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                currentCalendarWeekMonday = currentCalendarWeekMonday,
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday,
+                                maxYValue = weeklyMaxYForChart, // Pass weekly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForDate = onNavigateToHistoryForDate // Pass callback
+                            )
+                            YearlyChartCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                viewModel = viewModel,
+                                currentDisplayedYearInternal = currentDisplayedYear,
+                                onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
+                                showYearPickerDialog = showYearPickerDialog,
+                                onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
+                                yearlyChartEntries = yearlyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                minYear = minYear,
+                                maxYValue = yearlyMaxYForChart, // Pass yearly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForMonth = onNavigateToHistoryForMonth // Pass callback
+                            )
+                        }
+                    }
+                    else -> { // Medium, Expanded
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            WeeklyChartCard(
+                                modifier = Modifier.weight(1f),
+                                viewModel = viewModel,
+                                currentWeekMondayInternal = currentWeekMonday,
+                                onCurrentWeekMondayChange = { newDate: LocalDate -> currentWeekMonday = newDate },
+                                showWeekPickerDialog = showWeekPickerDialog,
+                                onShowWeekPickerDialogChange = { shouldShow: Boolean -> showWeekPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
+                                weeklyChartEntries = weeklyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today,
+                                currentCalendarWeekMonday = currentCalendarWeekMonday,
+                                minWeekOverallLimitMonday = minWeekOverallLimitMonday,
+                                maxYValue = weeklyMaxYForChart, // Pass weekly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForDate = onNavigateToHistoryForDate // Pass callback
+                            )
+                            YearlyChartCard(
+                                modifier = Modifier.weight(1f),
+                                viewModel = viewModel,
+                                currentDisplayedYearInternal = currentDisplayedYear,
+                                onCurrentDisplayedYearChange = { newYear: Int -> currentDisplayedYear = newYear },
+                                showYearPickerDialog = showYearPickerDialog,
+                                onShowYearPickerDialogChange = { shouldShow: Boolean -> showYearPickerDialog = shouldShow },
+                                medicationColor = medicationColor, // Pass medicationColor
+                                yearlyChartEntries = yearlyChartEntries,
+                                isLoading = isLoadingWeekly,
+                                error = errorWeekly,
+                                today = today, // Added missing parameter
+                                minYear = minYear,   // Added missing parameter
+                                maxYValue = yearlyMaxYForChart, // Pass yearly max
+                                medicationId = medicationId, // Pass medicationId
+                                onNavigateToHistoryForMonth = onNavigateToHistoryForMonth // Pass callback
+                            )
+                        }
+                    }
                 }
 
                 // Week Picker Dialog
@@ -444,7 +487,8 @@ private fun WeeklyChartCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 8.dp)
+                    .zIndex(1f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -645,7 +689,8 @@ private fun YearlyChartCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 8.dp)
+                    .zIndex(1f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
