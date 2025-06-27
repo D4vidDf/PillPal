@@ -22,10 +22,10 @@ class AppUpdateReceiver : BroadcastReceiver() {
         if (context == null) return
 
         if (intent?.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
-            Log.i(TAG, "Application package updated. Scheduling immediate reminder refresh.")
+            Log.i(TAG, "Application package updated. Scheduling global reminder refresh.")
             // Use WorkerScheduler to enqueue the work.
             // The context passed to onReceive is valid for this call.
-            WorkerScheduler.scheduleRemindersImmediate(context.applicationContext)
+            WorkerScheduler.scheduleRemindersGlobalRefresh(context.applicationContext)
         }
     }
 }

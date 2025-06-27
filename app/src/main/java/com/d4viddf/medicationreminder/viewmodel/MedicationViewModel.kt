@@ -209,16 +209,16 @@ class MedicationViewModel @Inject constructor(
     fun updateMedication(medication: Medication) {
         viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.updateMedication(medication)
-            WorkerScheduler.scheduleRemindersImmediate(appContext)
-            Log.i("MedicationViewModel", "Scheduled immediate reminder scheduling after updating medication.")
+            WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
+            Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after updating medication.")
         }
     }
 
     fun deleteMedication(medication: Medication) {
         viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.deleteMedication(medication)
-            WorkerScheduler.scheduleRemindersImmediate(appContext)
-            Log.i("MedicationViewModel", "Scheduled immediate reminder scheduling after deleting medication.")
+            WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
+            Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after deleting medication.")
         }
     }
 }

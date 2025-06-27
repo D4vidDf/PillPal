@@ -18,10 +18,10 @@ class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null) return // context can be nullable, ensure it's handled.
         if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.i(TAG, "Device boot completed. Scheduling immediate reminder refresh.")
+            Log.i(TAG, "Device boot completed. Scheduling global reminder refresh.")
             // Use WorkerScheduler to enqueue the work.
             // The context passed to onReceive is valid for this call.
-            WorkerScheduler.scheduleRemindersImmediate(context.applicationContext)
+            WorkerScheduler.scheduleRemindersGlobalRefresh(context.applicationContext)
         }
     }
 }

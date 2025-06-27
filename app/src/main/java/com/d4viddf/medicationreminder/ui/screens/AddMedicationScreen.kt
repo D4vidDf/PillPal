@@ -217,8 +217,8 @@ fun AddMedicationScreen(
 
                                 // Get ApplicationContext from LocalContext for WorkerScheduler
                                 val appContext = localContext.applicationContext
-                                WorkerScheduler.scheduleRemindersImmediate(appContext)
-                                Log.d("AddMedScreen", "Called WorkerScheduler.scheduleRemindersImmediate after inserting medication and schedule for medId: $medId")
+                                WorkerScheduler.scheduleRemindersForMedication(appContext, medId)
+                                Log.d("AddMedScreen", "Called WorkerScheduler.scheduleRemindersForMedication for medId: $medId after inserting medication and schedule.")
 
                                 // Removed medicationInfoViewModel.insertMedicationInfo call block
                             }

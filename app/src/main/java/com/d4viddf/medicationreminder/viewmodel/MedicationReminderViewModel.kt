@@ -95,9 +95,8 @@ class MedicationReminderViewModel @Inject constructor(
             val nowString = LocalDateTime.now().format(storableDateTimeFormatter)
             Log.d("MedReminderVM", "Marking reminderId $reminderId (medId $medicationId) as taken at $nowString")
             reminderRepository.markReminderAsTaken(reminderId, nowString)
-            // triggerNextReminderScheduling(medicationId) // Llama sin pasar el contexto
-            WorkerScheduler.scheduleRemindersImmediate(appContext)
-            Log.i("MedReminderVM", "Scheduled immediate reminder scheduling after marking reminder as taken and updating lists.")
+            WorkerScheduler.scheduleRemindersForMedication(appContext, medicationId)
+            Log.i("MedReminderVM", "Scheduled medication-specific reminder scheduling for medId $medicationId after marking reminder as taken and updating lists.")
         }
     }
 
@@ -371,9 +370,8 @@ class MedicationReminderViewModel @Inject constructor(
                     Log.d("MedReminderVM", "Refreshed today's schedule after adding past medication for today.")
                 }
                 // Successfully inserted past medication taken, now trigger worker
-                // triggerNextReminderScheduling(medicationId)
-                WorkerScheduler.scheduleRemindersImmediate(appContext)
-                Log.i("MedReminderVM", "Scheduled immediate reminder scheduling for medId: $medicationId after adding past taken dose.")
+                WorkerScheduler.scheduleRemindersForMedication(appContext, medicationId)
+                Log.i("MedReminderVM", "Scheduled medication-specific reminder scheduling for medId: $medicationId after adding past taken dose.")
 
             } catch (e: Exception) {
                 Log.e("MedReminderVM", "Error inserting past medication taken for medId: $medicationId", e)
@@ -465,9 +463,8 @@ class MedicationReminderViewModel @Inject constructor(
 
                 // After successfully marking as taken (either update or insert)
                 // Always trigger rescheduling to ensure consistency and recalculation for all types.
-                // triggerNextReminderScheduling(medicationId)
-                WorkerScheduler.scheduleRemindersImmediate(appContext)
-                Log.i("MedReminderVM", "$funcTag: Scheduled immediate reminder scheduling for medication ID $medicationId after marking as taken. Schedule type was ${scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()?.scheduleType}.")
+                WorkerScheduler.scheduleRemindersForMedication(appContext, medicationId)
+                Log.i("MedReminderVM", "$funcTag: Scheduled medication-specific reminder scheduling for medication ID $medicationId after marking as taken. Schedule type was ${scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()?.scheduleType}.")
 
             } else { // Unmarking as taken (isTaken = false)
                 if (reminderInDb != null) { // Found by ID, this is the preferred path
