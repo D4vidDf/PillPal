@@ -17,6 +17,7 @@ import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.data.TodayScheduleItem
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -94,29 +95,31 @@ class MedicationReminderViewModel @Inject constructor(
             val nowString = LocalDateTime.now().format(storableDateTimeFormatter)
             Log.d("MedReminderVM", "Marking reminderId $reminderId (medId $medicationId) as taken at $nowString")
             reminderRepository.markReminderAsTaken(reminderId, nowString)
-            triggerNextReminderScheduling(medicationId) // Llama sin pasar el contexto
+            // triggerNextReminderScheduling(medicationId) // Llama sin pasar el contexto
+            WorkerScheduler.scheduleRemindersImmediate(appContext)
+            Log.i("MedReminderVM", "Scheduled immediate reminder scheduling after marking reminder as taken and updating lists.")
         }
     }
 
-    internal fun triggerNextReminderScheduling(medicationId: Int) {
-        Log.d("MedReminderVM", "Triggering next reminder scheduling for med ID: $medicationId using injected appContext")
-        val workManager = WorkManager.getInstance(this.appContext) // Usa this.appContext
-        val data = Data.Builder()
-            .putInt(ReminderSchedulingWorker.KEY_MEDICATION_ID, medicationId)
-            .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, false)
-            .build()
-        val scheduleNextWorkRequest =
-            OneTimeWorkRequestBuilder<ReminderSchedulingWorker>()
-                .setInputData(data)
-                .addTag("${ReminderSchedulingWorker.WORK_NAME_PREFIX}NextFromDetail_${medicationId}")
-                .build()
-        workManager.enqueueUniqueWork(
-            "${ReminderSchedulingWorker.WORK_NAME_PREFIX}NextScheduledFromDetail_${medicationId}",
-            ExistingWorkPolicy.REPLACE,
-            scheduleNextWorkRequest
-        )
-        Log.i("MedReminderVM", "Enqueued ReminderSchedulingWorker for med ID $medicationId.")
-    }
+    // internal fun triggerNextReminderScheduling(medicationId: Int) {
+    //     Log.d("MedReminderVM", "Triggering next reminder scheduling for med ID: $medicationId using injected appContext")
+    //     val workManager = WorkManager.getInstance(this.appContext) // Usa this.appContext
+    //     val data = Data.Builder()
+    //         .putInt(ReminderSchedulingWorker.KEY_MEDICATION_ID, medicationId)
+    //         .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, false)
+    //         .build()
+    //     val scheduleNextWorkRequest =
+    //         OneTimeWorkRequestBuilder<ReminderSchedulingWorker>()
+    //             .setInputData(data)
+    //             .addTag("${ReminderSchedulingWorker.WORK_NAME_PREFIX}NextFromDetail_${medicationId}")
+    //             .build()
+    //     workManager.enqueueUniqueWork(
+    //         "${ReminderSchedulingWorker.WORK_NAME_PREFIX}NextScheduledFromDetail_${medicationId}",
+    //         ExistingWorkPolicy.REPLACE,
+    //         scheduleNextWorkRequest
+    //     )
+    //     Log.i("MedReminderVM", "Enqueued ReminderSchedulingWorker for med ID $medicationId.")
+    // }
 
     // Function to Fetch Today's Reminders for a specific medication
     fun loadTodaySchedule(medicationId: Int) {
@@ -368,8 +371,9 @@ class MedicationReminderViewModel @Inject constructor(
                     Log.d("MedReminderVM", "Refreshed today's schedule after adding past medication for today.")
                 }
                 // Successfully inserted past medication taken, now trigger worker
-                triggerNextReminderScheduling(medicationId)
-                Log.i("MedReminderVM", "Triggered ReminderSchedulingWorker for medId: $medicationId after adding past taken dose.")
+                // triggerNextReminderScheduling(medicationId)
+                WorkerScheduler.scheduleRemindersImmediate(appContext)
+                Log.i("MedReminderVM", "Scheduled immediate reminder scheduling for medId: $medicationId after adding past taken dose.")
 
             } catch (e: Exception) {
                 Log.e("MedReminderVM", "Error inserting past medication taken for medId: $medicationId", e)
@@ -461,8 +465,9 @@ class MedicationReminderViewModel @Inject constructor(
 
                 // After successfully marking as taken (either update or insert)
                 // Always trigger rescheduling to ensure consistency and recalculation for all types.
-                triggerNextReminderScheduling(medicationId)
-                Log.i("MedReminderVM", "$funcTag: Triggered ReminderSchedulingWorker for medication ID $medicationId after marking as taken. Schedule type was ${scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()?.scheduleType}.")
+                // triggerNextReminderScheduling(medicationId)
+                WorkerScheduler.scheduleRemindersImmediate(appContext)
+                Log.i("MedReminderVM", "$funcTag: Scheduled immediate reminder scheduling for medication ID $medicationId after marking as taken. Schedule type was ${scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()?.scheduleType}.")
 
             } else { // Unmarking as taken (isTaken = false)
                 if (reminderInDb != null) { // Found by ID, this is the preferred path

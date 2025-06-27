@@ -12,7 +12,10 @@ import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 // MedicationColor import removed if no longer needed
 import com.d4viddf.medicationreminder.ui.components.ProgressDetails
+import com.d4viddf.medicationreminder.workers.WorkerScheduler
+import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +37,8 @@ import javax.inject.Inject
 class MedicationViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val reminderRepository: MedicationReminderRepository,
-    private val scheduleRepository: MedicationScheduleRepository
+    private val scheduleRepository: MedicationScheduleRepository,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _medications = MutableStateFlow<List<Medication>>(emptyList()) // This will hold the unfiltered list directly
@@ -195,21 +199,29 @@ class MedicationViewModel @Inject constructor(
     }
     */
 
-    suspend fun insertMedication(medication: Medication): Int {
-        return withContext(Dispatchers.IO) {
+    fun insertMedication(medication: Medication) {
+        viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.insertMedication(medication)
+            // Switch back to Main or stay in IO for WorkerScheduler? Context access is fine.
+            // WorkerScheduler itself uses WorkManager which handles its own threading.
+            WorkerScheduler.scheduleRemindersImmediate(appContext)
+            Log.i("MedicationViewModel", "Scheduled immediate reminder scheduling after inserting medication.")
         }
     }
 
     fun updateMedication(medication: Medication) {
         viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.updateMedication(medication)
+            WorkerScheduler.scheduleRemindersImmediate(appContext)
+            Log.i("MedicationViewModel", "Scheduled immediate reminder scheduling after updating medication.")
         }
     }
 
     fun deleteMedication(medication: Medication) {
         viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.deleteMedication(medication)
+            WorkerScheduler.scheduleRemindersImmediate(appContext)
+            Log.i("MedicationViewModel", "Scheduled immediate reminder scheduling after deleting medication.")
         }
     }
 }
