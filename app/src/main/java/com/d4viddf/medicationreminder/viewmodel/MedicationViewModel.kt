@@ -199,13 +199,10 @@ class MedicationViewModel @Inject constructor(
     }
     */
 
-    fun insertMedication(medication: Medication) {
-        viewModelScope.launch(Dispatchers.IO) {
+    suspend fun insertMedication(medication: Medication): Int {
+        return withContext(Dispatchers.IO) {
             medicationRepository.insertMedication(medication)
-            // Switch back to Main or stay in IO for WorkerScheduler? Context access is fine.
-            // WorkerScheduler itself uses WorkManager which handles its own threading.
-            WorkerScheduler.scheduleRemindersImmediate(appContext)
-            Log.i("MedicationViewModel", "Scheduled immediate reminder scheduling after inserting medication.")
+            // WorkerScheduler call removed from here, will be handled by caller
         }
     }
 

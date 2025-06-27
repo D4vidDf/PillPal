@@ -30,9 +30,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController // Add this import
 import androidx.navigation.compose.rememberNavController
 import androidx.work.Data
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.FrequencyType
 import com.d4viddf.medicationreminder.data.Medication
@@ -42,7 +39,8 @@ import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.*
 import com.d4viddf.medicationreminder.viewmodel.MedicationScheduleViewModel
 import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import com.d4viddf.medicationreminder.workers.WorkerScheduler // Added import
+// import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Commented out if not used
 import kotlinx.coroutines.launch
 import java.time.LocalDate // Added import
 import java.time.LocalTime
@@ -217,24 +215,10 @@ fun AddMedicationScreen(
                                 )
                                 medicationScheduleViewModel.insertSchedule(schedule)
 
-                                // Get ApplicationContext from LocalContext for WorkManager
+                                // Get ApplicationContext from LocalContext for WorkerScheduler
                                 val appContext = localContext.applicationContext
-                                val workManager = WorkManager.getInstance(appContext) // Get context carefully
-                                val data = Data.Builder()
-                                    .putInt(ReminderSchedulingWorker.KEY_MEDICATION_ID, medId) // medId is the new medication's ID
-                                    .build()
-
-                                val scheduleRemindersWorkRequest = OneTimeWorkRequestBuilder<ReminderSchedulingWorker>()
-                                    .setInputData(data)
-                                    .addTag("${ReminderSchedulingWorker.WORK_NAME_PREFIX}${medId}") // Tag for observation/cancellation
-                                    .build()
-
-                                workManager.enqueueUniqueWork(
-                                    "${ReminderSchedulingWorker.WORK_NAME_PREFIX}${medId}",
-                                    ExistingWorkPolicy.REPLACE, // Or APPEND, depending on desired behavior if already scheduled
-                                    scheduleRemindersWorkRequest
-                                )
-                                Log.d("AddMedScreen", "Enqueued ReminderSchedulingWorker for medId: $medId")
+                                WorkerScheduler.scheduleRemindersImmediate(appContext)
+                                Log.d("AddMedScreen", "Called WorkerScheduler.scheduleRemindersImmediate after inserting medication and schedule for medId: $medId")
 
                                 // Removed medicationInfoViewModel.insertMedicationInfo call block
                             }
