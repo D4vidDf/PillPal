@@ -631,7 +631,7 @@ fun MedicationSummary(
             Spacer(Modifier.width(8.dp))
             Box(Modifier.size(24.dp).background(color, CircleShape))
         }
-        Divider(Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
         Text(stringResource(id = R.string.reminder_details_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
         InfoRow(stringResource(id = R.string.label_frequency), stringResource(id = frequency.stringResId)) // Display localized frequency name
 

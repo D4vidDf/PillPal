@@ -48,29 +48,19 @@ object ReminderCalculator {
                 // val funcTag = "calculateReminderDateTimes[MedID: ${medication.id}, SchedID: ${schedule.id}, Date: $targetDate]"
                 // Log.d("ReminderCalculator", "$funcTag: Called with lastTakenOnDate: $lastTakenOnDate")
                 val dayOfWeekForTarget = targetDate.dayOfWeek.value // Monday=1, Sunday=7
-                val scheduledDays = schedule.daysOfWeek?.split(',')?.mapNotNull { it.toIntOrNull() } ?: emptyList()
+                val scheduledDays = schedule.daysOfWeek?.map { it.value } ?: emptyList()
 
                 if (scheduledDays.isEmpty() || scheduledDays.contains(dayOfWeekForTarget)) {
-                    schedule.specificTimes?.split(',')?.firstOrNull()?.let { timeStr ->
-                        try {
-                            val time = LocalTime.parse(timeStr, timeStorableFormatter)
-                            reminders.add(LocalDateTime.of(targetDate, time))
-                        } catch (e: Exception) {
-                            // Log parsing error
-                        }
+                    schedule.specificTimes?.firstOrNull()?.let { time ->
+                        reminders.add(LocalDateTime.of(targetDate, time))
                     }
                 }
             }
             ScheduleType.CUSTOM_ALARMS -> { // "Multiple times a day"
                 // For custom alarms, we assume they apply every day the medication is active,
                 // unless daysOfWeek is also used in conjunction (which it isn't currently in your setup).
-                schedule.specificTimes?.split(',')?.forEach { timeStr ->
-                    try {
-                        val time = LocalTime.parse(timeStr, timeStorableFormatter)
-                        reminders.add(LocalDateTime.of(targetDate, time))
-                    } catch (e: Exception) {
-                        // Log parsing error
-                    }
+                schedule.specificTimes?.forEach { time ->
+                    reminders.add(LocalDateTime.of(targetDate, time))
                 }
             }
             ScheduleType.INTERVAL -> {
@@ -229,37 +219,25 @@ object ReminderCalculator {
                 // For DAILY, daysOfWeek should be checked if present.
                 // If daysOfWeek is null/empty, it implies every day.
                 val dayOfWeekForTarget = targetDate.dayOfWeek.value
-                val scheduledDays = schedule.daysOfWeek?.split(',')?.mapNotNull { it.trim().toIntOrNull() } ?: emptyList()
+                val scheduledDays = schedule.daysOfWeek?.map { it.value } ?: emptyList()
 
                 if (scheduledDays.isEmpty() || scheduledDays.contains(dayOfWeekForTarget)) {
-                    schedule.specificTimes?.split(',')?.firstOrNull()?.let { timeStr -> // DAILY usually has one time
-                        try {
-                            slots.add(LocalTime.parse(timeStr, timeStorableFormatter))
-                        } catch (e: DateTimeParseException) {
-                            Log.e(TAG, "getAllPotentialSlotsForDay (DAILY): Error parsing timeStr '$timeStr'. ScheduleId: ${schedule.id}", e)
-                        }
+                    schedule.specificTimes?.firstOrNull()?.let { time -> // DAILY usually has one time
+                        slots.add(time)
                     }
                 }
             }
             ScheduleType.CUSTOM_ALARMS -> {
-                schedule.specificTimes?.split(',')?.forEach { timeStr ->
-                    try {
-                        slots.add(LocalTime.parse(timeStr, timeStorableFormatter))
-                    } catch (e: DateTimeParseException) {
-                        Log.e(TAG, "getAllPotentialSlotsForDay (CUSTOM_ALARMS): Error parsing timeStr '$timeStr'. ScheduleId: ${schedule.id}", e)
-                    }
+                schedule.specificTimes?.forEach { time ->
+                    slots.add(time)
                 }
             }
             ScheduleType.WEEKLY -> {
                 val dayOfWeekForTarget = targetDate.dayOfWeek.value
-                val scheduledDays = schedule.daysOfWeek?.split(',')?.mapNotNull { it.trim().toIntOrNull() } ?: emptyList()
+                val scheduledDays = schedule.daysOfWeek?.map { it.value } ?: emptyList()
                 if (scheduledDays.contains(dayOfWeekForTarget)) {
-                    schedule.specificTimes?.split(',')?.forEach { timeStr -> // Weekly can have multiple times for selected days
-                        try {
-                            slots.add(LocalTime.parse(timeStr, timeStorableFormatter))
-                        } catch (e: DateTimeParseException) {
-                             Log.e(TAG, "getAllPotentialSlotsForDay (WEEKLY): Error parsing timeStr '$timeStr'. ScheduleId: ${schedule.id}", e)
-                        }
+                    schedule.specificTimes?.forEach { time -> // Weekly can have multiple times for selected days
+                        slots.add(time)
                     }
                 }
             }

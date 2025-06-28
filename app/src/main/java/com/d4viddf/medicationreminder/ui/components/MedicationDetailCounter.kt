@@ -133,24 +133,19 @@ fun MedicationDetailCounters(
     val frequencyPair: Pair<String?, String?> = remember(schedule, strDoseUnitSingle, strDoseUnitPlural, strFreqOnceDaily, strFreqMultipleDaily, strFreqInterval, strFreqAsNeeded) {
         schedule?.let { sched ->
             val timesCount = sched.specificTimes?.count() ?: 0
-            when (sched.scheduleType) {
+            val result: Pair<String?, String?>? = when (sched.scheduleType) {
                 ScheduleType.DAILY, ScheduleType.WEEKLY -> {
-                    // For DAILY/WEEKLY, if daysOfWeek is specified, it implies a "X times on specific days" type of schedule.
-                    // If daysOfWeek is NOT specified, it's a general "X times a day" or "X times a week" (though weekly usually has days).
-                    // The distinction for label (strDoseUnitSingle/Plural vs strFreqOnceDaily/MultipleDaily) might depend on context not fully captured here.
-                    // This simplified logic primarily uses timesCount for the value and strDoseUnit for label if specific days are involved,
-                    // otherwise uses strFreq for more general daily/multiple daily descriptions.
-                    if (!sched.daysOfWeek.isNullOrEmpty()) { // Prioritize this for more specific "X doses on these days"
+                    if (!sched.daysOfWeek.isNullOrEmpty()) {
                         if (timesCount == 1) "1" to strDoseUnitSingle
                         else if (timesCount > 1) "$timesCount" to strDoseUnitPlural
-                        else null // No times specified, even with days? Or should default?
-                    } else { // General daily/multiple times a day without specific day context from daysOfWeek
+                        else null
+                    } else {
                         if (timesCount == 1) "1" to strFreqOnceDaily
                         else if (timesCount > 1) "$timesCount" to strFreqMultipleDaily
                         else null
                     }
                 }
-                ScheduleType.CUSTOM_ALARMS -> { // Typically multiple, specific alarms
+                ScheduleType.CUSTOM_ALARMS -> {
                     if (timesCount > 0) "$timesCount" to strFreqMultipleDaily else null
                 }
                 ScheduleType.INTERVAL -> {
@@ -160,10 +155,11 @@ fun MedicationDetailCounters(
                     if (vp.isNotEmpty()) "Cada ${vp.joinToString(" ")}" to strFreqInterval else null
                 }
                 ScheduleType.AS_NEEDED -> "S/N" to strFreqAsNeeded
-                else -> null
+                // No else needed as ScheduleType is an enum and all cases are handled
             }
-        }?.let { if (it.first == null && it.second == null) null else it }
-            ?: (null to null)
+            // If the result is a Pair(null, null), convert it to a plain null. Otherwise, use the result.
+            if (result?.first == null && result?.second == null) null else result
+        } ?: (null to null) // Fallback for when schedule is null or the let chain results in null
     }
     val frequencyValue = frequencyPair.first
     val frequencyUnit = frequencyPair.second
@@ -179,22 +175,26 @@ fun MedicationDetailCounters(
             if (!med.endDate.isNullOrBlank() && med.endDate != strSelectEndDatePlaceholder) {
                 try { pEndDate = LocalDate.parse(med.endDate, ReminderCalculator.dateStorableFormatter) } catch (e: DateTimeParseException) {}
             }
-            when {
+            val result: Pair<String?, String?>? = when {
                 pStartDate != null && pEndDate != null -> {
-                    if (pEndDate.isBefore(pStartDate)) return@remember null to null
-                    val total = ChronoUnit.DAYS.between(pStartDate, pEndDate) + 1
-                    if (total >= 0) "$total" to strDurationTotalDays else null
+                    if (pEndDate.isBefore(pStartDate)) null // Invalid date range
+                    else {
+                        val total = ChronoUnit.DAYS.between(pStartDate, pEndDate) + 1
+                        if (total >= 0) "$total" to strDurationTotalDays else null
+                    }
                 }
                 pEndDate != null && !pEndDate.isBefore(today) -> {
                     val ref = today
-                    if (pEndDate.isBefore(ref)) return@remember null to null
-                    val remaining = ChronoUnit.DAYS.between(ref, pEndDate) + 1
-                    if (remaining >= 0) "$remaining" to strDurationRemainingDays else null
+                    if (pEndDate.isBefore(ref)) null // Already ended relative to ref
+                    else {
+                        val remaining = ChronoUnit.DAYS.between(ref, pEndDate) + 1
+                        if (remaining >= 0) "$remaining" to strDurationRemainingDays else null
+                    }
                 }
                 else -> null
             }
-        }?.let { if (it.first == null && it.second == null) null else it }
-            ?: (null to null)
+            if (result?.first == null && result?.second == null) null else result
+        } ?: (null to null)
     }
     val durationValue = durationPair.first
     val durationUnit = durationPair.second
@@ -211,18 +211,13 @@ fun MedicationDetailCounters(
                 val label = when (count) {
                     7 -> strDaysAll
                     1 -> strDaysSingle
-                    // Ensure strDaysMultipleWeekly can handle being formatted with a count, or adjust logic here.
-                    // For example, if strDaysMultipleWeekly is "%d days/week", you might do:
-                    // else -> String.format(strDaysMultipleWeekly, count)
-                    // However, if it's just "Days/Week", then count.toString() is fine for the value part.
                     else -> strDaysMultipleWeekly
                 }
-                // Assuming the 'value' part is the count, and 'label' is the descriptive text.
                 count.toString() to label
             } else {
-                null to null
+                null // If days list is empty, the pair concept isn't meaningful, return null
             }
-        } ?: (null to null)
+        } ?: (null to null) // If daysOfWeekInternal is null, or the let block results in null
     }
     val daysSummaryValue = daysSummaryPair.first
     val daysSummaryLabel = daysSummaryPair.second
