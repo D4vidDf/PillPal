@@ -12,7 +12,10 @@ import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
 // MedicationColor import removed if no longer needed
 import com.d4viddf.medicationreminder.ui.components.ProgressDetails
+import com.d4viddf.medicationreminder.workers.WorkerScheduler
+import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +37,8 @@ import javax.inject.Inject
 class MedicationViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val reminderRepository: MedicationReminderRepository,
-    private val scheduleRepository: MedicationScheduleRepository
+    private val scheduleRepository: MedicationScheduleRepository,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _medications = MutableStateFlow<List<Medication>>(emptyList()) // This will hold the unfiltered list directly
@@ -198,18 +202,23 @@ class MedicationViewModel @Inject constructor(
     suspend fun insertMedication(medication: Medication): Int {
         return withContext(Dispatchers.IO) {
             medicationRepository.insertMedication(medication)
+            // WorkerScheduler call removed from here, will be handled by caller
         }
     }
 
     fun updateMedication(medication: Medication) {
         viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.updateMedication(medication)
+            WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
+            Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after updating medication.")
         }
     }
 
     fun deleteMedication(medication: Medication) {
         viewModelScope.launch(Dispatchers.IO) {
             medicationRepository.deleteMedication(medication)
+            WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
+            Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after deleting medication.")
         }
     }
 }
