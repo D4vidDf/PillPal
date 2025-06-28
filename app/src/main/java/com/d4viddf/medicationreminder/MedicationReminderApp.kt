@@ -1,30 +1,25 @@
-package com.d4viddf.medicationreminder.ui
+package com.d4viddf.medicationreminder
 
 import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState // Still needed for navBackStackEntryAsState
 import androidx.compose.ui.Modifier
-// import androidx.compose.ui.Alignment // Removed
-// import androidx.compose.foundation.layout.Box // Removed
-// import androidx.compose.material3.CircularProgressIndicator // Removed
-import androidx.navigation.compose.rememberNavController
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository // Still needed for OnboardingScreen
-import com.d4viddf.medicationreminder.ui.screens.AppNavigation
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-// import androidx.compose.material3.rememberTopAppBarState // Comment out or remove
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.d4viddf.medicationreminder.ui.components.AppHorizontalFloatingToolbar
-import com.d4viddf.medicationreminder.ui.components.AppNavigationRail
-import com.d4viddf.medicationreminder.ui.screens.Screen
-import android.util.Log
+import androidx.navigation.compose.rememberNavController
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.ui.common.components.AppHorizontalFloatingToolbar
+import com.d4viddf.medicationreminder.ui.common.components.AppNavigationRail
+import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.navigation.AppNavigation
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class) // Required for TopAppBarDefaults scroll behaviors

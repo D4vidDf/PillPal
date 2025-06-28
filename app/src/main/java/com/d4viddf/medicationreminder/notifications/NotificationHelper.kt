@@ -121,7 +121,7 @@ object NotificationHelper {
         )
 
         // Full-screen activity intent
-        val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity::class.java).apply {
+        val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.features.notifications.activity.FullScreenNotificationActivity::class.java).apply {
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)

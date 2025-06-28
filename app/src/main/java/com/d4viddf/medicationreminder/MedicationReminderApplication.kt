@@ -1,16 +1,15 @@
 package com.d4viddf.medicationreminder
 
 import android.app.Application
-import android.os.Build
 import android.util.Log
 import androidx.work.Configuration
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.common.WorkerConstants // Added import
+import com.d4viddf.medicationreminder.common.WorkerConstants
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
+import com.d4viddf.medicationreminder.utils.FileLogger
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.HiltAndroidApp
 import java.util.Calendar

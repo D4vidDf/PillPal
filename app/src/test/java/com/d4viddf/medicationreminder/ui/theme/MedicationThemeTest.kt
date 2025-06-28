@@ -4,7 +4,7 @@ import androidx.compose.material3.ColorScheme // Actual M3 ColorScheme
 import androidx.compose.material3.darkColorScheme // Actual M3 darkColorScheme
 import androidx.compose.material3.lightColorScheme // Actual M3 lightColorScheme
 import androidx.compose.ui.graphics.Color
-import com.d4viddf.medicationreminder.ui.colors.MedicationColor
+import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
