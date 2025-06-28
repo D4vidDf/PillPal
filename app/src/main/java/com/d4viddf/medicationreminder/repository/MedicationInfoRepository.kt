@@ -16,10 +16,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Singleton
 class MedicationInfoRepository @Inject constructor(
-    private val medicationInfoDao: MedicationInfoDao
+    private val medicationInfoDao: MedicationInfoDao,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     private val client = OkHttpClient()
 
@@ -44,7 +48,7 @@ class MedicationInfoRepository @Inject constructor(
     }
 
     // Enhanced Function to Search Medication from CIMA API with Pagination
-    suspend fun searchMedication(query: String): List<MedicationSearchResult> {
+    suspend fun searchMedication(query: String): List<MedicationSearchResult> = withContext(ioDispatcher) {
         val searchResults = mutableListOf<MedicationSearchResult>()
         var page = 1
         var moreResults = true
@@ -138,10 +142,10 @@ class MedicationInfoRepository @Inject constructor(
             page++
         }
 
-        return searchResults
+        searchResults // Return searchResults from withContext block
     }
 
-    suspend fun getMedicationDetailsByNRegistro(nregistro: String): CimaMedicationDetail? {
+    suspend fun getMedicationDetailsByNRegistro(nregistro: String): CimaMedicationDetail? = withContext(ioDispatcher) {
         val apiUrl = "https://cima.aemps.es/cima/rest/medicamento?nregistro=$nregistro"
         val request = Request.Builder().url(apiUrl).build()
         val TAG = "MedicationInfoRepo" // For logging
@@ -150,13 +154,13 @@ class MedicationInfoRepository @Inject constructor(
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
                 Log.e(TAG, "Unsuccessful response for nregistro $nregistro: ${response.code}")
-                return null
+                return@withContext null
             }
 
             val responseBody = response.body?.string()
             if (responseBody.isNullOrEmpty()) {
                 Log.e(TAG, "Empty response body for nregistro $nregistro")
-                return null
+                return@withContext null
             }
 
             val jsonResponse = JSONObject(responseBody)
@@ -167,7 +171,7 @@ class MedicationInfoRepository @Inject constructor(
             val docsJsonArray = jsonResponse.optJSONArray("docs")
             val fotosJsonArray = jsonResponse.optJSONArray("fotos")
 
-            return CimaMedicationDetail(
+            CimaMedicationDetail(
                 nregistro = jsonResponse.optString("nregistro", null),
                 nombre = jsonResponse.optString("nombre", null),
                 labtitular = jsonResponse.optString("labtitular", null),
@@ -203,7 +207,7 @@ class MedicationInfoRepository @Inject constructor(
 
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching or parsing medication details for nregistro $nregistro", e)
-            return null
+            null // Return null from withContext block
         }
     }
 }

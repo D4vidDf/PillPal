@@ -136,7 +136,7 @@ class MedicationGraphViewModel @Inject constructor(
         reminderObserverJob?.cancel() // Cancel any existing observer job
         Log.d(TAG, "Previous reminderObserverJob cancelled.")
 
-        reminderObserverJob = viewModelScope.launch(Dispatchers.IO) {
+        reminderObserverJob = viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             Log.i(TAG, "ReminderObserverJob: Started for medId: $medicationId, week: $currentWeekDays")
@@ -290,7 +290,7 @@ class MedicationGraphViewModel @Inject constructor(
 
     fun loadYearlyGraphData(medicationId: Int, targetYear: Int) {
         Log.d(TAG, "loadYearlyGraphData: Called with medicationId: $medicationId, targetYear: $targetYear")
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             Log.i(TAG, "loadYearlyGraphData: Starting for medId: $medicationId, year: $targetYear")

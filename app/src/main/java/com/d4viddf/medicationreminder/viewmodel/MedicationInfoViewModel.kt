@@ -37,7 +37,7 @@ class MedicationInfoViewModel @Inject constructor(
         _error.value = null
         _medicationInfo.value = null // Clear previous info
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 val medication = medicationRepository.getMedicationById(medicationId)
                 if (medication != null) {

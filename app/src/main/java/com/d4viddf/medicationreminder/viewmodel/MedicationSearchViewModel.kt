@@ -32,7 +32,7 @@ class MedicationSearchViewModel @Inject constructor(
             // _isLoading.value = false // Ensure loading is false if query is too short
             return
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             Log.d(TAG, "Searching for: $query")
             _isLoading.value = true
             try {

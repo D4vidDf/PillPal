@@ -113,7 +113,7 @@ class MedicationViewModel @Inject constructor(
     }
 
     fun observeMedicationAndRemindersForDailyProgress(medicationId: Int) {
-        viewModelScope.launch(Dispatchers.IO) { // Mover a IO para operaciones de BD y cálculo
+        viewModelScope.launch { // Mover a IO para operaciones de BD y cálculo
             // Observar cambios en los reminders y recalcular
             // También necesitamos observar el medicationState y scheduleState por si cambian (ej. edición)
             // Una forma más robusta podría ser combinar Flows, pero por ahora recolectaremos reminders
@@ -207,7 +207,7 @@ class MedicationViewModel @Inject constructor(
     }
 
     fun updateMedication(medication: Medication) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             medicationRepository.updateMedication(medication)
             WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
             Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after updating medication.")
@@ -215,7 +215,7 @@ class MedicationViewModel @Inject constructor(
     }
 
     fun deleteMedication(medication: Medication) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             medicationRepository.deleteMedication(medication)
             WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
             Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after deleting medication.")
