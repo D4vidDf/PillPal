@@ -58,8 +58,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
+import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.common.IntentExtraConstants
+// import com.d4viddf.medicationreminder.notifications.NotificationHelper // Direct refs replaced
+// import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Direct refs replaced
 import com.d4viddf.medicationreminder.ui.colors.MedicationColor
 import com.d4viddf.medicationreminder.ui.components.AnimatedShape
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
@@ -73,22 +75,18 @@ import java.util.Locale
 class FullScreenNotificationActivity : ComponentActivity() {
 
     companion object {
-        const val EXTRA_REMINDER_ID = "extra_reminder_id"
-        const val EXTRA_MED_NAME = "extra_med_name"
-        const val EXTRA_MED_DOSAGE = "extra_med_dosage"
-        const val EXTRA_MED_COLOR_HEX = "extra_med_color_hex" // This is the MedicationColor enum name string
-        const val EXTRA_MED_TYPE_NAME = "extra_med_type_name"
+        // All EXTRAs moved to IntentExtraConstants or NotificationConstants
         private const val TAG = "FullScreenNotification"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
-        val medicationName = intent.getStringExtra(EXTRA_MED_NAME) ?: getString(R.string.medication_name_placeholder)
-        val medicationDosage = intent.getStringExtra(EXTRA_MED_DOSAGE) ?: getString(R.string.not_set)
-        val medicationColorNameString = intent.getStringExtra(EXTRA_MED_COLOR_HEX)
-        val medicationTypeName = intent.getStringExtra(EXTRA_MED_TYPE_NAME)
+        val reminderId = intent.getIntExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_REMINDER_ID, -1)
+        val medicationName = intent.getStringExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_MEDICATION_NAME) ?: getString(R.string.medication_name_placeholder)
+        val medicationDosage = intent.getStringExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_MEDICATION_DOSAGE) ?: getString(R.string.not_set)
+        val medicationColorNameString = intent.getStringExtra(com.d4viddf.medicationreminder.common.NotificationConstants.EXTRA_MED_COLOR_HEX)
+        val medicationTypeName = intent.getStringExtra(com.d4viddf.medicationreminder.common.NotificationConstants.EXTRA_MED_TYPE_NAME)
 
         Log.d(TAG, "Activity created for Reminder ID: $reminderId, Name: $medicationName, Dosage: $medicationDosage, ColorNameString: $medicationColorNameString, Type: $medicationTypeName")
 
@@ -126,9 +124,9 @@ class FullScreenNotificationActivity : ComponentActivity() {
                     animatedShapesColor = animatedShapesColor,
                     onMarkAsTaken = {
                         Log.i(TAG, "Mark as Taken clicked for Reminder ID: $reminderId")
-                        val markTakenIntent = Intent(applicationContext, ReminderBroadcastReceiver::class.java).apply {
-                            action = NotificationHelper.ACTION_MARK_AS_TAKEN
-                            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId)
+                        val markTakenIntent = Intent(applicationContext, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
+                            action = IntentActionConstants.ACTION_MARK_AS_TAKEN
+                            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
                         }
                         applicationContext.sendBroadcast(markTakenIntent)
                         if (reminderId != -1) {
