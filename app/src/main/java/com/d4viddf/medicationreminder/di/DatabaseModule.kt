@@ -93,4 +93,7 @@ object DatabaseModule {
     @Provides
     fun provideFirebaseSyncDao(database: MedicationDatabase): FirebaseSyncDao = database.firebaseSyncDao()
 
+    @Provides
+    @Singleton // Dispatchers are singletons
+    fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
 }

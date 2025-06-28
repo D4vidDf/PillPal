@@ -55,7 +55,7 @@ class MedicationReminderViewModel @Inject constructor(
 
 
     fun loadRemindersForMedication(medicationId: Int) {
-        viewModelScope.launch(Dispatchers.IO) { // Las operaciones de BD en IO
+        viewModelScope.launch { // Las operaciones de BD en IO
             reminderRepository.getRemindersForMedication(medicationId).collect { allRemindersList ->
                 val sortedAllReminders = allRemindersList.sortedBy { it.reminderTime }
                 _allRemindersForSelectedMedication.value = sortedAllReminders
@@ -91,7 +91,7 @@ class MedicationReminderViewModel @Inject constructor(
     }
 
     fun markReminderAsTakenAndUpdateLists(reminderId: Int, medicationId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val nowString = LocalDateTime.now().format(storableDateTimeFormatter)
             Log.d("MedReminderVM", "Marking reminderId $reminderId (medId $medicationId) as taken at $nowString")
             reminderRepository.markReminderAsTaken(reminderId, nowString)
@@ -125,7 +125,7 @@ class MedicationReminderViewModel @Inject constructor(
         val funcTag = "loadTodaySchedule[MedId:$medicationId]"
         Log.d("MedReminderVM", "$funcTag: Starting to load today's schedule.")
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val medication = medicationRepository.getMedicationById(medicationId)
             if (medication == null) {
                 Log.w("MedReminderVM", "$funcTag: Medication not found.")
@@ -319,7 +319,7 @@ class MedicationReminderViewModel @Inject constructor(
 
     // Function to Add Past Medication Taken
     fun addPastMedicationTaken(medicationId: Int, medicationNameParam: String, date: LocalDate, time: LocalTime) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val pastDateTime = LocalDateTime.of(date, time)
             if (pastDateTime.isAfter(LocalDateTime.now())) {
                 Log.e("MedReminderVM", "Cannot add past medication taken: Date and time are in the future. MedId: $medicationId, DateTime: $pastDateTime")
@@ -382,7 +382,7 @@ class MedicationReminderViewModel @Inject constructor(
 
     // Function to Update Reminder Status (Toggle)
     fun updateReminderStatus(itemId: String, isTaken: Boolean, medicationId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val todayItem = _todayScheduleItems.value.find { it.id == itemId }
             if (todayItem == null) {
                 Log.e("MedReminderVM", "updateReminderStatus: TodayScheduleItem not found for ID: $itemId. Cannot update status.")

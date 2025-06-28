@@ -51,7 +51,7 @@ class MedicationHistoryViewModel @Inject constructor(
 
     fun loadInitialHistory(medicationId: Int, filterDate: LocalDate? = null, filterMonth: YearMonth? = null) {
         Log.d(TAG, "loadInitialHistory called for medicationId: $medicationId, filterDate: $filterDate, filterMonth: $filterMonth")
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             try {
@@ -118,7 +118,7 @@ class MedicationHistoryViewModel @Inject constructor(
 
     private fun processHistory() {
         Log.d(TAG, "processHistory called. Current filter: ${_dateFilter.value}, sortAscending: ${_sortAscending.value}")
-        viewModelScope.launch(Dispatchers.Default) { // Use Default dispatcher for processing
+        viewModelScope.launch { // Use Default dispatcher for processing
             _isLoading.value = true // Indicate processing starts
 
             val currentRawHistory = _rawHistory.value
