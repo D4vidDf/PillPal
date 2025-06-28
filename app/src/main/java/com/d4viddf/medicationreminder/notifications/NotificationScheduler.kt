@@ -6,11 +6,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.common.IntentExtraConstants
+import com.d4viddf.medicationreminder.common.NotificationConstants
+import com.d4viddf.medicationreminder.common.WorkerConstants
 import com.d4viddf.medicationreminder.data.MedicationReminder
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
-import com.d4viddf.medicationreminder.services.PreReminderForegroundService
+import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Keep for class name, specific constants removed
+import com.d4viddf.medicationreminder.services.PreReminderForegroundService // Keep for class name, specific constants removed
 import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
-import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+// import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -58,14 +62,14 @@ class NotificationScheduler @Inject constructor() {
         }
 
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ReminderBroadcastReceiver.ACTION_SHOW_REMINDER
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminder.id)
-            putExtra(ReminderBroadcastReceiver.EXTRA_MEDICATION_NAME, medicationName)
-            putExtra(ReminderBroadcastReceiver.EXTRA_MEDICATION_DOSAGE, medicationDosage)
-            putExtra(ReminderBroadcastReceiver.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, actualScheduledTimeMillis)
-            putExtra(ReminderBroadcastReceiver.EXTRA_IS_INTERVAL, isIntervalType)
+            action = IntentActionConstants.ACTION_SHOW_REMINDER
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminder.id)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)
+            putExtra(IntentExtraConstants.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, actualScheduledTimeMillis)
+            putExtra(IntentExtraConstants.EXTRA_IS_INTERVAL, isIntervalType)
             nextDoseTimeForHelperMillis?.let {
-                putExtra(ReminderBroadcastReceiver.EXTRA_NEXT_DOSE_TIME_MILLIS, it)
+                putExtra(IntentExtraConstants.EXTRA_NEXT_DOSE_TIME_MILLIS, it)
             }
         }
         val intentExtrasString = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"
@@ -122,7 +126,7 @@ class NotificationScheduler @Inject constructor() {
         actualMainReminderTimeMillis: Long,
         medicationName: String
     ) {
-        val preReminderTimeMillis = actualMainReminderTimeMillis - TimeUnit.MINUTES.toMillis(ReminderSchedulingWorker.PRE_REMINDER_OFFSET_MINUTES)
+        val preReminderTimeMillis = actualMainReminderTimeMillis - TimeUnit.MINUTES.toMillis(WorkerConstants.PRE_REMINDER_OFFSET_MINUTES)
         val initialPreLog = "schedulePreReminderServiceTrigger called with: reminder.id=${reminder.id}, actualMainReminderTimeMillis=${formatMillisToDateTimeString(actualMainReminderTimeMillis)} ($actualMainReminderTimeMillis), medicationName='$medicationName'. Calculated preReminderTimeMillis=${formatMillisToDateTimeString(preReminderTimeMillis)} ($preReminderTimeMillis)"
         Log.d(TAG, initialPreLog)
         FileLogger.log(TAG, initialPreLog)
@@ -140,17 +144,17 @@ class NotificationScheduler @Inject constructor() {
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ReminderBroadcastReceiver.ACTION_TRIGGER_PRE_REMINDER_SERVICE
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminder.id)
-            putExtra(ReminderBroadcastReceiver.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, actualMainReminderTimeMillis)
-            putExtra(ReminderBroadcastReceiver.EXTRA_MEDICATION_NAME, medicationName)
+            action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminder.id)
+            putExtra(IntentExtraConstants.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, actualMainReminderTimeMillis)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
         }
         val intentExtrasPreString = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"
         val intentPreCreatedLog = "PRE-REMINDER Intent created: action=${intent.action}, extras=[$intentExtrasPreString]"
         Log.d(TAG, intentPreCreatedLog)
         FileLogger.log(TAG, intentPreCreatedLog)
 
-        val preReminderRequestCode = reminder.id + PreReminderForegroundService.PRE_REMINDER_NOTIFICATION_ID_OFFSET
+        val preReminderRequestCode = reminder.id + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
         val preReqCodeLog = "PRE-REMINDER preReminderRequestCode: $preReminderRequestCode"
         Log.d(TAG, preReqCodeLog)
         FileLogger.log(TAG, preReqCodeLog)
@@ -196,8 +200,8 @@ class NotificationScheduler @Inject constructor() {
         FileLogger.log(TAG, cancelMainLog)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ReminderBroadcastReceiver.ACTION_SHOW_REMINDER
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId)
+            action = IntentActionConstants.ACTION_SHOW_REMINDER
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
         }
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
@@ -222,21 +226,21 @@ class NotificationScheduler @Inject constructor() {
                 FileLogger.log(TAG, errorCancelLog, e)
             }
         } else {
-            val noPiLog = "No MAIN PendingIntent found to cancel for reminder ID: $reminderId (request_code: $reminderId). Intent used for lookup: action=${intent.action}, extras=[${ReminderBroadcastReceiver.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
+        val noPiLog = "No MAIN PendingIntent found to cancel for reminder ID: $reminderId (request_code: $reminderId). Intent used for lookup: action=${intent.action}, extras=[${IntentExtraConstants.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
             Log.w(TAG, noPiLog)
             FileLogger.log(TAG, noPiLog)
         }
     }
 
     private fun cancelPreReminderServiceAlarm(context: Context, reminderId: Int) {
-        val preReminderRequestCode = reminderId + PreReminderForegroundService.PRE_REMINDER_NOTIFICATION_ID_OFFSET
+    val preReminderRequestCode = reminderId + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
         val cancelPreLog = "cancelPreReminderServiceAlarm called for original reminderId: $reminderId (preReminderRequestCode: $preReminderRequestCode)"
         Log.d(TAG, cancelPreLog)
         FileLogger.log(TAG, cancelPreLog)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ReminderBroadcastReceiver.ACTION_TRIGGER_PRE_REMINDER_SERVICE
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderId)
+        action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
+        putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
         }
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
@@ -261,7 +265,7 @@ class NotificationScheduler @Inject constructor() {
                 FileLogger.log(TAG, errorCancelPreLog, e)
             }
         } else {
-            val noPiPreLog = "No PRE-REMINDER PendingIntent found to cancel for original reminderId $reminderId (request_code: $preReminderRequestCode). Intent used for lookup: action=${intent.action}, extras=[${ReminderBroadcastReceiver.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
+            val noPiPreLog = "No PRE-REMINDER PendingIntent found to cancel for original reminderId $reminderId (request_code: $preReminderRequestCode). Intent used for lookup: action=${intent.action}, extras=[${IntentExtraConstants.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
             Log.w(TAG, noPiPreLog)
             FileLogger.log(TAG, noPiPreLog)
         }
@@ -278,8 +282,8 @@ class NotificationScheduler @Inject constructor() {
         NotificationHelper.cancelNotification(context, PreReminderForegroundService.getNotificationId(reminderId))
 
         val stopServiceIntent = Intent(context, PreReminderForegroundService::class.java).apply {
-            action = PreReminderForegroundService.ACTION_STOP_PRE_REMINDER
-            putExtra(PreReminderForegroundService.EXTRA_SERVICE_REMINDER_ID, reminderId)
+            action = IntentActionConstants.ACTION_STOP_PRE_REMINDER
+            putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminderId)
         }
         try {
             // startService might throw IllegalStateException if app is in background on Android 12+

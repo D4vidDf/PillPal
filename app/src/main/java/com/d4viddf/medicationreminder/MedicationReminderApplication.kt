@@ -8,6 +8,7 @@ import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.d4viddf.medicationreminder.common.WorkerConstants // Added import
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
@@ -82,7 +83,7 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
         FileLogger.log("MedicationReminderApp", "Successfully got WorkManager instance: $workManager")
 
         val data = Data.Builder()
-            .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)
+            .putBoolean(WorkerConstants.KEY_IS_DAILY_REFRESH, true)
             .build()
 
         val currentTimeMillis = System.currentTimeMillis()
