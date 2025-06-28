@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.d4viddf.medicationreminder.common.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
+import com.d4viddf.medicationreminder.common.WorkerConstants.KEY_IS_DAILY_REFRESH
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
@@ -30,21 +32,15 @@ class ReminderSchedulingWorker constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
-        const val WORK_NAME_PREFIX = "ReminderSchedulingWorker_"
-        const val KEY_MEDICATION_ID = "medication_id"
-        const val KEY_IS_DAILY_REFRESH = "is_daily_refresh"
+        // Constants moved to WorkerConstants.kt
         private const val TAG = "ReminderSchedWorker"
         private val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-
-        // Flags de configuración (simulados por ahora)
-        const val ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE = true
-        const val PRE_REMINDER_OFFSET_MINUTES = 60L // Configurable: 60 minutos antes
     }
 
     override suspend fun doWork(): Result {
         Log.d(TAG, "ReminderSchedulingWorker (CustomFactory) started. InputData: $inputData, Thread: ${Thread.currentThread().name}")
-        val medicationIdInput = inputData.getInt(KEY_MEDICATION_ID, -1)
-        val isDailyRefresh = inputData.getBoolean(KEY_IS_DAILY_REFRESH, false)
+        val medicationIdInput = inputData.getInt(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_MEDICATION_ID, -1)
+        val isDailyRefresh = inputData.getBoolean(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_IS_DAILY_REFRESH, false)
 
         return try {
             if (isDailyRefresh) {

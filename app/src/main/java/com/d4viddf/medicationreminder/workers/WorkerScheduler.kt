@@ -6,6 +6,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import com.d4viddf.medicationreminder.common.WorkerConstants // Added import
 
 object WorkerScheduler {
 
@@ -18,7 +19,7 @@ object WorkerScheduler {
      */
     fun scheduleRemindersGlobalRefresh(context: Context) {
         val inputData = Data.Builder()
-            .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)
+            .putBoolean(WorkerConstants.KEY_IS_DAILY_REFRESH, true)
             .build()
 
         val workRequest = OneTimeWorkRequestBuilder<ReminderSchedulingWorker>()
@@ -46,7 +47,7 @@ object WorkerScheduler {
         }
 
         val inputData = Data.Builder()
-            .putInt(ReminderSchedulingWorker.KEY_MEDICATION_ID, medicationId)
+            .putInt(WorkerConstants.KEY_MEDICATION_ID, medicationId)
             // KEY_IS_DAILY_REFRESH will be false by default, which is correct for specific med scheduling
             .build()
 
@@ -54,7 +55,7 @@ object WorkerScheduler {
             .setInputData(inputData)
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             // Add a tag that could be used for cancellation if needed, though unique work name is primary
-            .addTag("${ReminderSchedulingWorker.WORK_NAME_PREFIX}${medicationId}")
+            .addTag("${WorkerConstants.WORK_NAME_PREFIX}${medicationId}")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(

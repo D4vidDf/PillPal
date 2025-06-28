@@ -18,17 +18,17 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
+import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.common.IntentExtraConstants
+import com.d4viddf.medicationreminder.common.NotificationConstants
+// import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Now using IntentExtraConstants
 import java.util.concurrent.TimeUnit
 
 object NotificationHelper {
 
-    const val REMINDER_CHANNEL_ID = "medication_reminder_channel"
     // REMINDER_CHANNEL_NAME and REMINDER_CHANNEL_DESCRIPTION removed
-    const val PRE_REMINDER_CHANNEL_ID = "pre_medication_reminder_channel"
     // PRE_REMINDER_CHANNEL_NAME and PRE_REMINDER_CHANNEL_DESCRIPTION removed
 
-    const val ACTION_MARK_AS_TAKEN = "com.d4viddf.medicationreminder.ACTION_MARK_AS_TAKEN"
     private const val TAG = "NotificationHelper"
 
     fun createNotificationChannels(context: Context) {
@@ -36,7 +36,7 @@ object NotificationHelper {
             val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Changed to TYPE_ALARM
 
             val reminderChannelHigh = NotificationChannel(
-                REMINDER_CHANNEL_ID,
+                NotificationConstants.REMINDER_CHANNEL_ID,
                 context.getString(R.string.notification_channel_reminder_name), // Use new string resource
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
@@ -53,7 +53,7 @@ object NotificationHelper {
             }
 
             val preReminderChannelDefault = NotificationChannel(
-                PRE_REMINDER_CHANNEL_ID,
+                NotificationConstants.PRE_REMINDER_CHANNEL_ID,
                 context.getString(R.string.notification_channel_prereminder_name), // Use new string resource
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
@@ -66,9 +66,9 @@ object NotificationHelper {
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(reminderChannelHigh)
-            Log.d(TAG, "Notification channel $REMINDER_CHANNEL_ID created with HIGH importance and sound.")
+            Log.d(TAG, "Notification channel ${NotificationConstants.REMINDER_CHANNEL_ID} created with HIGH importance and sound.")
             notificationManager.createNotificationChannel(preReminderChannelDefault)
-            Log.d(TAG, "Notification channel $PRE_REMINDER_CHANNEL_ID created with DEFAULT importance.")
+            Log.d(TAG, "Notification channel ${NotificationConstants.PRE_REMINDER_CHANNEL_ID} created with DEFAULT importance.")
         }
     }
 
@@ -106,7 +106,7 @@ object NotificationHelper {
         // Standard content intent (tapping the notification itself)
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("notification_tap_reminder_id", reminderDbId) // For MainActivity to know which reminder
+            putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_REMINDER_ID, reminderDbId) // For MainActivity to know which reminder
         }
         val contentPendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -122,11 +122,11 @@ object NotificationHelper {
 
         // Full-screen activity intent
         val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity::class.java).apply {
-            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_REMINDER_ID, reminderDbId)
-            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_NAME, medicationName)
-            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_DOSAGE, medicationDosage)
-            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_COLOR_HEX, medicationColorHex)
-            putExtra(com.d4viddf.medicationreminder.ui.activities.FullScreenNotificationActivity.EXTRA_MED_TYPE_NAME, medicationTypeName)
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)
+            putExtra(NotificationConstants.EXTRA_MED_COLOR_HEX, medicationColorHex)
+            putExtra(NotificationConstants.EXTRA_MED_TYPE_NAME, medicationTypeName)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Standard flags
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(
@@ -136,9 +136,9 @@ object NotificationHelper {
             contentPendingIntentFlags // Re-use flags, suitable for activities
         )
 
-        val markAsActionIntent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ACTION_MARK_AS_TAKEN
-            putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, reminderDbId)
+        val markAsActionIntent = Intent(context, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
+            action = IntentActionConstants.ACTION_MARK_AS_TAKEN
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
         }
         // Unique request code for this pending intent
         val markAsTakenRequestCode = reminderDbId + 1000
@@ -151,7 +151,7 @@ object NotificationHelper {
 
         // val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) // Old line, to be removed or replaced
 
-        val notificationCompatBuilder = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
+        val notificationCompatBuilder = NotificationCompat.Builder(context, NotificationConstants.REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(notificationTitle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

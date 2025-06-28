@@ -22,24 +22,25 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
-import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.common.IntentExtraConstants
+import com.d4viddf.medicationreminder.common.NotificationConstants
+import com.d4viddf.medicationreminder.common.WorkerConstants
+// import com.d4viddf.medicationreminder.notifications.NotificationHelper // Direct refs replaced
+// import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Direct refs replaced
+// import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
 import java.util.concurrent.TimeUnit
 
 class PreReminderForegroundService : Service() {
 
     companion object {
-        const val ACTION_STOP_PRE_REMINDER = "com.d4viddf.medicationreminder.ACTION_STOP_PRE_REMINDER"
-        const val EXTRA_SERVICE_REMINDER_ID = "extra_service_reminder_id"
-        const val EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS = "extra_service_actual_scheduled_time_millis"
-        const val EXTRA_SERVICE_MEDICATION_NAME = "extra_service_medication_name"
+        // ACTION_STOP_PRE_REMINDER moved to IntentActionConstants
+        // EXTRAs moved to IntentExtraConstants
 
-        internal const val PRE_REMINDER_NOTIFICATION_ID_OFFSET = 2000000
         private const val TAG = "PreReminderService"
-        const val TOTAL_PRE_REMINDER_DURATION_MINUTES = ReminderSchedulingWorker.PRE_REMINDER_OFFSET_MINUTES
+        const val TOTAL_PRE_REMINDER_DURATION_MINUTES = WorkerConstants.PRE_REMINDER_OFFSET_MINUTES
 
-        fun getNotificationId(reminderId: Int) = reminderId + PRE_REMINDER_NOTIFICATION_ID_OFFSET
+        fun getNotificationId(reminderId: Int) = reminderId + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
     }
 
     private lateinit var notificationManager: NotificationManager
@@ -81,9 +82,9 @@ class PreReminderForegroundService : Service() {
     @RequiresApi(36)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
-        val reminderIdFromIntent = intent?.getIntExtra(EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
+        val reminderIdFromIntent = intent?.getIntExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
 
-        if (intent?.action == ACTION_STOP_PRE_REMINDER) {
+        if (intent?.action == IntentActionConstants.ACTION_STOP_PRE_REMINDER) {
             Log.d(TAG, "Received ACTION_STOP_PRE_REMINDER for reminderId: $reminderIdFromIntent. Current: $currentReminderId")
             if (currentReminderId == reminderIdFromIntent || currentReminderId == -1 || reminderIdFromIntent == -1) { // Also stop if -1 is passed, signifying generic stop
                 stopSelfService()
@@ -91,8 +92,8 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val takeTimeFromIntent = intent?.getLongExtra(EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, -1L) ?: -1L
-        val medNameFromIntent = intent?.getStringExtra(EXTRA_SERVICE_MEDICATION_NAME) ?: getString(R.string.medications_title)
+        val takeTimeFromIntent = intent?.getLongExtra(IntentExtraConstants.EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, -1L) ?: -1L
+        val medNameFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_SERVICE_MEDICATION_NAME) ?: getString(R.string.medications_title)
 
 
         if (reminderIdFromIntent == -1 || takeTimeFromIntent == -1L) {
@@ -154,7 +155,7 @@ class PreReminderForegroundService : Service() {
 
         val notificationTapIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("notification_tap_prereminder_id", currentReminderId)
+            putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_PREREMINDER_ID, currentReminderId)
         }
         val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         val tapPendingIntent = PendingIntent.getActivity(this, getNotificationId(currentReminderId) + 1, notificationTapIntent, pendingIntentFlags)
@@ -169,7 +170,7 @@ class PreReminderForegroundService : Service() {
             else -> getString(R.string.prereminder_text_about_time)
         }
 
-        val builder = Notification.Builder(this, NotificationHelper.PRE_REMINDER_CHANNEL_ID)
+        val builder = Notification.Builder(this, NotificationConstants.PRE_REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(titleText)
             .setContentText(contentText)
@@ -209,9 +210,9 @@ class PreReminderForegroundService : Service() {
         }
 
         if (minutesRemainingOverall <= 10) { // Add "Taken" action in the last 10 minutes
-            val markAsActionIntent = Intent(this, ReminderBroadcastReceiver::class.java).apply {
-                action = NotificationHelper.ACTION_MARK_AS_TAKEN
-                putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, currentReminderId)
+            val markAsActionIntent = Intent(this, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
+                action = IntentActionConstants.ACTION_MARK_AS_TAKEN
+                putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, currentReminderId)
             }
             val markAsTakenPendingIntent = PendingIntent.getBroadcast(
                 this, currentReminderId + 3000, markAsActionIntent, pendingIntentFlags
@@ -234,7 +235,7 @@ class PreReminderForegroundService : Service() {
 
         val notificationTapIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("notification_tap_prereminder_id", currentReminderId)
+            putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_PREREMINDER_ID, currentReminderId)
         }
         val pendingIntentFlags =
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -245,7 +246,7 @@ class PreReminderForegroundService : Service() {
         val contentText = if (minutesRemaining > 0) getString(R.string.prereminder_text_approx_minutes_left_plural, minutesRemaining) else getString(R.string.prereminder_text_about_time)
 
 
-        val compatBuilder = NotificationCompat.Builder(this, NotificationHelper.PRE_REMINDER_CHANNEL_ID)
+        val compatBuilder = NotificationCompat.Builder(this, NotificationConstants.PRE_REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(titleText)
             .setContentText(contentText)
@@ -258,9 +259,9 @@ class PreReminderForegroundService : Service() {
 
 
         if (minutesRemaining <= 10) {
-            val markAsActionIntent = Intent(this, ReminderBroadcastReceiver::class.java).apply {
-                action = NotificationHelper.ACTION_MARK_AS_TAKEN
-                putExtra(ReminderBroadcastReceiver.EXTRA_REMINDER_ID, currentReminderId)
+            val markAsActionIntent = Intent(this, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
+                action = IntentActionConstants.ACTION_MARK_AS_TAKEN
+                putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, currentReminderId)
             }
             val markAsTakenPendingIntent = PendingIntent.getBroadcast(
                 this, currentReminderId + 3001, markAsActionIntent, pendingIntentFlags

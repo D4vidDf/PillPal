@@ -22,7 +22,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
+import com.d4viddf.medicationreminder.common.WorkerConstants // Added import
+import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Keep for class name
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.Data
@@ -198,7 +199,7 @@ class SettingsViewModel @Inject constructor(
 
             // Re-enqueue the worker
             val data = Data.Builder()
-                .putBoolean(ReminderSchedulingWorker.KEY_IS_DAILY_REFRESH, true)
+                .putBoolean(WorkerConstants.KEY_IS_DAILY_REFRESH, true)
                 .build()
 
             val currentTimeMillis = System.currentTimeMillis()
