@@ -119,9 +119,13 @@ class MedicationReminderViewModelTest {
         )
     }
 
+import java.time.DayOfWeek as JavaDayOfWeek
+
+import java.time.LocalTime
+
     private fun createTestSchedule(
         id: Int, medId: Int, type: ScheduleType,
-        specificTimes: String? = null, daysOfWeek: String? = null,
+        specificTimes: List<LocalTime>? = null, daysOfWeek: List<JavaDayOfWeek>? = null, // Changed to List<LocalTime>
         intervalHours: Int? = null, intervalMinutes: Int? = null,
         intervalStart: String? = null, intervalEnd: String? = null
     ): MedicationSchedule {
@@ -206,8 +210,8 @@ class MedicationReminderViewModelTest {
         val medication = createTestMedication(medId, "DailyMed", startDateOffset = 1) // Started yesterday
         val dailySchedule = createTestSchedule(
             1, medId, ScheduleType.DAILY,
-            specificTimes = "${time0900.format(ReminderCalculator.timeStorableFormatter)},${time1700.format(ReminderCalculator.timeStorableFormatter)}",
-            daysOfWeek = "1,2,3,4,5,6,7" // Everyday
+            specificTimes = listOf(time0900, time1700),
+            daysOfWeek = JavaDayOfWeek.values().toList() // Everyday
         )
 
         coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
@@ -247,8 +251,8 @@ class MedicationReminderViewModelTest {
         val medication = createTestMedication(medId, "DailyMix", startDateOffset = 2)
         val dailySchedule = createTestSchedule(
             2, medId, ScheduleType.DAILY,
-            specificTimes = "${time0800.format(ReminderCalculator.timeStorableFormatter)},${time1400.format(ReminderCalculator.timeStorableFormatter)},${time2000.format(ReminderCalculator.timeStorableFormatter)}",
-            daysOfWeek = today.dayOfWeek.value.toString() // Only for today
+            specificTimes = listOf(time0800, time1400, time2000),
+            daysOfWeek = listOf(today.dayOfWeek) // Only for today
         )
 
         val reminder0800Taken = createTestReminder("db0800", medId, dailySchedule.id, LocalDateTime.of(today, time0800), true, LocalDateTime.of(today, time0800.plusMinutes(2)))
@@ -410,8 +414,8 @@ class MedicationReminderViewModelTest {
         val scheduleTime = LocalTime.of(10,0)
         // Schedule for Monday, Wednesday, Friday at 10:00
         val weeklySchedule = createTestSchedule(12, medId, ScheduleType.WEEKLY,
-            specificTimes = scheduleTime.format(ReminderCalculator.timeStorableFormatter),
-            daysOfWeek = "1,3,5" // Mon, Wed, Fri
+            specificTimes = listOf(scheduleTime),
+            daysOfWeek = listOf(JavaDayOfWeek.MONDAY, JavaDayOfWeek.WEDNESDAY, JavaDayOfWeek.FRIDAY) // Mon, Wed, Fri
         )
         coEvery { mockMedicationRepository.getMedicationById(medId) } returns medication
         coEvery { mockScheduleRepository.getSchedulesForMedication(medId) } returns flowOf(listOf(weeklySchedule))
@@ -470,7 +474,7 @@ class MedicationReminderViewModelTest {
 
         // A daily schedule
         val dailyTime = LocalTime.of(9,0)
-        val dailySchedule = createTestSchedule(15, medId, ScheduleType.DAILY, specificTimes = dailyTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
+        val dailySchedule = createTestSchedule(15, medId, ScheduleType.DAILY, specificTimes = listOf(dailyTime), daysOfWeek = listOf(today.dayOfWeek))
 
         // An ad-hoc dose taken earlier than the scheduled one
         val adHocTime = LocalTime.of(7,0)
@@ -520,7 +524,7 @@ class MedicationReminderViewModelTest {
     fun `addPastMedicationTaken_validPastDose_noMatchingSchedule_insertsReminderWithScheduleIdNull`() = mainCoroutineRule.testDispatcher.runBlockingTest {
         val pastDate = LocalDate.now().minusDays(1)
         val pastTime = LocalTime.of(14, 0)
-        val scheduleNotMatching = createTestSchedule(3, testMedicationId, ScheduleType.DAILY, specificTimes = "10:00", daysOfWeek = "1")
+        val scheduleNotMatching = createTestSchedule(3, testMedicationId, ScheduleType.DAILY, specificTimes = listOf(LocalTime.of(10,0)), daysOfWeek = listOf(JavaDayOfWeek.MONDAY))
 
 
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
@@ -544,8 +548,8 @@ class MedicationReminderViewModelTest {
         val pastTime = LocalTime.of(10,0)
         val scheduleForPastDate = createTestSchedule(
             5, testMedicationId, ScheduleType.DAILY,
-            specificTimes = pastTime.format(ReminderCalculator.timeStorableFormatter),
-            daysOfWeek = pastDate.dayOfWeek.value.toString()
+            specificTimes = listOf(pastTime),
+            daysOfWeek = listOf(pastDate.dayOfWeek)
         )
         val medicationForPastDate = testMedication.copy(startDate = pastDate.minusDays(2).format(ReminderCalculator.dateStorableFormatter))
 
@@ -603,7 +607,7 @@ class MedicationReminderViewModelTest {
     private suspend fun setupLoadTodayScheduleWithOneItem(taken: Boolean, scheduleId: Int = 1, time: LocalTime = LocalTime.of(9,0)): TodayScheduleItem {
         val today = LocalDate.now()
         val itemTime = time
-        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
+        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = listOf(itemTime), daysOfWeek = listOf(today.dayOfWeek))
         val reminderTime = LocalDateTime.of(today, itemTime)
         val existingReminder = if (taken) createTestReminder("db101", testMedicationId, scheduleId, reminderTime, true, reminderTime) else null
 
@@ -643,7 +647,7 @@ class MedicationReminderViewModelTest {
         val reminderTime = LocalDateTime.of(today, itemTime)
         val dbReminder = createTestReminder("db102", testMedicationId, scheduleId, reminderTime, false)
 
-        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
+        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = listOf(itemTime), daysOfWeek = listOf(today.dayOfWeek))
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
         coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(testSchedule))
         // This mock is for loadTodaySchedule AND the find in updateReminderStatus
@@ -675,7 +679,7 @@ class MedicationReminderViewModelTest {
         val reminderTime = LocalDateTime.of(today, itemTime)
         val dbReminder = createTestReminder("db103", testMedicationId, scheduleId, reminderTime, true, reminderTime)
 
-        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = itemTime.format(ReminderCalculator.timeStorableFormatter), daysOfWeek = today.dayOfWeek.value.toString())
+        val testSchedule = createTestSchedule(scheduleId, testMedicationId, ScheduleType.DAILY, specificTimes = listOf(itemTime), daysOfWeek = listOf(today.dayOfWeek))
         coEvery { mockMedicationRepository.getMedicationById(testMedicationId) } returns testMedication
         coEvery { mockScheduleRepository.getSchedulesForMedication(testMedicationId) } returns flowOf(listOf(testSchedule))
         coEvery { mockReminderRepository.getRemindersForMedication(testMedicationId) } returns flowOf(listOf(dbReminder))
@@ -738,8 +742,8 @@ class MedicationReminderViewModelTest {
         val scheduleTime = LocalTime.of(9, 0)
         val testSchedule = createTestSchedule(
             id = 1, medId = medicationId, type = ScheduleType.DAILY,
-            specificTimes = scheduleTime.format(ReminderCalculator.timeStorableFormatter),
-            daysOfWeek = LocalDate.now().dayOfWeek.value.toString() // Schedule for today
+            specificTimes = listOf(scheduleTime),
+            daysOfWeek = listOf(LocalDate.now().dayOfWeek) // Schedule for today
         )
 
         coEvery { mockMedicationRepository.getMedicationById(medicationId) } returns activeMedication
@@ -762,8 +766,8 @@ class MedicationReminderViewModelTest {
         val scheduleTime = LocalTime.of(10, 0)
         val testSchedule = createTestSchedule(
             id = 2, medId = medicationId, type = ScheduleType.DAILY,
-            specificTimes = scheduleTime.format(ReminderCalculator.timeStorableFormatter),
-            daysOfWeek = LocalDate.now().dayOfWeek.value.toString() // Schedule for today
+            specificTimes = listOf(scheduleTime),
+            daysOfWeek = listOf(LocalDate.now().dayOfWeek) // Schedule for today
         )
 
         coEvery { mockMedicationRepository.getMedicationById(medicationId) } returns activeMedicationNoEndDate

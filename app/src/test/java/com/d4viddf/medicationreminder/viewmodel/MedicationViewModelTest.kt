@@ -89,7 +89,7 @@ class MedicationViewModelTest {
         intervalHours: Int? = null,
         intervalMinutes: Int? = null,
         intervalStartTime: String? = null, // Using String to match data class
-        specificTimes: String? = null // e.g., "08:00,12:00"
+        specificTimes: List<LocalTime>? = null // e.g., listOf(LocalTime.of(8,0), LocalTime.of(12,0))
     ): MedicationSchedule {
         return MedicationSchedule(
             id = medId * 10, // ensure unique schedule id
@@ -215,7 +215,7 @@ class MedicationViewModelTest {
         // DAILY schedule, one time at 09:00
         val schedule = createSchedule(
             scheduleType = ScheduleType.DAILY,
-            specificTimes = LocalTime.of(9,0).format(timeStorableFormatter) // "09:00"
+            specificTimes = listOf(LocalTime.of(9,0)) // "09:00"
         )
 
         `when`(medicationRepository.getMedicationById(testMedId)).thenReturn(medication)
@@ -242,10 +242,10 @@ class MedicationViewModelTest {
         val medicationStartDate = today.minusDays(1)
         val medication = createMedication(name = "TestMed $testMedId", startDate = medicationStartDate.format(dateStorableFormatter))
         // CUSTOM_ALARMS schedule, times at 10:00, 14:00, 18:00
-        val specificTimesStr = "${LocalTime.of(10,0).format(timeStorableFormatter)},${LocalTime.of(14,0).format(timeStorableFormatter)},${LocalTime.of(18,0).format(timeStorableFormatter)}"
+        val specificTimesList = listOf(LocalTime.of(10,0), LocalTime.of(14,0), LocalTime.of(18,0))
         val schedule = createSchedule(
             scheduleType = ScheduleType.CUSTOM_ALARMS,
-            specificTimes = specificTimesStr
+            specificTimes = specificTimesList
         )
 
         `when`(medicationRepository.getMedicationById(testMedId)).thenReturn(medication)

@@ -34,11 +34,13 @@ class AllSchedulesViewModelTest {
         // Arrange
         val medicationId = 1
         val sampleSchedules = listOf(
+import java.time.LocalTime
+
             MedicationSchedule(
                 id = 1,
                 medicationId = medicationId,
                 scheduleType = ScheduleType.DAILY,
-                specificTimes = "08:00,14:00",
+                specificTimes = listOf(LocalTime.of(8,0), LocalTime.of(14,0)),
                 intervalHours = null,
                 intervalMinutes = null,
                 daysOfWeek = null,
@@ -47,10 +49,12 @@ class AllSchedulesViewModelTest {
             ),
             MedicationSchedule(
                 id = 2,
+import java.time.DayOfWeek
+
                 medicationId = medicationId,
                 scheduleType = ScheduleType.WEEKLY,
-                daysOfWeek = "1,3,5",
-                specificTimes = "10:00",
+                daysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY),
+                specificTimes = listOf(LocalTime.of(10,0)),
                 intervalHours = null,
                 intervalMinutes = null,
                 intervalStartTime = null,
@@ -75,7 +79,7 @@ class AllSchedulesViewModelTest {
         // Assert that the collected list is equal to the sampleSchedules
         assertEquals(sampleSchedules, resultList)
         assertEquals(2, resultList.size)
-        assertEquals("08:00,14:00", resultList[0].specificTimes)
+        assertEquals(listOf(LocalTime.of(8,0), LocalTime.of(14,0)), resultList[0].specificTimes)
     }
 
     @Test

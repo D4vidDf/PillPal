@@ -203,13 +203,12 @@ fun AddMedicationScreen(
                                     scheduleType = scheduleType,
                                     intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
                                     intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
-                                    daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.joinToString(",") else null,
+                                    daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { java.time.DayOfWeek.of(it) } else null,
                                     specificTimes = when (scheduleType) {
-                                        ScheduleType.DAILY -> onceADayTime?.format(timeFormatter)?.let { listOf(it) }?.joinToString(",")
-                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes.map { it.format(timeFormatter) }.joinToString(",")
+                                        ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
+                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes
                                         else -> null
                                     },
-                                    // Assuming you add these to MedicationSchedule data class and DB
                                     intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
                                     intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
                                 )
@@ -632,7 +631,7 @@ fun MedicationSummary(
             Spacer(Modifier.width(8.dp))
             Box(Modifier.size(24.dp).background(color, CircleShape))
         }
-        Divider(Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
         Text(stringResource(id = R.string.reminder_details_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
         InfoRow(stringResource(id = R.string.label_frequency), stringResource(id = frequency.stringResId)) // Display localized frequency name
 

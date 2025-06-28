@@ -132,10 +132,10 @@ fun MedicationDetailCounters(
 
     val frequencyPair: Pair<String?, String?> = remember(schedule, strDoseUnitSingle, strDoseUnitPlural, strFreqOnceDaily, strFreqMultipleDaily, strFreqInterval, strFreqAsNeeded) {
         schedule?.let { sched ->
-            val timesCount = sched.specificTimes?.split(',')?.count { it.isNotBlank() } ?: 0
-            when (sched.scheduleType) {
+            val timesCount = sched.specificTimes?.count() ?: 0
+            val result: Pair<String?, String?>? = when (sched.scheduleType) {
                 ScheduleType.DAILY, ScheduleType.WEEKLY -> {
-                    if (!sched.daysOfWeek.isNullOrBlank()) {
+                    if (!sched.daysOfWeek.isNullOrEmpty()) {
                         if (timesCount == 1) "1" to strDoseUnitSingle
                         else if (timesCount > 1) "$timesCount" to strDoseUnitPlural
                         else null
@@ -155,10 +155,11 @@ fun MedicationDetailCounters(
                     if (vp.isNotEmpty()) "Cada ${vp.joinToString(" ")}" to strFreqInterval else null
                 }
                 ScheduleType.AS_NEEDED -> "S/N" to strFreqAsNeeded
-                else -> null
+                // No else needed as ScheduleType is an enum and all cases are handled
             }
-        }?.let { if (it.first == null && it.second == null) null else it }
-            ?: (null to null)
+            // If the result is a Pair(null, null), convert it to a plain null. Otherwise, use the result.
+            if (result?.first == null && result?.second == null) null else result
+        } ?: (null to null) // Fallback for when schedule is null or the let chain results in null
     }
     val frequencyValue = frequencyPair.first
     val frequencyUnit = frequencyPair.second
@@ -174,29 +175,33 @@ fun MedicationDetailCounters(
             if (!med.endDate.isNullOrBlank() && med.endDate != strSelectEndDatePlaceholder) {
                 try { pEndDate = LocalDate.parse(med.endDate, ReminderCalculator.dateStorableFormatter) } catch (e: DateTimeParseException) {}
             }
-            when {
+            val result: Pair<String?, String?>? = when {
                 pStartDate != null && pEndDate != null -> {
-                    if (pEndDate.isBefore(pStartDate)) return@remember null to null
-                    val total = ChronoUnit.DAYS.between(pStartDate, pEndDate) + 1
-                    if (total >= 0) "$total" to strDurationTotalDays else null
+                    if (pEndDate.isBefore(pStartDate)) null // Invalid date range
+                    else {
+                        val total = ChronoUnit.DAYS.between(pStartDate, pEndDate) + 1
+                        if (total >= 0) "$total" to strDurationTotalDays else null
+                    }
                 }
                 pEndDate != null && !pEndDate.isBefore(today) -> {
                     val ref = today
-                    if (pEndDate.isBefore(ref)) return@remember null to null
-                    val remaining = ChronoUnit.DAYS.between(ref, pEndDate) + 1
-                    if (remaining >= 0) "$remaining" to strDurationRemainingDays else null
+                    if (pEndDate.isBefore(ref)) null // Already ended relative to ref
+                    else {
+                        val remaining = ChronoUnit.DAYS.between(ref, pEndDate) + 1
+                        if (remaining >= 0) "$remaining" to strDurationRemainingDays else null
+                    }
                 }
                 else -> null
             }
-        }?.let { if (it.first == null && it.second == null) null else it }
-            ?: (null to null)
+            if (result?.first == null && result?.second == null) null else result
+        } ?: (null to null)
     }
     val durationValue = durationPair.first
     val durationUnit = durationPair.second
 
-    val daysOfWeekInternal: List<Int>? = remember(schedule) {
-        schedule?.takeIf { (it.scheduleType == ScheduleType.DAILY || it.scheduleType == ScheduleType.WEEKLY) && !it.daysOfWeek.isNullOrBlank() }
-            ?.daysOfWeek?.split(',')?.mapNotNull { it.trim().toIntOrNull() }?.sorted()
+    val daysOfWeekInternal: List<java.time.DayOfWeek>? = remember(schedule) {
+        schedule?.takeIf { (it.scheduleType == ScheduleType.DAILY || it.scheduleType == ScheduleType.WEEKLY) && !it.daysOfWeek.isNullOrEmpty() }
+            ?.daysOfWeek?.sorted()
     }
 
     val daysSummaryPair: Pair<String?, String?> = remember(daysOfWeekInternal, strDaysAll, strDaysSingle, strDaysMultipleWeekly) {
@@ -206,15 +211,13 @@ fun MedicationDetailCounters(
                 val label = when (count) {
                     7 -> strDaysAll
                     1 -> strDaysSingle
-                    else -> strDaysMultipleWeekly // This string resource should handle the count, e.g. "%1$d days/week"
+                    else -> strDaysMultipleWeekly
                 }
-                // If strDaysMultipleWeekly is like "%1$d days/week", format it here or ensure it's formatted before display
-                // For now, assuming the string resource itself is sufficient or will be formatted later if needed
-                count.toString() to label // Value might be count, label is the string
+                count.toString() to label
             } else {
-                null to null
+                null // If days list is empty, the pair concept isn't meaningful, return null
             }
-        } ?: (null to null)
+        } ?: (null to null) // If daysOfWeekInternal is null, or the let block results in null
     }
     val daysSummaryValue = daysSummaryPair.first
     val daysSummaryLabel = daysSummaryPair.second

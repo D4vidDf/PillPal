@@ -98,11 +98,13 @@ class ReminderSchedulingWorkerTest {
     }
 
     private fun createTestSchedule(medId: Int, type: ScheduleType, intervalHours: Int? = null): MedicationSchedule {
+import java.time.LocalTime
+
         return MedicationSchedule(
             id = medId, medicationId = medId, scheduleType = type,
             intervalHours = intervalHours, intervalMinutes = 0,
             intervalStartTime = if (type == ScheduleType.INTERVAL && intervalHours != null) null else "08:00", // Type B if intervalStartTime is null
-            specificTimes = if (type == ScheduleType.CUSTOM_ALARMS) "08:00,14:00,20:00" else null
+            specificTimes = if (type == ScheduleType.CUSTOM_ALARMS) listOf(LocalTime.of(8,0), LocalTime.of(14,0), LocalTime.of(20,0)) else null
         )
     }
 

@@ -10,26 +10,28 @@ import java.util.Locale
 class MedicationScheduleTest {
 
     // Helper to format time consistently with the getFormattedSchedule function
-    private fun formatTime(timeStr: String): String {
-        return LocalTime.parse(timeStr).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault()))
+    private fun formatTime(time: LocalTime): String {
+        return time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault()))
     }
 
     @Test
     fun testGetFormattedSchedule_daily_singleTime() {
+        val time = LocalTime.of(8, 0)
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "08:00",
+            medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf(time),
             intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null
         )
-        assertEquals("Daily at ${formatTime("08:00")}", schedule.getFormattedSchedule())
+        assertEquals("Daily at ${formatTime(time)}", schedule.getFormattedSchedule())
     }
 
     @Test
     fun testGetFormattedSchedule_daily_multipleTimes() {
+        val times = listOf(LocalTime.of(8, 0), LocalTime.of(14, 30), LocalTime.of(20, 15))
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = "08:00,14:30,20:15",
+            medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = times,
             intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null
         )
-        val expectedTimes = "08:00,14:30,20:15".split(",").joinToString { formatTime(it) }
+        val expectedTimes = times.joinToString { formatTime(it) }
         assertEquals("Daily at $expectedTimes", schedule.getFormattedSchedule())
     }
 
@@ -42,82 +44,101 @@ class MedicationScheduleTest {
         assertEquals("Daily at N/A", schedule.getFormattedSchedule())
     }
 
+import java.time.DayOfWeek
+
     @Test
     fun testGetFormattedSchedule_weekly_validData() {
+        val time = LocalTime.of(10, 0)
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = "10:00", daysOfWeek = "1,3,5", // Mon, Wed, Fri
+            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = listOf(time),
+            daysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY),
             intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
         )
-        assertEquals("Weekly on Mon, Wed, Fri at ${formatTime("10:00")}", schedule.getFormattedSchedule())
+        val expectedDays = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY)
+            .joinToString { it.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()) }
+        assertEquals("Weekly on $expectedDays at ${formatTime(time)}", schedule.getFormattedSchedule())
     }
 
     @Test
     fun testGetFormattedSchedule_weekly_allDays() {
+        val time = LocalTime.of(9, 0)
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = "09:00", daysOfWeek = "1,2,3,4,5,6,7",
+            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = listOf(time),
+            daysOfWeek = DayOfWeek.values().toList(),
             intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
         )
-        assertEquals("Weekly on Mon, Tue, Wed, Thu, Fri, Sat, Sun at ${formatTime("09:00")}", schedule.getFormattedSchedule())
+        val expectedDays = DayOfWeek.values()
+            .joinToString { it.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()) }
+        assertEquals("Weekly on $expectedDays at ${formatTime(time)}", schedule.getFormattedSchedule())
     }
 
 
     @Test
     fun testGetFormattedSchedule_weekly_nullDays() {
+        val time = LocalTime.of(11, 0)
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = "11:00", daysOfWeek = null,
+            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = listOf(time), daysOfWeek = null,
             intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
         )
-        assertEquals("Weekly on N/A at ${formatTime("11:00")}", schedule.getFormattedSchedule())
+        assertEquals("Weekly on N/A at ${formatTime(time)}", schedule.getFormattedSchedule())
     }
 
     @Test
     fun testGetFormattedSchedule_weekly_nullTimes() {
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = null, daysOfWeek = "2,4",
+            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = null,
+            daysOfWeek = listOf(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY),
             intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
         )
-        assertEquals("Weekly on Tue, Thu at N/A", schedule.getFormattedSchedule())
+        val expectedDays = listOf(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY)
+            .joinToString { it.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()) }
+        assertEquals("Weekly on $expectedDays at N/A", schedule.getFormattedSchedule())
     }
 
     @Test
     fun testGetFormattedSchedule_weekly_emptyDays() {
+        val time = LocalTime.of(11, 0)
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = "11:00", daysOfWeek = "",
+            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = listOf(time),
+            daysOfWeek = emptyList(),
             intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
         )
-        // Assuming empty string for days results in "N/A" or similar, based on joinToString behavior on empty list
-        assertEquals("Weekly on N/A at ${formatTime("11:00")}", schedule.getFormattedSchedule())
+        assertEquals("Weekly on N/A at ${formatTime(time)}", schedule.getFormattedSchedule())
     }
 
-
-    @Test
-    fun testGetFormattedSchedule_weekly_invalidDayFormat() {
-        // Current implementation's mapNotNull will filter out "invalid" or ""
-        val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = "12:00", daysOfWeek = "1,invalid,3,,7",
-            intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
-        )
-        assertEquals("Weekly on Mon, Wed, Sun at ${formatTime("12:00")}", schedule.getFormattedSchedule())
-    }
+    // This test might need to be removed or rethought as "invalidDayFormat" isn't possible with List<DayOfWeek>
+    // @Test
+    // fun testGetFormattedSchedule_weekly_invalidDayFormat() {
+    //     // Current implementation's mapNotNull will filter out "invalid" or ""
+    //     val schedule = MedicationSchedule(
+    //         medicationId = 1, scheduleType = ScheduleType.WEEKLY, specificTimes = "12:00", daysOfWeek = "1,invalid,3,,7",
+    //         intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null
+    //     )
+    //     assertEquals("Weekly on Mon, Wed, Sun at ${formatTime("12:00")}", schedule.getFormattedSchedule())
+    // }
 
     @Test
     fun testGetFormattedSchedule_interval_validData() {
+        val startTime = LocalTime.of(8,0)
+        val endTime = LocalTime.of(22,0)
         val schedule = MedicationSchedule(
             medicationId = 1, scheduleType = ScheduleType.INTERVAL, intervalHours = 6, intervalMinutes = 30,
-            intervalStartTime = "08:00", intervalEndTime = "22:00",
+            intervalStartTime = startTime.toString(), intervalEndTime = endTime.toString(),
             specificTimes = null, daysOfWeek = null
         )
-        assertEquals("Every 6h 30m from ${formatTime("08:00")} to ${formatTime("22:00")}", schedule.getFormattedSchedule())
+        assertEquals("Every 6h 30m from ${formatTime(startTime)} to ${formatTime(endTime)}", schedule.getFormattedSchedule())
     }
 
     @Test
     fun testGetFormattedSchedule_interval_nullHoursMinutes() {
+        val startTime = LocalTime.of(9,0)
+        val endTime = LocalTime.of(21,0)
         val schedule = MedicationSchedule(
             medicationId = 1, scheduleType = ScheduleType.INTERVAL, intervalHours = null, intervalMinutes = null,
-            intervalStartTime = "09:00", intervalEndTime = "21:00",
+            intervalStartTime = startTime.toString(), intervalEndTime = endTime.toString(),
             specificTimes = null, daysOfWeek = null
         )
-        assertEquals("Every 0h 0m from ${formatTime("09:00")} to ${formatTime("21:00")}", schedule.getFormattedSchedule())
+        assertEquals("Every 0h 0m from ${formatTime(startTime)} to ${formatTime(endTime)}", schedule.getFormattedSchedule())
     }
 
     @Test
@@ -132,12 +153,14 @@ class MedicationScheduleTest {
 
     @Test
     fun testGetFormattedSchedule_interval_zeroHoursZeroMinutes() {
+        val startTime = LocalTime.of(9,0)
+        val endTime = LocalTime.of(21,0)
         val schedule = MedicationSchedule(
             medicationId = 1, scheduleType = ScheduleType.INTERVAL, intervalHours = 0, intervalMinutes = 0,
-            intervalStartTime = "09:00", intervalEndTime = "21:00",
+            intervalStartTime = startTime.toString(), intervalEndTime = endTime.toString(),
             specificTimes = null, daysOfWeek = null
         )
-        assertEquals("Every 0h 0m from ${formatTime("09:00")} to ${formatTime("21:00")}", schedule.getFormattedSchedule())
+        assertEquals("Every 0h 0m from ${formatTime(startTime)} to ${formatTime(endTime)}", schedule.getFormattedSchedule())
     }
 
 
@@ -152,11 +175,12 @@ class MedicationScheduleTest {
 
     @Test
     fun testGetFormattedSchedule_customAlarms_validTimes() {
+        val times = listOf(LocalTime.of(7,0), LocalTime.of(19,0))
         val schedule = MedicationSchedule(
-            medicationId = 1, scheduleType = ScheduleType.CUSTOM_ALARMS, specificTimes = "07:00,19:00",
+            medicationId = 1, scheduleType = ScheduleType.CUSTOM_ALARMS, specificTimes = times,
             intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null
         )
-        val expectedTimes = "07:00,19:00".split(",").joinToString { formatTime(it) }
+        val expectedTimes = times.joinToString { formatTime(it) }
         assertEquals("Custom alarms at $expectedTimes", schedule.getFormattedSchedule())
     }
 
