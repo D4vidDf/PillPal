@@ -10,8 +10,7 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
-// MedicationColor import removed if no longer needed
-import com.d4viddf.medicationreminder.ui.components.ProgressDetails
+import com.d4viddf.medicationreminder.ui.features.medication_details.components.ProgressDetails
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,17 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
-import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
-// Removed duplicate DateTimeFormatter
-// Removed duplicate DateTimeParseException
 import javax.inject.Inject
 
 @HiltViewModel

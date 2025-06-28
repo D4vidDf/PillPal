@@ -7,7 +7,6 @@ import com.d4viddf.medicationreminder.data.CimaMedicationDetail
 import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

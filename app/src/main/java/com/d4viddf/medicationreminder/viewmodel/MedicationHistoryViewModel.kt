@@ -8,7 +8,6 @@ import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,10 +15,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.YearMonth // Consolidated import
+import java.time.YearMonth
 import java.time.format.DateTimeParseException
-import javax.inject.Inject // Consolidated import
+import javax.inject.Inject
 
 @HiltViewModel
 class MedicationHistoryViewModel @Inject constructor(

@@ -1,39 +1,31 @@
 package com.d4viddf.medicationreminder
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-// import androidx.appcompat.app.AppCompatDelegate // Removed
-import androidx.compose.foundation.layout.Box // Added
-import androidx.compose.foundation.layout.fillMaxSize // Added
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-// import androidx.compose.runtime.LaunchedEffect // Removed
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-// import androidx.core.os.LocaleListCompat // Removed
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen // Added
-import androidx.lifecycle.lifecycleScope // Added
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.utils.PermissionUtils // Added import
 import com.d4viddf.medicationreminder.data.ThemeKeys
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.ui.MedicationReminderApp
+import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.utils.PermissionUtils
 import com.d4viddf.medicationreminder.workers.TestSimpleWorker
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableStateFlow // Added
-// import kotlinx.coroutines.flow.distinctUntilChanged // Removed
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update // Added
-import kotlinx.coroutines.launch // Added (though lifecycleScope.launch is specific)
-// import kotlinx.coroutines.runBlocking // Removed as it was only used by locale code
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint

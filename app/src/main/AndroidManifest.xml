@@ -40,7 +40,7 @@
         </activity>
 
         <activity
-            android:name=".ui.activities.FullScreenNotificationActivity"
+            android:name=".ui.features.notifications.activity.FullScreenNotificationActivity"
             android:exported="false"
             android:theme="@style/Theme.MedicationReminder"
             android:launchMode="singleTask"
