@@ -70,7 +70,7 @@ object DatabaseModule {
                     }
                 }
             })
-            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5) // Added MIGRATION_4_5
+            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6) // Added MIGRATION_5_6
             .fallbackToDestructiveMigration(false) // Added this line
             .build()
     }

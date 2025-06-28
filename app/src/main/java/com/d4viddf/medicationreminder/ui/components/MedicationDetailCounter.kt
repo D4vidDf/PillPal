@@ -132,20 +132,25 @@ fun MedicationDetailCounters(
 
     val frequencyPair: Pair<String?, String?> = remember(schedule, strDoseUnitSingle, strDoseUnitPlural, strFreqOnceDaily, strFreqMultipleDaily, strFreqInterval, strFreqAsNeeded) {
         schedule?.let { sched ->
-            val timesCount = sched.specificTimes?.split(',')?.count { it.isNotBlank() } ?: 0
+            val timesCount = sched.specificTimes?.count() ?: 0
             when (sched.scheduleType) {
                 ScheduleType.DAILY, ScheduleType.WEEKLY -> {
-                    if (!sched.daysOfWeek.isNullOrBlank()) {
+                    // For DAILY/WEEKLY, if daysOfWeek is specified, it implies a "X times on specific days" type of schedule.
+                    // If daysOfWeek is NOT specified, it's a general "X times a day" or "X times a week" (though weekly usually has days).
+                    // The distinction for label (strDoseUnitSingle/Plural vs strFreqOnceDaily/MultipleDaily) might depend on context not fully captured here.
+                    // This simplified logic primarily uses timesCount for the value and strDoseUnit for label if specific days are involved,
+                    // otherwise uses strFreq for more general daily/multiple daily descriptions.
+                    if (!sched.daysOfWeek.isNullOrEmpty()) { // Prioritize this for more specific "X doses on these days"
                         if (timesCount == 1) "1" to strDoseUnitSingle
                         else if (timesCount > 1) "$timesCount" to strDoseUnitPlural
-                        else null
-                    } else {
+                        else null // No times specified, even with days? Or should default?
+                    } else { // General daily/multiple times a day without specific day context from daysOfWeek
                         if (timesCount == 1) "1" to strFreqOnceDaily
                         else if (timesCount > 1) "$timesCount" to strFreqMultipleDaily
                         else null
                     }
                 }
-                ScheduleType.CUSTOM_ALARMS -> {
+                ScheduleType.CUSTOM_ALARMS -> { // Typically multiple, specific alarms
                     if (timesCount > 0) "$timesCount" to strFreqMultipleDaily else null
                 }
                 ScheduleType.INTERVAL -> {
@@ -194,9 +199,9 @@ fun MedicationDetailCounters(
     val durationValue = durationPair.first
     val durationUnit = durationPair.second
 
-    val daysOfWeekInternal: List<Int>? = remember(schedule) {
-        schedule?.takeIf { (it.scheduleType == ScheduleType.DAILY || it.scheduleType == ScheduleType.WEEKLY) && !it.daysOfWeek.isNullOrBlank() }
-            ?.daysOfWeek?.split(',')?.mapNotNull { it.trim().toIntOrNull() }?.sorted()
+    val daysOfWeekInternal: List<java.time.DayOfWeek>? = remember(schedule) {
+        schedule?.takeIf { (it.scheduleType == ScheduleType.DAILY || it.scheduleType == ScheduleType.WEEKLY) && !it.daysOfWeek.isNullOrEmpty() }
+            ?.daysOfWeek?.sorted()
     }
 
     val daysSummaryPair: Pair<String?, String?> = remember(daysOfWeekInternal, strDaysAll, strDaysSingle, strDaysMultipleWeekly) {
@@ -206,11 +211,14 @@ fun MedicationDetailCounters(
                 val label = when (count) {
                     7 -> strDaysAll
                     1 -> strDaysSingle
-                    else -> strDaysMultipleWeekly // This string resource should handle the count, e.g. "%1$d days/week"
+                    // Ensure strDaysMultipleWeekly can handle being formatted with a count, or adjust logic here.
+                    // For example, if strDaysMultipleWeekly is "%d days/week", you might do:
+                    // else -> String.format(strDaysMultipleWeekly, count)
+                    // However, if it's just "Days/Week", then count.toString() is fine for the value part.
+                    else -> strDaysMultipleWeekly
                 }
-                // If strDaysMultipleWeekly is like "%1$d days/week", format it here or ensure it's formatted before display
-                // For now, assuming the string resource itself is sufficient or will be formatted later if needed
-                count.toString() to label // Value might be count, label is the string
+                // Assuming the 'value' part is the count, and 'label' is the descriptive text.
+                count.toString() to label
             } else {
                 null to null
             }

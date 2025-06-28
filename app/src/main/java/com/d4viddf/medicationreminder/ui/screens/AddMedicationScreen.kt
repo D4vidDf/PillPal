@@ -203,13 +203,12 @@ fun AddMedicationScreen(
                                     scheduleType = scheduleType,
                                     intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
                                     intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
-                                    daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.joinToString(",") else null,
+                                    daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { java.time.DayOfWeek.of(it) } else null,
                                     specificTimes = when (scheduleType) {
-                                        ScheduleType.DAILY -> onceADayTime?.format(timeFormatter)?.let { listOf(it) }?.joinToString(",")
-                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes.map { it.format(timeFormatter) }.joinToString(",")
+                                        ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
+                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes
                                         else -> null
                                     },
-                                    // Assuming you add these to MedicationSchedule data class and DB
                                     intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
                                     intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
                                 )
