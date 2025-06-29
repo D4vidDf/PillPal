@@ -39,9 +39,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,34 +54,44 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.CimaDocumento
 import com.d4viddf.medicationreminder.data.CimaEstado
 import com.d4viddf.medicationreminder.data.CimaFormaFarmaceutica
 import com.d4viddf.medicationreminder.data.CimaMedicationDetail
 import com.d4viddf.medicationreminder.data.CimaViaAdministracion
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationSpecificTheme
 import com.d4viddf.medicationreminder.viewmodel.MedicationInfoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// A helper function to format the date, now at the top level for reusability.
+private fun formatDate(timestamp: Long?): String? {
+    // Timestamps from CIMA are in seconds, so they need to be converted to milliseconds.
+    if (timestamp == null || timestamp == -1L) return null
+    return try {
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        sdf.format(Date(timestamp ))
+    } catch (e: Exception) {
+        null
+    }
+}
 
-enum class CardType { // Or internal enum class CardType - Kotlin's default top-level visibility is public. To be explicit for clarity, 'internal' is better if it's module-specific. Let's stick to removing 'private' which makes it public.
+enum class CardType {
     GENERAL_INFO,
     ADDITIONAL_INFO
 }
 
 @Composable
-
 private fun InfoCardContent(
     info: CimaMedicationDetail,
     cardType: CardType,
     yesText: String,
-    noText: String,
-    formatDate: (Long?) -> String?
+    noText: String
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         when (cardType) {
@@ -103,21 +116,10 @@ private fun InfoCardContent(
 }
 
 @Composable
-fun InfoSectionCard(info: CimaMedicationDetail) { // Keep existing signature and visibility
-
+fun InfoSectionCard(info: CimaMedicationDetail) {
     val yesText = stringResource(id = R.string.text_yes)
     val noText = stringResource(id = R.string.text_no)
 
-    fun formatDate(timestamp: Long?): String? {
-        if (timestamp == null || timestamp == -1L) return null
-        return try {
-            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            sdf.format(Date(timestamp * 1000))
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,7 +127,7 @@ fun InfoSectionCard(info: CimaMedicationDetail) { // Keep existing signature and
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
-        InfoCardContent(info, CardType.GENERAL_INFO, yesText, noText, ::formatDate)
+        InfoCardContent(info, CardType.GENERAL_INFO, yesText, noText)
     }
     Card(
         modifier = Modifier
@@ -134,7 +136,7 @@ fun InfoSectionCard(info: CimaMedicationDetail) { // Keep existing signature and
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
-        InfoCardContent(info, CardType.ADDITIONAL_INFO, yesText, noText, ::formatDate)
+        InfoCardContent(info, CardType.ADDITIONAL_INFO, yesText, noText)
     }
 }
 
@@ -147,16 +149,6 @@ fun SingleInfoSectionCard(
     val yesText = stringResource(id = R.string.text_yes)
     val noText = stringResource(id = R.string.text_no)
 
-    fun formatDate(timestamp: Long?): String? {
-        if (timestamp == null || timestamp == -1L) return null
-        return try {
-            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            sdf.format(Date(timestamp * 1000))
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -164,9 +156,8 @@ fun SingleInfoSectionCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
-        InfoCardContent(info, cardType, yesText, noText, ::formatDate)
+        InfoCardContent(info, cardType, yesText, noText)
     }
-
 }
 
 @Composable
@@ -174,9 +165,9 @@ fun InfoRow(label: String, value: String?, showDivider: Boolean = true) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             text = label,
-            style = MaterialTheme.typography.titleMedium, // Changed to titleMedium
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Bold // Remains Bold
+            fontWeight = FontWeight.Bold
         )
         Text(
             text = value ?: stringResource(id = R.string.med_info_value_not_available),
@@ -196,7 +187,7 @@ fun InfoRow(label: String, value: String?, showDivider: Boolean = true) {
 fun LinkButton(
     text: String,
     url: String?,
-    icon: Any, // Changed to Any to accept Painter or ImageVector
+    icon: Any,
     onClick: (String) -> Unit
 ) {
     Button(
@@ -231,7 +222,7 @@ fun MedicationInfoScreen(
         try {
             MedicationColor.valueOf(colorName)
         } catch (e: IllegalArgumentException) {
-            MedicationColor.LIGHT_ORANGE
+            MedicationColor.LIGHT_ORANGE // Fallback color
         }
     }
     val cimaMedicationDetail by viewModel?.medicationInfo?.collectAsState() ?: remember { mutableStateOf(null) }
@@ -240,7 +231,7 @@ fun MedicationInfoScreen(
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
-    val useGrid = screenWidthDp >= 720.dp // Threshold for using grid layout
+    val useGrid = screenWidthDp >= 720.dp
 
     val sampleInfoForPreview = if (viewModel == null) {
         remember {
@@ -252,7 +243,7 @@ fun MedicationInfoScreen(
                 formaFarmaceutica = CimaFormaFarmaceutica(id = 1, nombre = "Comprimido"),
                 viasAdministracion = listOf(CimaViaAdministracion(id = 1, nombre = "Oral")),
                 condPresc = "Con receta médica",
-                estado = CimaEstado(aut = System.currentTimeMillis()),
+                estado = CimaEstado(aut = System.currentTimeMillis() / 1000), // Use seconds for preview
                 docs = listOf(
                     CimaDocumento(tipo = 1, urlHtml = "https://example.com/ficha", url = "https://example.com/ficha.pdf"),
                     CimaDocumento(tipo = 2, urlHtml = "https://example.com/prospecto", url = "https://example.com/prospecto.pdf")
@@ -277,20 +268,20 @@ fun MedicationInfoScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("") }, // Empty title
+                    title = { Text("") },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
-                                contentDescription = stringResource(id = R.string.back_button_cd) // Ensure this string resource exists
+                                contentDescription = stringResource(id = R.string.back_button_cd)
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface, // Adjusted for transparent background
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface // Adjusted for transparent background
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -308,11 +299,9 @@ fun MedicationInfoScreen(
                 }
                 sampleInfoForPreview != null -> {
                     val info = sampleInfoForPreview
-                    val imageUrl = if (!info.nregistro.isNullOrBlank()) {
-                        "https://cima.aemps.es/cima/rest/medicamento/${info.nregistro}/foto/materialAcondicionamientoPrimario"
-                    } else {
-                        null
-                    }
+                    // **FIX:** Find the packaging image URL from the 'fotos' list.
+                    val imageUrl = info.fotos?.find { it.tipo == "materialas" }?.url
+
                     val uriHandler = LocalUriHandler.current
                     val prospecto = info.docs?.find { it.tipo == 2 }
                     val fichaTecnica = info.docs?.find { it.tipo == 1 }
@@ -330,18 +319,18 @@ fun MedicationInfoScreen(
                         ) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 AsyncImage(
-                                    model = imageUrl,
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(imageUrl)
+                                        .crossfade(true)
+                                        .build(),
                                     placeholder = painterResource(id = R.drawable.ic_pill_placeholder),
                                     error = painterResource(id = R.drawable.ic_pill_placeholder),
                                     contentDescription = stringResource(id = R.string.med_info_image_placeholder_cd),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(220.dp) // Adjusted height for grid
-                                        .padding(bottom = 4.dp) // Adjusted padding for grid
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                            RoundedCornerShape(12.dp)
-                                        ),
+                                        .height(220.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Fit,
                                     alignment = Alignment.Center
                                 )
                             }
@@ -382,7 +371,10 @@ fun MedicationInfoScreen(
                         ) {
                             item {
                                 AsyncImage(
-                                    model = imageUrl,
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(imageUrl)
+                                        .crossfade(true)
+                                        .build(),
                                     placeholder = painterResource(id = R.drawable.ic_pill_placeholder),
                                     error = painterResource(id = R.drawable.ic_pill_placeholder),
                                     contentDescription = stringResource(id = R.string.med_info_image_placeholder_cd),
@@ -390,10 +382,8 @@ fun MedicationInfoScreen(
                                         .fillMaxWidth()
                                         .height(200.dp)
                                         .padding(vertical = 8.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                            RoundedCornerShape(12.dp)
-                                        ),
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Fit,
                                     alignment = Alignment.Center
                                 )
                             }

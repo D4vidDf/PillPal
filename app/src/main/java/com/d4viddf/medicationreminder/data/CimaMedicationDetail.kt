@@ -1,5 +1,8 @@
 package com.d4viddf.medicationreminder.data
 
+import android.os.Parcel
+import android.os.Parcelable
+
 // Main data class for CIMA medicamento endpoint response
 data class CimaMedicationDetail(
     val nregistro: String?,
@@ -41,10 +44,6 @@ data class CimaDocumento(
     val url: String? // URL to PDF
     // seccTimestamp might also be useful
 )
-
-import android.os.Parcel
-import android.os.Parcelable
-
 data class CimaFoto(
     val tipo: String?, // "materialAcondicionamientoPrimario", "materialAcondicionamientoSecundario"
     val url: String?, // URL to the image

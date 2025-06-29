@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,8 @@ fun MedicationSearchResultCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Using Coil's AsyncImage to load the medication image
-            val primaryImageUrl = medicationResult.imageUrl?.find { it.tipo == "materialAcondicionamientoPrimario" }?.url
+            val primaryImageUrl = medicationResult.imageUrl?.find { it.tipo == "materialas" }?.url
+            val imageUrl = medicationResult.imageUrl?.find { it.tipo == "materialas" }?.url
 
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -115,7 +117,7 @@ fun MedicationSearchResultCardPreview() {
             comercializado = true,
             requiereReceta = false,
             generico = true,
-            imageUrl = listOf(com.d4viddf.medicationreminder.data.CimaFoto(tipo = "materialAcondicionamientoPrimario", url = "https://example.com/aspirin_image.jpg", fecha = null))
+            imageUrl = listOf(com.d4viddf.medicationreminder.data.CimaFoto(tipo = "materialaso", url = "https://example.com/aspirin_image.jpg", fecha = null))
         )
         MedicationSearchResultCard(
             medicationResult = sampleResult,
