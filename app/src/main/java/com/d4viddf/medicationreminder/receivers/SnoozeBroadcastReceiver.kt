@@ -106,46 +106,18 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                     Log.i(TAG, logSnoozeTime)
                     FileLogger.log(TAG, logSnoozeTime)
 
-                    // We are creating a one-time snooze alarm.
-                    // The NotificationScheduler typically schedules based on MedicationReminder entities.
-                    // For a snooze, we are essentially creating a temporary, one-off reminder.
-                    // The existing NotificationScheduler.scheduleNotification is designed to take a full Reminder object.
-                    // We might need to adapt or use a more direct way to schedule a single notification intent.
-
-                    // For simplicity, let's try to directly schedule the ACTION_SHOW_REMINDER intent
-                    // similar to how NotificationScheduler might do for a single alarm.
-
-                    // Create an intent similar to what NotificationScheduler would prepare
-                    val showReminderIntent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-                        action = IntentActionConstants.ACTION_SHOW_REMINDER
-                        putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId) // Pass the original reminder ID
-                        putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medication.name)
-                        putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medication.dosage) // Assuming dosage is a simple string
-                        putExtra(IntentExtraConstants.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, snoozeDateTimeMillis)
-                        // For a snoozed reminder, it's not strictly an "interval" type in the original sense,
-                        // nor does it have a "next dose time" from a recurring schedule.
-                        // We'll pass false for interval and omit nextDoseTimeMillis, or pass 0L.
-                        putExtra(IntentExtraConstants.EXTRA_IS_INTERVAL, false)
-                        putExtra(IntentExtraConstants.EXTRA_NEXT_DOSE_TIME_MILLIS, 0L)
-                    }
-
-                    // Use NotificationScheduler's utility to schedule this specific intent
-                    // This assumes NotificationScheduler has a method to schedule a generic PendingIntent,
-                    // or we might need to replicate the AlarmManager logic here.
-                    // Looking at NotificationScheduler, it uses scheduleExactAlarm.
-
-                    notificationScheduler.scheduleExactAlarm(
-                        context,
-                        reminderId, // Using original reminder ID for the alarm. This might cause conflicts if not handled.
-                                    // Consider using a unique ID for the snooze alarm, but then how to link back?
-                                    // For now, re-using reminderId for the alarm might be okay if the previous one is truly cancelled.
-                                    // The notification itself uses reminderId, so this should be fine.
-                        snoozeDateTimeMillis,
-                        showReminderIntent,
-                        isPreReminder = false // This is for the main reminder, not a pre-reminder
+                    // Use the existing scheduleNotification method from NotificationScheduler
+                    notificationScheduler.scheduleNotification(
+                        context = context,
+                        reminder = originalReminder, // Pass the original reminder object
+                        medicationName = medication.name,
+                        medicationDosage = medication.dosage ?: "", // Use empty string if dosage is null
+                        isIntervalType = false, // Snoozed reminder is not an interval type
+                        nextDoseTimeForHelperMillis = null, // No next dose for a one-off snooze
+                        actualScheduledTimeMillis = snoozeDateTimeMillis // This is the time for the snoozed reminder
                     )
 
-                    val logScheduled = "Scheduled snoozed reminder for ID $reminderId at $snoozeDateTime"
+                    val logScheduled = "Scheduled snoozed reminder for ID $reminderId (medication: ${medication.name}) at $snoozeDateTime using scheduleNotification."
                     Log.i(TAG, logScheduled)
                     FileLogger.log(TAG, logScheduled)
 
