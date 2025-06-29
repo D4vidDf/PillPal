@@ -104,25 +104,40 @@ object NotificationHelper {
             "showReminderNotification called for ID: $reminderDbId, Name: $medicationName, Interval: $isIntervalType, NextDoseHelper: $nextDoseTimeMillisForHelper, ActualTime: $actualReminderTimeMillis, SoundURI: $notificationSoundUriString, Color: $medicationColorHex, Type: $medicationTypeName"
         )
 
-        // Standard content intent (tapping the notification itself)
-        val contentIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_REMINDER_ID, reminderDbId) // For MainActivity to know which reminder
+        // Full-screen activity intent (used for both full-screen pop-up and content tap)
+        val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.features.notifications.activity.FullScreenNotificationActivity::class.java).apply {
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)
+            putExtra(NotificationConstants.EXTRA_MED_COLOR_HEX, medicationColorHex)
+            putExtra(NotificationConstants.EXTRA_MED_TYPE_NAME, medicationTypeName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Standard flags
         }
-        val contentPendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         } else {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
+
+        // Content PendingIntent (for tapping the notification in the shade)
+        // Now uses the same intent as the full-screen pop-up
         val contentPendingIntent = PendingIntent.getActivity(
             context,
             reminderDbId, // Standard request code for content PI
-            contentIntent,
-            contentPendingIntentFlags
+            fullScreenActivityIntent, // Use the fullScreenActivityIntent here
+            pendingIntentFlags
         )
 
-        // Full-screen activity intent
-        val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.features.notifications.activity.FullScreenNotificationActivity::class.java).apply {
+        // Full-screen PendingIntent (for the heads-up notification)
+        val fullScreenPendingIntent = PendingIntent.getActivity(
+            context,
+            reminderDbId + 2000, // Unique request code for full-screen PI
+            fullScreenActivityIntent, // Also uses fullScreenActivityIntent
+            pendingIntentFlags // Re-use flags
+        )
+
+        val markAsActionIntent = Intent(context, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)

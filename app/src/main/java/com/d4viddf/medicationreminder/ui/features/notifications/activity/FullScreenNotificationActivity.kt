@@ -35,6 +35,7 @@ import androidx.compose.material3.SplitButtonDefaults
 import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -141,6 +143,20 @@ class FullScreenNotificationActivity : ComponentActivity() {
                         }
                         Toast.makeText(this@FullScreenNotificationActivity, "${getString(R.string.fullscreen_notification_action_dismiss)}: $medicationName", Toast.LENGTH_SHORT).show()
                         finishAndRemoveTask()
+                    },
+                    onSnooze = {
+                        Log.i(TAG, "Snooze clicked for Reminder ID: $reminderId")
+                        val snoozeIntent = Intent(applicationContext, com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver::class.java).apply {
+                            action = IntentActionConstants.ACTION_SNOOZE_REMINDER
+                            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
+                        }
+                        applicationContext.sendBroadcast(snoozeIntent)
+                        if (reminderId != -1) {
+                            // Cancel the immediate notification from the full-screen activity context
+                            NotificationManagerCompat.from(this@FullScreenNotificationActivity).cancel(reminderId)
+                        }
+                        Toast.makeText(this@FullScreenNotificationActivity, getString(R.string.notification_action_snooze) + " ($medicationName)", Toast.LENGTH_SHORT).show()
+                        finishAndRemoveTask()
                     }
                 )
             }
@@ -210,10 +226,12 @@ fun FullScreenNotificationScreen(
     contentColor: Color,
     animatedShapesColor: Color,
     onMarkAsTaken: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onSnooze: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var showTick by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     var isDropdownExpanded by remember { mutableStateOf(false) }
 
     val stateExpandedText = stringResource(id = R.string.split_button_state_expanded)
@@ -286,99 +304,112 @@ fun FullScreenNotificationScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // Pushes buttons down
+            Spacer(modifier = Modifier.weight(1f)) // Pushes content down
 
             if (!showTick) {
-                // Box to control the alignment of the SplitButtonLayout
-                Box(
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .fillMaxWidth() // This Box takes full width
-                        .padding(bottom = 32.dp), // Padding for the button group area
-                    contentAlignment = Alignment.Center // Center its child (SplitButtonLayout)
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp) // Space before the main button group
                 ) {
-                    val buttonContainerHeight = SplitButtonDefaults.LargeContainerHeight
-
-                    SplitButtonLayout( // This will now wrap its content width by default if not constrained
-                        // or use .wrapContentWidth() if you want it to be exactly as wide as its content
-                        leadingButton = {
-                            SplitButtonDefaults.LeadingButton(
-                                onClick = internalOnMarkAsTaken,
-                                modifier = Modifier.heightIn(min = buttonContainerHeight),
-                                shapes = SplitButtonDefaults.leadingButtonShapesFor(buttonContainerHeight),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = contentColor.copy(alpha = 0.20f),
-                                    contentColor = contentColor
-                                ),
-                                contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(buttonContainerHeight),
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.fullscreen_notification_action_taken),
-                                    style = ButtonDefaults.textStyleFor(buttonContainerHeight).copy(fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                                )
-                            }
+                    TextButton(
+                        onClick = {
+                            // Directly call onSnooze which is now defined in the Activity
+                            onSnooze()
                         },
-                        trailingButton = {
-                            SplitButtonDefaults.TrailingButton(
-                                checked = isDropdownExpanded,
-                                onCheckedChange = { isDropdownExpanded = it },
-                                modifier = Modifier
-                                    .heightIn(min = buttonContainerHeight)
-                                    .semantics {
-                                        stateDescription = if (isDropdownExpanded) stateExpandedText else stateCollapsedText
-                                        contentDescription = moreOptionsText
-                                    },
-                                shapes = SplitButtonDefaults.trailingButtonShapesFor(buttonContainerHeight),
-                                // Use filled button colors for trailing to match leading, or keep outlined
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = contentColor.copy(alpha = 0.20f), // Consistent with leading
-                                    contentColor = contentColor
-                                )
-                                // If you prefer outlined for trailing:
-                                // colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor)
-                            ) {
-                                val rotation: Float by animateFloatAsState(
-                                    targetValue = if (isDropdownExpanded) 180f else 0f,
-                                    label = "TrailingIconRotation",
-                                    animationSpec = tween(durationMillis = 300)
-                                )
-                                Icon(
-                                    imageVector = Icons.Filled.KeyboardArrowDown,
-                                    modifier = Modifier.graphicsLayer { this.rotationZ = rotation },
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        spacing = SplitButtonDefaults.Spacing
-                    )
-
-                    // Material 3 DropdownMenu will inherently have M3 styling.
-                    // It aligns itself relative to its anchor (which is implicitly the parent Box here,
-                    // often aligning to the trailing button if there's enough space or if anchored).
-                    // You can use an `ExposedDropdownMenuBox` for more precise anchor control if needed.
-                    DropdownMenu(
-                        expanded = isDropdownExpanded,
-                        onDismissRequest = { isDropdownExpanded = false },
-                        // Modifier to align relative to the TrailingButton if desired.
-                        // This requires getting a reference to the TrailingButton,
-                        // which is complex with SplitButtonLayout.
-                        // Often, default alignment or slight offset is acceptable.
-                        // For now, let's keep default behavior.
-                        // modifier = Modifier.align(Alignment.BottomEnd) // Example, might need custom offset
+                        modifier = Modifier.padding(bottom = 8.dp) // Space between Snooze and main buttons
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(id = R.string.fullscreen_notification_action_dismiss)) },
-                            onClick = {
-                                onDismiss()
-                                isDropdownExpanded = false
-                            }
+                        Text(
+                            text = stringResource(id = R.string.notification_action_snooze),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = contentColor,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp // Consistent with other button text
+                            )
                         )
-                        // Add more DropdownMenuItems (e.g., Snooze options) here if needed
+                    }
+
+                    // Box to control the alignment of the SplitButtonLayout
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(), // This Box takes full width
+                        // .padding(bottom = 32.dp), // Padding for the button group area // Removed to allow snooze button above
+                        contentAlignment = Alignment.Center // Center its child (SplitButtonLayout)
+                    ) {
+                        val buttonContainerHeight = SplitButtonDefaults.LargeContainerHeight
+
+                        SplitButtonLayout(
+                            leadingButton = {
+                                SplitButtonDefaults.LeadingButton(
+                                    onClick = internalOnMarkAsTaken,
+                                    modifier = Modifier.heightIn(min = buttonContainerHeight),
+                                    shapes = SplitButtonDefaults.leadingButtonShapesFor(buttonContainerHeight),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = contentColor.copy(alpha = 0.20f),
+                                        contentColor = contentColor
+                                    ),
+                                    contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(buttonContainerHeight),
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.fullscreen_notification_action_taken),
+                                        style = ButtonDefaults.textStyleFor(buttonContainerHeight).copy(fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                                    )
+                                }
+                            },
+                            trailingButton = {
+                                SplitButtonDefaults.TrailingButton(
+                                    checked = isDropdownExpanded,
+                                    onCheckedChange = { isDropdownExpanded = it },
+                                    modifier = Modifier
+                                        .heightIn(min = buttonContainerHeight)
+                                        .semantics {
+                                            stateDescription = if (isDropdownExpanded) stateExpandedText else stateCollapsedText
+                                            contentDescription = moreOptionsText
+                                        },
+                                    shapes = SplitButtonDefaults.trailingButtonShapesFor(buttonContainerHeight),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = contentColor.copy(alpha = 0.20f),
+                                        contentColor = contentColor
+                                    )
+                                ) {
+                                    val rotation: Float by animateFloatAsState(
+                                        targetValue = if (isDropdownExpanded) 180f else 0f,
+                                        label = "TrailingIconRotation",
+                                        animationSpec = tween(durationMillis = 300)
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Filled.KeyboardArrowDown,
+                                        modifier = Modifier.graphicsLayer { this.rotationZ = rotation },
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            spacing = SplitButtonDefaults.Spacing
+                        )
+
+                        DropdownMenu(
+                            expanded = isDropdownExpanded,
+                            onDismissRequest = { isDropdownExpanded = false },
+                            modifier = Modifier
+                                .width(IntrinsicSize.Max) // Allow it to be as wide as its content needs
+                                .wrapContentSize(Alignment.Center) // Attempt to center if smaller than anchor
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(id = R.string.fullscreen_notification_action_dismiss), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                                onClick = {
+                                    onDismiss()
+                                    isDropdownExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
             } else {
-                Spacer(modifier = Modifier.defaultMinSize(minHeight = SplitButtonDefaults.LargeContainerHeight + 32.dp))
+                // When tick is shown, maintain similar spacing as if buttons were there
+                Spacer(modifier = Modifier.defaultMinSize(minHeight = SplitButtonDefaults.LargeContainerHeight + 32.dp + 48.dp /* approx height for snooze button */))
             }
-            Spacer(modifier = Modifier.weight(0.1f))
+            Spacer(modifier = Modifier.weight(0.1f)) // Bottom padding
         }
     }
 }
