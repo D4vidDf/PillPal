@@ -58,21 +58,26 @@ fun MedicationSearchResultCard(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // TODO: Replace with actual image loading logic once API is known
-            // Using Coil's AsyncImage for future integration
+            // Using Coil's AsyncImage to load the medication image
+            val imageUrl = if (!medicationResult.nregistro.isNullOrBlank()) {
+                "https://cima.aemps.es/cima/rest/medicamento/${medicationResult.nregistro}/foto/materialAcondicionamientoPrimario"
+            } else {
+                null // Or a default placeholder URL if you have one
+            }
+
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(medicationResult.imageUrl) // Use the actual image URL
+                    .data(imageUrl) // Use the constructed image URL
                     .crossfade(true)
                     .build(),
                 placeholder = painterResource(R.drawable.ic_pill_placeholder),
-                error = painterResource(R.drawable.ic_pill_placeholder),
-                contentDescription = medicationResult.name,
+                error = painterResource(R.drawable.ic_pill_placeholder), // You can use a specific error placeholder
+                contentDescription = stringResource(R.string.med_info_image_placeholder_cd, medicationResult.name),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .size(56.dp) // Standard size for list item images
+                    .clip(CircleShape) // Circular image
+                    .background(MaterialTheme.colorScheme.surfaceVariant) // Background for placeholder state
             )
 
             Spacer(Modifier.width(12.dp))
