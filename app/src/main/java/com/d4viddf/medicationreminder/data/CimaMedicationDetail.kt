@@ -1,5 +1,8 @@
 package com.d4viddf.medicationreminder.data
 
+import android.os.Parcel
+import android.os.Parcelable
+
 // Main data class for CIMA medicamento endpoint response
 data class CimaMedicationDetail(
     val nregistro: String?,
@@ -41,9 +44,34 @@ data class CimaDocumento(
     val url: String? // URL to PDF
     // seccTimestamp might also be useful
 )
-
 data class CimaFoto(
     val tipo: String?, // "materialAcondicionamientoPrimario", "materialAcondicionamientoSecundario"
     val url: String?, // URL to the image
     val fecha: Long? // Timestamp of the image
-)
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readValue(Long::class.java.classLoader) as? Long
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(tipo)
+        parcel.writeString(url)
+        parcel.writeValue(fecha)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<CimaFoto> {
+        override fun createFromParcel(parcel: Parcel): CimaFoto {
+            return CimaFoto(parcel)
+        }
+
+        override fun newArray(size: Int): Array<CimaFoto?> {
+            return arrayOfNulls(size)
+        }
+    }
+}

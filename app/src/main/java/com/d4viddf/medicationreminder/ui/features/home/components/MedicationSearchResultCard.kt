@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,21 +59,23 @@ fun MedicationSearchResultCard(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // TODO: Replace with actual image loading logic once API is known
-            // Using Coil's AsyncImage for future integration
+            // Using Coil's AsyncImage to load the medication image
+            val primaryImageUrl = medicationResult.imageUrl?.find { it.tipo == "materialas" }?.url
+            val imageUrl = medicationResult.imageUrl?.find { it.tipo == "materialas" }?.url
+
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(medicationResult.imageUrl) // Use the actual image URL
+                    .data(primaryImageUrl) // Use the URL from the list
                     .crossfade(true)
                     .build(),
                 placeholder = painterResource(R.drawable.ic_pill_placeholder),
-                error = painterResource(R.drawable.ic_pill_placeholder),
-                contentDescription = medicationResult.name,
+                error = painterResource(R.drawable.ic_pill_placeholder), // You can use a specific error placeholder
+                contentDescription = stringResource(R.string.med_info_image_placeholder_cd, medicationResult.name),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .size(56.dp) // Standard size for list item images
+                    .clip(CircleShape) // Circular image
+                    .background(MaterialTheme.colorScheme.surfaceVariant) // Background for placeholder state
             )
 
             Spacer(Modifier.width(12.dp))
@@ -114,7 +117,7 @@ fun MedicationSearchResultCardPreview() {
             comercializado = true,
             requiereReceta = false,
             generico = true,
-            imageUrl = "https://example.com/aspirin_image.jpg"
+            imageUrl = listOf(com.d4viddf.medicationreminder.data.CimaFoto(tipo = "materialaso", url = "https://example.com/aspirin_image.jpg", fecha = null))
         )
         MedicationSearchResultCard(
             medicationResult = sampleResult,

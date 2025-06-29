@@ -88,11 +88,14 @@ class MedicationInfoRepository @Inject constructor(
                 val requiereReceta = resultJson.optBoolean("receta", false)
                 val generico = resultJson.optBoolean("generico", false)
 
-                // Construct imageUrl using the existing 'nregistro' variable
-                val imageUrl = if (nregistro.isNotEmpty() && nregistro != "Unknown") {
-                    "https://cima.aemps.es/cima/rest/medicamento/$nregistro/foto/materialAcondicionamientoPrimario"
-                } else {
-                    null
+                // Extracting fotos
+                val fotosJsonArray = resultJson.optJSONArray("fotos")
+                val fotosList = parseJsonArrayToList(fotosJsonArray) { fotoJson ->
+                    CimaFoto(
+                        tipo = fotoJson.optString("tipo", null),
+                        url = fotoJson.optString("url", null),
+                        fecha = fotoJson.optLong("fecha", -1L).takeIf { fecha -> fecha != -1L }
+                    )
                 }
 
                 // Extracting document URLs
@@ -134,7 +137,7 @@ class MedicationInfoRepository @Inject constructor(
                     comercializado = comercializado,
                     requiereReceta = requiereReceta,
                     generico = generico,
-                    imageUrl = imageUrl // Added imageUrl parameter
+                    imageUrl = fotosList // Assign the list of CimaFoto
                 )
                 searchResults.add(searchResult)
             }
