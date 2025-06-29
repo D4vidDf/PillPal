@@ -24,6 +24,7 @@ import com.d4viddf.medicationreminder.common.NotificationConstants
 import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver // Ensure this import is present
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Now using IntentExtraConstants
 import java.util.concurrent.TimeUnit
+import androidx.core.net.toUri
 
 object NotificationHelper {
 
@@ -97,7 +98,7 @@ object NotificationHelper {
         actualReminderTimeMillis: Long,
         notificationSoundUriString: String?,
         medicationColorHex: String?, // New parameter
-        medicationTypeName: String?  // New parameter
+        medicationTypeName: String?,  // New parameter
     ) {
         Log.i(
             TAG,
@@ -145,17 +146,6 @@ object NotificationHelper {
             putExtra(NotificationConstants.EXTRA_MED_TYPE_NAME, medicationTypeName)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Standard flags
         }
-        val fullScreenPendingIntent = PendingIntent.getActivity(
-            context,
-            reminderDbId + 2000, // Unique request code for full-screen PI
-            fullScreenActivityIntent,
-            contentPendingIntentFlags // Re-use flags, suitable for activities
-        )
-
-        val markAsActionIntent = Intent(context, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
-            action = IntentActionConstants.ACTION_MARK_AS_TAKEN
-            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
-        }
         // Unique request code for this pending intent
         val markAsTakenRequestCode = reminderDbId + 1000
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(
@@ -195,7 +185,7 @@ object NotificationHelper {
 
         if (!notificationSoundUriString.isNullOrEmpty()) {
             try {
-                val customSoundUri = Uri.parse(notificationSoundUriString)
+                val customSoundUri = notificationSoundUriString.toUri()
                 notificationCompatBuilder.setSound(customSoundUri)
                 Log.d(TAG, "Using custom notification sound: $customSoundUri")
             } catch (e: Exception) {

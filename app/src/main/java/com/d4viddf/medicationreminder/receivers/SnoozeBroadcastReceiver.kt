@@ -11,7 +11,6 @@ import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint // Using exi
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.repository.ReminderRepository
 import com.d4viddf.medicationreminder.utils.FileLogger
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
