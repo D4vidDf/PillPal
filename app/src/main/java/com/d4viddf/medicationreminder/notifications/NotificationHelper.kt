@@ -21,8 +21,10 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.common.IntentExtraConstants
 import com.d4viddf.medicationreminder.common.NotificationConstants
+import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver // Ensure this import is present
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Now using IntentExtraConstants
 import java.util.concurrent.TimeUnit
+import androidx.core.net.toUri
 
 object NotificationHelper {
 
@@ -96,31 +98,14 @@ object NotificationHelper {
         actualReminderTimeMillis: Long,
         notificationSoundUriString: String?,
         medicationColorHex: String?, // New parameter
-        medicationTypeName: String?  // New parameter
+        medicationTypeName: String?,  // New parameter
     ) {
         Log.i(
             TAG,
             "showReminderNotification called for ID: $reminderDbId, Name: $medicationName, Interval: $isIntervalType, NextDoseHelper: $nextDoseTimeMillisForHelper, ActualTime: $actualReminderTimeMillis, SoundURI: $notificationSoundUriString, Color: $medicationColorHex, Type: $medicationTypeName"
         )
 
-        // Standard content intent (tapping the notification itself)
-        val contentIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_REMINDER_ID, reminderDbId) // For MainActivity to know which reminder
-        }
-        val contentPendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
-        val contentPendingIntent = PendingIntent.getActivity(
-            context,
-            reminderDbId, // Standard request code for content PI
-            contentIntent,
-            contentPendingIntentFlags
-        )
-
-        // Full-screen activity intent
+        // Full-screen activity intent (used for both full-screen pop-up and content tap)
         val fullScreenActivityIntent = Intent(context, com.d4viddf.medicationreminder.ui.features.notifications.activity.FullScreenNotificationActivity::class.java).apply {
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
@@ -129,21 +114,53 @@ object NotificationHelper {
             putExtra(NotificationConstants.EXTRA_MED_TYPE_NAME, medicationTypeName)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Standard flags
         }
+
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        // Content PendingIntent (for tapping the notification in the shade)
+        // Now uses the same intent as the full-screen pop-up
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            reminderDbId, // Standard request code for content PI
+            fullScreenActivityIntent, // Use the fullScreenActivityIntent here
+            pendingIntentFlags
+        )
+
+        // Full-screen PendingIntent (for the heads-up notification)
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
             reminderDbId + 2000, // Unique request code for full-screen PI
-            fullScreenActivityIntent,
-            contentPendingIntentFlags // Re-use flags, suitable for activities
+            fullScreenActivityIntent, // Also uses fullScreenActivityIntent
+            pendingIntentFlags // Re-use flags
         )
 
         val markAsActionIntent = Intent(context, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
-            action = IntentActionConstants.ACTION_MARK_AS_TAKEN
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)
+            putExtra(NotificationConstants.EXTRA_MED_COLOR_HEX, medicationColorHex)
+            putExtra(NotificationConstants.EXTRA_MED_TYPE_NAME, medicationTypeName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Standard flags
         }
         // Unique request code for this pending intent
         val markAsTakenRequestCode = reminderDbId + 1000
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(
-            context, markAsTakenRequestCode, markAsActionIntent, contentPendingIntentFlags
+            context, markAsTakenRequestCode, markAsActionIntent, pendingIntentFlags // Corrected: Was contentPendingIntentFlags
+        )
+
+        // Snooze Action Intent
+        val snoozeIntent = Intent(context, SnoozeBroadcastReceiver::class.java).apply {
+            action = IntentActionConstants.ACTION_SNOOZE_REMINDER
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
+        }
+        // Unique request code for snooze pending intent
+        val snoozeRequestCode = reminderDbId + 3000 // Ensure this is unique
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            context, snoozeRequestCode, snoozeIntent, pendingIntentFlags // Corrected: Was contentPendingIntentFlags
         )
 
         val notificationTitle = context.getString(R.string.notification_title_time_for, medicationName)
@@ -162,12 +179,13 @@ object NotificationHelper {
             .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)
             .addAction(R.drawable.ic_check, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
+            .addAction(R.drawable.ic_snooze, context.getString(R.string.notification_action_snooze), snoozePendingIntent) // Added Snooze Action
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
         // Sound will be set below based on notificationSoundUriString
 
         if (!notificationSoundUriString.isNullOrEmpty()) {
             try {
-                val customSoundUri = Uri.parse(notificationSoundUriString)
+                val customSoundUri = notificationSoundUriString.toUri()
                 notificationCompatBuilder.setSound(customSoundUri)
                 Log.d(TAG, "Using custom notification sound: $customSoundUri")
             } catch (e: Exception) {
