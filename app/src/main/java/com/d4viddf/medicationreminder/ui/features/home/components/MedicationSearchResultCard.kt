@@ -59,15 +59,11 @@ fun MedicationSearchResultCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Using Coil's AsyncImage to load the medication image
-            val imageUrl = if (!medicationResult.nregistro.isNullOrBlank()) {
-                "https://cima.aemps.es/cima/rest/medicamento/${medicationResult.nregistro}/foto/materialAcondicionamientoPrimario"
-            } else {
-                null // Or a default placeholder URL if you have one
-            }
+            val primaryImageUrl = medicationResult.imageUrl?.find { it.tipo == "materialAcondicionamientoPrimario" }?.url
 
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl) // Use the constructed image URL
+                    .data(primaryImageUrl) // Use the URL from the list
                     .crossfade(true)
                     .build(),
                 placeholder = painterResource(R.drawable.ic_pill_placeholder),
@@ -119,7 +115,7 @@ fun MedicationSearchResultCardPreview() {
             comercializado = true,
             requiereReceta = false,
             generico = true,
-            imageUrl = "https://example.com/aspirin_image.jpg"
+            imageUrl = listOf(com.d4viddf.medicationreminder.data.CimaFoto(tipo = "materialAcondicionamientoPrimario", url = "https://example.com/aspirin_image.jpg", fecha = null))
         )
         MedicationSearchResultCard(
             medicationResult = sampleResult,

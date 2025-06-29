@@ -42,8 +42,37 @@ data class CimaDocumento(
     // seccTimestamp might also be useful
 )
 
+import android.os.Parcel
+import android.os.Parcelable
+
 data class CimaFoto(
     val tipo: String?, // "materialAcondicionamientoPrimario", "materialAcondicionamientoSecundario"
     val url: String?, // URL to the image
     val fecha: Long? // Timestamp of the image
-)
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readValue(Long::class.java.classLoader) as? Long
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(tipo)
+        parcel.writeString(url)
+        parcel.writeValue(fecha)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<CimaFoto> {
+        override fun createFromParcel(parcel: Parcel): CimaFoto {
+            return CimaFoto(parcel)
+        }
+
+        override fun newArray(size: Int): Array<CimaFoto?> {
+            return arrayOfNulls(size)
+        }
+    }
+}

@@ -16,7 +16,7 @@ data class MedicationSearchResult(
     val comercializado: Boolean,
     val requiereReceta: Boolean,
     val generico: Boolean,
-    val imageUrl: String?
+    val imageUrl: List<CimaFoto>? // Changed from String? to List<CimaFoto>?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -28,10 +28,10 @@ data class MedicationSearchResult(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
-        parcel.readByte() != 0.toByte(), // Corrected line
-        parcel.readByte() != 0.toByte(), // Corrected line
-        parcel.readByte() != 0.toByte(),  // Corrected line
-        parcel.readString()
+        parcel.readByte() != 0.toByte(),
+        parcel.readByte() != 0.toByte(),
+        parcel.readByte() != 0.toByte(),
+        parcel.createTypedArrayList(CimaFoto.CREATOR) // Read List<CimaFoto>
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -44,10 +44,10 @@ data class MedicationSearchResult(
         parcel.writeString(dosage)
         parcel.writeString(nregistro)
         parcel.writeString(labtitular)
-        parcel.writeByte(if (comercializado) 1.toByte() else 0.toByte()) // Corrected line
-        parcel.writeByte(if (requiereReceta) 1.toByte() else 0.toByte()) // Corrected line
-        parcel.writeByte(if (generico) 1.toByte() else 0.toByte()) // Corrected line
-        parcel.writeString(imageUrl)
+        parcel.writeByte(if (comercializado) 1.toByte() else 0.toByte())
+        parcel.writeByte(if (requiereReceta) 1.toByte() else 0.toByte())
+        parcel.writeByte(if (generico) 1.toByte() else 0.toByte())
+        parcel.writeTypedList(imageUrl) // Write List<CimaFoto>
     }
 
     override fun describeContents(): Int {
