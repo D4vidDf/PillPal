@@ -21,6 +21,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.common.IntentExtraConstants
 import com.d4viddf.medicationreminder.common.NotificationConstants
+import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver // Ensure this import is present
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Now using IntentExtraConstants
 import java.util.concurrent.TimeUnit
 
@@ -146,6 +147,17 @@ object NotificationHelper {
             context, markAsTakenRequestCode, markAsActionIntent, contentPendingIntentFlags
         )
 
+        // Snooze Action Intent
+        val snoozeIntent = Intent(context, SnoozeBroadcastReceiver::class.java).apply {
+            action = IntentActionConstants.ACTION_SNOOZE_REMINDER
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
+        }
+        // Unique request code for snooze pending intent
+        val snoozeRequestCode = reminderDbId + 3000 // Ensure this is unique
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            context, snoozeRequestCode, snoozeIntent, contentPendingIntentFlags // Re-use flags
+        )
+
         val notificationTitle = context.getString(R.string.notification_title_time_for, medicationName)
         var notificationText = context.getString(R.string.notification_text_take_dosage, medicationDosage)
 
@@ -162,6 +174,7 @@ object NotificationHelper {
             .setWhen(actualReminderTimeMillis)
             .setShowWhen(true)
             .addAction(R.drawable.ic_check, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
+            .addAction(R.drawable.ic_snooze, context.getString(R.string.notification_action_snooze), snoozePendingIntent) // Added Snooze Action
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
         // Sound will be set below based on notificationSoundUriString
 
