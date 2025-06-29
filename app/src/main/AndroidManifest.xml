@@ -59,6 +59,15 @@
         </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".receivers.SnoozeBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.d4viddf.medicationreminder.ACTION_SNOOZE_REMINDER" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".services.PreReminderForegroundService"
             android:exported="false"

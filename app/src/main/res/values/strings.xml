@@ -186,6 +186,7 @@
     <string name="notification_title_time_for">¡Hora de tu %1$s!</string>
     <string name="notification_text_take_dosage">Toma %1$s.</string>
     <string name="notification_action_mark_as_taken">Marcar como Tomada</string>
+    <string name="notification_action_snooze">Posponer (10 min)</string>
     <string name="notification_text_interval_dose_valid">Toma %1$s. Válido por aprox. %2$s.</string>
     <string name="notification_text_interval_dose_window_ended">Toma %1$s. Ventana de dosis terminando/terminada.</string>
     <!-- FullScreenNotificationActivity -->
