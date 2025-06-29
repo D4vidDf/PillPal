@@ -159,7 +159,7 @@ object NotificationHelper {
         // Unique request code for this pending intent
         val markAsTakenRequestCode = reminderDbId + 1000
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(
-            context, markAsTakenRequestCode, markAsActionIntent, contentPendingIntentFlags
+            context, markAsTakenRequestCode, markAsActionIntent, pendingIntentFlags // Corrected: Was contentPendingIntentFlags
         )
 
         // Snooze Action Intent
@@ -170,7 +170,7 @@ object NotificationHelper {
         // Unique request code for snooze pending intent
         val snoozeRequestCode = reminderDbId + 3000 // Ensure this is unique
         val snoozePendingIntent = PendingIntent.getBroadcast(
-            context, snoozeRequestCode, snoozeIntent, contentPendingIntentFlags // Re-use flags
+            context, snoozeRequestCode, snoozeIntent, pendingIntentFlags // Corrected: Was contentPendingIntentFlags
         )
 
         val notificationTitle = context.getString(R.string.notification_title_time_for, medicationName)

@@ -20,8 +20,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.IntrinsicSize // Added import
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width // Added import
+import androidx.compose.foundation.layout.wrapContentSize // Added import, though it might be covered by layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -434,7 +437,8 @@ fun FullScreenNotificationScreenPillPreview() {
             contentColor = MedicationColor.LIGHT_BLUE.textColor,
             animatedShapesColor = MedicationColor.LIGHT_BLUE.textColor.copy(alpha = 0.1f),
             onMarkAsTaken = {},
-            onDismiss = {}
+            onDismiss = {},
+            onSnooze = {} // Added dummy lambda for preview
         )
     }
 }
@@ -452,7 +456,8 @@ fun FullScreenNotificationScreenSyrupDarkPreview() {
             contentColor = MedicationColor.PURPLE.textColor,
             animatedShapesColor = MedicationColor.PURPLE.textColor.copy(alpha = 0.1f),
             onMarkAsTaken = {},
-            onDismiss = {}
+            onDismiss = {},
+            onSnooze = {} // Added dummy lambda for preview
         )
     }
 }
@@ -471,7 +476,8 @@ fun FullScreenNotificationScreenTickPreview() {
             contentColor = MedicationColor.LIGHT_GREEN.textColor,
             animatedShapesColor = MedicationColor.LIGHT_GREEN.textColor.copy(alpha = 0.1f),
             onMarkAsTaken = { showTickPreview = true },
-            onDismiss = {}
+            onDismiss = {},
+            onSnooze = {} // Added dummy lambda for preview
         )
     }
 }
