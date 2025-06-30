@@ -57,7 +57,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.features.home.components.MedicationList // Reusing this component
+// Updated import for MedicationList
+import com.d4viddf.medicationreminder.ui.features.medicationvault.components.MedicationList
 import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.features.medicationvault.viewmodel.MedicationVaultViewModel
 import com.d4viddf.medicationreminder.ui.navigation.Screen

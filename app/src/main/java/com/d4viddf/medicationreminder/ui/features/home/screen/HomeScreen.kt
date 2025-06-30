@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
+import com.d4viddf.medicationreminder.ui.features.home.components.TodayScheduleItem
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -136,87 +138,8 @@ fun HomeScreen(
     }
 }
 
-@Composable
-fun NextDoseCard(reminder: MedicationReminder) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.width(150.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Med ID: ${reminder.medicationId}", fontWeight = FontWeight.Bold) // Placeholder for Med Name
-            Text("1 tablet") // Placeholder for Dosage
-            val time = try {
-                LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
-                    .format(DateTimeFormatter.ofPattern("HH:mm"))
-            } catch (e: Exception) {
-                "N/A"
-            }
-            Text(time, style = MaterialTheme.typography.bodySmall)
-        }
-    }
-}
-
-@Composable
-fun TodayScheduleItem(
-    reminder: MedicationReminder,
-    onMarkAsTaken: () -> Unit,
-    timeFormatter: DateTimeFormatter
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        border = if (reminder.isTaken) BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer) else null,
-        colors = CardDefaults.cardColors(
-            containerColor = if (reminder.isTaken) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = reminder.isTaken,
-                    onCheckedChange = { if (it) onMarkAsTaken() },
-                    enabled = !reminder.isTaken,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-                Spacer(Modifier.width(8.dp))
-                Column {
-                    Text(
-                        text = "Medication ID: ${reminder.medicationId}", // Placeholder
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (reminder.isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "1 tablet at ${
-                            try {
-                                LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter).format(timeFormatter)
-                            } catch (e: Exception) { "" }
-                        }", // Placeholder for dosage
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            if (reminder.isTaken) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = "Taken",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-}
+// NextDoseCard and TodayScheduleItem are now imported from their own files.
+// Their definitions have been removed from this file.
 
 @Preview(showBackground = true, name = "HomeScreen Preview (New Design)")
 @Composable

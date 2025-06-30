@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.ui.features.home.components
+package com.d4viddf.medicationreminder.ui.features.medicationvault.components // Updated package
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -27,27 +27,28 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+// Import MedicationCard from its new potential location
+import com.d4viddf.medicationreminder.ui.features.medicationvault.components.MedicationCard
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalSharedTransitionApi::class
-) // ExperimentalMaterial3ExpressiveApi is not needed for PullToRefreshBox
+)
 @Composable
 fun MedicationList(
     medications: List<Medication>,
     onItemClick: (medication: Medication, index: Int) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    modifier: Modifier = Modifier,
     bottomContentPadding: Dp,
     listState: LazyListState,
-    enableCardTransitions: Boolean // New parameter
+    enableCardTransitions: Boolean
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
-
 
     PullToRefreshBox(
         state = pullToRefreshState,
@@ -55,36 +56,32 @@ fun MedicationList(
         isRefreshing = isLoading,
         contentAlignment = Alignment.TopCenter,
         indicator = {
-            // Use the standard Material 3 Indicator
-            // It will be centered horizontally at the top of the PullToRefreshBox.
             PullToRefreshDefaults.LoadingIndicator(
                 state = pullToRefreshState,
                 isRefreshing = isLoading,
-                // modifier = Modifier.align(Alignment.TopCenter) // This is the default behavior
             )
         }
     ) {
         if (medications.isEmpty() && !isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize(), // This Box fills the PullToRefreshBox content area
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                // Make sure R.string.no_medications_yet is defined in your strings.xml
                 Text(stringResource(id = R.string.no_medications_yet))
             }
         } else {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = bottomContentPadding) // Apply bottom padding
+                contentPadding = PaddingValues(bottom = bottomContentPadding)
             ) {
                 itemsIndexed(medications, key = { _, medication -> medication.id }) { index, medication ->
-                    MedicationCard(
+                    MedicationCard( // This will be imported from the same package
                         medication = medication,
                         onClick = { onItemClick(medication, index) },
-                        enableTransition = enableCardTransitions, // New line
-                        sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope // Pass scope
+                        enableTransition = enableCardTransitions,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
                     )
                 }
             }
@@ -118,14 +115,14 @@ fun MedicationListPreview() {
         )
         MedicationList(
             medications = sampleMedications,
-            onItemClick = { _, _ -> }, // Adjust for new signature
+            onItemClick = { _, _ -> },
             isLoading = false,
             onRefresh = {},
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null, // Preview won't have a real scope
-            bottomContentPadding = 0.dp, // Changed to 0.dp
-            listState = rememberLazyListState(), // Add this
-            enableCardTransitions = true // Add default for preview
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
+            bottomContentPadding = 0.dp,
+            listState = rememberLazyListState(),
+            enableCardTransitions = true
         )
     }
 }

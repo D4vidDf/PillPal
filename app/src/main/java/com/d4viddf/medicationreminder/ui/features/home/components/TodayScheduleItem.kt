@@ -1,89 +1,90 @@
 package com.d4viddf.medicationreminder.ui.features.home.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
-import com.d4viddf.medicationreminder.ui.common.theme.AppTheme // Assuming AppTheme
+import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-// ScheduleItem Composable
 @Composable
-fun ScheduleItem(
-    time: String,
-    label: String,
-    isTaken: Boolean,
-    onTakenChange: (Boolean) -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier // Added modifier for flexibility
+fun TodayScheduleItem(
+    reminder: MedicationReminder,
+    onMarkAsTaken: () -> Unit,
+    timeFormatter: DateTimeFormatter
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp), // Adjusted padding
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween // Pushes switch to the end
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        border = if (reminder.isTaken) BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer) else null,
+        colors = CardDefaults.cardColors(
+            containerColor = if (reminder.isTaken) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        )
     ) {
-        Column(modifier = Modifier.weight(1f)) { // Take available space, pushing switch
-            Text(text = time, style = MaterialTheme.typography.titleMedium)
-            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = reminder.isTaken,
+                    onCheckedChange = { if (it) onMarkAsTaken() },
+                    enabled = !reminder.isTaken,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "Medication ID: ${reminder.medicationId}", // Placeholder
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (reminder.isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "1 tablet at ${
+                            try {
+                                LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter).format(timeFormatter)
+                            } catch (e: Exception) { "" }
+                        }", // Placeholder for dosage
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            if (reminder.isTaken) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = "Taken",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
-        Switch(
-            checked = isTaken,
-            onCheckedChange = onTakenChange,
-            enabled = enabled,
-            modifier = Modifier.padding(start = 8.dp) // Add some padding before the switch
-            // No explicit contentDescription needed for Switch when accompanied by descriptive text labels.
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Schedule Item - Not Taken")
-@Composable
-fun ScheduleItemNotTakenPreview() {
-    AppTheme {
-        ScheduleItem(
-            time = "10:00 AM",
-            label = "Aspirin",
-            isTaken = false,
-            onTakenChange = {},
-            enabled = true
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Schedule Item - Taken")
-@Composable
-fun ScheduleItemTakenPreview() {
-    AppTheme {
-        ScheduleItem(
-            time = "02:00 PM",
-            label = "Ibuprofen",
-            isTaken = true,
-            onTakenChange = {},
-            enabled = true
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Schedule Item - Disabled")
-@Composable
-fun ScheduleItemDisabledPreview() {
-    AppTheme {
-        ScheduleItem(
-            time = "08:00 PM",
-            label = "Vitamin C",
-            isTaken = false,
-            onTakenChange = {},
-            enabled = false
-        )
     }
 }
