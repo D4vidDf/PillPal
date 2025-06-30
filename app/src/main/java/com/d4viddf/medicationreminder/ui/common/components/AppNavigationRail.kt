@@ -25,9 +25,10 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 @Composable
 fun AppNavigationRail(
     onHomeClick: () -> Unit,
+    onMedicationVaultClick: () -> Unit,
     onCalendarClick: () -> Unit,
+    onAnalysisClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String? = null
@@ -71,7 +72,27 @@ fun AppNavigationRail(
                 selectedTextColor = MaterialTheme.colorScheme.primary,
                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                indicatorColor = MaterialTheme.colorScheme.primaryContainer // Or adjust as needed
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        )
+
+        val vaultSelected = currentRoute == Screen.MedicationVault.route
+        NavigationRailItem(
+            icon = {
+                Icon(
+                    painter = painterResource(id = if (vaultSelected) R.drawable.ic_inventory_filled else R.drawable.ic_inventory_outline),
+                    contentDescription = stringResource(R.string.medication_vault_title) // Add R.string.medication_vault_title
+                )
+            },
+            selected = vaultSelected,
+            onClick = onMedicationVaultClick,
+            label = { Text(stringResource(R.string.medication_vault_title)) }, // Add R.string.medication_vault_title
+            colors = NavigationRailItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
 
@@ -86,6 +107,26 @@ fun AppNavigationRail(
             selected = calendarSelected,
             onClick = onCalendarClick,
             label = { Text(stringResource(R.string.calendar_screen_title)) },
+            colors = NavigationRailItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        )
+
+        val analysisSelected = currentRoute == Screen.Analysis.route
+        NavigationRailItem(
+            icon = {
+                Icon(
+                    painter = painterResource(id = if (analysisSelected) R.drawable.ic_analytics_filled else R.drawable.ic_analytics_outline),
+                    contentDescription = stringResource(R.string.analysis_screen_title) // Add R.string.analysis_screen_title
+                )
+            },
+            selected = analysisSelected,
+            onClick = onAnalysisClick,
+            label = { Text(stringResource(R.string.analysis_screen_title)) }, // Add R.string.analysis_screen_title
             colors = NavigationRailItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.primary,
                 selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -114,26 +155,6 @@ fun AppNavigationRail(
                 indicatorColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
-
-        val settingsSelected = currentRoute == Screen.Settings.route
-        NavigationRailItem(
-            icon = {
-                Icon(
-                    painter = painterResource(id = if (settingsSelected) R.drawable.ic_outline_settings_24 else R.drawable.ic_outline_settings_24),
-                    contentDescription = stringResource(R.string.settings_screen_title)
-                )
-            },
-            selected = settingsSelected,
-            onClick = onSettingsClick,
-            label = { Text(stringResource(R.string.settings_screen_title)) },
-            colors = NavigationRailItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.primary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                indicatorColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        )
     }
 }
 
@@ -142,11 +163,14 @@ fun AppNavigationRail(
 @Composable
 fun AppNavigationRailPreview() {
     AppTheme(dynamicColor = false) {
+        // Add R.string.medication_vault_title and R.string.analysis_screen_title to strings.xml
+        // Add ic_inventory_filled, ic_inventory_outline, ic_analytics_filled, ic_analytics_outline to drawables
         AppNavigationRail(
             onHomeClick = {},
+            onMedicationVaultClick = {},
             onCalendarClick = {},
+            onAnalysisClick = {},
             onProfileClick = {},
-            onSettingsClick = {},
             onAddClick = {},
             currentRoute = Screen.Home.route
         )

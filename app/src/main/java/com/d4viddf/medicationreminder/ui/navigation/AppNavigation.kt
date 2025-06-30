@@ -47,12 +47,14 @@ const val SHOW_TODAY_ARG = "showToday" // Argument for AllSchedulesScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
+    object MedicationVault : Screen("medicationVault") // Added MedicationVault
     object AddMedication : Screen("addMedication")
     object AddMedicationChoice : Screen("addMedicationChoice")
     object MedicationDetails : Screen("medicationDetails/{$MEDICATION_ID_ARG}?enableSharedTransition={enableSharedTransition}") {
         fun createRoute(id: Int, enableSharedTransition: Boolean = true) = "medicationDetails/$id?enableSharedTransition=$enableSharedTransition"
     }
-    object Settings : Screen("settings")
+    object Settings : Screen("settings") // Will be replaced by Analytics in UI, but route can remain for now if settings screen is complex
+    object Analysis : Screen("analysis") // Added Analysis screen
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
     data object Onboarding : Screen("onboarding_screen")
@@ -111,14 +113,19 @@ fun AppNavigation(
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
                     navController = navController, // Added this line
-                    // Kept
-                    onMedicationClick = { medicationId -> // Kept
-                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = widthSizeClass == WindowWidthSizeClass.Compact))
-                    },
-                    // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
-                    widthSizeClass = widthSizeClass, // Kept
-                    sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
-                    animatedVisibilityScope = this // Pass scope
+                    // Parameters for the new HomeScreen which does not show all medications
+                    // onMedicationClick, widthSizeClass, sharedTransitionScope, animatedVisibilityScope are removed
+                    // as they were for the old list-detail view of all medications.
+                    // The new HomeScreen is simpler in terms of these params.
+                )
+            }
+            composable(Screen.MedicationVault.route) {
+                // Assuming MedicationVaultScreen has a similar structure to the old HomeScreen for list/detail
+                com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen(
+                    navController = navController,
+                    widthSizeClass = widthSizeClass,
+                    sharedTransitionScope = currentSharedTransitionScope,
+                    animatedVisibilityScope = this
                 )
             }
             composable(Screen.AddMedicationChoice.route) { // New entry
@@ -243,6 +250,12 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() }
                     // No animatedVisibilityScope passed
                 )
+            }
+            composable(Screen.Analysis.route) {
+                // Placeholder for Analysis Screen
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Analysis Screen (Placeholder)")
+                }
             }
 
             // Routes for the new screens

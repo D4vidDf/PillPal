@@ -22,9 +22,10 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 @Composable
 fun AppHorizontalFloatingToolbar(
     onHomeClick: () -> Unit,
+    onMedicationVaultClick: () -> Unit,
     onCalendarClick: () -> Unit,
+    onAnalysisClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String? = null
@@ -43,7 +44,7 @@ fun AppHorizontalFloatingToolbar(
         }
     ) {
         val homeSelected = currentRoute == Screen.Home.route
-        IconButton(onClick = { if (currentRoute != Screen.Home.route) onHomeClick() }) {
+        IconButton(onClick = { if (!homeSelected) onHomeClick() }) {
             Icon(
                 painter = painterResource(id = if (homeSelected) R.drawable.ic_home_filled else R.drawable.rounded_home_24),
                 contentDescription = stringResource(id = R.string.home_screen_title),
@@ -51,8 +52,18 @@ fun AppHorizontalFloatingToolbar(
             )
         }
 
+        val vaultSelected = currentRoute == Screen.MedicationVault.route
+        IconButton(onClick = { if (!vaultSelected) onMedicationVaultClick() }) {
+            Icon(
+                // Using a placeholder inventory icon, replace with actual if available
+                painter = painterResource(id = if (vaultSelected) R.drawable.ic_inventory_filled else R.drawable.ic_inventory_outline),
+                contentDescription = stringResource(id = R.string.medication_vault_title), // Add this string resource
+                tint = if (vaultSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         val calendarSelected = currentRoute == Screen.Calendar.route
-        IconButton(onClick = { if (currentRoute != Screen.Calendar.route) onCalendarClick() }) {
+        IconButton(onClick = { if (!calendarSelected) onCalendarClick() }) {
             Icon(
                 painter = painterResource(id = if (calendarSelected) R.drawable.ic_calendar_filled else R.drawable.ic_calendar),
                 contentDescription = stringResource(id = R.string.calendar_screen_title),
@@ -60,21 +71,21 @@ fun AppHorizontalFloatingToolbar(
             )
         }
 
+        val analysisSelected = currentRoute == Screen.Analysis.route
+        IconButton(onClick = { if(!analysisSelected) onAnalysisClick() }) {
+            Icon(
+                painter = painterResource(id = if (analysisSelected) R.drawable.ic_analytics_filled else R.drawable.ic_analytics_outline),
+                contentDescription = stringResource(id = R.string.analysis_screen_title), // Add this string resource
+                tint = if (analysisSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         val profileSelected = currentRoute == Screen.Profile.route
-        IconButton(onClick = { if (currentRoute != Screen.Profile.route) onProfileClick() }) {
+        IconButton(onClick = { if (!profileSelected) onProfileClick() }) {
             Icon(
                 painter = painterResource(id = if (profileSelected) R.drawable.ic_person_filled else R.drawable.rounded_person_24),
                 contentDescription = stringResource(id = R.string.profile_screen_title),
                 tint = if (profileSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        val settingsSelected = currentRoute == Screen.Settings.route
-        IconButton(onClick = { if (currentRoute != Screen.Settings.route) onSettingsClick() }) {
-            Icon(
-                painter = painterResource(id = if (settingsSelected) R.drawable.ic_outline_settings_24 else R.drawable.ic_outline_settings_24),
-                contentDescription = stringResource(id = R.string.settings_screen_title),
-                tint = if (settingsSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -85,11 +96,14 @@ fun AppHorizontalFloatingToolbar(
 @Composable
 fun AppHorizontalFloatingToolbarPreview() {
     AppTheme(dynamicColor = false) {
+        // Add R.string.medication_vault_title and R.string.analysis_screen_title to strings.xml
+        // Add ic_inventory_filled, ic_inventory_outline, ic_analytics_filled, ic_analytics_outline to drawables
         AppHorizontalFloatingToolbar(
             onHomeClick = {},
+            onMedicationVaultClick = {},
             onCalendarClick = {},
+            onAnalysisClick = {},
             onProfileClick = {},
-            onSettingsClick = {},
             onAddClick = {},
             currentRoute = Screen.Home.route
         )
