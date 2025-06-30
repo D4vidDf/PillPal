@@ -92,7 +92,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(120.dp), // Adjust height as needed for NextDoseCard
-                                // preferredItemWidth = 150.dp, // Adjust as per NextDoseCard's width + padding
+                                preferredItemWidth = 150.dp, // Added: Adjust as per NextDoseCard's width
                                 itemSpacing = 8.dp,
                                 contentPadding = PaddingValues(horizontal = 0.dp) // No extra padding if items have their own
                             ) {carouselIndex ->
