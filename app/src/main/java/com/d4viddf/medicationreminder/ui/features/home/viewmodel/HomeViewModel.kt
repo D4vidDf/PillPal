@@ -5,9 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository // Added
+import com.d4viddf.medicationreminder.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.MedicationTypeRepository // Added
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
-import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem // Added
+import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,14 +23,14 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import javax.inject.Inject
-import com.d4viddf.medicationreminder.ui.common.utils.MedicationVisualsUtil // Import the new util
+// Removed: import com.d4viddf.medicationreminder.ui.common.utils.MedicationVisualsUtil
 
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
-    private val medicationRepository: MedicationRepository // Injected MedicationRepository
-    // private val notificationRepository: NotificationRepository // Placeholder
+    private val medicationRepository: MedicationRepository,
+    private val medicationTypeRepository: MedicationTypeRepository // Injected
 ) : ViewModel() {
 
     data class HomeState(
@@ -115,16 +116,24 @@ class HomeViewModel @Inject constructor(
                             // and you have a way to get MedicationType details if needed for the name.
                             // For now, let's assume medication.type (if it exists) is a string like "PILL".
                             // If medication.typeId is used, you'd fetch MedicationType by ID.
-                            // Let's assume medication.type is a simple string name for now for the icon helper.
-                            val medicationType = medication?.type // Example: "PILL", "SYRUP" - this might need to be medication.typeId and then another lookup
+                            val medication = medicationRepository.getMedicationById(reminder.medicationId)
+                            var medicationTypeName: String? = null
+                            var medicationImageUrl: String? = null
+
+                            if (medication?.typeId != null) {
+                                val medicationTypeDetails = medicationTypeRepository.getMedicationTypeById(medication.typeId)
+                                medicationTypeName = medicationTypeDetails?.name // For potential future use if name is needed
+                                medicationImageUrl = medicationTypeDetails?.imageUrl
+                            }
 
                             NextDoseUiItem(
                                 reminderId = reminder.id,
                                 medicationId = reminder.medicationId,
                                 medicationName = medication?.name ?: "Unknown Medication",
                                 medicationDosage = medication?.dosage ?: "N/A",
-                                medicationColorName = medication?.color ?: "LIGHT_GREY", // Default color
-                                medicationTypeIconRes = MedicationVisualsUtil.getMedicationTypeIcon(medicationType), // Use the util
+                                medicationColorName = medication?.color ?: "LIGHT_ORANGE", // Changed default
+                                medicationImageUrl = medicationImageUrl,
+                                rawReminderTime = reminder.reminderTime, // Added raw time
                                 formattedReminderTime = try {
                                     LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
                                         .format(DateTimeFormatter.ofPattern("HH:mm"))
@@ -132,7 +141,7 @@ class HomeViewModel @Inject constructor(
                             )
                         }
                     }
-                    val nextDoseUiItems = nextDoseUiItemsDeferred.awaitAll().sortedBy { it.formattedReminderTime }
+                    val nextDoseUiItems = nextDoseUiItemsDeferred.awaitAll().sortedBy { it.rawReminderTime } // Sort by raw time
 
 
                     val groupedReminders = remindersList.groupBy { reminder: MedicationReminder -> getPartOfDay(reminder.reminderTime) }

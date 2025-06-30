@@ -77,10 +77,8 @@ fun HomeScreen(
                 if (uiState.nextDoseGroup.isNotEmpty()) {
                     item {
                         Column {
-                            val nextDoseTime = uiState.nextDoseGroup.first().reminderTime
-                            val formattedTime = try {
-                                LocalDateTime.parse(nextDoseTime, ReminderCalculator.storableDateTimeFormatter).format(timeFormatter)
-                            } catch (e: Exception) { "Future" }
+                            // Use formattedReminderTime directly from the first item in the already processed NextDoseUiItem list
+                            val formattedTime = uiState.nextDoseGroup.firstOrNull()?.formattedReminderTime ?: "Future"
                             Text(
                                 "NEXT DOSE (at $formattedTime)",
                                 style = MaterialTheme.typography.titleMedium,
@@ -156,36 +154,39 @@ fun HomeScreen(
 @Composable
 fun HomeScreenNewPreview() {
     val sampleTime = LocalDateTime.now()
+    val morningRawTime = sampleTime.withHour(8).format(ReminderCalculator.storableDateTimeFormatter)
+    val afternoonRawTime = sampleTime.withHour(15).format(ReminderCalculator.storableDateTimeFormatter)
+
     val previewState = HomeViewModel.HomeState(
         currentGreeting = "Good morning! 🌤️",
         nextDoseGroup = listOf(
-            MedicationReminder(1, 101, 1, sampleTime.plusHours(1).format(ReminderCalculator.storableDateTimeFormatter), false, null, null),
-            MedicationReminder(2, 102, 2, sampleTime.plusHours(1).format(ReminderCalculator.storableDateTimeFormatter), false, null, null)
+            NextDoseUiItem(1,101,"Amoxicillin","250mg","LIGHT_BLUE",null, morningRawTime, "08:00"),
+            NextDoseUiItem(2,102,"Ibuprofen","200mg","LIGHT_RED", "http://example.com/ibu.png", morningRawTime, "08:00")
         ),
         todaysReminders = mapOf(
             "Morning" to listOf(
-                MedicationReminder(5, 104, 5, sampleTime.withHour(8).format(ReminderCalculator.storableDateTimeFormatter), true, sampleTime.withHour(8).format(ReminderCalculator.storableDateTimeFormatter), null),
-                MedicationReminder(1, 101, 1, sampleTime.withHour(9).format(ReminderCalculator.storableDateTimeFormatter), false, null, null)
+                MedicationReminder(5, 104, 5, morningRawTime, true, morningRawTime, null),
+                MedicationReminder(1, 101, 1, morningRawTime, false, null, null)
             ),
             "Afternoon" to listOf(
-                MedicationReminder(3, 101, 3, sampleTime.withHour(15).format(ReminderCalculator.storableDateTimeFormatter), false, null, null)
+                MedicationReminder(3, 101, 3, afternoonRawTime, false, null, null)
             ),
-            "Evening" to listOf(
-                MedicationReminder(4, 103, 4, sampleTime.withHour(21).format(ReminderCalculator.storableDateTimeFormatter), false, null, null)
-            ),
+            "Evening" to emptyList(),
             "Night" to emptyList()
         ),
         hasUnreadAlerts = true,
         isLoading = false
     )
 
-    // Create a dummy ViewModel that just holds the state
-    val previewViewModel = object : HomeViewModel(FakeMedicationReminderRepositoryPreview()) { // Needs a repo
+    // Dummy ViewModel for preview that directly exposes the state
+    val previewViewModel = object : HomeViewModel(
+        FakeMedicationReminderRepositoryPreview(),
+        FakeMedicationRepositoryPreview(),
+        FakeMedicationTypeRepositoryPreview()
+    ) {
         override val uiState: StateFlow<HomeState> = MutableStateFlow(previewState)
-        // Dummy markAsTaken for preview
-        override fun markAsTaken(reminder: MedicationReminder) {}
+        override fun markAsTaken(reminder: MedicationReminder) {} // No-op for preview
     }
-
 
     AppTheme {
         HomeScreen(
@@ -195,52 +196,14 @@ fun HomeScreenNewPreview() {
     }
 }
 
-// Fake repository for preview - must be a class that can be instantiated.
-// It doesn't need to be open if HomeViewModel takes it as a concrete type in constructor.
-// However, HomeViewModel takes MedicationReminderRepository, which is a class, not an interface.
-// So this Fake needs to extend it or we need an interface.
-// For simplicity, assuming HomeViewModel can take any MedicationReminderRepository.
-// We need to ensure MedicationReminderRepository can be instantiated with no-args or fake DAOs.
-// The constructor is: MedicationReminderRepository(dao, firebaseDao) - this is the problem.
 
-// Let's make a very simple fake that doesn't need DAOs for the preview's purpose,
-// if HomeViewModel's actual calls are not critical for basic UI preview.
-// The HomeViewModel's init block calls loadTodaysSchedule which uses the repo.
-// This implies the repo needs to be somewhat functional.
-
-// Simplest fake that conforms to MedicationReminderRepository's structure if it were an interface.
-// Since it's a class, this approach is problematic for direct extension if methods are not open.
-// The HomeViewModel constructor takes `MedicationReminderRepository` (the class).
-// The `object : HomeViewModel(...)` approach failed because HomeViewModel is not open.
-// The new approach is to provide a HomeViewModel that is an object expression,
-// which is allowed if the superclass has a default constructor or takes arguments we can provide.
-// HomeViewModel takes MedicationReminderRepository.
+// --- Fake Repositories and DAOs for Preview ---
 
 private class FakeMedicationReminderRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
-    // We need to provide fake DAOs here, which is complex for a preview.
-    // This highlights that the preview setup was too ambitious.
-    // The solution is to NOT use a real HomeViewModel or a HomeViewModel that calls complex repo methods.
-    // The `previewViewModel` above which directly sets `uiState` is better.
-    // The issue is `object : HomeViewModel(FakeMedicationReminderRepositoryPreview())` still tries to
-    // use the real HomeViewModel's init block.
-
-    // Let's stick to the previewViewModel above that *directly* sets a MutableStateFlow for uiState,
-    // and ensure its super class (HomeViewModel) constructor can be called.
-    // HomeViewModel's constructor: HomeViewModel(private val medicationReminderRepository: MedicationReminderRepository)
-    // So, FakeMedicationReminderRepositoryPreview() is passed. This class needs to be valid.
-    // It needs to be a valid instance of MedicationReminderRepository.
-    // This means it needs the DAOs. This is the core issue for the preview.
-
-    // The simplest fix for the preview is to make HomeViewModel open and its methods open,
-    // or to have a separate @Composable for preview that takes HomeState directly.
-    // Given the constraints, the latter is often cleaner.
-    // For now, I'll try to make FakeMedicationReminderRepositoryPreview usable by giving it null DAOs,
-    // assuming the preview model won't actually hit them hard. This is risky.
-    medicationReminderDao = FakeMedicationReminderDaoPreview(),
-    firebaseSyncDao = FakeFirebaseSyncDaoPreview()
+    FakeMedicationReminderDaoPreview(),
+    FakeFirebaseSyncDaoPreview()
 ) {
     override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): kotlinx.coroutines.flow.Flow<List<MedicationReminder>> {
-        // Return data consistent with previewState
         val now = LocalDateTime.now()
         val sampleRemindersList = listOf(
             MedicationReminder(1, 101,1, now.withHour(9).format(ReminderCalculator.storableDateTimeFormatter), false, null, null),
@@ -248,7 +211,35 @@ private class FakeMedicationReminderRepositoryPreview : com.d4viddf.medicationre
         )
         return flowOf(sampleRemindersList)
     }
-    // Other methods can be empty or return default values if not used by HomeViewModel's init for preview state
+}
+
+private class FakeMedicationRepositoryPreview : com.d4viddf.medicationreminder.repository.MedicationRepository(
+    FakeMedicationDaoPreview(),
+    FakeFirebaseSyncDaoPreview()
+) {
+    override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? {
+        return com.d4viddf.medicationreminder.data.Medication(
+            id = id,
+            name = if (id == 101) "Amoxicillin" else "Ibuprofen",
+            dosage = if (id == 101) "250mg" else "200mg",
+            color = if (id == 101) "LIGHT_BLUE" else "LIGHT_RED",
+            typeId = 1, // Example typeId
+            packageSize = 20, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null,
+            nregistro = "12345"
+        )
+    }
+}
+
+private class FakeMedicationTypeRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationTypeRepository(
+    FakeMedicationTypeDaoPreview()
+) {
+    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? {
+        return com.d4viddf.medicationreminder.data.MedicationType(
+            id = id,
+            name = "PILL", // Example type name
+            imageUrl = if (id == 1) "http://example.com/pill.png" else null // Example imageUrl
+        )
+    }
 }
 
 private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.data.MedicationReminderDao {
@@ -264,7 +255,7 @@ private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.
     override suspend fun getRemindersForMedicationInWindow(medicationId: Int, startTime: String, endTime: String): List<MedicationReminder> = emptyList()
     override suspend fun deleteReminderById(reminderId: Int) {}
     override suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder? = null
-    override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> = flowOf(emptyList()) // Implemented in Fake Repo
+    override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> = flowOf(emptyList())
 }
 
 private class FakeFirebaseSyncDaoPreview : com.d4viddf.medicationreminder.data.FirebaseSyncDao {
@@ -272,4 +263,21 @@ private class FakeFirebaseSyncDaoPreview : com.d4viddf.medicationreminder.data.F
     override suspend fun updateSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
     override suspend fun deleteSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
     override fun getPendingSyncRecords(status: com.d4viddf.medicationreminder.data.SyncStatus): kotlinx.coroutines.flow.Flow<List<com.d4viddf.medicationreminder.data.FirebaseSync>> = flowOf(emptyList())
+}
+
+private class FakeMedicationDaoPreview : com.d4viddf.medicationreminder.data.MedicationDao {
+    override fun getAllMedications(): Flow<List<com.d4viddf.medicationreminder.data.Medication>> = flowOf(emptyList())
+    override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? = null
+    override suspend fun insertMedication(medication: com.d4viddf.medicationreminder.data.Medication): Long = 0
+    override suspend fun updateMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
+    override suspend fun deleteMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
+    override suspend fun getMedicationIdByName(name: String): Int? = null
+}
+
+private class FakeMedicationTypeDaoPreview : com.d4viddf.medicationreminder.data.MedicationTypeDao {
+    override fun getAllMedicationTypes(): Flow<List<com.d4viddf.medicationreminder.data.MedicationType>> = flowOf(emptyList())
+    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? = null
+    override suspend fun insertMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+    override suspend fun updateMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+    override suspend fun deleteMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
 }

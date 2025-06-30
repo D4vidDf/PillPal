@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +28,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
@@ -37,39 +40,59 @@ fun NextDoseCard(item: NextDoseUiItem) {
     val medicationThemeColor = try {
         MedicationColor.valueOf(item.medicationColorName)
     } catch (e: IllegalArgumentException) {
-        MedicationColor.LIGHT_GREY // Default color
+        MedicationColor.LIGHT_ORANGE // Use a valid default color
     }
 
     Card(
-        shape = RoundedCornerShape(16.dp), // Slightly more rounded
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
         modifier = Modifier
-            .height(180.dp) // Increased height
-            .width(160.dp)  // Increased width
+            .height(180.dp)
+            .width(160.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = item.medicationTypeIconRes),
-                contentDescription = item.medicationName, // Accessibility
-                modifier = Modifier
-                    .size(100.dp) // Adjust size of the icon
-                    .align(Alignment.Center)
-                    .clip(RoundedCornerShape(12.dp)), // Rounded corners for the image itself
-                contentScale = ContentScale.Fit,
-                alpha = 0.15f, // Make it a bit like a watermark
-                colorFilter = ColorFilter.tint(medicationThemeColor.textColor) // Tint with text color
-            )
+            if (!item.medicationImageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(item.medicationImageUrl)
+                        .crossfade(true)
+                        .error(R.drawable.ic_medication_default_solid) // Replace with your actual default/error drawable
+                        .placeholder(R.drawable.ic_medication_default_solid) // Replace with your actual placeholder
+                        .build(),
+                    contentDescription = item.medicationName, // Accessibility
+                    modifier = Modifier
+                        .size(100.dp)
+                        .align(Alignment.Center)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Fit,
+                    alpha = 0.15f,
+                    colorFilter = ColorFilter.tint(medicationThemeColor.textColor)
+                )
+            } else {
+                // Optional: Show a default local icon if imageUrl is null/blank
+                 Image(
+                    painter = painterResource(id = R.drawable.ic_medication_default_solid), // Generic fallback
+                    contentDescription = item.medicationName,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .align(Alignment.Center)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Fit,
+                    alpha = 0.15f,
+                    colorFilter = ColorFilter.tint(medicationThemeColor.textColor)
+                )
+            }
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally, // Center text content
-                verticalArrangement = Arrangement.SpaceAround // Distribute space
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround
             ) {
                 Text(
                     text = item.medicationName,
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp), // Larger name
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                     fontWeight = FontWeight.Bold,
                     color = medicationThemeColor.textColor,
                     maxLines = 2,
@@ -85,10 +108,10 @@ fun NextDoseCard(item: NextDoseUiItem) {
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.weight(1f)) // Pushes time to the bottom
+                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = item.formattedReminderTime,
-                    style = MaterialTheme.typography.bodyLarge, // Make time a bit more prominent
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = medicationThemeColor.textColor,
                     textAlign = TextAlign.Center
@@ -109,7 +132,8 @@ fun NextDoseCardPreview() {
                 medicationName = "Metformin Long Name Example",
                 medicationDosage = "500 mg Tablet",
                 medicationColorName = "LIGHT_BLUE",
-                medicationTypeIconRes = R.drawable.ic_medication_pill_solid, // Example icon
+                medicationImageUrl = null, // Example: no image URL for this preview
+                rawReminderTime = "2023-01-01T09:00:00",
                 formattedReminderTime = "09:00"
             )
         )
@@ -127,7 +151,8 @@ fun NextDoseCardDarkPreview() {
                 medicationName = "Lisinopril",
                 medicationDosage = "10 mg",
                 medicationColorName = "LIGHT_RED",
-                medicationTypeIconRes = R.drawable.ic_medication_capsule_solid, // Example icon
+                medicationImageUrl = "https://example.com/lisinopril.png", // Example with an image URL
+                rawReminderTime = "2023-01-01T15:30:00",
                 formattedReminderTime = "15:30"
             )
         )
