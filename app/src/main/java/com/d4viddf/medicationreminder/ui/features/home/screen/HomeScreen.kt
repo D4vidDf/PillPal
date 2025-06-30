@@ -6,9 +6,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.CarouselState // Added for Carousel
-import androidx.compose.material3.HorizontalMultiBrowseCarousel // Added for Carousel
-import androidx.compose.material3.rememberCarouselState // Added for Carousel
+import androidx.compose.material3.carousel.CarouselState // Corrected import
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Corrected import
+import androidx.compose.material3.carousel.rememberCarouselState // Corrected import
+import androidx.compose.ui.graphics.graphicsLayer // Added for scaling
+import kotlin.math.absoluteValue // Added for offset calculation
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
@@ -105,13 +107,40 @@ internal fun HomeScreenContent(
                                 state = carouselState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(190.dp),
-                                preferredItemWidth = 160.dp,
+                                    .height(190.dp), // Keep height for overall carousel area
+                                preferredItemWidth = 160.dp, // Base width for calculations
                                 itemSpacing = 12.dp,
-                                contentPadding = PaddingValues(horizontal = 8.dp)
+                                contentPadding = PaddingValues(horizontal = 32.dp) // Increased padding for side items to be more visible
                             ) { carouselIndex ->
                                 val item = uiState.nextDoseGroup[carouselIndex]
-                                NextDoseCard(item = item)
+                                val pagerState = carouselState.pagerState
+
+                                val pageOffset = (
+                                    (pagerState.currentPage - carouselIndex) + pagerState.currentPageOffsetFraction
+                                ).absoluteValue
+
+                                val scale = lerp(
+                                    start = 0.85f, // Min scale for items further away
+                                    stop = 1.0f,   // Max scale for the centered item
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                ).coerceIn(0.85f, 1.0f)
+
+                                val alpha = lerp(
+                                    start = 0.7f, // Min alpha
+                                    stop = 1f,    // Max alpha
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                ).coerceIn(0.7f, 1.0f)
+
+                                Box(
+                                    modifier = Modifier
+                                        .graphicsLayer {
+                                            scaleX = scale
+                                            scaleY = scale
+                                            this.alpha = alpha
+                                        }
+                                ) {
+                                    NextDoseCard(item = item)
+                                }
                             }
                         }
                     }
@@ -201,17 +230,19 @@ fun HomeScreenNewPreview() {
     }
 }
 
+// Linear interpolation helper
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return (1 - fraction) * start + fraction * stop
+}
+
 
 // --- Fake Repositories and DAOs for Preview (Still defined for completeness, though HomeScreenNewPreview is decoupled) ---
 
 private class FakeNotificationSchedulerPreview : NotificationScheduler() {
     // Minimal fake, NotificationScheduler has an empty constructor.
-    // Override methods if they were abstract or if specific behavior is needed for other fakes using this.
-    // For now, MedicationRepository just needs an instance.
 }
 
 private class FakeMedicationReminderRepositoryPreview(
-    // No context needed if its DAOs don't need it and super constructor is parameterless or takes DAOs only
     medicationReminderDao: com.d4viddf.medicationreminder.data.MedicationReminderDao,
     firebaseSyncDao: com.d4viddf.medicationreminder.data.FirebaseSyncDao
 ) : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
