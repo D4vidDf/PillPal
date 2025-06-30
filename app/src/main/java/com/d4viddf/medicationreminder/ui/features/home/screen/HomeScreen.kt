@@ -42,6 +42,20 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    HomeScreenContent(
+        uiState = uiState,
+        onMarkAsTaken = viewModel::markAsTaken,
+        navController = navController // Pass NavController if TopAppBar actions need it
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HomeScreenContent(
+    uiState: HomeViewModel.HomeState,
+    onMarkAsTaken: (MedicationReminder) -> Unit,
+    navController: NavController // Added for TopAppBar actions
+) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     Scaffold(
@@ -49,10 +63,10 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineSmall) },
                 actions = {
-                    IconButton(onClick = { /* TODO: Navigate to Wear OS connect screen */ }) {
+                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
                         Icon(Icons.Filled.Watch, contentDescription = "Connect Wear OS")
                     }
-                    IconButton(onClick = { /* TODO: Navigate to Notifications Center */ }) {
+                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
                         BadgedBox(badge = { if (uiState.hasUnreadAlerts) Badge() }) {
                             Icon(Icons.Filled.Notifications, contentDescription = "Notifications")
                         }
@@ -77,7 +91,6 @@ fun HomeScreen(
                 if (uiState.nextDoseGroup.isNotEmpty()) {
                     item {
                         Column {
-                            // Use formattedReminderTime directly from the first item in the already processed NextDoseUiItem list
                             val formattedTime = uiState.nextDoseGroup.firstOrNull()?.formattedReminderTime ?: "Future"
                             Text(
                                 "NEXT DOSE (at $formattedTime)",
@@ -89,13 +102,13 @@ fun HomeScreen(
                                 state = carouselState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(190.dp), // Increased height to accommodate taller card + some padding
-                                preferredItemWidth = 160.dp, // Matches NextDoseCard width
-                                itemSpacing = 12.dp, // Increased spacing slightly
-                                contentPadding = PaddingValues(horizontal = 8.dp) // Add some horizontal padding for the carousel itself
-                            ) {carouselIndex ->
-                                val item = uiState.nextDoseGroup[carouselIndex] // Now NextDoseUiItem
-                                NextDoseCard(item = item) // Pass NextDoseUiItem
+                                    .height(190.dp),
+                                preferredItemWidth = 160.dp,
+                                itemSpacing = 12.dp,
+                                contentPadding = PaddingValues(horizontal = 8.dp)
+                            ) { carouselIndex ->
+                                val item = uiState.nextDoseGroup[carouselIndex]
+                                NextDoseCard(item = item)
                             }
                         }
                     }
@@ -135,20 +148,18 @@ fun HomeScreen(
                         items(remindersInPart, key = { "schedule-${it.id}" }) { reminder ->
                             TodayScheduleItem(
                                 reminder = reminder,
-                                onMarkAsTaken = { viewModel.markAsTaken(reminder) },
+                                onMarkAsTaken = { onMarkAsTaken(reminder) }, // Use passed lambda
                                 timeFormatter = timeFormatter
                             )
                         }
                     }
                 }
-                item { Spacer(modifier = Modifier.height(64.dp)) } // Space for FAB or bottom nav
+                item { Spacer(modifier = Modifier.height(64.dp)) }
             }
         }
     }
 }
 
-// NextDoseCard and TodayScheduleItem are now imported from their own files.
-// Their definitions have been removed from this file.
 
 @Preview(showBackground = true, name = "HomeScreen Preview (New Design)")
 @Composable
@@ -178,26 +189,17 @@ fun HomeScreenNewPreview() {
         isLoading = false
     )
 
-    // Dummy ViewModel for preview that directly exposes the state
-    val previewViewModel = object : HomeViewModel(
-        FakeMedicationReminderRepositoryPreview(),
-        FakeMedicationRepositoryPreview(),
-        FakeMedicationTypeRepositoryPreview()
-    ) {
-        override val uiState: StateFlow<HomeState> = MutableStateFlow(previewState)
-        override fun markAsTaken(reminder: MedicationReminder) {} // No-op for preview
-    }
-
     AppTheme {
-        HomeScreen(
-            navController = rememberNavController(),
-            viewModel = previewViewModel
+        HomeScreenContent(
+            uiState = previewState,
+            onMarkAsTaken = {}, // No-op for preview
+            navController = rememberNavController() // Pass a dummy NavController
         )
     }
 }
 
 
-// --- Fake Repositories and DAOs for Preview ---
+// --- Fake Repositories and DAOs for Preview (Kept for reference, but not directly used by HomeScreenNewPreview anymore) ---
 
 private class FakeMedicationReminderRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
     FakeMedicationReminderDaoPreview(),
@@ -280,4 +282,7 @@ private class FakeMedicationTypeDaoPreview : com.d4viddf.medicationreminder.data
     override suspend fun insertMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
     override suspend fun updateMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
     override suspend fun deleteMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+    override suspend fun deleteAllMedicationTypes() {} // Added
+    override suspend fun getMedicationTypeByName(name: String): com.d4viddf.medicationreminder.data.MedicationType? = null // Added
+    override suspend fun getMedicationTypesByIds(ids: List<Int>): List<com.d4viddf.medicationreminder.data.MedicationType> = emptyList() // Added
 }
