@@ -3,9 +3,12 @@ package com.d4viddf.medicationreminder.ui.features.home.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+//import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
+//import androidx.compose.foundation.lazy.items // Replaced by Carousel items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.CarouselState // Added for Carousel
+import androidx.compose.material3.HorizontalMultiBrowseCarousel // Added for Carousel
+import androidx.compose.material3.rememberCarouselState // Added for Carousel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
@@ -83,10 +86,18 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                items(uiState.nextDoseGroup, key = { "next-${it.id}" }) { reminder ->
-                                    NextDoseCard(reminder)
-                                }
+                            val carouselState = rememberCarouselState { uiState.nextDoseGroup.count() }
+                            HorizontalMultiBrowseCarousel(
+                                state = carouselState,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp), // Adjust height as needed for NextDoseCard
+                                // preferredItemWidth = 150.dp, // Adjust as per NextDoseCard's width + padding
+                                itemSpacing = 8.dp,
+                                contentPadding = PaddingValues(horizontal = 0.dp) // No extra padding if items have their own
+                            ) {carouselIndex ->
+                                val reminder = uiState.nextDoseGroup[carouselIndex]
+                                NextDoseCard(reminder = reminder)
                             }
                         }
                     }
