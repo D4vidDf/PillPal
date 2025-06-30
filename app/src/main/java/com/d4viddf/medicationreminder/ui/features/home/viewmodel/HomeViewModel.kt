@@ -2,10 +2,15 @@ package com.d4viddf.medicationreminder.ui.features.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.repository.MedicationRepository // Added
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem // Added
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,19 +19,23 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import javax.inject.Inject
+import com.d4viddf.medicationreminder.ui.common.utils.MedicationVisualsUtil // Import the new util
+
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val medicationReminderRepository: MedicationReminderRepository
-    // private val notificationRepository: NotificationRepository // Placeholder for future notification logic
+    private val medicationReminderRepository: MedicationReminderRepository,
+    private val medicationRepository: MedicationRepository // Injected MedicationRepository
+    // private val notificationRepository: NotificationRepository // Placeholder
 ) : ViewModel() {
 
     data class HomeState(
-        val nextDoseGroup: List<MedicationReminder> = emptyList(),
+        val nextDoseGroup: List<NextDoseUiItem> = emptyList(), // Changed to NextDoseUiItem
         val todaysReminders: Map<String, List<MedicationReminder>> = emptyMap(),
-        val hasUnreadAlerts: Boolean = false, // To show an indicator on the bell icon
+        val hasUnreadAlerts: Boolean = false,
         val isLoading: Boolean = true,
         val currentGreeting: String = "Good day!"
     )
@@ -85,7 +94,7 @@ class HomeViewModel @Inject constructor(
                         }
                     }
 
-                    val nextDoseGroup = if (nextGroupTimeMillis != null && nextGroupTimeMillis != Long.MAX_VALUE) {
+                    val nextDoseReminders = if (nextGroupTimeMillis != null && nextGroupTimeMillis != Long.MAX_VALUE) {
                         upcomingReminders.filter { reminder: MedicationReminder ->
                             try {
                                 LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
@@ -98,22 +107,47 @@ class HomeViewModel @Inject constructor(
                         emptyList()
                     }
 
+                    // Fetch medication details for the nextDoseGroup
+                    val nextDoseUiItemsDeferred = nextDoseReminders.map { reminder ->
+                        viewModelScope.async {
+                            val medication = medicationRepository.getMedicationById(reminder.medicationId)
+                            // Assuming medication type is stored in Medication.type or similar
+                            // and you have a way to get MedicationType details if needed for the name.
+                            // For now, let's assume medication.type (if it exists) is a string like "PILL".
+                            // If medication.typeId is used, you'd fetch MedicationType by ID.
+                            // Let's assume medication.type is a simple string name for now for the icon helper.
+                            val medicationType = medication?.type // Example: "PILL", "SYRUP" - this might need to be medication.typeId and then another lookup
+
+                            NextDoseUiItem(
+                                reminderId = reminder.id,
+                                medicationId = reminder.medicationId,
+                                medicationName = medication?.name ?: "Unknown Medication",
+                                medicationDosage = medication?.dosage ?: "N/A",
+                                medicationColorName = medication?.color ?: "LIGHT_GREY", // Default color
+                                medicationTypeIconRes = MedicationVisualsUtil.getMedicationTypeIcon(medicationType), // Use the util
+                                formattedReminderTime = try {
+                                    LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
+                                        .format(DateTimeFormatter.ofPattern("HH:mm"))
+                                } catch (e: Exception) { "N/A" }
+                            )
+                        }
+                    }
+                    val nextDoseUiItems = nextDoseUiItemsDeferred.awaitAll().sortedBy { it.formattedReminderTime }
+
+
                     val groupedReminders = remindersList.groupBy { reminder: MedicationReminder -> getPartOfDay(reminder.reminderTime) }
                         .mapValues { entry: Map.Entry<String, List<MedicationReminder>> ->
                             entry.value.sortedBy { medicationReminder: MedicationReminder -> medicationReminder.reminderTime }
                         }
 
-
-                    // Ensure all parts of day are present in the map, even if empty, for ordered display
                     val allPartsOfDay = listOf("Morning", "Afternoon", "Evening", "Night")
                     val sortedGroupedReminders = mutableMapOf<String, List<MedicationReminder>>()
                     allPartsOfDay.forEach { part: String ->
                         sortedGroupedReminders[part] = groupedReminders[part] ?: emptyList()
                     }
 
-
                     _uiState.value = _uiState.value.copy(
-                        nextDoseGroup = nextDoseGroup.sortedBy { reminder: MedicationReminder -> reminder.reminderTime },
+                        nextDoseGroup = nextDoseUiItems, // Assign the new list of NextDoseUiItem
                         todaysReminders = sortedGroupedReminders,
                         isLoading = false
                     )

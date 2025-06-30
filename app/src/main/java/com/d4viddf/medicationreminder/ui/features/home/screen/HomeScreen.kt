@@ -91,13 +91,13 @@ fun HomeScreen(
                                 state = carouselState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(120.dp), // Adjust height as needed for NextDoseCard
-                                preferredItemWidth = 150.dp, // Added: Adjust as per NextDoseCard's width
-                                itemSpacing = 8.dp,
-                                contentPadding = PaddingValues(horizontal = 0.dp) // No extra padding if items have their own
+                                    .height(190.dp), // Increased height to accommodate taller card + some padding
+                                preferredItemWidth = 160.dp, // Matches NextDoseCard width
+                                itemSpacing = 12.dp, // Increased spacing slightly
+                                contentPadding = PaddingValues(horizontal = 8.dp) // Add some horizontal padding for the carousel itself
                             ) {carouselIndex ->
-                                val reminder = uiState.nextDoseGroup[carouselIndex]
-                                NextDoseCard(reminder = reminder)
+                                val item = uiState.nextDoseGroup[carouselIndex] // Now NextDoseUiItem
+                                NextDoseCard(item = item) // Pass NextDoseUiItem
                             }
                         }
                     }
