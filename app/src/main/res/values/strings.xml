@@ -364,4 +364,8 @@
     <string name="medGraph_chart_doses_suffix">doses</string>
     <string name="medGraph_yearly_changeYear_cd_prefix">Change year, current year:</string>
     <string name="medGraph_yearly_chart_description_prefix">Yearly doses taken.</string>
+
+    <!-- Strings for Home Screen Redesign -->
+    <string name="medication_vault_title">Medication Vault</string>
+    <string name="analysis_screen_title">Analysis</string>
 </resources>

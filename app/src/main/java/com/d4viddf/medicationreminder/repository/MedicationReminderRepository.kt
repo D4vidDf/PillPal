@@ -83,4 +83,8 @@ class MedicationReminderRepository @Inject constructor(
     suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder? {
         return medicationReminderDao.getMostRecentTakenReminder(medicationId)
     }
+
+    fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> {
+        return medicationReminderDao.getRemindersForDay(startOfDayString, endOfDayString)
+    }
 }

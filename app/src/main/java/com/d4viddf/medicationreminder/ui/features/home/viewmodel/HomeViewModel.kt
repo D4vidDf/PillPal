@@ -60,11 +60,11 @@ class HomeViewModel @Inject constructor(
             val endOfDayString = today.atTime(LocalTime.MAX).format(ReminderCalculator.storableDateTimeFormatter)
 
             medicationReminderRepository.getRemindersForDay(startOfDayString, endOfDayString)
-                .collect { reminders ->
+                .collect { remindersList: List<MedicationReminder> ->
                     val currentTimeMillis = System.currentTimeMillis()
 
                     // Find all upcoming reminders that haven't been taken yet
-                    val upcomingReminders = reminders.filter { reminder ->
+                    val upcomingReminders = remindersList.filter { reminder: MedicationReminder ->
                         try {
                             val reminderTime = LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
                             val reminderMillis = reminderTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -76,7 +76,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     // Group them by their scheduled time to find the next group
-                    val nextGroupTimeMillis = upcomingReminders.minOfOrNull { reminder ->
+                    val nextGroupTimeMillis = upcomingReminders.minOfOrNull { reminder: MedicationReminder ->
                         try {
                             LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
                                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -86,7 +86,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     val nextDoseGroup = if (nextGroupTimeMillis != null && nextGroupTimeMillis != Long.MAX_VALUE) {
-                        upcomingReminders.filter { reminder ->
+                        upcomingReminders.filter { reminder: MedicationReminder ->
                             try {
                                 LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
                                     .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() == nextGroupTimeMillis
@@ -98,20 +98,22 @@ class HomeViewModel @Inject constructor(
                         emptyList()
                     }
 
-                    val groupedReminders = reminders.groupBy { getPartOfDay(it.reminderTime) }
-                        .mapValues { entry -> entry.value.sortedBy { it.reminderTime } }
+                    val groupedReminders = remindersList.groupBy { reminder: MedicationReminder -> getPartOfDay(reminder.reminderTime) }
+                        .mapValues { entry: Map.Entry<String, List<MedicationReminder>> ->
+                            entry.value.sortedBy { medicationReminder: MedicationReminder -> medicationReminder.reminderTime }
+                        }
 
 
                     // Ensure all parts of day are present in the map, even if empty, for ordered display
                     val allPartsOfDay = listOf("Morning", "Afternoon", "Evening", "Night")
                     val sortedGroupedReminders = mutableMapOf<String, List<MedicationReminder>>()
-                    allPartsOfDay.forEach { part ->
+                    allPartsOfDay.forEach { part: String ->
                         sortedGroupedReminders[part] = groupedReminders[part] ?: emptyList()
                     }
 
 
                     _uiState.value = _uiState.value.copy(
-                        nextDoseGroup = nextDoseGroup.sortedBy { it.reminderTime },
+                        nextDoseGroup = nextDoseGroup.sortedBy { reminder: MedicationReminder -> reminder.reminderTime },
                         todaysReminders = sortedGroupedReminders,
                         isLoading = false
                     )

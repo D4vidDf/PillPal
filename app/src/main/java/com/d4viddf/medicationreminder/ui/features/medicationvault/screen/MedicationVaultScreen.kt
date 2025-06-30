@@ -64,6 +64,14 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
 
+
+// Context.findActivity() extension function
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MedicationVaultScreen(
@@ -255,7 +263,8 @@ fun MedicationVaultScreen(
                             animatedVisibilityScope = animatedVisibilityScope,
                             modifier = Modifier.fillMaxSize(),
                             listState = mainMedicationListState,
-                            itemSharedElementKeyPrefix = "medication-vault" // Unique prefix for vault items
+                            bottomContentPadding = 0.dp // Added: Adjust if necessary for FAB overlap
+                            // itemSharedElementKeyPrefix removed as it's not a valid parameter
                         )
                     }
                 }
@@ -299,11 +308,13 @@ fun MedicationVaultScreen(
 
 // Context.findActivity() extension function (already defined in HomeScreen.kt, ensure it's accessible or defined commonly)
 // For brevity, assuming it's available. If not, it should be added here or in a common utils file.
-// fun Context.findActivity(): Activity? = when (this) {
-//     is Activity -> this
-//     is ContextWrapper -> baseContext.findActivity()
-//     else -> null
-// }
+/*
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+*/
 
 @Preview(showBackground = true, name = "Compact MedicationVaultScreen")
 @Composable
