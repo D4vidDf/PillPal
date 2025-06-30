@@ -257,8 +257,8 @@ private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.
 }
 
 private class FakeFirebaseSyncDaoPreview : com.d4viddf.medicationreminder.data.FirebaseSyncDao {
-    override suspend fun insertSyncRecord(firebaseSync: com.d4viddf.medicationreminder.data.FirebaseSync) {}
-    override suspend fun getPendingSyncRecords(): List<com.d4viddf.medicationreminder.data.FirebaseSync> = emptyList()
-    override suspend fun deleteSyncRecord(id: Int) {}
-    override suspend fun updateSyncStatus(id: Int, status: com.d4viddf.medicationreminder.data.SyncStatus) {}
+    override suspend fun insertSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
+    override suspend fun updateSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
+    override suspend fun deleteSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
+    override fun getPendingSyncRecords(status: com.d4viddf.medicationreminder.data.SyncStatus): kotlinx.coroutines.flow.Flow<List<com.d4viddf.medicationreminder.data.FirebaseSync>> = flowOf(emptyList())
 }
