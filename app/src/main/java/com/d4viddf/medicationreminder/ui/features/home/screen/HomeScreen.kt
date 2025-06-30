@@ -204,20 +204,19 @@ fun HomeScreenNewPreview() {
 
 // --- Fake Repositories and DAOs for Preview (Still defined for completeness, though HomeScreenNewPreview is decoupled) ---
 
-private class FakeNotificationSchedulerPreview(private val context: android.content.Context) : NotificationScheduler(context) {
-    // Implement necessary methods if NotificationScheduler is not a concrete class or requires overrides.
-    // For a simple fake, if methods are not called by MedicationRepository's constructor/init, this can be minimal.
-    // Example:
-    // override fun scheduleDailyReminderCheck() {}
-    // override fun scheduleMedicationReminder(medicationId: Int, reminderTime: LocalDateTime, medicationName: String, dosage: String) {}
-    // etc. If NotificationScheduler has a simple constructor and no abstract methods, this might be enough.
-    // If it has complex dependencies, this fake might need more work or MedicationRepository needs an interface.
+private class FakeNotificationSchedulerPreview : NotificationScheduler() {
+    // Minimal fake, NotificationScheduler has an empty constructor.
+    // Override methods if they were abstract or if specific behavior is needed for other fakes using this.
+    // For now, MedicationRepository just needs an instance.
 }
 
-private class FakeMedicationReminderRepositoryPreview(context: android.content.Context) : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
-    FakeMedicationReminderDaoPreview(),
-    FakeFirebaseSyncDaoPreview()
-    // Assuming MedicationReminderRepository constructor is: (MedicationReminderDao, FirebaseSyncDao)
+private class FakeMedicationReminderRepositoryPreview(
+    // No context needed if its DAOs don't need it and super constructor is parameterless or takes DAOs only
+    medicationReminderDao: com.d4viddf.medicationreminder.data.MedicationReminderDao,
+    firebaseSyncDao: com.d4viddf.medicationreminder.data.FirebaseSyncDao
+) : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
+    medicationReminderDao,
+    firebaseSyncDao
 ) {
     override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): kotlinx.coroutines.flow.Flow<List<MedicationReminder>> {
         val now = LocalDateTime.now()
@@ -230,16 +229,39 @@ private class FakeMedicationReminderRepositoryPreview(context: android.content.C
 }
 
 private class FakeMedicationRepositoryPreview(context: android.content.Context) : com.d4viddf.medicationreminder.repository.MedicationRepository(
-    context, // Added context
+    context,
     FakeMedicationDaoPreview(),
-    FakeMedicationReminderDaoPreview(), // Added
-    FakeNotificationSchedulerPreview(context), // Added
+    FakeMedicationReminderDaoPreview(), // This needs its DAO dependencies
+    FakeNotificationSchedulerPreview(), // Instantiated
     FakeFirebaseSyncDaoPreview()
 ) {
-    override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? {
-        // This override might still be problematic if MedicationRepository is final.
-        // The goal is to make the constructor call valid.
-        return com.d4viddf.medicationreminder.data.Medication(
+    // It's generally problematic to @Override methods of a final class.
+    // The main goal here is to ensure the constructor of FakeMedicationRepositoryPreview
+    // can successfully call the super constructor of the real MedicationRepository.
+    // If HomeViewModel directly calls methods on this fake that are not part of an interface
+    // and are not open in the real repository, it would lead to issues in tests,
+    // but for previews where we directly set state, it might be less critical
+    // as long as the object can be constructed.
+
+    // Example: if getMedicationById was open in MedicationRepository
+    // override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? {
+    // return com.d4viddf.medicationreminder.data.Medication(
+    // ...
+    // )
+    // }
+    // Since it's likely not open, we cannot override it.
+    // The previewViewModel directly sets state, so this fake's method implementations
+    // are less critical *for the preview itself*, but constructor must be valid.
+    // For the preview to work with `previewViewModel.loadTodaysSchedule()`, these fakes would need to be more robust or an interface used.
+    // But since `HomeScreenNewPreview` calls `HomeScreenContent` with hardcoded state, this is okay.
+}
+
+private class FakeMedicationTypeRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationTypeRepository(
+    FakeMedicationTypeDaoPreview()
+) {
+    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? {
+        // This override might still be problematic if MedicationTypeRepository is final.
+        return com.d4viddf.medicationreminder.data.MedicationType(
             id = id,
             name = if (id == 101) "Amoxicillin" else "Ibuprofen",
             dosage = if (id == 101) "250mg" else "200mg",
