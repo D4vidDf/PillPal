@@ -19,10 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext // Added for Context
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.components.TodayScheduleItem
+// Import NotificationScheduler if its definition is needed for the fake, assuming a path
+import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -199,11 +202,22 @@ fun HomeScreenNewPreview() {
 }
 
 
-// --- Fake Repositories and DAOs for Preview (Kept for reference, but not directly used by HomeScreenNewPreview anymore) ---
+// --- Fake Repositories and DAOs for Preview (Still defined for completeness, though HomeScreenNewPreview is decoupled) ---
 
-private class FakeMedicationReminderRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
+private class FakeNotificationSchedulerPreview(private val context: android.content.Context) : NotificationScheduler(context) {
+    // Implement necessary methods if NotificationScheduler is not a concrete class or requires overrides.
+    // For a simple fake, if methods are not called by MedicationRepository's constructor/init, this can be minimal.
+    // Example:
+    // override fun scheduleDailyReminderCheck() {}
+    // override fun scheduleMedicationReminder(medicationId: Int, reminderTime: LocalDateTime, medicationName: String, dosage: String) {}
+    // etc. If NotificationScheduler has a simple constructor and no abstract methods, this might be enough.
+    // If it has complex dependencies, this fake might need more work or MedicationRepository needs an interface.
+}
+
+private class FakeMedicationReminderRepositoryPreview(context: android.content.Context) : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
     FakeMedicationReminderDaoPreview(),
     FakeFirebaseSyncDaoPreview()
+    // Assuming MedicationReminderRepository constructor is: (MedicationReminderDao, FirebaseSyncDao)
 ) {
     override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): kotlinx.coroutines.flow.Flow<List<MedicationReminder>> {
         val now = LocalDateTime.now()
@@ -215,11 +229,16 @@ private class FakeMedicationReminderRepositoryPreview : com.d4viddf.medicationre
     }
 }
 
-private class FakeMedicationRepositoryPreview : com.d4viddf.medicationreminder.repository.MedicationRepository(
+private class FakeMedicationRepositoryPreview(context: android.content.Context) : com.d4viddf.medicationreminder.repository.MedicationRepository(
+    context, // Added context
     FakeMedicationDaoPreview(),
+    FakeMedicationReminderDaoPreview(), // Added
+    FakeNotificationSchedulerPreview(context), // Added
     FakeFirebaseSyncDaoPreview()
 ) {
     override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? {
+        // This override might still be problematic if MedicationRepository is final.
+        // The goal is to make the constructor call valid.
         return com.d4viddf.medicationreminder.data.Medication(
             id = id,
             name = if (id == 101) "Amoxicillin" else "Ibuprofen",
