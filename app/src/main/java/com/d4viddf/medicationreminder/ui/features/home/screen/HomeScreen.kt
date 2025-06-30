@@ -3,14 +3,17 @@ package com.d4viddf.medicationreminder.ui.features.home.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-//import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
-//import androidx.compose.foundation.lazy.items // Replaced by Carousel items
+import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
+import androidx.compose.foundation.layout.*
+// import androidx.compose.material3.carousel.CarouselState // Replaced by PagerState
+// import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Replaced by HorizontalPager
+// import androidx.compose.material3.carousel.rememberCarouselState // Replaced by rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager // Added
+import androidx.compose.foundation.pager.PagerState // Added
+import androidx.compose.foundation.pager.rememberPagerState // Added
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.carousel.CarouselState // Corrected import
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Corrected import
-import androidx.compose.material3.carousel.rememberCarouselState // Corrected import
-import androidx.compose.ui.graphics.graphicsLayer // Added for scaling
-import kotlin.math.absoluteValue // Added for offset calculation
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlin.math.absoluteValue
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
@@ -54,12 +57,12 @@ fun HomeScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) // Added ExperimentalFoundationApi
 @Composable
 internal fun HomeScreenContent(
     uiState: HomeViewModel.HomeState,
     onMarkAsTaken: (MedicationReminder) -> Unit,
-    navController: NavController // Added for TopAppBar actions
+    navController: NavController
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
@@ -102,44 +105,46 @@ internal fun HomeScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            val carouselState = rememberCarouselState { uiState.nextDoseGroup.count() }
-                            HorizontalMultiBrowseCarousel(
-                                state = carouselState,
+                            val pagerState = rememberPagerState { uiState.nextDoseGroup.count() }
+                            HorizontalPager(
+                                state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(190.dp), // Keep height for overall carousel area
-                                preferredItemWidth = 160.dp, // Base width for calculations
-                                itemSpacing = 12.dp,
-                                contentPadding = PaddingValues(horizontal = 32.dp) // Increased padding for side items to be more visible
-                            ) { carouselIndex ->
-                                val item = uiState.nextDoseGroup[carouselIndex]
-                                val pagerState = carouselState.pagerState
+                                    .height(210.dp), // Adjusted height slightly for scaled items
+                                contentPadding = PaddingValues(horizontal = (32.dp + 16.dp)), // Allow space for items on sides: (Outer Padding + (ItemWidth*(1-minScale))/2) approx
+                                // pageSpacing = 8.dp // Spacing between pages if needed
+                            ) { pageIndex -> // pageIndex is the current item's index
+                                val item = uiState.nextDoseGroup[pageIndex]
 
                                 val pageOffset = (
-                                    (pagerState.currentPage - carouselIndex) + pagerState.currentPageOffsetFraction
+                                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
                                 ).absoluteValue
 
                                 val scale = lerp(
-                                    start = 0.85f, // Min scale for items further away
-                                    stop = 1.0f,   // Max scale for the centered item
+                                    start = 0.80f,
+                                    stop = 1.0f,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.85f, 1.0f)
+                                ).coerceIn(0.80f, 1.0f)
 
                                 val alpha = lerp(
-                                    start = 0.7f, // Min alpha
-                                    stop = 1f,    // Max alpha
+                                    start = 0.6f,
+                                    stop = 1f,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.7f, 1.0f)
+                                ).coerceIn(0.6f, 1.0f)
 
                                 Box(
                                     modifier = Modifier
+                                        // .fillMaxSize() // Let NextDoseCard define its size
                                         .graphicsLayer {
                                             scaleX = scale
                                             scaleY = scale
                                             this.alpha = alpha
+                                            // Optional: Center items if pager items are smaller than pager width
+                                            // translationX = (pagerWidth - (160.dp.toPx() * scale)) / 2f // Example
                                         }
+                                        .padding(horizontal = 4.dp) // Small padding around each card
                                 ) {
-                                    NextDoseCard(item = item)
+                                    NextDoseCard(item = item) // NextDoseCard has fixed width 160.dp, height 180.dp
                                 }
                             }
                         }
