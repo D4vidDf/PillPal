@@ -48,7 +48,7 @@ fun NextDoseCard(item: NextDoseUiItem, modifier: Modifier = Modifier) { // Added
     Card(
         shape = RoundedCornerShape(16.dp), // Slightly smaller rounding
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp), // Add some elevation
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // Reduced elevation
         modifier = modifier // Apply the passed modifier
             .height(200.dp) // Keep fixed height or make it adaptive too if needed
             // .width(150.dp) // Width is now controlled by the incoming modifier or defaults if not overridden

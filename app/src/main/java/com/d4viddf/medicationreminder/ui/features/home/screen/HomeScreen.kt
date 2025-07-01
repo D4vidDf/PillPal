@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.carousel.CarouselState // Added for Carousel
+// import androidx.compose.material3.carousel.CarouselState // No longer needed if both use Pager
 // import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // To be replaced by HorizontalPager for phones
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Added back for tablets
-import androidx.compose.material3.carousel.rememberCarouselState // Added for Carousel - used by tablet path
-import androidx.compose.foundation.pager.HorizontalPager // Added for phone layout
-import androidx.compose.foundation.pager.rememberPagerState // Added for phone layout
+// import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // To be replaced by HorizontalPager for tablets
+// import androidx.compose.material3.carousel.rememberCarouselState // No longer needed
+import androidx.compose.foundation.pager.HorizontalPager // Used for both phone and tablet
+import androidx.compose.foundation.pager.rememberPagerState // Used for both phone and tablet
 import androidx.compose.foundation.lazy.items
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
@@ -77,8 +77,10 @@ internal fun HomeScreenContent(
     val screenWidthDp = configuration.screenWidthDp
     val isTablet = screenWidthDp.value > 600 // Example threshold for tablets, comparing Dp.value to Int
 
-    // Define card width for tablets, e.g., a fraction of screen width or a larger fixed value
-    val tabletCardWidth = (screenWidthDp * 0.3f).coerceIn(200.dp, 300.dp) // Example: 30% of screen, capped
+    // Define card width for tablets using HorizontalPager
+    val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
+    // Define card width for phones - making it much wider
+    val phonePagerItemWidth = screenWidthDp * 0.85f // Example: 85% of screen width for phone items
 
     Scaffold(
         topBar = {
@@ -119,46 +121,32 @@ internal fun HomeScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            val carouselState = rememberCarouselState { uiState.nextDoseGroup.count() }
+                            // Common PagerState for both phone and tablet
+                            val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
 
-                            if (isTablet) {
-                                HorizontalMultiBrowseCarousel(
-                                    state = carouselState,
+                            val currentItemWidth = if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
+                            // Calculate padding to center items, ensure it's not negative.
+                            val horizontalPadding = ((screenWidthDp - currentItemWidth) / 2).coerceAtLeast(0.dp)
+
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxWidth().height(220.dp), // Consistent height
+                                contentPadding = PaddingValues(horizontal = horizontalPadding),
+                                pageSpacing = if (isTablet) 16.dp else 8.dp // Adjust spacing based on device
+                            ) { pageIndex ->
+                                val item = uiState.nextDoseGroup[pageIndex]
+                                val pageOffset = (
+                                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                                ).absoluteValue.coerceIn(0f, 1f)
+
+                                // Adjust scale factor based on device type if needed, or use a common one
+                                val scaleFactor = if (isTablet) 0.90f else 0.85f // Slightly less scaling on tablets
+                                val alphaFactor = if (isTablet) 0.6f else 0.5f
+
+                                NextDoseCard(
+                                    item = item,
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(220.dp), // Give carousel a bit more height on tablets
-                                    preferredItemWidth = tabletCardWidth,
-                                    itemSpacing = 16.dp, // Larger spacing for tablets
-                                    contentPadding = PaddingValues(horizontal = 32.dp) // More padding for tablets
-                                ) { pageIndex ->
-                                    val item = uiState.nextDoseGroup[pageIndex]
-                                    Box(modifier = Modifier.width(tabletCardWidth)) { // Ensure card takes the preferred width
-                                        NextDoseCard(item = item, modifier = Modifier.fillMaxWidth())
-                                    }
-                                }
-                            } else {
-                                // Phone layout: Use HorizontalPager with transformations
-                                val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
-                                val phoneItemWidth = 140.dp // The actual width of the NextDoseCard on phone
-                                // Calculate padding to center the item. Ensure it's not negative.
-                                val horizontalPadding = ((screenWidthDp - phoneItemWidth) / 2).coerceAtLeast(0.dp)
-
-                                HorizontalPager(
-                                    state = pagerState,
-                                    modifier = Modifier.fillMaxWidth().height(220.dp), // Match tablet carousel height for consistency
-                                    contentPadding = PaddingValues(horizontal = horizontalPadding),
-                                    pageSpacing = 8.dp // Spacing between pages
-                                ) { pageIndex ->
-                                    val item = uiState.nextDoseGroup[pageIndex]
-                                    // Calculate page offset, coerceIn to ensure it's between 0 and 1 for lerp
-                                    val pageOffset = (
-                                        (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                                    ).absoluteValue.coerceIn(0f, 1f)
-
-                                    NextDoseCard(
-                                        item = item,
-                                        modifier = Modifier
-                                            .width(phoneItemWidth)
+                                        .width(currentItemWidth) // Use the determined width for the current device
                                             .graphicsLayer {
                                                 // Apply transformations: scale and alpha
                                                 // Items further from the center will be smaller and more transparent
