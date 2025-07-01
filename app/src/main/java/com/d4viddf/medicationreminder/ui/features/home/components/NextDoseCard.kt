@@ -38,7 +38,7 @@ import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 
 
 @Composable
-fun NextDoseCard(item: NextDoseUiItem) {
+fun NextDoseCard(item: NextDoseUiItem, modifier: Modifier = Modifier) { // Added modifier parameter
     val medicationThemeColor = try {
         MedicationColor.valueOf(item.medicationColorName)
     } catch (e: IllegalArgumentException) {
@@ -49,10 +49,9 @@ fun NextDoseCard(item: NextDoseUiItem) {
         shape = RoundedCornerShape(16.dp), // Slightly smaller rounding
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp), // Add some elevation
-        modifier = Modifier
-            .height(200.dp) // Increased height for better spacing
-            .width(150.dp) // Fixed width for carousel items
-            // .fillMaxWidth() // Ensure it takes the width assigned by Carousel
+        modifier = modifier // Apply the passed modifier
+            .height(200.dp) // Keep fixed height or make it adaptive too if needed
+            // .width(150.dp) // Width is now controlled by the incoming modifier or defaults if not overridden
     ) {
         Column(
             modifier = Modifier

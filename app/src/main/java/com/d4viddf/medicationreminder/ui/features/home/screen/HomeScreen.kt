@@ -7,6 +7,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.carousel.CarouselState // Added for Carousel
 import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // Changed for Uncontained Carousel
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Added back for tablets
 import androidx.compose.material3.carousel.rememberCarouselState // Added for Carousel
 // import androidx.compose.foundation.pager.HorizontalPager // Replaced by Carousel
 // import androidx.compose.foundation.pager.rememberPagerState // Replaced by Carousel
@@ -73,14 +74,12 @@ internal fun HomeScreenContent(
     navController: NavController
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    // val screenWidthDp = LocalConfiguration.current.screenWidthDp // Removed
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp > 600.dp // Example threshold for tablets
 
-    // Removed Dynamic Pager Padding and Card Width calculations
-    // val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(72f, 2200f)
-    // val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 3)
-    // val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180f, 600f)
-    // val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140f, 300f)
-
+    // Define card width for tablets, e.g., a fraction of screen width or a larger fixed value
+    val tabletCardWidth = (screenWidthDp * 0.3f).coerceIn(200.dp, 300.dp) // Example: 30% of screen, capped
 
     Scaffold(
         topBar = {
@@ -122,27 +121,32 @@ internal fun HomeScreenContent(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             val carouselState = rememberCarouselState { uiState.nextDoseGroup.count() }
-                            HorizontalUncontainedCarousel( // Changed to HorizontalUncontainedCarousel
-                                state = carouselState,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                // preferredItemWidth is not a parameter for HorizontalUncontainedCarousel
-                                itemWidth = 150.dp, // Width of each item, NextDoseCard is 150.dp
-                                contentPadding = PaddingValues(horizontal = 16.dp), // Padding at start and end
-                                itemSpacing = 8.dp // Example spacing, adjust as needed
-                            ) { pageIndex ->
-                                val item = uiState.nextDoseGroup[pageIndex]
 
-                                //Removed pageOffset logic as Carousel handles item sizing and arrangement differently.
-                                // May need to adjust NextDoseCard or apply modifiers here if specific scaling/alpha is still desired.
-
-                                Box(
+                            if (isTablet) {
+                                HorizontalMultiBrowseCarousel(
+                                    state = carouselState,
                                     modifier = Modifier
-                                        // Ensure cards have a defined width, e.g., using a fraction of screen or fixed DP
-                                        // .width(maxCardWidth.dp) // Or some other fixed/calculated width
-                                        .fillMaxHeight() // Or a fixed height
-                                ) {
-                                    NextDoseCard(item = item)
+                                        .fillMaxWidth()
+                                        .height(220.dp), // Give carousel a bit more height on tablets
+                                    preferredItemWidth = tabletCardWidth,
+                                    itemSpacing = 16.dp, // Larger spacing for tablets
+                                    contentPadding = PaddingValues(horizontal = 32.dp) // More padding for tablets
+                                ) { pageIndex ->
+                                    val item = uiState.nextDoseGroup[pageIndex]
+                                    Box(modifier = Modifier.width(tabletCardWidth)) { // Ensure card takes the preferred width
+                                        NextDoseCard(item = item, modifier = Modifier.fillMaxWidth())
+                                    }
+                                }
+                            } else {
+                                HorizontalUncontainedCarousel(
+                                    state = carouselState,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    itemWidth = 150.dp, // Fixed width for phones
+                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    itemSpacing = 8.dp
+                                ) { pageIndex ->
+                                    val item = uiState.nextDoseGroup[pageIndex]
+                                    NextDoseCard(item = item, modifier = Modifier.width(150.dp)) // Explicitly set width for phone
                                 }
                             }
                         }
