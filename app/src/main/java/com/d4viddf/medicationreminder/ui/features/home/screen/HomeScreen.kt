@@ -132,6 +132,7 @@ internal fun HomeScreenContent(
                                 state = carouselState,
                                 modifier = Modifier
                                     .fillMaxWidth(),
+                                preferredItemWidth = maxCardWidth.dp, // Added preferredItemWidth
                                 // TODO: Adjust contentPadding and itemSpacing for fixed card effect
                                 contentPadding = PaddingValues(horizontal = pagerHorizontalPadding.dp), // Keep similar padding for now
                                 itemSpacing = 8.dp // Example spacing
