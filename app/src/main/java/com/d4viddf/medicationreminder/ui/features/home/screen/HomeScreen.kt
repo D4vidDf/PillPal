@@ -76,7 +76,7 @@ internal fun HomeScreenContent(
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
-    val isTablet = screenWidthDp > 600.dp // Example threshold for tablets
+    val isTablet = screenWidthDp.value > 600 // Example threshold for tablets, comparing Dp.value to Int
 
     // Define card width for tablets, e.g., a fraction of screen width or a larger fixed value
     val tabletCardWidth = (screenWidthDp * 0.3f).coerceIn(200.dp, 300.dp) // Example: 30% of screen, capped
