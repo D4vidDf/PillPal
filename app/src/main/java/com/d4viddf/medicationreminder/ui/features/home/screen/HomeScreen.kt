@@ -5,26 +5,24 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
 import androidx.compose.foundation.layout.*
-// import androidx.compose.material3.carousel.CarouselState // Replaced by PagerState
-// import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Replaced by HorizontalPager
-// import androidx.compose.material3.carousel.rememberCarouselState // Replaced by rememberPagerState
-import androidx.compose.foundation.pager.HorizontalPager // Added
-import androidx.compose.foundation.pager.rememberPagerState // Added
+// import androidx.compose.material3.carousel.CarouselState // No longer needed if both use Pager
+// import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // To be replaced by HorizontalPager for phones
+// import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // To be replaced by HorizontalPager for tablets
+// import androidx.compose.material3.carousel.rememberCarouselState // No longer needed
+import androidx.compose.foundation.pager.HorizontalPager // Used for both phone and tablet
+import androidx.compose.foundation.pager.rememberPagerState // Used for both phone and tablet
 import androidx.compose.foundation.lazy.items
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
+import androidx.compose.ui.util.lerp // For interpolating values in graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration // Ensure this is imported
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.*
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -75,20 +73,16 @@ internal fun HomeScreenContent(
     navController: NavController
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp > 600 // Example threshold for tablets, comparing Dp.value to Int
 
-    // Dynamic Pager Padding
-    val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(72f, 2200f)
+    // Define card width for tablets using HorizontalPager
+    val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
 
-    // Dynamic Card Widths
-    // Calculate available width for the pager's content area
-    val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 3)
-
-    // Max width for the centered card (e.g., 50% of content area, or a fixed large size on small screens)
-    val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180f, 600f)
-    // Min width for side cards (e.g., 70% of maxCardWidth)
-    val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140f, 300f)
-
+    // Define peeking amount and card width for phones
+    val phonePeekWidth = 80
+    val phonePagerItemWidth = screenWidthDp - (2 * phonePeekWidth) // Central item takes screen width minus peek areas
 
     Scaffold(
         topBar = {
@@ -129,54 +123,52 @@ internal fun HomeScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            val pagerState = rememberPagerState { uiState.nextDoseGroup.count() }
+                            // Common PagerState for both phone and tablet
+                            val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
+
+                            val currentItemWidth = if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
+
+                            val calculatedHorizontalPadding = if (isTablet) {
+                                // For tablets, padding to center the (currentItemWidth) card
+                                ((screenWidthDp - currentItemWidth.toInt()) / 2).coerceAtLeast(0)
+                            } else {
+                                // For phones, padding is the peekWidth itself
+                                phonePeekWidth
+                            }
+
                             HorizontalPager(
                                 state = pagerState,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding.dp),
-                                pageSpacing = 0.dp
+                                modifier = Modifier.fillMaxWidth().height(220.dp), // Consistent height
+                                contentPadding = PaddingValues(horizontal = calculatedHorizontalPadding.dp),
+                                pageSpacing = if (isTablet) 16.dp else 4.dp // Adjust spacing based on device
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
-
                                 val pageOffset = (
                                     (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                                ).absoluteValue
+                                ).absoluteValue.coerceIn(0f, 1f)
 
-                                val currentCardTargetWidth = lerp(
-                                    start = minCardWidth,
-                                    stop = maxCardWidth,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(minCardWidth, maxCardWidth)
+                                // Adjust scale factor based on device type if needed, or use a common one
+                                val scaleFactor = if (isTablet) 0.90f else 0.85f // Slightly less scaling on tablets
+                                val alphaFactor = if (isTablet) 0.6f else 0.5f
 
-                                val scale = lerp(
-                                    start = 0.95f,
-                                    stop = 1.0f,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.95f, 1.0f)
-
-                                val alpha = lerp(
-                                    start = 0.7f, // Slightly less aggressive alpha
-                                    stop = 1f,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.7f, 1.0f)
-
-                                Box(
+                                NextDoseCard(
+                                    item = item,
                                     modifier = Modifier
-                                        .width(currentCardTargetWidth.dp)
-                                        .fillMaxHeight()
-                                        .graphicsLayer {
-                                            scaleX = scale
-                                            scaleY = scale
-                                            this.alpha = alpha
-                                        }
-                                ) {
-                                    NextDoseCard(item = item)
+                                        .width(currentItemWidth.toInt().dp) // Use the determined width for the current device
+                                            .graphicsLayer {
+                                                // Apply transformations: scale and alpha
+                                                // Items further from the center will be smaller and more transparent
+                                                val scale = lerp(1f, 0.85f, pageOffset)
+                                                scaleX = scale
+                                                scaleY = scale
+                                                alpha = lerp(1f, 0.5f, pageOffset)
+                                            }
+                                    )
                                 }
                             }
                         }
                     }
-                } else {
+                else {
                     item {
                         Text(
                             "No upcoming doses for the rest of the day.",
