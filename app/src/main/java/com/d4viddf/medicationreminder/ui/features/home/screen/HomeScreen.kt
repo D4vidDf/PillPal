@@ -8,12 +8,13 @@ import androidx.compose.foundation.layout.*
 // import androidx.compose.material3.carousel.CarouselState // Replaced by PagerState
 // import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Replaced by HorizontalPager
 // import androidx.compose.material3.carousel.rememberCarouselState // Replaced by rememberPagerState
-import androidx.compose.foundation.pager.HorizontalPager // Added
-import androidx.compose.foundation.pager.PagerState // Added
-import androidx.compose.foundation.pager.rememberPagerState // Added
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
+import androidx.compose.ui.platform.LocalConfiguration // Ensure this is imported
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
@@ -65,6 +66,20 @@ internal fun HomeScreenContent(
     navController: NavController
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+
+    // Dynamic Pager Padding
+    val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(32.dp, 72.dp)
+
+    // Dynamic Card Widths
+    // Calculate available width for the pager's content area
+    val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 2)
+
+    // Max width for the centered card (e.g., 50% of content area, or a fixed large size on small screens)
+    val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180.dp, 280.dp)
+    // Min width for side cards (e.g., 70% of maxCardWidth)
+    val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140.dp, 220.dp)
+
 
     Scaffold(
         topBar = {
@@ -110,9 +125,9 @@ internal fun HomeScreenContent(
                                 state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(220.dp), // Slightly increased height for potentially taller content due to wider card
-                                contentPadding = PaddingValues(horizontal = 80.dp), // Increased padding for wider cards
-                                pageSpacing = 12.dp // Increased spacing slightly
+                                    .height(220.dp),
+                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding),
+                                pageSpacing = 12.dp
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
 
@@ -120,14 +135,14 @@ internal fun HomeScreenContent(
                                     (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
                                 ).absoluteValue
 
-                                val targetWidth = lerp(
-                                    start = 150.dp, // Adjusted min width
-                                    stop = 200.dp,  // New max width for centered item
+                                val currentCardTargetWidth = lerp(
+                                    start = minCardWidth,
+                                    stop = maxCardWidth,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(150.dp, 200.dp)
+                                ).coerceIn(minCardWidth, maxCardWidth)
 
                                 val scale = lerp(
-                                    start = 0.95f, // Keeping scale subtle
+                                    start = 0.95f,
                                     stop = 1.0f,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
                                 ).coerceIn(0.95f, 1.0f)
@@ -140,16 +155,15 @@ internal fun HomeScreenContent(
 
                                 Box(
                                     modifier = Modifier
-                                        .width(targetWidth) // Apply dynamic width
-                                        .fillMaxHeight()    // Ensure card uses full pager item height if needed
+                                        .width(currentCardTargetWidth)
+                                        .fillMaxHeight()
                                         .graphicsLayer {
                                             scaleX = scale
                                             scaleY = scale
                                             this.alpha = alpha
                                         }
-                                        // No extra padding here, NextDoseCard has its own internal padding
                                 ) {
-                                    NextDoseCard(item = item) // NextDoseCard will fill this Box's width
+                                    NextDoseCard(item = item)
                                 }
                             }
                         }
