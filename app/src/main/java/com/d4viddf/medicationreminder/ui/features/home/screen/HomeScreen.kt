@@ -146,7 +146,7 @@ internal fun HomeScreenContent(
                                     itemSpacing = 8.dp
                                 ) { pageIndex ->
                                     val item = uiState.nextDoseGroup[pageIndex]
-                                    NextDoseCard(item = item, modifier = Modifier.width(150.dp)) // Explicitly set width for phone
+                                    NextDoseCard(item = item, modifier = Modifier.width(140.dp)) // Reduced width for phone
                                 }
                             }
                         }
