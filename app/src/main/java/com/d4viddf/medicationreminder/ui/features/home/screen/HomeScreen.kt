@@ -6,19 +6,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.carousel.CarouselState // Added for Carousel
-import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // Changed for Uncontained Carousel
+// import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // To be replaced by HorizontalPager for phones
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Added back for tablets
-import androidx.compose.material3.carousel.rememberCarouselState // Added for Carousel
-// import androidx.compose.foundation.pager.HorizontalPager // Replaced by Carousel
-// import androidx.compose.foundation.pager.rememberPagerState // Replaced by Carousel
+import androidx.compose.material3.carousel.rememberCarouselState // Added for Carousel - used by tablet path
+import androidx.compose.foundation.pager.HorizontalPager // Added for phone layout
+import androidx.compose.foundation.pager.rememberPagerState // Added for phone layout
 import androidx.compose.foundation.lazy.items
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
-// import androidx.compose.foundation.pager.HorizontalPager // Replaced by Carousel
-// import androidx.compose.foundation.pager.rememberPagerState // Replaced by Carousel
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
+import androidx.compose.ui.util.lerp // For interpolating values in graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration // Ensure this is imported
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
@@ -138,15 +137,37 @@ internal fun HomeScreenContent(
                                     }
                                 }
                             } else {
-                                HorizontalUncontainedCarousel(
-                                    state = carouselState,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    itemWidth = 150.dp, // Fixed width for phones
-                                    contentPadding = PaddingValues(horizontal = 24.dp), // Increased padding for phones
-                                    itemSpacing = 8.dp
+                                // Phone layout: Use HorizontalPager with transformations
+                                val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
+                                val phoneItemWidth = 140.dp // The actual width of the NextDoseCard on phone
+                                // Calculate padding to center the item. Ensure it's not negative.
+                                val horizontalPadding = ((screenWidthDp - phoneItemWidth) / 2).coerceAtLeast(0.dp)
+
+                                HorizontalPager(
+                                    state = pagerState,
+                                    modifier = Modifier.fillMaxWidth().height(220.dp), // Match tablet carousel height for consistency
+                                    contentPadding = PaddingValues(horizontal = horizontalPadding),
+                                    pageSpacing = 8.dp // Spacing between pages
                                 ) { pageIndex ->
                                     val item = uiState.nextDoseGroup[pageIndex]
-                                    NextDoseCard(item = item, modifier = Modifier.width(140.dp)) // Reduced width for phone
+                                    // Calculate page offset, coerceIn to ensure it's between 0 and 1 for lerp
+                                    val pageOffset = (
+                                        (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                                    ).absoluteValue.coerceIn(0f, 1f)
+
+                                    NextDoseCard(
+                                        item = item,
+                                        modifier = Modifier
+                                            .width(phoneItemWidth)
+                                            .graphicsLayer {
+                                                // Apply transformations: scale and alpha
+                                                // Items further from the center will be smaller and more transparent
+                                                val scale = lerp(1f, 0.85f, pageOffset)
+                                                scaleX = scale
+                                                scaleY = scale
+                                                alpha = lerp(1f, 0.5f, pageOffset)
+                                            }
+                                    )
                                 }
                             }
                         }
