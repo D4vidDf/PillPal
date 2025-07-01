@@ -142,7 +142,7 @@ internal fun HomeScreenContent(
                                     state = carouselState,
                                     modifier = Modifier.fillMaxWidth(),
                                     itemWidth = 150.dp, // Fixed width for phones
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    contentPadding = PaddingValues(horizontal = 24.dp), // Increased padding for phones
                                     itemSpacing = 8.dp
                                 ) { pageIndex ->
                                     val item = uiState.nextDoseGroup[pageIndex]
