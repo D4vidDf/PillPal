@@ -139,6 +139,7 @@ object NotificationHelper {
         )
 
         val markAsActionIntent = Intent(context, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
+            action = IntentActionConstants.ACTION_MARK_AS_TAKEN // Ensure this action is set
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderDbId)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE, medicationDosage)
