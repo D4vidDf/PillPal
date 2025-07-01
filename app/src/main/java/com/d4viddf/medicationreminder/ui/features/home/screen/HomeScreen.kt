@@ -260,7 +260,6 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 }
 
 // Linear interpolation helper for Dp
-@Composable
 private fun lerp(start: androidx.compose.ui.unit.Dp, stop: androidx.compose.ui.unit.Dp, fraction: Float): androidx.compose.ui.unit.Dp {
     return androidx.compose.ui.unit.Dp(lerp(start.value, stop.value, fraction))
 }
