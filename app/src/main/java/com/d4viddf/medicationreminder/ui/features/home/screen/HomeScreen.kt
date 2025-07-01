@@ -73,19 +73,13 @@ internal fun HomeScreenContent(
     navController: NavController
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    // val screenWidthDp = LocalConfiguration.current.screenWidthDp // Removed
 
-    // Dynamic Pager Padding
-    val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(72f, 2200f)
-
-    // Dynamic Card Widths
-    // Calculate available width for the pager's content area
-    val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 3)
-
-    // Max width for the centered card (e.g., 50% of content area, or a fixed large size on small screens)
-    val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180f, 600f)
-    // Min width for side cards (e.g., 70% of maxCardWidth)
-    val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140f, 300f)
+    // Removed Dynamic Pager Padding and Card Width calculations
+    // val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(72f, 2200f)
+    // val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 3)
+    // val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180f, 600f)
+    // val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140f, 300f)
 
 
     Scaffold(
