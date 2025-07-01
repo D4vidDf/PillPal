@@ -110,41 +110,46 @@ internal fun HomeScreenContent(
                                 state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(210.dp), // Adjusted height slightly for scaled items
-                                contentPadding = PaddingValues(horizontal = (32.dp + 16.dp)), // Allow space for items on sides: (Outer Padding + (ItemWidth*(1-minScale))/2) approx
-                                // pageSpacing = 8.dp // Spacing between pages if needed
-                            ) { pageIndex -> // pageIndex is the current item's index
+                                    .height(210.dp), // Height for the pager row
+                                contentPadding = PaddingValues(horizontal = 64.dp), // Generous padding for peeking
+                                pageSpacing = 8.dp // Spacing between the "pages" or items
+                            ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
 
                                 val pageOffset = (
                                     (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
                                 ).absoluteValue
 
+                                val targetWidth = lerp(
+                                    start = 140.dp, // Narrower width for side items
+                                    stop = 170.dp,  // Wider width for the centered item
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                ).coerceIn(140.dp, 170.dp)
+
                                 val scale = lerp(
-                                    start = 0.80f,
+                                    start = 0.95f, // More subtle scaling
                                     stop = 1.0f,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.80f, 1.0f)
+                                ).coerceIn(0.95f, 1.0f)
 
                                 val alpha = lerp(
-                                    start = 0.6f,
+                                    start = 0.7f, // Slightly less aggressive alpha
                                     stop = 1f,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.6f, 1.0f)
+                                ).coerceIn(0.7f, 1.0f)
 
                                 Box(
                                     modifier = Modifier
-                                        // .fillMaxSize() // Let NextDoseCard define its size
+                                        .width(targetWidth) // Apply dynamic width
+                                        .fillMaxHeight()    // Ensure card uses full pager item height if needed
                                         .graphicsLayer {
                                             scaleX = scale
                                             scaleY = scale
                                             this.alpha = alpha
-                                            // Optional: Center items if pager items are smaller than pager width
-                                            // translationX = (pagerWidth - (160.dp.toPx() * scale)) / 2f // Example
                                         }
-                                        .padding(horizontal = 4.dp) // Small padding around each card
+                                        // No extra padding here, NextDoseCard has its own internal padding
                                 ) {
-                                    NextDoseCard(item = item) // NextDoseCard has fixed width 160.dp, height 180.dp
+                                    NextDoseCard(item = item) // NextDoseCard will fill this Box's width
                                 }
                             }
                         }
@@ -235,9 +240,15 @@ fun HomeScreenNewPreview() {
     }
 }
 
-// Linear interpolation helper
+// Linear interpolation helper for Float
 private fun lerp(start: Float, stop: Float, fraction: Float): Float {
     return (1 - fraction) * start + fraction * stop
+}
+
+// Linear interpolation helper for Dp
+@Composable
+private fun lerp(start: androidx.compose.ui.unit.Dp, stop: androidx.compose.ui.unit.Dp, fraction: Float): androidx.compose.ui.unit.Dp {
+    return androidx.compose.ui.unit.Dp(lerp(start.value, stop.value, fraction))
 }
 
 

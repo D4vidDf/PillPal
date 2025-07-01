@@ -48,7 +48,7 @@ fun NextDoseCard(item: NextDoseUiItem) {
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
         modifier = Modifier
             .height(180.dp)
-            .width(160.dp)
+            .fillMaxWidth() // Changed from .width(160.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (!item.medicationImageUrl.isNullOrBlank()) {
