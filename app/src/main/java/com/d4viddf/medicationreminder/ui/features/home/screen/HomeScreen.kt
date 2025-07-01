@@ -110,9 +110,9 @@ internal fun HomeScreenContent(
                                 state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(210.dp), // Height for the pager row
-                                contentPadding = PaddingValues(horizontal = 64.dp), // Generous padding for peeking
-                                pageSpacing = 8.dp // Spacing between the "pages" or items
+                                    .height(220.dp), // Slightly increased height for potentially taller content due to wider card
+                                contentPadding = PaddingValues(horizontal = 80.dp), // Increased padding for wider cards
+                                pageSpacing = 12.dp // Increased spacing slightly
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
 
@@ -121,13 +121,13 @@ internal fun HomeScreenContent(
                                 ).absoluteValue
 
                                 val targetWidth = lerp(
-                                    start = 140.dp, // Narrower width for side items
-                                    stop = 170.dp,  // Wider width for the centered item
+                                    start = 150.dp, // Adjusted min width
+                                    stop = 200.dp,  // New max width for centered item
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(140.dp, 170.dp)
+                                ).coerceIn(150.dp, 200.dp)
 
                                 val scale = lerp(
-                                    start = 0.95f, // More subtle scaling
+                                    start = 0.95f, // Keeping scale subtle
                                     stop = 1.0f,
                                     fraction = 1f - pageOffset.coerceIn(0f, 1f)
                                 ).coerceIn(0.95f, 1.0f)

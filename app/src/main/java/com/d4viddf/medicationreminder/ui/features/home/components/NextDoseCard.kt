@@ -91,12 +91,11 @@ fun NextDoseCard(item: NextDoseUiItem) {
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 Text(
-                    text = item.medicationName,
+                    text = item.medicationName.split(" ").firstOrNull() ?: item.medicationName, // Display only the first word
                     style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                     fontWeight = FontWeight.Bold,
                     color = medicationThemeColor.textColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    // Removed maxLines and overflow to show only the first word as is
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(4.dp))
