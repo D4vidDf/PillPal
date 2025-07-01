@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.carousel.CarouselState // Added for Carousel
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Added for Carousel
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // Changed for Uncontained Carousel
 import androidx.compose.material3.carousel.rememberCarouselState // Added for Carousel
 // import androidx.compose.foundation.pager.HorizontalPager // Replaced by Carousel
 // import androidx.compose.foundation.pager.rememberPagerState // Replaced by Carousel
@@ -128,14 +128,14 @@ internal fun HomeScreenContent(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             val carouselState = rememberCarouselState { uiState.nextDoseGroup.count() }
-                            HorizontalMultiBrowseCarousel(
+                            HorizontalUncontainedCarousel( // Changed to HorizontalUncontainedCarousel
                                 state = carouselState,
                                 modifier = Modifier
                                     .fillMaxWidth(),
-                                preferredItemWidth = maxCardWidth.dp, // Added preferredItemWidth
-                                // TODO: Adjust contentPadding and itemSpacing for fixed card effect
-                                contentPadding = PaddingValues(0.dp), // Reset to 0.dp to test default behavior
-                                itemSpacing = 8.dp // Example spacing
+                                // preferredItemWidth is not a parameter for HorizontalUncontainedCarousel
+                                itemWidth = 150.dp, // Width of each item, NextDoseCard is 150.dp
+                                contentPadding = PaddingValues(horizontal = 16.dp), // Padding at start and end
+                                itemSpacing = 8.dp // Example spacing, adjust as needed
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
 
