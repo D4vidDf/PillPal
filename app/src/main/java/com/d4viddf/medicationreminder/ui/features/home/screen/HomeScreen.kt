@@ -75,13 +75,13 @@ internal fun HomeScreenContent(
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
-    val isTablet = screenWidthDp.value > 600 // Example threshold for tablets, comparing Dp.value to Int
+    val isTablet = screenWidthDp > 600 // Example threshold for tablets, comparing Dp.value to Int
 
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
 
     // Define peeking amount and card width for phones
-    val phonePeekWidth = 40.dp
+    val phonePeekWidth = 80
     val phonePagerItemWidth = screenWidthDp - (2 * phonePeekWidth) // Central item takes screen width minus peek areas
 
     Scaffold(
@@ -130,7 +130,7 @@ internal fun HomeScreenContent(
 
                             val calculatedHorizontalPadding = if (isTablet) {
                                 // For tablets, padding to center the (currentItemWidth) card
-                                ((screenWidthDp - currentItemWidth) / 2).coerceAtLeast(0.dp)
+                                ((screenWidthDp - currentItemWidth.toInt()) / 2).coerceAtLeast(0)
                             } else {
                                 // For phones, padding is the peekWidth itself
                                 phonePeekWidth
@@ -139,8 +139,8 @@ internal fun HomeScreenContent(
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier.fillMaxWidth().height(220.dp), // Consistent height
-                                contentPadding = PaddingValues(horizontal = calculatedHorizontalPadding),
-                                pageSpacing = if (isTablet) 16.dp else 8.dp // Adjust spacing based on device
+                                contentPadding = PaddingValues(horizontal = calculatedHorizontalPadding.dp),
+                                pageSpacing = if (isTablet) 16.dp else 4.dp // Adjust spacing based on device
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
                                 val pageOffset = (
@@ -154,7 +154,7 @@ internal fun HomeScreenContent(
                                 NextDoseCard(
                                     item = item,
                                     modifier = Modifier
-                                        .width(currentItemWidth) // Use the determined width for the current device
+                                        .width(currentItemWidth.toInt().dp) // Use the determined width for the current device
                                             .graphicsLayer {
                                                 // Apply transformations: scale and alpha
                                                 // Items further from the center will be smaller and more transparent
@@ -168,7 +168,7 @@ internal fun HomeScreenContent(
                             }
                         }
                     }
-                } else {
+                else {
                     item {
                         Text(
                             "No upcoming doses for the rest of the day.",
