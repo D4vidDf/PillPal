@@ -125,13 +125,19 @@ internal fun HomeScreenContent(
                             val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
 
                             val currentItemWidth = if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
-                            // Calculate padding to center items, ensure it's not negative.
-                            val horizontalPadding = ((screenWidthDp - currentItemWidth) / 2).coerceAtLeast(0.dp)
+
+                            val calculatedHorizontalPadding = if (isTablet) {
+                                // For tablets, keep the centering padding
+                                ((screenWidthDp - currentItemWidth) / 2).coerceAtLeast(0.dp)
+                            } else {
+                                // For phones, use a smaller padding to allow peeking
+                                (screenWidthDp * 0.1f).coerceAtMost(32.dp) // e.g., 10% of screen width, max 32.dp on each side
+                            }
 
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier.fillMaxWidth().height(220.dp), // Consistent height
-                                contentPadding = PaddingValues(horizontal = horizontalPadding),
+                                contentPadding = PaddingValues(horizontal = calculatedHorizontalPadding),
                                 pageSpacing = if (isTablet) 16.dp else 8.dp // Adjust spacing based on device
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
