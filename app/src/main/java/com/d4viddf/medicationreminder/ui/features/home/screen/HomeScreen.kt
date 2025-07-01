@@ -134,7 +134,7 @@ internal fun HomeScreenContent(
                                     .fillMaxWidth(),
                                 preferredItemWidth = maxCardWidth.dp, // Added preferredItemWidth
                                 // TODO: Adjust contentPadding and itemSpacing for fixed card effect
-                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding.dp), // Keep similar padding for now
+                                contentPadding = PaddingValues(0.dp), // Reset to 0.dp to test default behavior
                                 itemSpacing = 8.dp // Example spacing
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
