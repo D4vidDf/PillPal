@@ -74,13 +74,13 @@ fun NextDoseCard(item: NextDoseUiItem) {
             Spacer(modifier = Modifier.height(12.dp)) // Increased spacing
 
             Text(
-                text = item.medicationName, // Full name, allow wrapping
+                text = item.medicationName.split(" ").firstOrNull() ?: item.medicationName, // Display only the first word
                 style = MaterialTheme.typography.titleSmall.copy(fontSize = 16.sp), // Adjusted style
                 fontWeight = FontWeight.Bold,
                 color = medicationThemeColor.textColor,
                 textAlign = TextAlign.Center,
-                maxLines = 2, // Allow up to 2 lines for name
-                overflow = TextOverflow.Ellipsis
+                maxLines = 1, // Ensure it stays on one line
+                overflow = TextOverflow.Clip // Clip if it somehow still overflows (e.g. very long first word)
             )
 
             Spacer(modifier = Modifier.height(4.dp))
