@@ -5,16 +5,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
 import androidx.compose.foundation.layout.*
-// import androidx.compose.material3.carousel.CarouselState // Replaced by PagerState
-// import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Replaced by HorizontalPager
-// import androidx.compose.material3.carousel.rememberCarouselState // Replaced by rememberPagerState
-import androidx.compose.foundation.pager.HorizontalPager // Added
-import androidx.compose.foundation.pager.rememberPagerState // Added
+import androidx.compose.material3.carousel.CarouselState // Added for Carousel
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Added for Carousel
+import androidx.compose.material3.carousel.rememberCarouselState // Added for Carousel
+// import androidx.compose.foundation.pager.HorizontalPager // Replaced by Carousel
+// import androidx.compose.foundation.pager.rememberPagerState // Replaced by Carousel
 import androidx.compose.foundation.lazy.items
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+// import androidx.compose.foundation.pager.HorizontalPager // Replaced by Carousel
+// import androidx.compose.foundation.pager.rememberPagerState // Replaced by Carousel
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
@@ -23,8 +23,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.*
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -129,47 +127,25 @@ internal fun HomeScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            val pagerState = rememberPagerState { uiState.nextDoseGroup.count() }
-                            HorizontalPager(
-                                state = pagerState,
+                            val carouselState = rememberCarouselState { uiState.nextDoseGroup.count() }
+                            HorizontalMultiBrowseCarousel(
+                                state = carouselState,
                                 modifier = Modifier
                                     .fillMaxWidth(),
-                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding.dp),
-                                pageSpacing = 0.dp
+                                // TODO: Adjust contentPadding and itemSpacing for fixed card effect
+                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding.dp), // Keep similar padding for now
+                                itemSpacing = 8.dp // Example spacing
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
 
-                                val pageOffset = (
-                                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                                ).absoluteValue
-
-                                val currentCardTargetWidth = lerp(
-                                    start = minCardWidth,
-                                    stop = maxCardWidth,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(minCardWidth, maxCardWidth)
-
-                                val scale = lerp(
-                                    start = 0.95f,
-                                    stop = 1.0f,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.95f, 1.0f)
-
-                                val alpha = lerp(
-                                    start = 0.7f, // Slightly less aggressive alpha
-                                    stop = 1f,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).coerceIn(0.7f, 1.0f)
+                                //Removed pageOffset logic as Carousel handles item sizing and arrangement differently.
+                                // May need to adjust NextDoseCard or apply modifiers here if specific scaling/alpha is still desired.
 
                                 Box(
                                     modifier = Modifier
-                                        .width(currentCardTargetWidth.dp)
-                                        .fillMaxHeight()
-                                        .graphicsLayer {
-                                            scaleX = scale
-                                            scaleY = scale
-                                            this.alpha = alpha
-                                        }
+                                        // Ensure cards have a defined width, e.g., using a fraction of screen or fixed DP
+                                        // .width(maxCardWidth.dp) // Or some other fixed/calculated width
+                                        .fillMaxHeight() // Or a fixed height
                                 ) {
                                     NextDoseCard(item = item)
                                 }

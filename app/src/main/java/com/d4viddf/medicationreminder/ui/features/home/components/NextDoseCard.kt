@@ -30,8 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+// import coil.compose.AsyncImage // Removed
+// import coil.request.ImageRequest // Removed
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
@@ -46,80 +46,63 @@ fun NextDoseCard(item: NextDoseUiItem) {
     }
 
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp), // Slightly smaller rounding
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp), // Add some elevation
         modifier = Modifier
-            .height(180.dp)
-            .fillMaxWidth() // Changed from .width(160.dp)
+            .height(200.dp) // Increased height for better spacing
+            .width(150.dp) // Fixed width for carousel items
+            // .fillMaxWidth() // Ensure it takes the width assigned by Carousel
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (!item.medicationImageUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(item.medicationImageUrl)
-                        .crossfade(true)
-                        .error(R.drawable.medication_filled) // Replace with your actual default/error drawable
-                        .placeholder(R.drawable.medication_filled) // Replace with your actual placeholder
-                        .build(),
-                    contentDescription = item.medicationName, // Accessibility
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.Center)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Fit,
-                    alpha = 0.15f,
-                    colorFilter = ColorFilter.tint(medicationThemeColor.textColor)
-                )
-            } else {
-                // Optional: Show a default local icon if imageUrl is null/blank
-                 Image(
-                    painter = painterResource(id = R.drawable.medication_filled), // Generic fallback
-                    contentDescription = item.medicationName,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.Center)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Fit,
-                    alpha = 0.15f,
-                    colorFilter = ColorFilter.tint(medicationThemeColor.textColor)
-                )
-            }
-
-            Column(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp), // Increased padding
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center // Center content vertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.medication_filled), // Static placeholder
+                contentDescription = item.medicationName,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceAround
-            ) {
-                Text(
-                    text = item.formattedReminderTime,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = medicationThemeColor.textColor,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = item.medicationName.split(" ").firstOrNull() ?: item.medicationName, // Display only the first word
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                    fontWeight = FontWeight.Bold,
-                    color = medicationThemeColor.textColor,
-                    // Removed maxLines and overflow to show only the first word as is
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = item.medicationDosage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = medicationThemeColor.textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
-                )
+                    .size(64.dp) // Adjusted size
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop, // Crop might look better for a fixed size
+                colorFilter = ColorFilter.tint(medicationThemeColor.textColor)
+            )
 
+            Spacer(modifier = Modifier.height(12.dp)) // Increased spacing
 
-            }
+            Text(
+                text = item.medicationName, // Full name, allow wrapping
+                style = MaterialTheme.typography.titleSmall.copy(fontSize = 16.sp), // Adjusted style
+                fontWeight = FontWeight.Bold,
+                color = medicationThemeColor.textColor,
+                textAlign = TextAlign.Center,
+                maxLines = 2, // Allow up to 2 lines for name
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = item.medicationDosage,
+                style = MaterialTheme.typography.bodySmall, // Adjusted style
+                color = medicationThemeColor.textColor,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(8.dp)) // Spacing before time
+
+            Text(
+                text = item.formattedReminderTime,
+                style = MaterialTheme.typography.labelMedium, //ชัดเจนขึ้น / More distinct style for time
+                fontWeight = FontWeight.Medium,
+                color = medicationThemeColor.textColor.copy(alpha = 0.8f), // Slightly muted color for time
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
