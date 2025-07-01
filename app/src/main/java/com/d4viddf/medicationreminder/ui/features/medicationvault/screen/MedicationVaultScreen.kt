@@ -317,6 +317,7 @@ fun Context.findActivity(): Activity? = when (this) {
 }
 */
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = true, name = "Compact MedicationVaultScreen")
 @Composable
 fun MedicationVaultScreenCompactPreview() {
@@ -330,6 +331,7 @@ fun MedicationVaultScreenCompactPreview() {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = true, name = "Medium MedicationVaultScreen", widthDp = 700)
 @Composable
 fun MedicationVaultScreenMediumPreview() {

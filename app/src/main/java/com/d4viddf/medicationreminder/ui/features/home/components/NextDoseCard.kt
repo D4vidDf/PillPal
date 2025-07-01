@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,7 +46,7 @@ fun NextDoseCard(item: NextDoseUiItem) {
     }
 
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
         modifier = Modifier
             .height(180.dp)
@@ -56,8 +58,8 @@ fun NextDoseCard(item: NextDoseUiItem) {
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.medicationImageUrl)
                         .crossfade(true)
-                        .error(R.drawable.ic_medication_default_solid) // Replace with your actual default/error drawable
-                        .placeholder(R.drawable.ic_medication_default_solid) // Replace with your actual placeholder
+                        .error(R.drawable.medication_filled) // Replace with your actual default/error drawable
+                        .placeholder(R.drawable.medication_filled) // Replace with your actual placeholder
                         .build(),
                     contentDescription = item.medicationName, // Accessibility
                     modifier = Modifier
@@ -71,7 +73,7 @@ fun NextDoseCard(item: NextDoseUiItem) {
             } else {
                 // Optional: Show a default local icon if imageUrl is null/blank
                  Image(
-                    painter = painterResource(id = R.drawable.ic_medication_default_solid), // Generic fallback
+                    painter = painterResource(id = R.drawable.medication_filled), // Generic fallback
                     contentDescription = item.medicationName,
                     modifier = Modifier
                         .size(100.dp)
@@ -86,10 +88,18 @@ fun NextDoseCard(item: NextDoseUiItem) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceAround
             ) {
+                Text(
+                    text = item.formattedReminderTime,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = medicationThemeColor.textColor,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = item.medicationName.split(" ").firstOrNull() ?: item.medicationName, // Display only the first word
                     style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
@@ -107,14 +117,8 @@ fun NextDoseCard(item: NextDoseUiItem) {
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = item.formattedReminderTime,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = medicationThemeColor.textColor,
-                    textAlign = TextAlign.Center
-                )
+
+
             }
         }
     }

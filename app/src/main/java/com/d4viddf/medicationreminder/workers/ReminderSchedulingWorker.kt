@@ -1,7 +1,9 @@
 package com.d4viddf.medicationreminder.workers
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.d4viddf.medicationreminder.common.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
@@ -37,6 +39,7 @@ class ReminderSchedulingWorker constructor(
         private val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override suspend fun doWork(): Result {
         Log.d(TAG, "ReminderSchedulingWorker (CustomFactory) started. InputData: $inputData, Thread: ${Thread.currentThread().name}")
         val medicationIdInput = inputData.getInt(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_MEDICATION_ID, -1)

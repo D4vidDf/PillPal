@@ -366,6 +366,6 @@
     <string name="medGraph_yearly_chart_description_prefix">Yearly doses taken.</string>
 
     <!-- Strings for Home Screen Redesign -->
-    <string name="medication_vault_title">Medication Vault</string>
+    <string name="medication_vault_title">Vault</string>
     <string name="analysis_screen_title">Analysis</string>
 </resources>

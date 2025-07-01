@@ -80,7 +80,7 @@ fun AppNavigationRail(
         NavigationRailItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = if (vaultSelected) R.drawable.ic_inventory_filled else R.drawable.ic_inventory_outline),
+                    painter = painterResource(id = if (vaultSelected) R.drawable.medication_filled else R.drawable.rounded_medication_24),
                     contentDescription = stringResource(R.string.medication_vault_title) // Add R.string.medication_vault_title
                 )
             },
@@ -120,7 +120,7 @@ fun AppNavigationRail(
         NavigationRailItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = if (analysisSelected) R.drawable.ic_analytics_filled else R.drawable.ic_analytics_outline),
+                    painter = painterResource(id = if (analysisSelected) R.drawable.health_and_safety_24px_filled else R.drawable.health_and_safety_24px),
                     contentDescription = stringResource(R.string.analysis_screen_title) // Add R.string.analysis_screen_title
                 )
             },

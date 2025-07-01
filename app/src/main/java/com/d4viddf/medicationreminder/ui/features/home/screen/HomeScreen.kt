@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.*
 // import androidx.compose.material3.carousel.CarouselState // Replaced by PagerState
 // import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // Replaced by HorizontalPager
 // import androidx.compose.material3.carousel.rememberCarouselState // Replaced by rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager // Added
+import androidx.compose.foundation.pager.rememberPagerState // Added
+import androidx.compose.foundation.lazy.items
+//import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
+//import androidx.compose.foundation.lazy.items // Replaced by Carousel items
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.graphicsLayer
@@ -19,6 +23,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.*
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,10 +44,13 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,16 +78,16 @@ internal fun HomeScreenContent(
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
 
     // Dynamic Pager Padding
-    val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(32.dp, 72.dp)
+    val pagerHorizontalPadding = (screenWidthDp * 0.12f).coerceIn(72f, 2200f)
 
     // Dynamic Card Widths
     // Calculate available width for the pager's content area
-    val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 2)
+    val pagerContentAreaWidth = screenWidthDp - (pagerHorizontalPadding * 3)
 
     // Max width for the centered card (e.g., 50% of content area, or a fixed large size on small screens)
-    val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180.dp, 280.dp)
+    val maxCardWidth = (pagerContentAreaWidth * 0.55f).coerceIn(180f, 600f)
     // Min width for side cards (e.g., 70% of maxCardWidth)
-    val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140.dp, 220.dp)
+    val minCardWidth = (maxCardWidth * 0.70f).coerceIn(140f, 300f)
 
 
     Scaffold(
@@ -124,10 +133,9 @@ internal fun HomeScreenContent(
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp),
-                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding),
-                                pageSpacing = 12.dp
+                                    .fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = pagerHorizontalPadding.dp),
+                                pageSpacing = 0.dp
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
 
@@ -155,7 +163,7 @@ internal fun HomeScreenContent(
 
                                 Box(
                                     modifier = Modifier
-                                        .width(currentCardTargetWidth)
+                                        .width(currentCardTargetWidth.dp)
                                         .fillMaxHeight()
                                         .graphicsLayer {
                                             scaleX = scale
@@ -227,7 +235,16 @@ fun HomeScreenNewPreview() {
     val previewState = HomeViewModel.HomeState(
         currentGreeting = "Good morning! 🌤️",
         nextDoseGroup = listOf(
-            NextDoseUiItem(1,101,"Amoxicillin","250mg","LIGHT_BLUE",null, morningRawTime, "08:00"),
+            NextDoseUiItem(
+                1,
+                101,
+                "Amoxicillin",
+                "250mg",
+                "LIGHT_BLUE",
+                null,
+                morningRawTime,
+                "08:00"
+            ),
             NextDoseUiItem(2,102,"Ibuprofen","200mg","LIGHT_RED", "http://example.com/ibu.png", morningRawTime, "08:00")
         ),
         todaysReminders = mapOf(
@@ -316,35 +333,6 @@ private class FakeMedicationRepositoryPreview(context: android.content.Context) 
     // But since `HomeScreenNewPreview` calls `HomeScreenContent` with hardcoded state, this is okay.
 }
 
-private class FakeMedicationTypeRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationTypeRepository(
-    FakeMedicationTypeDaoPreview()
-) {
-    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? {
-        // This override might still be problematic if MedicationTypeRepository is final.
-        return com.d4viddf.medicationreminder.data.MedicationType(
-            id = id,
-            name = if (id == 101) "Amoxicillin" else "Ibuprofen",
-            dosage = if (id == 101) "250mg" else "200mg",
-            color = if (id == 101) "LIGHT_BLUE" else "LIGHT_RED",
-            typeId = 1, // Example typeId
-            packageSize = 20, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null,
-            nregistro = "12345"
-        )
-    }
-}
-
-private class FakeMedicationTypeRepositoryPreview : com.d4viddf.medicationreminder.data.MedicationTypeRepository(
-    FakeMedicationTypeDaoPreview()
-) {
-    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? {
-        return com.d4viddf.medicationreminder.data.MedicationType(
-            id = id,
-            name = "PILL", // Example type name
-            imageUrl = if (id == 1) "http://example.com/pill.png" else null // Example imageUrl
-        )
-    }
-}
-
 private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.data.MedicationReminderDao {
     override suspend fun insertReminder(reminder: MedicationReminder): Long = 0
     override suspend fun updateReminder(reminder: MedicationReminder): Int = 0
@@ -374,7 +362,7 @@ private class FakeMedicationDaoPreview : com.d4viddf.medicationreminder.data.Med
     override suspend fun insertMedication(medication: com.d4viddf.medicationreminder.data.Medication): Long = 0
     override suspend fun updateMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
     override suspend fun deleteMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
-    override suspend fun getMedicationIdByName(name: String): Int? = null
+    suspend fun getMedicationIdByName(name: String): Int? = null
 }
 
 private class FakeMedicationTypeDaoPreview : com.d4viddf.medicationreminder.data.MedicationTypeDao {

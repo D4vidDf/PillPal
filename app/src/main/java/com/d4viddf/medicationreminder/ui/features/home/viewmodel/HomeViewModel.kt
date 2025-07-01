@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+open class HomeViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository // Injected
@@ -42,7 +42,7 @@ class HomeViewModel @Inject constructor(
     )
 
     private val _uiState = MutableStateFlow(HomeState())
-    val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
+    open val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
 
     init {
         loadTodaysSchedule()
@@ -112,11 +112,6 @@ class HomeViewModel @Inject constructor(
                     val nextDoseUiItemsDeferred = nextDoseReminders.map { reminder ->
                         viewModelScope.async {
                             val medication = medicationRepository.getMedicationById(reminder.medicationId)
-                            // Assuming medication type is stored in Medication.type or similar
-                            // and you have a way to get MedicationType details if needed for the name.
-                            // For now, let's assume medication.type (if it exists) is a string like "PILL".
-                            // If medication.typeId is used, you'd fetch MedicationType by ID.
-                            val medication = medicationRepository.getMedicationById(reminder.medicationId)
                             var medicationTypeName: String? = null
                             var medicationImageUrl: String? = null
 
@@ -179,7 +174,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun markAsTaken(reminder: MedicationReminder) {
+    open fun markAsTaken(reminder: MedicationReminder) {
         viewModelScope.launch {
             val nowString = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter)
             medicationReminderRepository.updateReminder(reminder.copy(isTaken = true, takenAt = nowString))

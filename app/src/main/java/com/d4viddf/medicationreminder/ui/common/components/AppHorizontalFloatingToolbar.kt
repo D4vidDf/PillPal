@@ -56,7 +56,7 @@ fun AppHorizontalFloatingToolbar(
         IconButton(onClick = { if (!vaultSelected) onMedicationVaultClick() }) {
             Icon(
                 // Using a placeholder inventory icon, replace with actual if available
-                painter = painterResource(id = if (vaultSelected) R.drawable.ic_inventory_filled else R.drawable.ic_inventory_outline),
+                painter = painterResource(id = if (vaultSelected) R.drawable.medication_filled else R.drawable.rounded_medication_24),
                 contentDescription = stringResource(id = R.string.medication_vault_title), // Add this string resource
                 tint = if (vaultSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -74,7 +74,7 @@ fun AppHorizontalFloatingToolbar(
         val analysisSelected = currentRoute == Screen.Analysis.route
         IconButton(onClick = { if(!analysisSelected) onAnalysisClick() }) {
             Icon(
-                painter = painterResource(id = if (analysisSelected) R.drawable.ic_analytics_filled else R.drawable.ic_analytics_outline),
+                painter = painterResource(id = if (analysisSelected) R.drawable.health_and_safety_24px_filled else R.drawable.health_and_safety_24px),
                 contentDescription = stringResource(id = R.string.analysis_screen_title), // Add this string resource
                 tint = if (analysisSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -23,7 +23,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NotificationScheduler @Inject constructor() {
+open class NotificationScheduler @Inject constructor() {
 
     companion object {
         private const val TAG = "NotificationSchedLog" // Updated TAG
