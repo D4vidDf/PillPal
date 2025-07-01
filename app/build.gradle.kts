@@ -14,8 +14,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "0.5.4"
+        versionCode = 24
+        versionName = "0.5.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -93,7 +93,6 @@ dependencies {
     implementation(libs.androidx.adaptive)
     implementation(libs.adaptive.layout)
     implementation(libs.androidx.adaptive.navigation)
-    implementation(libs.androidx.compose.foundation.foundation)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
