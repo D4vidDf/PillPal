@@ -79,8 +79,10 @@ internal fun HomeScreenContent(
 
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
-    // Define card width for phones - making it much wider
-    val phonePagerItemWidth = screenWidthDp * 0.85f // Example: 85% of screen width for phone items
+
+    // Define peeking amount and card width for phones
+    val phonePeekWidth = 40.dp
+    val phonePagerItemWidth = screenWidthDp - (2 * phonePeekWidth) // Central item takes screen width minus peek areas
 
     Scaffold(
         topBar = {
@@ -127,11 +129,11 @@ internal fun HomeScreenContent(
                             val currentItemWidth = if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
 
                             val calculatedHorizontalPadding = if (isTablet) {
-                                // For tablets, keep the centering padding
+                                // For tablets, padding to center the (currentItemWidth) card
                                 ((screenWidthDp - currentItemWidth) / 2).coerceAtLeast(0.dp)
                             } else {
-                                // For phones, use a smaller padding to allow peeking
-                                (screenWidthDp * 0.1f).coerceAtMost(32.dp) // e.g., 10% of screen width, max 32.dp on each side
+                                // For phones, padding is the peekWidth itself
+                                phonePeekWidth
                             }
 
                             HorizontalPager(
