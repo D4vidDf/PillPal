@@ -6,7 +6,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MedicationReminderRepository @Inject constructor(
+open class MedicationReminderRepository @Inject constructor(
     private val medicationReminderDao: MedicationReminderDao,
     private val firebaseSyncDao: FirebaseSyncDao
 ) {
@@ -82,5 +82,9 @@ class MedicationReminderRepository @Inject constructor(
 
     suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder? {
         return medicationReminderDao.getMostRecentTakenReminder(medicationId)
+    }
+
+    open fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> {
+        return medicationReminderDao.getRemindersForDay(startOfDayString, endOfDayString)
     }
 }

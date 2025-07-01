@@ -41,4 +41,11 @@ interface MedicationReminderDao {
 
     @Query("SELECT * FROM medication_reminder WHERE medicationId = :medicationId AND isTaken = 1 ORDER BY takenAt DESC LIMIT 1")
     suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder?
+
+    @Query("""
+        SELECT * FROM medication_reminder
+        WHERE reminderTime BETWEEN :startOfDayString AND :endOfDayString
+        ORDER BY reminderTime ASC
+    """)
+    fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>>
 }

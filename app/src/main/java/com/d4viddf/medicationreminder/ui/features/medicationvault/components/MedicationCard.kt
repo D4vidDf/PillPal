@@ -1,5 +1,5 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class) // Added file-level OptIn
-package com.d4viddf.medicationreminder.ui.features.home.components
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+package com.d4viddf.medicationreminder.ui.features.medicationvault.components // Updated package
 
 import android.content.res.Configuration
 import android.util.Log
@@ -32,14 +32,13 @@ import com.d4viddf.medicationreminder.data.Medication
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 
-// Removed OptIn from here as it's now file-level
 @Composable
 fun MedicationCard(
     medication: Medication,
-    onClick: () -> Unit, // Callback for navigation
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    enableTransition: Boolean // New parameter
+    onClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    enableTransition: Boolean
 ) {
     val color = try {
         MedicationColor.valueOf(medication.color)
@@ -48,15 +47,14 @@ fun MedicationCard(
         MedicationColor.LIGHT_ORANGE
     }
 
-    // val sharedTransitionScope = LocalSharedTransitionScope.current // Removed this line
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onClick() } // Trigger navigation on click
+            .clickable { onClick() }
             .then(
                 if (sharedTransitionScope != null && animatedVisibilityScope != null && enableTransition) {
-                    with(sharedTransitionScope) { // Use with(scope)
+                    with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "medication-background-${medication.id}"),
                             animatedVisibilityScope!!
@@ -71,21 +69,20 @@ fun MedicationCard(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            // horizontalArrangement = Arrangement.SpaceBetween, // Removed for weight-based layout
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(2f) // Text part takes 2/3 of the space
+                modifier = Modifier.weight(2f)
             ) {
                 val displayName = medication.name.split(" ").take(3).joinToString(" ")
                 Text(
-                    text = displayName, // Use processed name
+                    text = displayName,
                     style = MaterialTheme.typography.headlineSmall,
                     color= color.textColor,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1, // Ensure this is present
-                    overflow = TextOverflow.Ellipsis, // Ensure this is present
-                    modifier = Modifier // sharedElement modifier removed
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
                 )
                 Text(
                     text = "${medication.dosage}",
@@ -99,8 +96,6 @@ fun MedicationCard(
                     )
                 }
             }
-
-            // Medication avatar at the end
             MedicationAvatar(color = Color.White)
         }
     }
@@ -125,19 +120,18 @@ fun MedicationCardPreview() {
                 id = 1,
                 name = "Amoxicillin Long Name For Testing Ellipsis",
                 dosage = "250mg",
-                color = "LIGHT_BLUE", // Assuming MedicationColor.LIGHT_BLUE exists
+                color = "LIGHT_BLUE",
                 reminderTime = "10:00 AM",
-                // Updated parameters as per request
-                typeId = 1, // Default value
-                packageSize = 0,       // Default value
-                remainingDoses = 0,    // Default value
-                startDate = null,      // Default value
-                endDate = null         // Default value
+                typeId = 1,
+                packageSize = 0,
+                remainingDoses = 0,
+                startDate = null,
+                endDate = null
             ),
             onClick = {},
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null, // Preview won't have a real scope
-            enableTransition = true // Add default for preview
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
+            enableTransition = true
         )
     }
 }

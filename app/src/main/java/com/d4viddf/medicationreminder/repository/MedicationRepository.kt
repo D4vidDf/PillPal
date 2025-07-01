@@ -18,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MedicationRepository @Inject constructor(
+open class MedicationRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val medicationDao: MedicationDao,
     private val medicationReminderDao: MedicationReminderDao,
@@ -80,7 +80,7 @@ class MedicationRepository @Inject constructor(
         }
     }
 
-    suspend fun getMedicationById(medicationId: Int): Medication? {
+    open suspend fun getMedicationById(medicationId: Int): Medication? {
         return medicationDao.getMedicationById(medicationId)
     }
 }

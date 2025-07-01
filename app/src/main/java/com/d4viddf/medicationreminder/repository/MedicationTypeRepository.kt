@@ -5,7 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MedicationTypeRepository @Inject constructor(
+open class MedicationTypeRepository @Inject constructor(
     private val medicationTypeDao: MedicationTypeDao
 ) {
 
@@ -20,7 +20,7 @@ class MedicationTypeRepository @Inject constructor(
     suspend fun deleteMedicationType(medicationType: MedicationType) {
         medicationTypeDao.deleteMedicationType(medicationType)
     }
-    suspend fun getMedicationTypeById(id: Int): MedicationType? {
+    open suspend fun getMedicationTypeById(id: Int): MedicationType? {
         return medicationTypeDao.getMedicationTypeById(id)
     }
 }

@@ -1,384 +1,369 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3AdaptiveApi::class)
-
 package com.d4viddf.medicationreminder.ui.features.home.screen
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.Intent
-import android.speech.RecognizerIntent
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
+import androidx.compose.foundation.layout.*
+// import androidx.compose.material3.carousel.CarouselState // No longer needed if both use Pager
+// import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // To be replaced by HorizontalPager for phones
+// import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel // To be replaced by HorizontalPager for tablets
+// import androidx.compose.material3.carousel.rememberCarouselState // No longer needed
+import androidx.compose.foundation.pager.HorizontalPager // Used for both phone and tablet
+import androidx.compose.foundation.pager.rememberPagerState // Used for both phone and tablet
+import androidx.compose.foundation.lazy.items
+//import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
+//import androidx.compose.foundation.lazy.items // Replaced by Carousel items
+import androidx.compose.material.icons.Icons
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlin.math.absoluteValue
+import androidx.compose.ui.util.lerp // For interpolating values in graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration // Ensure this is imported
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext // Added for Context
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
+import com.d4viddf.medicationreminder.ui.features.home.components.TodayScheduleItem
+// Import NotificationScheduler if its definition is needed for the fake, assuming a path
+import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.features.home.components.MedicationList
-import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationDetailsScreen
-import com.d4viddf.medicationreminder.ui.navigation.Screen
-import com.d4viddf.medicationreminder.utils.PermissionUtils
-import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import kotlinx.coroutines.launch
+import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
+import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier, // This modifier comes from NavHost, potentially with padding
-    navController: NavController, // Added this line
-    onMedicationClick: (Int) -> Unit,
-    widthSizeClass: WindowWidthSizeClass,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    viewModel: MedicationViewModel = hiltViewModel()
+    navController: NavController,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val medications by viewModel.medications.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val currentSearchQuery by viewModel.searchQuery.collectAsState()
-    val searchResults by viewModel.searchResults.collectAsState()
-    // var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) } // Will be managed by scaffoldNavigator
-
-    val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>() // Use Int? for nullable medication ID
-    val mainMedicationListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope() // For general coroutines, also for scaffold nav
-
-    // Local state for SearchBar active state
-    var searchActive by rememberSaveable { mutableStateOf(false) }
-
-    // val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO) // Removed
-    // val activity = LocalContext.current as Activity // Will be replaced by findActivity()
-
-    val speechRecognitionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val spokenText: ArrayList<String>? =
-                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            if (!spokenText.isNullOrEmpty()) {
-                viewModel.updateSearchQuery(spokenText[0])
-                searchActive = true // Optionally activate search bar if you want to see results immediately
-            }
-        }
-    }
-
-    val medicationListClickHandler: (Int) -> Unit = { medicationId ->
-        // When a medication is clicked, whether from main list or search results,
-        searchActive = false
-        viewModel.updateSearchQuery("")
-
-        if (widthSizeClass == WindowWidthSizeClass.Compact) {
-            onMedicationClick(medicationId) // Full screen navigation via NavController
-        } else {
-            // Show in detail pane using scaffoldNavigator
-            coroutineScope.launch {
-                scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
-            }
-        }
-    }
-
-    NavigableListDetailPaneScaffold(
-        modifier = modifier.fillMaxSize(),
-        navigator = scaffoldNavigator,
-        listPane = { // Changed from primaryPane
-            // `this` is ThreePaneScaffoldPaneScope
-            Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-                SearchBar(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = currentSearchQuery,
-                            onQueryChange = { viewModel.updateSearchQuery(it) },
-                            onSearch = {
-                                searchActive = false
-                            },
-                            expanded = searchActive,
-                            onExpandedChange = { isActive ->
-                                searchActive = isActive
-                                if (!isActive) {
-                                    viewModel.updateSearchQuery("")
-                                }
-                            },
-                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_search),
-                                    contentDescription = stringResource(id = R.string.search_icon_content_description)
-                                )
-                            },
-                            trailingIcon = {
-                                if (currentSearchQuery.isNotBlank()) {
-                                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.rounded_close_24),
-                                            contentDescription = stringResource(id = R.string.clear_search_query_button_description)
-                                        )
-                                    }
-                                } else {
-                                    val localContext = LocalContext.current
-                                    IconButton(onClick = {
-                                        val activity = localContext.findActivity()
-                                        if (activity != null) {
-                                            PermissionUtils.requestRecordAudioPermission(
-                                                activity = activity,
-                                                onAlreadyGranted = {
-                                                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                                        putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
-                                                    }
-                                                    speechRecognitionLauncher.launch(intent)
-                                                },
-                                                onRationaleNeeded = {
-                                                    Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed.")
-                                                }
-                                            )
-                                        } else {
-                                            Log.e("HomeScreen", "Could not find Activity context.")
-                                        }
-                                    }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.rounded_mic_24),
-                                            contentDescription = stringResource(id = R.string.microphone_icon_content_description)
-                                        )
-                                    }
-                                }
-                            },
-                        )
-                    },
-                    expanded = searchActive,
-                    onExpandedChange = { isActive ->
-                        searchActive = isActive
-                        if (!isActive) {
-                            viewModel.updateSearchQuery("")
-                        }
-                    }
-                    // SearchBar content lambda is part of its definition
-                    ) { // Search results content
-                        val searchResultsListState = rememberLazyListState()
-                        LazyColumn(
-                        state = searchResultsListState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        itemsIndexed(searchResults, key = { _, med -> med.id }) { index, medication ->
-                            Card(
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable {
-                                        coroutineScope.launch {
-                                            searchResultsListState.animateScrollToItem(index)
-                                            medicationListClickHandler(medication.id)
-                                        }
-                                    }
-                                    .then(
-                                        if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                            with(sharedTransitionScope) {
-                                                Modifier.sharedElement(
-                                                    rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope
-                                                )
-                                            }
-                                        } else Modifier
-                                    )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                ) {
-                                    Text(
-                                        text = medication.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.then(
-                                            if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                                with(sharedTransitionScope) {
-                                                    Modifier.sharedElement(
-                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope
-                                                    )
-                                                }
-                                            } else Modifier
-                                        )
-                                    )
-                                    if (!medication.dosage.isNullOrBlank()) {
-                                        Text(
-                                            text = medication.dosage,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(top = 4.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } // End of SearchBar content lambda
-
-                if (!searchActive) {
-                    val topAppBarHeight = 84.dp // Approx height for SearchBar
-                    val listToShow = if (currentSearchQuery.isBlank()) medications else searchResults
-                    MedicationList(
-                        medications = listToShow,
-                        onItemClick = { medication, index ->
-                            // medicationListClickHandler already has the logic for Compact vs Large screen.
-                            // It also handles the coroutine for scaffoldNavigator.
-                            // For compact, we might want to scroll before full navigation.
-                            if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                coroutineScope.launch {
-                                    mainMedicationListState.animateScrollToItem(index)
-                                    medicationListClickHandler(medication.id) // Will call onMedicationClick
-                                }
-                            } else {
-                                // Handles both scaffold navigation (with its own coroutine) and compact (direct call)
-                                medicationListClickHandler(medication.id)
-                            }
-                        },
-                        isLoading = isLoading,
-                        onRefresh = { viewModel.refreshMedications() },
-                        enableCardTransitions = (widthSizeClass == WindowWidthSizeClass.Compact),
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        modifier = Modifier.fillMaxSize(),
-                        bottomContentPadding = if (widthSizeClass == WindowWidthSizeClass.Compact) topAppBarHeight else 0.dp,
-                        listState = mainMedicationListState
-                    )
-                }
-            }
-        },
-        detailPane = { // Changed from secondaryPane
-            // `this` is ThreePaneScaffoldPaneScope
-            val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.contentKey
-            if (selectedMedicationIdForDetail != null) {
-                MedicationDetailsScreen(
-                    medicationId = selectedMedicationIdForDetail,
-                    navController = navController, // Added this line
-                    onNavigateBack = {
-                        coroutineScope.launch {
-                            scaffoldNavigator.navigateBack()
-                        }
-                    },
-                    sharedTransitionScope = null, // Correct for detail pane
-                    // animatedVisibilityScope for MedicationDetailScreen is tricky here.
-                    // 'this' is ThreePaneScaffoldPaneScope.
-                    // If MedicationDetailScreen expects an AnimatedVisibilityScope for its own internal animations,
-                    // it would need to come from an AnimatedVisibility composable within this detailPane.
-                    // For shared elements (which are disabled: enableSharedTransition = false), it would need
-                    // the one from AppNavigation. Since shared elements are off, this is less critical.
-                    // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
-                    animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
-                    isHostedInPane = true, // Added parameter
-                    onNavigateToAllSchedules = { medId, colorName ->
-                        navController.navigate(Screen.AllSchedules.createRoute(medId, colorName, true))
-                    },
-                    onNavigateToMedicationHistory = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationGraph = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationInfo = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    graphViewModel = hiltViewModel(), // Provide the graphViewModel
-                    widthSizeClass = widthSizeClass
-                )
-            } else {
-                // Placeholder when no medication is selected in detail pane (medium/expanded screens)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(id = R.string.select_medication_placeholder))
-                }
-            }
-        }
-        // We can also define a tertiary pane if needed, but not for this use case.
+    val uiState by viewModel.uiState.collectAsState()
+    HomeScreenContent(
+        uiState = uiState,
+        onMarkAsTaken = viewModel::markAsTaken,
+        navController = navController // Pass NavController if TopAppBar actions need it
     )
 }
-// Top-level extension function
-fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) // Added ExperimentalFoundationApi
+@Composable
+internal fun HomeScreenContent(
+    uiState: HomeViewModel.HomeState,
+    onMarkAsTaken: (MedicationReminder) -> Unit,
+    navController: NavController
+) {
+    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp > 600 // Example threshold for tablets, comparing Dp.value to Int
+
+    // Define card width for tablets using HorizontalPager
+    val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
+
+    // Define peeking amount and card width for phones
+    val phonePeekWidth = 80
+    val phonePagerItemWidth = screenWidthDp - (2 * phonePeekWidth) // Central item takes screen width minus peek areas
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineSmall) },
+                actions = {
+                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
+                        Icon(Icons.Filled.Watch, contentDescription = "Connect Wear OS")
+                    }
+                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
+                        BadgedBox(badge = { if (uiState.hasUnreadAlerts) Badge() }) {
+                            Icon(Icons.Filled.Notifications, contentDescription = "Notifications")
+                        }
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Next Dose Carousel
+                if (uiState.nextDoseGroup.isNotEmpty()) {
+                    item {
+                        Column {
+                            val formattedTime = uiState.nextDoseGroup.firstOrNull()?.formattedReminderTime ?: "Future"
+                            Text(
+                                "NEXT DOSE (at $formattedTime)",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            // Common PagerState for both phone and tablet
+                            val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
+
+                            val currentItemWidth = if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
+
+                            val calculatedHorizontalPadding = if (isTablet) {
+                                // For tablets, padding to center the (currentItemWidth) card
+                                ((screenWidthDp - currentItemWidth.toInt()) / 2).coerceAtLeast(0)
+                            } else {
+                                // For phones, padding is the peekWidth itself
+                                phonePeekWidth
+                            }
+
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxWidth().height(220.dp), // Consistent height
+                                contentPadding = PaddingValues(horizontal = calculatedHorizontalPadding.dp),
+                                pageSpacing = if (isTablet) 16.dp else 4.dp // Adjust spacing based on device
+                            ) { pageIndex ->
+                                val item = uiState.nextDoseGroup[pageIndex]
+                                val pageOffset = (
+                                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                                ).absoluteValue.coerceIn(0f, 1f)
+
+                                // Adjust scale factor based on device type if needed, or use a common one
+                                val scaleFactor = if (isTablet) 0.90f else 0.85f // Slightly less scaling on tablets
+                                val alphaFactor = if (isTablet) 0.6f else 0.5f
+
+                                NextDoseCard(
+                                    item = item,
+                                    modifier = Modifier
+                                        .width(currentItemWidth.toInt().dp) // Use the determined width for the current device
+                                            .graphicsLayer {
+                                                // Apply transformations: scale and alpha
+                                                // Items further from the center will be smaller and more transparent
+                                                val scale = lerp(1f, 0.85f, pageOffset)
+                                                scaleX = scale
+                                                scaleY = scale
+                                                alpha = lerp(1f, 0.5f, pageOffset)
+                                            }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                else {
+                    item {
+                        Text(
+                            "No upcoming doses for the rest of the day.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                    }
+                }
+
+                // Today's Schedule
+                item {
+                    Text(
+                        "TODAY'S SCHEDULE",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                    )
+                }
+
+                uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
+                    if (remindersInPart.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "$partOfDay (${
+                                    try {
+                                        LocalDateTime.parse(remindersInPart.first().reminderTime, ReminderCalculator.storableDateTimeFormatter)
+                                            .format(timeFormatter)
+                                    } catch (e: Exception) { "" }
+                                })",
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                            )
+                        }
+                        items(remindersInPart, key = { "schedule-${it.id}" }) { reminder ->
+                            TodayScheduleItem(
+                                reminder = reminder,
+                                onMarkAsTaken = { onMarkAsTaken(reminder) }, // Use passed lambda
+                                timeFormatter = timeFormatter
+                            )
+                        }
+                    }
+                }
+                item { Spacer(modifier = Modifier.height(64.dp)) }
+            }
+        }
+    }
 }
 
-@Preview(showBackground = true, name = "Compact HomeScreen")
+
+@Preview(showBackground = true, name = "HomeScreen Preview (New Design)")
 @Composable
-fun HomeScreenCompactPreview() {
+fun HomeScreenNewPreview() {
+    val sampleTime = LocalDateTime.now()
+    val morningRawTime = sampleTime.withHour(8).format(ReminderCalculator.storableDateTimeFormatter)
+    val afternoonRawTime = sampleTime.withHour(15).format(ReminderCalculator.storableDateTimeFormatter)
+
+    val previewState = HomeViewModel.HomeState(
+        currentGreeting = "Good morning! 🌤️",
+        nextDoseGroup = listOf(
+            NextDoseUiItem(
+                1,
+                101,
+                "Amoxicillin",
+                "250mg",
+                "LIGHT_BLUE",
+                null,
+                morningRawTime,
+                "08:00"
+            ),
+            NextDoseUiItem(2,102,"Ibuprofen","200mg","LIGHT_RED", "http://example.com/ibu.png", morningRawTime, "08:00")
+        ),
+        todaysReminders = mapOf(
+            "Morning" to listOf(
+                MedicationReminder(5, 104, 5, morningRawTime, true, morningRawTime, null),
+                MedicationReminder(1, 101, 1, morningRawTime, false, null, null)
+            ),
+            "Afternoon" to listOf(
+                MedicationReminder(3, 101, 3, afternoonRawTime, false, null, null)
+            ),
+            "Evening" to emptyList(),
+            "Night" to emptyList()
+        ),
+        hasUnreadAlerts = true,
+        isLoading = false
+    )
+
     AppTheme {
-        HomeScreen(
-            navController = rememberNavController(), // Added
-            onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Compact,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+        HomeScreenContent(
+            uiState = previewState,
+            onMarkAsTaken = {}, // No-op for preview
+            navController = rememberNavController() // Pass a dummy NavController
         )
     }
 }
 
-@Preview(showBackground = true, name = "Medium HomeScreen", widthDp = 700)
-@Composable
-fun HomeScreenMediumPreview() {
-    AppTheme {
-        HomeScreen(
-            navController = rememberNavController(), // Added
-            onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Medium,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+// Linear interpolation helper for Float
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return (1 - fraction) * start + fraction * stop
+}
+
+// Linear interpolation helper for Dp
+private fun lerp(start: androidx.compose.ui.unit.Dp, stop: androidx.compose.ui.unit.Dp, fraction: Float): androidx.compose.ui.unit.Dp {
+    return androidx.compose.ui.unit.Dp(lerp(start.value, stop.value, fraction))
+}
+
+
+// --- Fake Repositories and DAOs for Preview (Still defined for completeness, though HomeScreenNewPreview is decoupled) ---
+
+private class FakeNotificationSchedulerPreview : NotificationScheduler() {
+    // Minimal fake, NotificationScheduler has an empty constructor.
+}
+
+private class FakeMedicationReminderRepositoryPreview(
+    medicationReminderDao: com.d4viddf.medicationreminder.data.MedicationReminderDao,
+    firebaseSyncDao: com.d4viddf.medicationreminder.data.FirebaseSyncDao
+) : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
+    medicationReminderDao,
+    firebaseSyncDao
+) {
+    override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): kotlinx.coroutines.flow.Flow<List<MedicationReminder>> {
+        val now = LocalDateTime.now()
+        val sampleRemindersList = listOf(
+            MedicationReminder(1, 101,1, now.withHour(9).format(ReminderCalculator.storableDateTimeFormatter), false, null, null),
+            MedicationReminder(5, 104,5, now.withHour(8).format(ReminderCalculator.storableDateTimeFormatter), true, now.withHour(8).format(ReminderCalculator.storableDateTimeFormatter), null)
         )
+        return flowOf(sampleRemindersList)
     }
 }
 
-@Preview(showBackground = true, name = "Expanded HomeScreen", widthDp = 1024)
-@Composable
-fun HomeScreenExpandedPreview() {
-    AppTheme {
-        HomeScreen(
-            navController = rememberNavController(), // Added
-            onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Expanded,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
-        )
-    }
+private class FakeMedicationRepositoryPreview(context: android.content.Context) : com.d4viddf.medicationreminder.repository.MedicationRepository(
+    context,
+    FakeMedicationDaoPreview(),
+    FakeMedicationReminderDaoPreview(), // This needs its DAO dependencies
+    FakeNotificationSchedulerPreview(), // Instantiated
+    FakeFirebaseSyncDaoPreview()
+) {
+    // It's generally problematic to @Override methods of a final class.
+    // The main goal here is to ensure the constructor of FakeMedicationRepositoryPreview
+    // can successfully call the super constructor of the real MedicationRepository.
+    // If HomeViewModel directly calls methods on this fake that are not part of an interface
+    // and are not open in the real repository, it would lead to issues in tests,
+    // but for previews where we directly set state, it might be less critical
+    // as long as the object can be constructed.
+
+    // Example: if getMedicationById was open in MedicationRepository
+    // override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? {
+    // return com.d4viddf.medicationreminder.data.Medication(
+    // ...
+    // )
+    // }
+    // Since it's likely not open, we cannot override it.
+    // The previewViewModel directly sets state, so this fake's method implementations
+    // are less critical *for the preview itself*, but constructor must be valid.
+    // For the preview to work with `previewViewModel.loadTodaysSchedule()`, these fakes would need to be more robust or an interface used.
+    // But since `HomeScreenNewPreview` calls `HomeScreenContent` with hardcoded state, this is okay.
+}
+
+private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.data.MedicationReminderDao {
+    override suspend fun insertReminder(reminder: MedicationReminder): Long = 0
+    override suspend fun updateReminder(reminder: MedicationReminder): Int = 0
+    override suspend fun deleteReminder(reminder: MedicationReminder) {}
+    override suspend fun getReminderById(id: Int): MedicationReminder? = null
+    override fun getRemindersForMedication(medicationId: Int): Flow<List<MedicationReminder>> = flowOf(emptyList())
+    override fun getRemindersByStatus(isTaken: Boolean): Flow<List<MedicationReminder>> = flowOf(emptyList())
+    override fun getFutureRemindersForMedication(medicationId: Int, currentTimeIso: String): Flow<List<MedicationReminder>> = flowOf(emptyList())
+    override suspend fun deleteFutureUntakenRemindersForMedication(medicationId: Int, currentTimeIso: String) {}
+    override fun getFutureUntakenRemindersForMedication(medicationId: Int, currentTimeIsoString: String): Flow<List<MedicationReminder>> = flowOf(emptyList())
+    override suspend fun getRemindersForMedicationInWindow(medicationId: Int, startTime: String, endTime: String): List<MedicationReminder> = emptyList()
+    override suspend fun deleteReminderById(reminderId: Int) {}
+    override suspend fun getMostRecentTakenReminder(medicationId: Int): MedicationReminder? = null
+    override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> = flowOf(emptyList())
+}
+
+private class FakeFirebaseSyncDaoPreview : com.d4viddf.medicationreminder.data.FirebaseSyncDao {
+    override suspend fun insertSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
+    override suspend fun updateSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
+    override suspend fun deleteSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
+    override fun getPendingSyncRecords(status: com.d4viddf.medicationreminder.data.SyncStatus): kotlinx.coroutines.flow.Flow<List<com.d4viddf.medicationreminder.data.FirebaseSync>> = flowOf(emptyList())
+}
+
+private class FakeMedicationDaoPreview : com.d4viddf.medicationreminder.data.MedicationDao {
+    override fun getAllMedications(): Flow<List<com.d4viddf.medicationreminder.data.Medication>> = flowOf(emptyList())
+    override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? = null
+    override suspend fun insertMedication(medication: com.d4viddf.medicationreminder.data.Medication): Long = 0
+    override suspend fun updateMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
+    override suspend fun deleteMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
+    suspend fun getMedicationIdByName(name: String): Int? = null
+}
+
+private class FakeMedicationTypeDaoPreview : com.d4viddf.medicationreminder.data.MedicationTypeDao {
+    override fun getAllMedicationTypes(): Flow<List<com.d4viddf.medicationreminder.data.MedicationType>> = flowOf(emptyList())
+    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? = null
+    override suspend fun insertMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+    override suspend fun updateMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+    override suspend fun deleteMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+    override suspend fun deleteAllMedicationTypes() {} // Added
+    override suspend fun getMedicationTypeByName(name: String): com.d4viddf.medicationreminder.data.MedicationType? = null // Added
+    override suspend fun getMedicationTypesByIds(ids: List<Int>): List<com.d4viddf.medicationreminder.data.MedicationType> = emptyList() // Added
 }

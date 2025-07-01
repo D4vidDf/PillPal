@@ -40,7 +40,14 @@ fun MedicationReminderApp(
             val currentRoute = navBackStackEntry?.destination?.route
 
             // Determine if the current screen is a "main" screen that should show common navigation elements
-            val isMainScreen = currentRoute in listOf(Screen.Home.route, Screen.Calendar.route, Screen.Profile.route)
+            val mainScreenRoutes = listOf(
+                Screen.Home.route,
+                Screen.MedicationVault.route, // Added
+                Screen.Calendar.route,
+                Screen.Analysis.route, // Added
+                Screen.Profile.route
+            )
+            val isMainScreen = currentRoute in mainScreenRoutes
 
             // Specific routes that should not show the main navigation (Scaffold with FAB or NavRail)
             val hideAllMainChrome = currentRoute in listOf(
@@ -63,10 +70,11 @@ fun MedicationReminderApp(
                     Row(modifier = Modifier.fillMaxSize()) {
                         AppNavigationRail(
                             onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
+                            onMedicationVaultClick = { navController.navigate(Screen.MedicationVault.route) { popUpTo(Screen.Home.route) } },
                             onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
+                            onAnalysisClick = { navController.navigate(Screen.Analysis.route) { popUpTo(Screen.Home.route) } },
                             onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
-                            onSettingsClick = { navController.navigate(Screen.Settings.route) }, // Removed popUpTo for settings
-                            onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // Changed here
+                            onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) },
                             currentRoute = currentRoute
                         )
                         AppNavigation(
@@ -84,18 +92,30 @@ fun MedicationReminderApp(
                         modifier = Modifier,
                         topBar = {},
                         floatingActionButton = {
+                            // The FAB is for adding medication, which is a primary action on Home and Vault.
+                            // The AppHorizontalFloatingToolbar serves as the bottom nav bar on compact screens.
+                            // The central button of AppHorizontalFloatingToolbar is the "Add" button.
                             if (isMainScreen && widthSizeClass == WindowWidthSizeClass.Compact) {
                                 AppHorizontalFloatingToolbar(
                                     onHomeClick = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
+                                    onMedicationVaultClick = { navController.navigate(Screen.MedicationVault.route) { popUpTo(Screen.Home.route) } },
                                     onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
+                                    onAnalysisClick = { navController.navigate(Screen.Analysis.route) { popUpTo(Screen.Home.route) } },
                                     onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
-                                    onSettingsClick = { navController.navigate(Screen.Settings.route) },
-                                    onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) },
+                                    onAddClick = { navController.navigate(Screen.AddMedicationChoice.route) }, // This is the central FAB-like button
                                     currentRoute = currentRoute
                                 )
                             }
                         },
-                        floatingActionButtonPosition = FabPosition.Center
+                        // If a separate FAB was desired *in addition* to the bottom bar's center button:
+                        // floatingActionButton = {
+                        //    if (currentRoute == Screen.Home.route) { // Example: FAB only on new Home screen
+                        //        FloatingActionButton(onClick = { navController.navigate(Screen.AddMedicationChoice.route) }) {
+                        //            Icon(Icons.Filled.Add, "Add new medication")
+                        //        }
+                        //    }
+                        // },
+                        floatingActionButtonPosition = FabPosition.Center // For the AppHorizontalFloatingToolbar
                     ) {
                         AppNavigation(
                             navController = navController,
