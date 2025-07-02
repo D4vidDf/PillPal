@@ -19,6 +19,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import com.d4viddf.medicationreminder.MainActivity
@@ -53,6 +54,7 @@ class PreReminderForegroundService : Service() {
     private val updateNotificationRunnable = object : Runnable {
         // Removed @RequiresApi(36) from here as the run method itself doesn't directly use API 36 features.
         // The call to updateNotificationContent handles the API level specific logic.
+        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -186,7 +188,7 @@ class PreReminderForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= 36) {
             // builder.requestPromotedOngoing(true) // Replaced due to beta version issues
             val extrasBundle = Bundle()
-            extrasBundle.putBoolean(Notification.EXTRA_REQUEST_PROMOTED_ONGOING, true)
+            extrasBundle.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
             builder.addExtras(extrasBundle)
             builder.setColorized(false) // Explicitly set false for API 36+ Live Updates
 
