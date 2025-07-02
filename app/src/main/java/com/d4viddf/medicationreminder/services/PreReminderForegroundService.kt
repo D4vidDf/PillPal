@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import android.os.Build
+import android.os.Bundle // Added for Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -183,7 +184,10 @@ class PreReminderForegroundService : Service() {
             .setCategory(Notification.CATEGORY_PROGRESS) // Changed to CATEGORY_PROGRESS for live updates
 
         if (Build.VERSION.SDK_INT >= 36) {
-            builder.requestPromotedOngoing(true) // Request promotion for Live Update
+            // builder.requestPromotedOngoing(true) // Replaced due to beta version issues
+            val extrasBundle = Bundle()
+            extrasBundle.putBoolean(Notification.EXTRA_REQUEST_PROMOTED_ONGOING, true)
+            builder.addExtras(extrasBundle)
             builder.setColorized(false) // Explicitly set false for API 36+ Live Updates
 
             val progressStyle = Notification.ProgressStyle()
