@@ -202,7 +202,7 @@ class PreReminderForegroundService : Service() {
 
             for (i in 0 until segmentCount) {
                 segments.add(
-                    Notification.ProgressStyle.Segment(segmentDuration) // Use float for segment length
+                    Notification.ProgressStyle.Segment(segmentDuration.toInt()) // Corrected to use .toInt()
                         .setColor(colors[i % colors.size].toColorInt())
                 )
             }
