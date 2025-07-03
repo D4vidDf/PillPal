@@ -385,4 +385,19 @@
     <string name="time_remaining_minutes">%1$dm</string>
     <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
 
+    <!-- Missing resources added by Agent -->
+    <string name="next_dose_card_cd">Next dose card</string>
+    <string name="today_schedule_item_card_cd">Today\'s schedule item card</string>
+    <string name="today_schedule_item_switch_cd">Toggle medication taken status</string>
+    <string name="switch_state_taken">Taken</string>
+    <string name="switch_state_not_taken">Not taken</string>
+    <string name="home_button_cd_connect_wear_os">Connect Wear OS device</string>
+    <string name="home_button_cd_notifications_unread">Unread notifications</string>
+    <string name="home_button_cd_notifications_read">Notifications read</string>
+    <string name="state_expanded">Expanded</string>
+    <string name="state_collapsed">Collapsed</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="action_expand">Expand</string>
+    <string name="home_section_header_cd">Home section header</string>
+
 </resources>

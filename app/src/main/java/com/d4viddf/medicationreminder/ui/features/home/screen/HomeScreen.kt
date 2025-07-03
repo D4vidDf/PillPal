@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -126,6 +127,35 @@ internal fun HomeScreenContent(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    val partOfDayHeaderIndices = remember { mutableMapOf<String, Int>() }
+
+    // Moved LaunchedEffect to a higher level (HomeScreenContent scope)
+    LaunchedEffect(
+        uiState.nextDoseGroup,
+        uiState.todaysReminders,
+        sectionExpandedStates.toMap()
+    ) {
+        var idx = 0
+        partOfDayHeaderIndices.clear()
+
+        if (uiState.nextDoseGroup.isNotEmpty()) {
+            idx++ // Next Dose Carousel
+        } else {
+            idx++ // "No upcoming doses" message
+        }
+        idx++ // "TODAY'S SCHEDULE" sticky header
+
+        uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
+            if (remindersInPart.isNotEmpty()) {
+                partOfDayHeaderIndices[partOfDay] = idx
+                idx++ // Part of Day Sticky Header
+                if (sectionExpandedStates[partOfDay] == true) {
+                    idx += remindersInPart.size // Items in this part of day
+                }
+            }
+        }
+    }
+
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
 
@@ -185,7 +215,7 @@ internal fun HomeScreenContent(
                     CircularProgressIndicator()
                 }
             } else {
-                val partOfDayHeaderIndices = remember { mutableMapOf<String, Int>() }
+                // partOfDayHeaderIndices is now defined and calculated in HomeScreenContent scope
 
                 LazyColumn(
                     state = lazyListState,
@@ -195,38 +225,6 @@ internal fun HomeScreenContent(
                             // .padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy (16.dp) // This adds space *between* items
                 ) {
-
-                    // Calculate indices
-                    // This LaunchedEffect will recalculate indices if the data changes.
-                    // Note: This is a simplified index calculation. Complex layouts with varying item counts
-                    // per section might need more robust logic if items within sections can also be dynamic
-                    // beyond just expansion.
-                    LaunchedEffect(
-                        uiState.nextDoseGroup,
-                        uiState.todaysReminders,
-                        sectionExpandedStates.toMap()
-                    ) {
-                        var idx = 0
-                        partOfDayHeaderIndices.clear()
-
-                        if (uiState.nextDoseGroup.isNotEmpty()) {
-                            idx++ // Next Dose Carousel
-                        } else {
-                            idx++ // "No upcoming doses" message
-                        }
-                        idx++ // "TODAY'S SCHEDULE" sticky header
-
-                        uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
-                            if (remindersInPart.isNotEmpty()) {
-                                partOfDayHeaderIndices[partOfDay] = idx
-                                idx++ // Part of Day Sticky Header
-                                if (sectionExpandedStates[partOfDay] == true) {
-                                    idx += remindersInPart.size // Items in this part of day
-                                }
-                            }
-                        }
-                    }
-
                     // Next Dose Carousel
                     if (uiState.nextDoseGroup.isNotEmpty()) {
                         item {
@@ -234,45 +232,45 @@ internal fun HomeScreenContent(
                                 val nextDoseAtTime = uiState.nextDoseAtTime
                                 val timeRemaining = uiState.nextDoseTimeRemaining
 
+                                // Hoist stringResource calls to be direct children of the composable scope
+                                val strNextDoseTimeAtIn = if (nextDoseAtTime != null && timeRemaining != null) {
+                                    stringResource(R.string.next_dose_time_at_in, nextDoseAtTime, timeRemaining)
+                                } else null
+
+                                val strNextDoseTimeIn = if (timeRemaining != null) {
+                                    stringResource(R.string.next_dose_time_in, timeRemaining)
+                                } else null
+
+                                val strNextDoseAt = if (nextDoseAtTime != null) {
+                                    stringResource(R.string.next_dose_at, nextDoseAtTime)
+                                } else null
+
+                                val strNoUpcomingDoses = stringResource(R.string.no_upcoming_doses_at_all)
+
                                 val textToShow =
-                                    if (nextDoseAtTime != null && timeRemaining != null) {
-                                        val baseText = LocalContext.current.getString(
-                                            R.string.next_dose_time_at_in,
-                                            nextDoseAtTime,
-                                            timeRemaining
-                                        )
-                                        val timeRemainingText = LocalContext.current.getString(
-                                            R.string.next_dose_time_in,
-                                            timeRemaining
-                                        )
-                                        val startIndex = baseText.indexOf(timeRemainingText)
+                                    if (nextDoseAtTime != null && timeRemaining != null && strNextDoseTimeAtIn != null && strNextDoseTimeIn != null) {
+                                        val startIndex = strNextDoseTimeAtIn.indexOf(strNextDoseTimeIn)
                                         if (startIndex != -1) {
                                             buildAnnotatedString {
-                                                append(baseText.substring(0, startIndex))
+                                                append(strNextDoseTimeAtIn.substring(0, startIndex))
                                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                                    append(timeRemainingText)
+                                                    append(strNextDoseTimeIn)
                                                 }
-                                                append(baseText.substring(startIndex + timeRemainingText.length))
+                                                append(strNextDoseTimeAtIn.substring(startIndex + strNextDoseTimeIn.length))
                                             }
                                         } else {
-                                            AnnotatedString(baseText) // Fallback if substring not found
+                                            AnnotatedString(strNextDoseTimeAtIn) // Fallback
                                         }
-                                    } else if (nextDoseAtTime != null) {
-                                        androidx.compose.ui.text.AnnotatedString(
-                                            LocalContext.current.getString(
-                                                R.string.next_dose_at,
-                                                nextDoseAtTime
-                                            )
-                                        )
+                                    } else if (nextDoseAtTime != null && strNextDoseAt != null) {
+                                        AnnotatedString(strNextDoseAt)
                                     } else {
-                                        // Should not happen if nextDoseGroup is not empty, but as a fallback:
-                                        androidx.compose.ui.text.AnnotatedString("Next Dose")
+                                        AnnotatedString(strNoUpcomingDoses)
                                     }
 
                                 Text(
                                     text = textToShow,
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(bottom = 8.dp,).padding(horizontal = 16.dp)
                                 )
                                 // Common PagerState for both phone and tablet
                                 val pagerState =
@@ -387,10 +385,6 @@ internal fun HomeScreenContent(
                                         )
                                     val headerCd = context.getString(
                                         R.string.home_section_header_cd,
-                                        partOfDay,
-                                        partOfDayTime,
-                                        expandedStateText,
-                                        actionText
                                     )
 
                                     Row(
