@@ -299,23 +299,16 @@ fun MedicationDetailsScreen(
                     )
                 }
             ) { innerPadding ->
-                // Apply the Scaffold's innerPadding to the main content container.
-                // This innerPadding accounts for the TopAppBar.
-                // Additional status bar padding might be needed if drawing edge-to-edge behind a transparent status bar,
-                // often applied at the Scaffold level or as a Modifier to the Scaffold itself.
-                // For this screen, innerPadding from its own Scaffold is the primary concern for content placement.
+                // The variable 'internalShowTwoPanesState' might still be used for layout decisions (like showing two columns of content),
+                // but it will no longer directly control the AppBar's transparency.
+                val outerContentModifier = Modifier.fillMaxSize().then(if (!isHostedInPane) Modifier.padding(innerPadding) else Modifier.padding(top = innerPadding.calculateTopPadding()))
+                val minWidthForTwoPanes = 600.dp
 
-                val contentAreaModifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding) // Apply all sides of innerPadding
-
-                BoxWithConstraints(modifier = contentAreaModifier) {
+                BoxWithConstraints(modifier = outerContentModifier) {
                     val showTwoPanes = when (widthSizeClass) {
                         WindowWidthSizeClass.Compact -> false
                         else -> {
-                            // If hosted in a pane, use the available width of the pane to decide.
-                            // Otherwise (full screen), it's likely medium/expanded, so show two panes.
-                            if (isHostedInPane) this.maxWidth >= 600.dp else true
+                            if (isHostedInPane) this.maxWidth >= minWidthForTwoPanes else true
                         }
                     }
 
@@ -325,14 +318,13 @@ fun MedicationDetailsScreen(
                         }
                     }
 
-                    // The LazyColumn can have its own content-specific padding,
-                    // separate from the Scaffold's innerPadding.
-                    val lazyColumnModifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp) // Consistent horizontal padding for content
+                    val actualContentModifier = Modifier.fillMaxSize()
 
                     if (showTwoPanes) {
-                        LazyColumn(modifier = lazyColumnModifier) {
+                        LazyColumn(modifier = actualContentModifier
+                            .then(Modifier.padding(horizontal = 16.dp)) // Keep horizontal padding for two-pane
+                            .then(if (!isHostedInPane) Modifier.padding(top = innerPadding.calculateTopPadding()) else Modifier) // Add conditional top padding
+                        ) {
                             item {
                                 MedicationHeaderAndProgress(
                                     medicationState = medicationState,
@@ -391,8 +383,10 @@ fun MedicationDetailsScreen(
                         }
                     }
                 }
-            } else { // Single pane layout
-                LazyColumn(modifier = lazyColumnModifier) { // Use the same consistent lazyColumnModifier
+            } else {
+                LazyColumn(modifier = actualContentModifier
+                    .then(if (makeAppBarTransparent) Modifier.padding(horizontal = 16.dp) else Modifier)
+                ) {
                     item {
                         MedicationHeaderAndProgress(
                             medicationState = medicationState,

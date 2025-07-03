@@ -144,11 +144,10 @@ fun MedicationVaultScreen(
                     SearchBar(
                         modifier = Modifier
                             .fillMaxWidth()
+                            // Apply padding similar to old HomeScreen.kt
                             .padding(
-                                start = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp,
-                                end = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp,
-                                top = 0.dp, // Reduced top padding
-                                bottom = 8.dp // Retain bottom padding
+                                horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp,
+                                vertical = 8.dp
                             ),
                         inputField = {
                             SearchBarDefaults.InputField(
