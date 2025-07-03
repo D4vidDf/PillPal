@@ -29,6 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle // Added for AnnotatedString styling
+import androidx.compose.ui.text.withStyle // Added for AnnotatedString styling
 import androidx.compose.ui.platform.LocalContext // Added for Context
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,11 +73,30 @@ internal fun HomeScreenContent(
     uiState: HomeViewModel.HomeState,
     onMarkAsTaken: (MedicationReminder) -> Unit,
     navController: NavController
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
     val isTablet = screenWidthDp > 600 // Example threshold for tablets, comparing Dp.value to Int
+
+    // Initialize all parts of day to be expanded by default
+    var sectionExpandedStates by remember {
+        mutableStateOf(
+            mapOf(
+                "Morning" to true,
+                "Afternoon" to true,
+                "Evening" to true,
+                "Night" to true
+            )
+        )
+    }
 
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
@@ -87,7 +108,7 @@ internal fun HomeScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineSmall) },
+                title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)) },
                 actions = {
                     IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
                         Icon(Icons.Filled.Watch, contentDescription = "Connect Wear OS")
@@ -117,9 +138,33 @@ internal fun HomeScreenContent(
                 if (uiState.nextDoseGroup.isNotEmpty()) {
                     item {
                         Column {
-                            val formattedTime = uiState.nextDoseGroup.firstOrNull()?.formattedReminderTime ?: "Future"
+                            val nextDoseAtTime = uiState.nextDoseAtTime
+                            val timeRemaining = uiState.nextDoseTimeRemaining
+
+                            val textToShow = if (nextDoseAtTime != null && timeRemaining != null) {
+                                val baseText = LocalContext.current.getString(R.string.next_dose_time_at_in, nextDoseAtTime, timeRemaining)
+                                val timeRemainingText = LocalContext.current.getString(R.string.next_dose_time_in, timeRemaining)
+                                val startIndex = baseText.indexOf(timeRemainingText)
+                                if (startIndex != -1) {
+                                    androidx.compose.ui.text.buildAnnotatedString {
+                                        append(baseText.substring(0, startIndex))
+                                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                            append(timeRemainingText)
+                                        }
+                                        append(baseText.substring(startIndex + timeRemainingText.length))
+                                    }
+                                } else {
+                                    androidx.compose.ui.text.AnnotatedString(baseText) // Fallback if substring not found
+                                }
+                            } else if (nextDoseAtTime != null) {
+                                androidx.compose.ui.text.AnnotatedString(LocalContext.current.getString(R.string.next_dose_at, nextDoseAtTime))
+                            } else {
+                                // Should not happen if nextDoseGroup is not empty, but as a fallback:
+                                androidx.compose.ui.text.AnnotatedString("Next Dose")
+                            }
+
                             Text(
-                                "NEXT DOSE (at $formattedTime)",
+                                text = textToShow,
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
@@ -162,16 +207,23 @@ internal fun HomeScreenContent(
                                                 scaleX = scale
                                                 scaleY = scale
                                                 alpha = lerp(1f, 0.5f, pageOffset)
-                                            }
-                                    )
-                                }
+                                            },
+                                    onNavigateToDetails = { medicationId ->
+                                        navController.navigate("medicationDetail/$medicationId")
+                                    }
+                                )
                             }
                         }
                     }
                 else {
                     item {
+                        // The ViewModel currently sets nextDoseTimeRemaining and nextDoseAtTime to null
+                        // if nextDoseGroup is empty.
+                        // A future enhancement in ViewModel could fetch the *absolute* next dose
+                        // even if it's not today, and populate a specific field for that.
+                        // For now, we'll use a general message.
                         Text(
-                            "No upcoming doses for the rest of the day.",
+                            text = LocalContext.current.getString(R.string.no_upcoming_doses_at_all), // Or a more specific "no doses today"
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
@@ -181,32 +233,58 @@ internal fun HomeScreenContent(
                 // Today's Schedule
                 item {
                     Text(
-                        "TODAY'S SCHEDULE",
-                        style = MaterialTheme.typography.titleMedium,
+                        "TODAY'S SCHEDULE", // This could also be a string resource
+                        style = MaterialTheme.typography.titleLarge, // Increased font size
                         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                     )
                 }
 
                 uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
                     if (remindersInPart.isNotEmpty()) {
+                        val isExpanded = sectionExpandedStates[partOfDay] ?: true // Default to expanded if not found
+
+                        // Clickable Header for each section (Morning, Afternoon, etc.)
                         item {
-                            Text(
-                                text = "$partOfDay (${
-                                    try {
-                                        LocalDateTime.parse(remindersInPart.first().reminderTime, ReminderCalculator.storableDateTimeFormatter)
-                                            .format(timeFormatter)
-                                    } catch (e: Exception) { "" }
-                                })",
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        sectionExpandedStates = sectionExpandedStates
+                                            .toMutableMap()
+                                            .apply { this[partOfDay] = !isExpanded }
+                                    }
+                                    .padding(vertical = 8.dp), // Added padding
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween // Pushes icon to the end
+                            ) {
+                                Text(
+                                    text = "$partOfDay (${
+                                        try {
+                                            LocalDateTime.parse(remindersInPart.first().reminderTime, ReminderCalculator.storableDateTimeFormatter)
+                                                .format(timeFormatter)
+                                        } catch (e: Exception) { "" }
+                                    })",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    // Removed top padding from here, handled by Row
+                                )
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                                    contentDescription = if (isExpanded) "Collapse $partOfDay" else "Expand $partOfDay"
+                                )
+                            }
                         }
-                        items(remindersInPart, key = { "schedule-${it.id}" }) { reminder ->
-                            TodayScheduleItem(
-                                reminder = reminder,
-                                onMarkAsTaken = { onMarkAsTaken(reminder) }, // Use passed lambda
-                                timeFormatter = timeFormatter
-                            )
+
+                        // Conditionally display items based on expanded state
+                        if (isExpanded) {
+                            items(remindersInPart, key = { "schedule-${it.reminder.id}" }) { scheduleItem ->
+                                TodayScheduleItem(
+                                    item = scheduleItem, // Pass the TodayScheduleUiItem
+                                    onMarkAsTaken = { reminder -> onMarkAsTaken(reminder) }, // ViewModel expects MedicationReminder
+                                    onNavigateToDetails = { medicationId ->
+                                        navController.navigate("medicationDetail/$medicationId")
+                                    }
+                                )
+                            }
                         }
                     }
                 }

@@ -363,4 +363,20 @@
    <string name="medGraph_chart_doses_suffix">dosis</string>
    <string name="medGraph_yearly_changeYear_cd_prefix">Cambiar año, año actual:</string>
    <string name="medGraph_yearly_chart_description_prefix">Dosis anuales tomadas.</string>
+
+    <!-- Greetings -->
+    <string name="greeting_morning">¡Buenos días! 🌤️</string>
+    <string name="greeting_afternoon">¡Buenas tardes! ☀️</string>
+    <string name="greeting_evening">¡Buenas noches! 🌙</string>
+
+    <!-- Next Dose Time Remaining -->
+    <string name="next_dose_time_at_in">PRÓXIMA DOSIS A LAS %1$s (en %2$s)</string>
+    <string name="next_dose_time_in">(en %1$s)</string>
+    <string name="next_dose_at">PRÓXIMA DOSIS A LAS %1$s</string>
+    <string name="no_upcoming_doses_today_next_in">No hay próximas dosis hoy. Próxima dosis en %1$s.</string>
+    <string name="no_upcoming_doses_at_all">No hay próximas dosis programadas.</string>
+    <string name="time_remaining_days_hours">%1$dd %2$dh</string>
+    <string name="time_remaining_hours_minutes">%1$dh %2$dm</string>
+    <string name="time_remaining_minutes">%1$dm</string>
+    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
 </resources>
