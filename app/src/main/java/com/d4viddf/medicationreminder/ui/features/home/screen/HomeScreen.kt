@@ -235,40 +235,39 @@ internal fun HomeScreenContent(
                                 val nextDoseAtTime = uiState.nextDoseAtTime
                                 val timeRemaining = uiState.nextDoseTimeRemaining
 
-                                val currentContext = LocalContext.current // For fallback string for AnnotatedString constructor
+                                // Hoist stringResource calls to be direct children of the composable scope
+                                val strNextDoseTimeAtIn = if (nextDoseAtTime != null && timeRemaining != null) {
+                                    stringResource(R.string.next_dose_time_at_in, nextDoseAtTime, timeRemaining)
+                                } else null
+
+                                val strNextDoseTimeIn = if (timeRemaining != null) {
+                                    stringResource(R.string.next_dose_time_in, timeRemaining)
+                                } else null
+
+                                val strNextDoseAt = if (nextDoseAtTime != null) {
+                                    stringResource(R.string.next_dose_at, nextDoseAtTime)
+                                } else null
+
+                                val strNoUpcomingDoses = stringResource(R.string.no_upcoming_doses_at_all)
+
                                 val textToShow =
-                                    if (nextDoseAtTime != null && timeRemaining != null) {
-                                        val baseText = stringResource(
-                                            R.string.next_dose_time_at_in,
-                                            nextDoseAtTime,
-                                            timeRemaining
-                                        )
-                                        val timeRemainingText = stringResource(
-                                            R.string.next_dose_time_in,
-                                            timeRemaining
-                                        )
-                                        val startIndex = baseText.indexOf(timeRemainingText)
+                                    if (nextDoseAtTime != null && timeRemaining != null && strNextDoseTimeAtIn != null && strNextDoseTimeIn != null) {
+                                        val startIndex = strNextDoseTimeAtIn.indexOf(strNextDoseTimeIn)
                                         if (startIndex != -1) {
                                             buildAnnotatedString {
-                                                append(baseText.substring(0, startIndex))
+                                                append(strNextDoseTimeAtIn.substring(0, startIndex))
                                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                                    append(timeRemainingText)
+                                                    append(strNextDoseTimeIn)
                                                 }
-                                                append(baseText.substring(startIndex + timeRemainingText.length))
+                                                append(strNextDoseTimeAtIn.substring(startIndex + strNextDoseTimeIn.length))
                                             }
                                         } else {
-                                            AnnotatedString(baseText) // Fallback if substring not found
+                                            AnnotatedString(strNextDoseTimeAtIn) // Fallback
                                         }
-                                    } else if (nextDoseAtTime != null) {
-                                        AnnotatedString( // androidx.compose.ui.text. is implicit due to import
-                                            stringResource( // This is a @Composable call
-                                                R.string.next_dose_at,
-                                                nextDoseAtTime
-                                            )
-                                        )
+                                    } else if (nextDoseAtTime != null && strNextDoseAt != null) {
+                                        AnnotatedString(strNextDoseAt)
                                     } else {
-                                        // Should not happen if nextDoseGroup is not empty, use a string resource or a constant
-                                        AnnotatedString(stringResource(R.string.no_upcoming_doses_at_all))
+                                        AnnotatedString(strNoUpcomingDoses)
                                     }
 
                                 Text(
