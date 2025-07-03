@@ -1,9 +1,12 @@
 package com.d4viddf.medicationreminder.ui.features.home.screen
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.ExperimentalFoundationApi // Added for Pager
+import androidx.compose.foundation.clickable
+import com.d4viddf.medicationreminder.R
 import androidx.compose.foundation.layout.*
 // import androidx.compose.material3.carousel.CarouselState // No longer needed if both use Pager
 // import androidx.compose.material3.carousel.HorizontalUncontainedCarousel // To be replaced by HorizontalPager for phones
@@ -15,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
 import androidx.compose.ui.util.lerp // For interpolating values in graphicsLayer
@@ -26,11 +31,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle // Added for AnnotatedString styling
+import androidx.compose.ui.text.withStyle // Added for AnnotatedString styling
 import androidx.compose.ui.platform.LocalContext // Added for Context
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.components.TodayScheduleItem
@@ -39,10 +52,21 @@ import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.d4viddf.medicationreminder.data.FirebaseSync
+import com.d4viddf.medicationreminder.data.FirebaseSyncDao
+import com.d4viddf.medicationreminder.data.Medication
+import com.d4viddf.medicationreminder.data.MedicationDao
 import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.data.MedicationReminderDao
+import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.MedicationType
+import com.d4viddf.medicationreminder.data.MedicationTypeDao
+import com.d4viddf.medicationreminder.data.SyncStatus
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
@@ -77,6 +101,18 @@ internal fun HomeScreenContent(
     val screenWidthDp = configuration.screenWidthDp
     val isTablet = screenWidthDp > 600 // Example threshold for tablets, comparing Dp.value to Int
 
+    // Initialize all parts of day to be expanded by default
+    var sectionExpandedStates by remember {
+        mutableStateOf(
+            mapOf(
+                "Morning" to true,
+                "Afternoon" to true,
+                "Evening" to true,
+                "Night" to true
+            )
+        )
+    }
+
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
 
@@ -87,7 +123,7 @@ internal fun HomeScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineSmall) },
+                title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)) },
                 actions = {
                     IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
                         Icon(Icons.Filled.Watch, contentDescription = "Connect Wear OS")
@@ -117,16 +153,54 @@ internal fun HomeScreenContent(
                 if (uiState.nextDoseGroup.isNotEmpty()) {
                     item {
                         Column {
-                            val formattedTime = uiState.nextDoseGroup.firstOrNull()?.formattedReminderTime ?: "Future"
+                            val nextDoseAtTime = uiState.nextDoseAtTime
+                            val timeRemaining = uiState.nextDoseTimeRemaining
+
+                            val textToShow = if (nextDoseAtTime != null && timeRemaining != null) {
+                                val baseText = LocalContext.current.getString(
+                                    R.string.next_dose_time_at_in,
+                                    nextDoseAtTime,
+                                    timeRemaining
+                                )
+                                val timeRemainingText = LocalContext.current.getString(
+                                    R.string.next_dose_time_in,
+                                    timeRemaining
+                                )
+                                val startIndex = baseText.indexOf(timeRemainingText)
+                                if (startIndex != -1) {
+                                    buildAnnotatedString {
+                                        append(baseText.substring(0, startIndex))
+                                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                            append(timeRemainingText)
+                                        }
+                                        append(baseText.substring(startIndex + timeRemainingText.length))
+                                    }
+                                } else {
+                                    AnnotatedString(baseText) // Fallback if substring not found
+                                }
+                            } else if (nextDoseAtTime != null) {
+                                androidx.compose.ui.text.AnnotatedString(
+                                    LocalContext.current.getString(
+                                        R.string.next_dose_at,
+                                        nextDoseAtTime
+                                    )
+                                )
+                            } else {
+                                // Should not happen if nextDoseGroup is not empty, but as a fallback:
+                                androidx.compose.ui.text.AnnotatedString("Next Dose")
+                            }
+
                             Text(
-                                "NEXT DOSE (at $formattedTime)",
+                                text = textToShow,
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             // Common PagerState for both phone and tablet
-                            val pagerState = rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
+                            val pagerState =
+                                rememberPagerState(pageCount = { uiState.nextDoseGroup.size })
 
-                            val currentItemWidth = if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
+                            val currentItemWidth =
+                                if (isTablet) tabletPagerItemWidth else phonePagerItemWidth
 
                             val calculatedHorizontalPadding = if (isTablet) {
                                 // For tablets, padding to center the (currentItemWidth) card
@@ -138,40 +212,50 @@ internal fun HomeScreenContent(
 
                             HorizontalPager(
                                 state = pagerState,
-                                modifier = Modifier.fillMaxWidth().height(220.dp), // Consistent height
+                                modifier = Modifier.fillMaxWidth()
+                                    .height(220.dp), // Consistent height
                                 contentPadding = PaddingValues(horizontal = calculatedHorizontalPadding.dp),
                                 pageSpacing = if (isTablet) 16.dp else 4.dp // Adjust spacing based on device
                             ) { pageIndex ->
                                 val item = uiState.nextDoseGroup[pageIndex]
                                 val pageOffset = (
-                                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                                ).absoluteValue.coerceIn(0f, 1f)
+                                        (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                                        ).absoluteValue.coerceIn(0f, 1f)
 
                                 // Adjust scale factor based on device type if needed, or use a common one
-                                val scaleFactor = if (isTablet) 0.90f else 0.85f // Slightly less scaling on tablets
+                                val scaleFactor =
+                                    if (isTablet) 0.90f else 0.85f // Slightly less scaling on tablets
                                 val alphaFactor = if (isTablet) 0.6f else 0.5f
 
                                 NextDoseCard(
                                     item = item,
                                     modifier = Modifier
                                         .width(currentItemWidth.toInt().dp) // Use the determined width for the current device
-                                            .graphicsLayer {
-                                                // Apply transformations: scale and alpha
-                                                // Items further from the center will be smaller and more transparent
-                                                val scale = lerp(1f, 0.85f, pageOffset)
-                                                scaleX = scale
-                                                scaleY = scale
-                                                alpha = lerp(1f, 0.5f, pageOffset)
-                                            }
-                                    )
-                                }
+                                        .graphicsLayer {
+                                            // Apply transformations: scale and alpha
+                                            // Items further from the center will be smaller and more transparent
+                                            val scale = lerp(1f, 0.85f, pageOffset)
+                                            scaleX = scale
+                                            scaleY = scale
+                                            alpha = lerp(1f, 0.5f, pageOffset)
+                                        },
+                                    onNavigateToDetails = { medicationId ->
+                                        navController.navigate("medicationDetail/$medicationId")
+                                    }
+                                )
                             }
                         }
                     }
+                }
                 else {
                     item {
+                        // The ViewModel currently sets nextDoseTimeRemaining and nextDoseAtTime to null
+                        // if nextDoseGroup is empty.
+                        // A future enhancement in ViewModel could fetch the *absolute* next dose
+                        // even if it's not today, and populate a specific field for that.
+                        // For now, we'll use a general message.
                         Text(
-                            "No upcoming doses for the rest of the day.",
+                            text = LocalContext.current.getString(R.string.no_upcoming_doses_at_all), // Or a more specific "no doses today"
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
@@ -181,32 +265,58 @@ internal fun HomeScreenContent(
                 // Today's Schedule
                 item {
                     Text(
-                        "TODAY'S SCHEDULE",
-                        style = MaterialTheme.typography.titleMedium,
+                        "TODAY'S SCHEDULE", // This could also be a string resource
+                        style = MaterialTheme.typography.titleLarge, // Increased font size
                         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                     )
                 }
 
                 uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
                     if (remindersInPart.isNotEmpty()) {
+                        val isExpanded = sectionExpandedStates[partOfDay] ?: true // Default to expanded if not found
+
+                        // Clickable Header for each section (Morning, Afternoon, etc.)
                         item {
-                            Text(
-                                text = "$partOfDay (${
-                                    try {
-                                        LocalDateTime.parse(remindersInPart.first().reminderTime, ReminderCalculator.storableDateTimeFormatter)
-                                            .format(timeFormatter)
-                                    } catch (e: Exception) { "" }
-                                })",
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        sectionExpandedStates = sectionExpandedStates
+                                            .toMutableMap()
+                                            .apply { this[partOfDay] = !isExpanded }
+                                    }
+                                    .padding(vertical = 8.dp), // Added padding
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween // Pushes icon to the end
+                            ) {
+                                Text(
+                                    text = "$partOfDay (${
+                                        try {
+                                            LocalDateTime.parse(remindersInPart.first().formattedReminderTime, ReminderCalculator.storableDateTimeFormatter)
+                                                .format(timeFormatter)
+                                        } catch (e: Exception) { "" }
+                                    })",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    // Removed top padding from here, handled by Row
+                                )
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                                    contentDescription = if (isExpanded) "Collapse $partOfDay" else "Expand $partOfDay"
+                                )
+                            }
                         }
-                        items(remindersInPart, key = { "schedule-${it.id}" }) { reminder ->
-                            TodayScheduleItem(
-                                reminder = reminder,
-                                onMarkAsTaken = { onMarkAsTaken(reminder) }, // Use passed lambda
-                                timeFormatter = timeFormatter
-                            )
+
+                        // Conditionally display items based on expanded state
+                        if (isExpanded) {
+                            items(remindersInPart, key = { "schedule-${it.reminder.id}" }) { scheduleItem ->
+                                TodayScheduleItem(
+                                    item = scheduleItem, // Pass the TodayScheduleUiItem
+                                    onMarkAsTaken = { reminder -> onMarkAsTaken(reminder) }, // ViewModel expects MedicationReminder
+                                    onNavigateToDetails = { medicationId ->
+                                        navController.navigate("medicationDetail/$medicationId")
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -241,11 +351,17 @@ fun HomeScreenNewPreview() {
         ),
         todaysReminders = mapOf(
             "Morning" to listOf(
-                MedicationReminder(5, 104, 5, morningRawTime, true, morningRawTime, null),
-                MedicationReminder(1, 101, 1, morningRawTime, false, null, null)
+                TodayScheduleUiItem(
+                    MedicationReminder(3, 101, 3, afternoonRawTime, false, null, null),
+                    medicationName = "Ibuprofeno",
+                    medicationDosage = "200mg",
+                    medicationColorName = "LIGHT_BLUE",
+                    medicationIconUrl = null,
+                    medicationTypeName = "Pill",
+                    formattedReminderTime = "08:00",
+                )
             ),
             "Afternoon" to listOf(
-                MedicationReminder(3, 101, 3, afternoonRawTime, false, null, null)
             ),
             "Evening" to emptyList(),
             "Night" to emptyList()
@@ -269,8 +385,8 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 }
 
 // Linear interpolation helper for Dp
-private fun lerp(start: androidx.compose.ui.unit.Dp, stop: androidx.compose.ui.unit.Dp, fraction: Float): androidx.compose.ui.unit.Dp {
-    return androidx.compose.ui.unit.Dp(lerp(start.value, stop.value, fraction))
+private fun lerp(start: Dp, stop: Dp, fraction: Float): Dp {
+    return Dp(lerp(start.value, stop.value, fraction))
 }
 
 
@@ -281,13 +397,13 @@ private class FakeNotificationSchedulerPreview : NotificationScheduler() {
 }
 
 private class FakeMedicationReminderRepositoryPreview(
-    medicationReminderDao: com.d4viddf.medicationreminder.data.MedicationReminderDao,
-    firebaseSyncDao: com.d4viddf.medicationreminder.data.FirebaseSyncDao
-) : com.d4viddf.medicationreminder.data.MedicationReminderRepository(
+    medicationReminderDao: MedicationReminderDao,
+    firebaseSyncDao: FirebaseSyncDao
+) : MedicationReminderRepository(
     medicationReminderDao,
     firebaseSyncDao
 ) {
-    override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): kotlinx.coroutines.flow.Flow<List<MedicationReminder>> {
+    override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> {
         val now = LocalDateTime.now()
         val sampleRemindersList = listOf(
             MedicationReminder(1, 101,1, now.withHour(9).format(ReminderCalculator.storableDateTimeFormatter), false, null, null),
@@ -297,7 +413,7 @@ private class FakeMedicationReminderRepositoryPreview(
     }
 }
 
-private class FakeMedicationRepositoryPreview(context: android.content.Context) : com.d4viddf.medicationreminder.repository.MedicationRepository(
+private class FakeMedicationRepositoryPreview(context: Context) : MedicationRepository(
     context,
     FakeMedicationDaoPreview(),
     FakeMedicationReminderDaoPreview(), // This needs its DAO dependencies
@@ -325,7 +441,7 @@ private class FakeMedicationRepositoryPreview(context: android.content.Context) 
     // But since `HomeScreenNewPreview` calls `HomeScreenContent` with hardcoded state, this is okay.
 }
 
-private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.data.MedicationReminderDao {
+private class FakeMedicationReminderDaoPreview : MedicationReminderDao {
     override suspend fun insertReminder(reminder: MedicationReminder): Long = 0
     override suspend fun updateReminder(reminder: MedicationReminder): Int = 0
     override suspend fun deleteReminder(reminder: MedicationReminder) {}
@@ -341,29 +457,29 @@ private class FakeMedicationReminderDaoPreview : com.d4viddf.medicationreminder.
     override fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> = flowOf(emptyList())
 }
 
-private class FakeFirebaseSyncDaoPreview : com.d4viddf.medicationreminder.data.FirebaseSyncDao {
-    override suspend fun insertSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
-    override suspend fun updateSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
-    override suspend fun deleteSyncRecord(syncRecord: com.d4viddf.medicationreminder.data.FirebaseSync) {}
-    override fun getPendingSyncRecords(status: com.d4viddf.medicationreminder.data.SyncStatus): kotlinx.coroutines.flow.Flow<List<com.d4viddf.medicationreminder.data.FirebaseSync>> = flowOf(emptyList())
+private class FakeFirebaseSyncDaoPreview : FirebaseSyncDao {
+    override suspend fun insertSyncRecord(syncRecord: FirebaseSync) {}
+    override suspend fun updateSyncRecord(syncRecord: FirebaseSync) {}
+    override suspend fun deleteSyncRecord(syncRecord: FirebaseSync) {}
+    override fun getPendingSyncRecords(status: SyncStatus): Flow<List<FirebaseSync>> = flowOf(emptyList())
 }
 
-private class FakeMedicationDaoPreview : com.d4viddf.medicationreminder.data.MedicationDao {
-    override fun getAllMedications(): Flow<List<com.d4viddf.medicationreminder.data.Medication>> = flowOf(emptyList())
-    override suspend fun getMedicationById(id: Int): com.d4viddf.medicationreminder.data.Medication? = null
-    override suspend fun insertMedication(medication: com.d4viddf.medicationreminder.data.Medication): Long = 0
-    override suspend fun updateMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
-    override suspend fun deleteMedication(medication: com.d4viddf.medicationreminder.data.Medication) {}
+private class FakeMedicationDaoPreview : MedicationDao {
+    override fun getAllMedications(): Flow<List<Medication>> = flowOf(emptyList())
+    override suspend fun getMedicationById(id: Int): Medication? = null
+    override suspend fun insertMedication(medication: Medication): Long = 0
+    override suspend fun updateMedication(medication: Medication) {}
+    override suspend fun deleteMedication(medication: Medication) {}
     suspend fun getMedicationIdByName(name: String): Int? = null
 }
 
-private class FakeMedicationTypeDaoPreview : com.d4viddf.medicationreminder.data.MedicationTypeDao {
-    override fun getAllMedicationTypes(): Flow<List<com.d4viddf.medicationreminder.data.MedicationType>> = flowOf(emptyList())
-    override suspend fun getMedicationTypeById(id: Int): com.d4viddf.medicationreminder.data.MedicationType? = null
-    override suspend fun insertMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
-    override suspend fun updateMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
-    override suspend fun deleteMedicationType(medicationType: com.d4viddf.medicationreminder.data.MedicationType) {}
+private class FakeMedicationTypeDaoPreview : MedicationTypeDao {
+    override fun getAllMedicationTypes(): Flow<List<MedicationType>> = flowOf(emptyList())
+    override suspend fun getMedicationTypeById(id: Int): MedicationType? = null
+    override suspend fun insertMedicationType(medicationType: MedicationType) {}
+    override suspend fun updateMedicationType(medicationType: MedicationType) {}
+    override suspend fun deleteMedicationType(medicationType: MedicationType) {}
     override suspend fun deleteAllMedicationTypes() {} // Added
-    override suspend fun getMedicationTypeByName(name: String): com.d4viddf.medicationreminder.data.MedicationType? = null // Added
-    override suspend fun getMedicationTypesByIds(ids: List<Int>): List<com.d4viddf.medicationreminder.data.MedicationType> = emptyList() // Added
+    override suspend fun getMedicationTypeByName(name: String): MedicationType? = null // Added
+    override suspend fun getMedicationTypesByIds(ids: List<Int>): List<MedicationType> = emptyList() // Added
 }

@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminder
+import android.app.Application // Added for context
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.MedicationTypeRepository // Added
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext // Added for Hilt
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +31,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 open class HomeViewModel @Inject constructor(
+    private val application: Application, // Injected Application context
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository // Injected
@@ -35,10 +39,12 @@ open class HomeViewModel @Inject constructor(
 
     data class HomeState(
         val nextDoseGroup: List<NextDoseUiItem> = emptyList(), // Changed to NextDoseUiItem
-        val todaysReminders: Map<String, List<MedicationReminder>> = emptyMap(),
+        val todaysReminders: Map<String, List<TodayScheduleUiItem>> = emptyMap(), // Changed to TodayScheduleUiItem
+        val nextDoseTimeRemaining: String? = null, // Added for time remaining
+        val nextDoseAtTime: String? = null, // Added for the time of the next dose
         val hasUnreadAlerts: Boolean = false,
         val isLoading: Boolean = true,
-        val currentGreeting: String = "Good day!"
+        val currentGreeting: String = "" // Initialize with empty or default from strings
     )
 
     private val _uiState = MutableStateFlow(HomeState())
@@ -53,12 +59,12 @@ open class HomeViewModel @Inject constructor(
     private fun updateGreeting() {
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val greeting = when (hour) {
-            in 0..11 -> "Good morning! 🌤️"
-            in 12..17 -> "Good afternoon! ☀️"
-            else -> "Good evening! 🌙"
+        val greetingResId = when (hour) {
+            in 0..11 -> R.string.greeting_morning
+            in 12..17 -> R.string.greeting_afternoon
+            else -> R.string.greeting_evening
         }
-        _uiState.value = _uiState.value.copy(currentGreeting = greeting)
+        _uiState.value = _uiState.value.copy(currentGreeting = application.getString(greetingResId))
     }
 
     private fun loadTodaysSchedule() {
@@ -138,24 +144,91 @@ open class HomeViewModel @Inject constructor(
                     }
                     val nextDoseUiItems = nextDoseUiItemsDeferred.awaitAll().sortedBy { it.rawReminderTime } // Sort by raw time
 
-
-                    val groupedReminders = remindersList.groupBy { reminder: MedicationReminder -> getPartOfDay(reminder.reminderTime) }
-                        .mapValues { entry: Map.Entry<String, List<MedicationReminder>> ->
-                            entry.value.sortedBy { medicationReminder: MedicationReminder -> medicationReminder.reminderTime }
+                    // Process todaysReminders to include full medication details
+                    val processedTodaysRemindersMapAsync = remindersList
+                        .groupBy { reminder -> getPartOfDay(reminder.reminderTime) }
+                        .mapValues { (_, remindersInPart) -> // For each part of day
+                            remindersInPart.map { reminder -> // For each reminder in that part
+                                viewModelScope.async { // Fetch details asynchronously
+                                    val medication = medicationRepository.getMedicationById(reminder.medicationId)
+                                    var medicationTypeName: String? = null
+                                    var medicationIconUrl: String? = null
+                                    if (medication?.typeId != null) {
+                                        val typeDetails = medicationTypeRepository.getMedicationTypeById(medication.typeId)
+                                        medicationTypeName = typeDetails?.name
+                                        medicationIconUrl = typeDetails?.imageUrl
+                                    }
+                                    TodayScheduleUiItem(
+                                        reminder = reminder, // Keep original reminder
+                                        medicationName = medication?.name ?: application.getString(R.string.info_not_available),
+                                        medicationDosage = medication?.dosage ?: application.getString(R.string.info_not_available_short),
+                                        medicationColorName = medication?.color ?: "LIGHT_ORANGE", // Default color
+                                        medicationIconUrl = medicationIconUrl,
+                                        medicationTypeName = medicationTypeName,
+                                        formattedReminderTime = try {
+                                            LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
+                                                .format(DateTimeFormatter.ofPattern("HH:mm"))
+                                        } catch (e: Exception) { application.getString(R.string.info_not_available_short) }
+                                    )
+                                }
+                            }
                         }
 
                     val allPartsOfDay = listOf("Morning", "Afternoon", "Evening", "Night")
-                    val sortedGroupedReminders = mutableMapOf<String, List<MedicationReminder>>()
-                    allPartsOfDay.forEach { part: String ->
-                        sortedGroupedReminders[part] = groupedReminders[part] ?: emptyList()
+                    val finalTodaysReminders = mutableMapOf<String, List<TodayScheduleUiItem>>()
+                    allPartsOfDay.forEach { part ->
+                        val itemsInPartDeferred = processedTodaysRemindersMapAsync[part]
+                        if (itemsInPartDeferred != null) {
+                            finalTodaysReminders[part] = itemsInPartDeferred.awaitAll().sortedBy { it.reminder.reminderTime }
+                        } else {
+                            finalTodaysReminders[part] = emptyList()
+                        }
+                    }
+
+                    // Calculate time remaining for the very next dose
+                    val (timeRemainingString, nextDoseAtTimeString) = if (nextDoseUiItems.isNotEmpty()) {
+                        val nextDoseItem = nextDoseUiItems.first()
+                        try {
+                            val reminderDateTime = LocalDateTime.parse(nextDoseItem.rawReminderTime, ReminderCalculator.storableDateTimeFormatter)
+                            val now = LocalDateTime.now()
+                            if (reminderDateTime.isAfter(now)) {
+                                val duration = java.time.Duration.between(now, reminderDateTime)
+                                formatDuration(duration) to nextDoseItem.formattedReminderTime
+                            } else {
+                                // This case should ideally not happen if logic is correct (nextDoseGroup is for future doses)
+                                null to nextDoseItem.formattedReminderTime // Or handle as overdue
+                            }
+                        } catch (e: Exception) {
+                            // Log error
+                            null to nextDoseItem.formattedReminderTime // Or handle error string
+                        }
+                    } else {
+                        // Potentially look for the next dose tomorrow if none today - for future enhancement
+                        // For now, if nextDoseGroup is empty, no specific time remaining shown here for today's next dose
+                        null to null
                     }
 
                     _uiState.value = _uiState.value.copy(
-                        nextDoseGroup = nextDoseUiItems, // Assign the new list of NextDoseUiItem
-                        todaysReminders = sortedGroupedReminders,
+                        nextDoseGroup = nextDoseUiItems,
+                        todaysReminders = finalTodaysReminders, // Use the processed list
+                        nextDoseTimeRemaining = timeRemainingString,
+                        nextDoseAtTime = nextDoseAtTimeString,
                         isLoading = false
                     )
                 }
+        }
+    }
+
+    private fun formatDuration(duration: java.time.Duration): String {
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+
+        return when {
+            days > 0 -> application.getString(R.string.time_remaining_days_hours, days, hours)
+            hours > 0 -> application.getString(R.string.time_remaining_hours_minutes, hours, minutes)
+            minutes > 0 -> application.getString(R.string.time_remaining_minutes, minutes)
+            else -> application.getString(R.string.time_remaining_less_than_minute)
         }
     }
 

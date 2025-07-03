@@ -186,7 +186,7 @@
     <string name="notification_title_time_for">¡Hora de tu %1$s!</string>
     <string name="notification_text_take_dosage">Toma %1$s.</string>
     <string name="notification_action_mark_as_taken">Marcar como Tomada</string>
-    <string name="notification_action_snooze">Posponer (10 min)</string>
+    <string name="notification_action_snooze" translatable="false">Posponer (10 min)</string>
     <string name="notification_text_interval_dose_valid">Toma %1$s. Válido por aprox. %2$s.</string>
     <string name="notification_text_interval_dose_window_ended">Toma %1$s. Ventana de dosis terminando/terminada.</string>
     <!-- FullScreenNotificationActivity -->
@@ -366,6 +366,23 @@
     <string name="medGraph_yearly_chart_description_prefix">Yearly doses taken.</string>
 
     <!-- Strings for Home Screen Redesign -->
-    <string name="medication_vault_title">Vault</string>
-    <string name="analysis_screen_title">Analysis</string>
+    <string name="medication_vault_title" translatable="false">Vault</string>
+    <string name="analysis_screen_title" translatable="false">Analysis</string>
+
+    <!-- Greetings -->
+    <string name="greeting_morning">Good morning! 🌤️</string>
+    <string name="greeting_afternoon">Good afternoon! ☀️</string>
+    <string name="greeting_evening">Good evening! 🌙</string>
+
+    <!-- Next Dose Time Remaining -->
+    <string name="next_dose_time_at_in">NEXT DOSE AT %1$s (in %2$s)</string>
+    <string name="next_dose_time_in">(in %1$s)</string>
+    <string name="next_dose_at">NEXT DOSE AT %1$s</string>
+    <string name="no_upcoming_doses_today_next_in">No upcoming doses today. Next dose in %1$s.</string>
+    <string name="no_upcoming_doses_at_all">No upcoming doses scheduled.</string>
+    <string name="time_remaining_days_hours">%1$dd %2$dh</string>
+    <string name="time_remaining_hours_minutes">%1$dh %2$dm</string>
+    <string name="time_remaining_minutes">%1$dm</string>
+    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
+
 </resources>

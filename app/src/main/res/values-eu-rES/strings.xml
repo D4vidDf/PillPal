@@ -363,4 +363,20 @@
    <string name="medGraph_chart_doses_suffix">dosi</string>
    <string name="medGraph_yearly_changeYear_cd_prefix">Aldatu urtea, uneko urtea:</string>
    <string name="medGraph_yearly_chart_description_prefix">Hartutako urteko dosiak.</string>
+
+    <!-- Greetings -->
+    <string name="greeting_morning">Egun on! 🌤️</string>
+    <string name="greeting_afternoon">Arratsalde on! ☀️</string>
+    <string name="greeting_evening">Gabon! 🌙</string>
+
+    <!-- Next Dose Time Remaining -->
+    <string name="next_dose_time_at_in">HURRENGO DOSIA %1$s-TAN (hemendik %2$s)</string>
+    <string name="next_dose_time_in">(hemendik %1$s)</string>
+    <string name="next_dose_at">HURRENGO DOSIA %1$s-TAN</string>
+    <string name="no_upcoming_doses_today_next_in">Gaur ez dago hurrengo dosirik. Hurrengo dosia hemendik %1$s.</string>
+    <string name="no_upcoming_doses_at_all">Ez dago hurrengo dosirik programatuta.</string>
+    <string name="time_remaining_days_hours">%1$de %2$oh</string>
+    <string name="time_remaining_hours_minutes">%1$oh %2$m</string>
+    <string name="time_remaining_minutes">%1$m</string>
+    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
 </resources>

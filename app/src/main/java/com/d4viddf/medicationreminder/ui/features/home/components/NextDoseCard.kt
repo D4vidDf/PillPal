@@ -33,12 +33,17 @@ import androidx.compose.ui.unit.sp
 // import coil.compose.AsyncImage // Removed
 // import coil.request.ImageRequest // Removed
 import com.d4viddf.medicationreminder.R
+import androidx.compose.foundation.clickable // Added for clickable
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 
 
 @Composable
-fun NextDoseCard(item: NextDoseUiItem, modifier: Modifier = Modifier) { // Added modifier parameter
+fun NextDoseCard(
+    item: NextDoseUiItem,
+    modifier: Modifier = Modifier,
+    onNavigateToDetails: (medicationId: Int) -> Unit // Added navigation callback
+) {
     val medicationThemeColor = try {
         MedicationColor.valueOf(item.medicationColorName)
     } catch (e: IllegalArgumentException) {
@@ -52,6 +57,7 @@ fun NextDoseCard(item: NextDoseUiItem, modifier: Modifier = Modifier) { // Added
         modifier = modifier // Apply the passed modifier
             .height(200.dp) // Keep fixed height or make it adaptive too if needed
             // .width(150.dp) // Width is now controlled by the incoming modifier or defaults if not overridden
+            .clickable { onNavigateToDetails(item.medicationId) } // Added clickable modifier
     ) {
         Column(
             modifier = Modifier
@@ -120,7 +126,8 @@ fun NextDoseCardPreview() {
                 medicationImageUrl = null, // Example: no image URL for this preview
                 rawReminderTime = "2023-01-01T09:00:00",
                 formattedReminderTime = "09:00"
-            )
+            ),
+            onNavigateToDetails = {} // Added for preview
         )
     }
 }
@@ -139,7 +146,8 @@ fun NextDoseCardDarkPreview() {
                 medicationImageUrl = "https://example.com/lisinopril.png", // Example with an image URL
                 rawReminderTime = "2023-01-01T15:30:00",
                 formattedReminderTime = "15:30"
-            )
+            ),
+            onNavigateToDetails = {} // Added for preview
         )
     }
 }
