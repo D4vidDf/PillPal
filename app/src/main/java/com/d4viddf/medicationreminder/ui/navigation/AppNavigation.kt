@@ -86,12 +86,13 @@ sealed class Screen(val route: String) {
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
-    modifier: Modifier = Modifier, // Add this line
+    navHostModifier: Modifier = Modifier, // Renamed from modifier
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     isMainScaffold: Boolean, // Added parameter
     userPreferencesRepository: UserPreferencesRepository, // Still needed for OnboardingScreen
-    startDestinationRoute: String // Add this new parameter
+    startDestinationRoute: String, // Add this new parameter
+    hostScaffoldPadding: PaddingValues = PaddingValues() // New parameter for host's scaffold padding
 ) {
     SharedTransitionLayout { // `this` is SharedTransitionScope
         val currentSharedTransitionScope = this // Capture SharedTransitionScope
@@ -102,7 +103,8 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = startDestinationRoute, // USE THE PARAMETER HERE
-            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier) // Apply incoming modifier and then conditional padding
+            // Apply incoming navHostModifier and then conditional fillMaxSize based on isMainScaffold
+            modifier = navHostModifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
                 OnboardingScreen(
@@ -126,7 +128,8 @@ fun AppNavigation(
                     navController = navController,
                     widthSizeClass = widthSizeClass,
                     sharedTransitionScope = currentSharedTransitionScope,
-                    animatedVisibilityScope = this
+                    animatedVisibilityScope = this,
+                    hostPaddingValues = hostScaffoldPadding // Pass down the host's scaffold padding
                 )
             }
             composable(Screen.AddMedicationChoice.route) { // New entry
