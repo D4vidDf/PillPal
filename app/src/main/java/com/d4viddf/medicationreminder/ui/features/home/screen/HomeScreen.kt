@@ -270,7 +270,7 @@ internal fun HomeScreenContent(
                                 Text(
                                     text = textToShow,
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(bottom = 8.dp,).padding(horizontal = 16.dp)
                                 )
                                 // Common PagerState for both phone and tablet
                                 val pagerState =
@@ -385,10 +385,6 @@ internal fun HomeScreenContent(
                                         )
                                     val headerCd = context.getString(
                                         R.string.home_section_header_cd,
-                                        partOfDay,
-                                        partOfDayTime,
-                                        expandedStateText,
-                                        actionText
                                     )
 
                                     Row(
