@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.sp
 // import coil.request.ImageRequest // Removed
 import com.d4viddf.medicationreminder.R
 import androidx.compose.foundation.clickable // Added for clickable
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 
@@ -50,6 +53,14 @@ fun NextDoseCard(
         MedicationColor.LIGHT_ORANGE // Use a valid default color
     }
 
+    val context = LocalContext.current
+    val cardContentDescription = stringResource(
+        R.string.next_dose_card_cd,
+        item.medicationName,
+        item.medicationDosage,
+        item.formattedReminderTime
+    )
+
     Card(
         shape = RoundedCornerShape(16.dp), // Slightly smaller rounding
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
@@ -57,7 +68,8 @@ fun NextDoseCard(
         modifier = modifier // Apply the passed modifier
             .height(200.dp) // Keep fixed height or make it adaptive too if needed
             // .width(150.dp) // Width is now controlled by the incoming modifier or defaults if not overridden
-            .clickable { onNavigateToDetails(item.medicationId) } // Added clickable modifier
+            .clickable { onNavigateToDetails(item.medicationId) }
+            .semantics { contentDescription = cardContentDescription }
     ) {
         Column(
             modifier = Modifier

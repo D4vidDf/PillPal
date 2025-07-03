@@ -55,16 +55,24 @@ class MedicationVaultViewModel @Inject constructor(
 
 
     init {
+        // Set initial loading state. If medications list is already populated (e.g., from a
+        // retained ViewModel instance), isLoading might not need to be true initially.
+        if (_medications.value.isEmpty()) {
+            _isLoading.value = true
+        }
         observeMedications()
         observeSearchQueryAndMedications()
     }
 
     private fun observeMedications() {
         viewModelScope.launch {
-            _isLoading.value = true
+            // If _isLoading is false but list is empty (e.g. after initial check but before first emission)
+            // ensure it's true before potentially long collection.
+            // However, the init block should cover the very first load.
+            // This function's main job is to update medications and ensure isLoading becomes false.
             medicationRepository.getAllMedications().collect { medicationsList ->
                 _medications.value = medicationsList
-                _isLoading.value = false
+                _isLoading.value = false // Data received, stop loading indicator
             }
         }
     }

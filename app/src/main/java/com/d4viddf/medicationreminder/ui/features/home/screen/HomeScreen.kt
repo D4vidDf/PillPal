@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager // Used for both phone and tablet
 import androidx.compose.foundation.pager.rememberPagerState // Used for both phone and tablet
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 //import androidx.compose.foundation.lazy.LazyRow // Replaced by Carousel
 //import androidx.compose.foundation.lazy.items // Replaced by Carousel items
 import androidx.compose.material.icons.Icons
@@ -27,15 +28,33 @@ import androidx.compose.ui.platform.LocalConfiguration // Ensure this is importe
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
-import androidx.compose.material3.*
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pullrefresh.PullRefreshIndicator
+import androidx.compose.material3.pullrefresh.pullRefresh
+import androidx.compose.material3.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.SpanStyle // Added for AnnotatedString styling
 import androidx.compose.ui.text.withStyle // Added for AnnotatedString styling
@@ -85,15 +104,17 @@ fun HomeScreen(
     HomeScreenContent(
         uiState = uiState,
         onMarkAsTaken = viewModel::markAsTaken,
-        navController = navController // Pass NavController if TopAppBar actions need it
+        onRefresh = viewModel::refreshData, // Pass refresh lambda
+        navController = navController
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) // Added ExperimentalFoundationApi
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun HomeScreenContent(
     uiState: HomeViewModel.HomeState,
     onMarkAsTaken: (MedicationReminder) -> Unit,
+    onRefresh: () -> Unit, // Added onRefresh callback
     navController: NavController
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -102,16 +123,17 @@ internal fun HomeScreenContent(
     val isTablet = screenWidthDp > 600 // Example threshold for tablets, comparing Dp.value to Int
 
     // Initialize all parts of day to be expanded by default
-    var sectionExpandedStates by remember {
-        mutableStateOf(
-            mapOf(
-                "Morning" to true,
-                "Afternoon" to true,
-                "Evening" to true,
-                "Night" to true
-            )
+    val sectionExpandedStates = remember {
+        mutableStateMapOf(
+            "Morning" to true,
+            "Afternoon" to true,
+            "Evening" to true,
+            "Night" to true
         )
     }
+
+    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
@@ -125,30 +147,79 @@ internal fun HomeScreenContent(
             TopAppBar(
                 title = { Text(uiState.currentGreeting, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)) },
                 actions = {
+                    val context = LocalContext.current
                     IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
-                        Icon(Icons.Filled.Watch, contentDescription = "Connect Wear OS")
+                        Icon(Icons.Filled.Watch, contentDescription = context.getString(R.string.home_button_cd_connect_wear_os))
                     }
                     IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
-                        BadgedBox(badge = { if (uiState.hasUnreadAlerts) Badge() }) {
-                            Icon(Icons.Filled.Notifications, contentDescription = "Notifications")
+                        val notificationsCd = if (uiState.hasUnreadAlerts) {
+                            context.getString(R.string.home_button_cd_notifications_unread)
+                        } else {
+                            context.getString(R.string.home_button_cd_notifications_read)
+                        }
+                        BadgedBox(
+                            badge = { if (uiState.hasUnreadAlerts) Badge() },
+                            modifier = Modifier.semantics { contentDescription = notificationsCd }
+                        ) {
+                            Icon(Icons.Filled.Notifications, contentDescription = null) // Description handled by BadgedBox
                         }
                     }
                 }
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
+        val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, onRefresh = onRefresh)
+        val context = LocalContext.current // For string resources
+
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)
+            .padding(paddingValues)
+        ) {
+            if (uiState.isLoading && !uiState.isRefreshing) { // Show full screen loader only on initial load
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                val partOfDayHeaderIndices = remember { mutableMapOf<String, Int>() }
+
+                LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    // Horizontal padding is now applied to sticky header Surface and items individually
+                    // .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp) // This adds space *between* items
             ) {
+
+                // Calculate indices
+                // This LaunchedEffect will recalculate indices if the data changes.
+                // Note: This is a simplified index calculation. Complex layouts with varying item counts
+                // per section might need more robust logic if items within sections can also be dynamic
+                // beyond just expansion.
+                LaunchedEffect(uiState.nextDoseGroup, uiState.todaysReminders, sectionExpandedStates.toMap()) {
+                    var idx = 0
+                    partOfDayHeaderIndices.clear()
+
+                    if (uiState.nextDoseGroup.isNotEmpty()) {
+                        idx++ // Next Dose Carousel
+                    } else {
+                        idx++ // "No upcoming doses" message
+                    }
+                    idx++ // "TODAY'S SCHEDULE" sticky header
+
+                    uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
+                        if (remindersInPart.isNotEmpty()) {
+                            partOfDayHeaderIndices[partOfDay] = idx
+                            idx++ // Part of Day Sticky Header
+                            if (sectionExpandedStates[partOfDay] == true) {
+                                idx += remindersInPart.size // Items in this part of day
+                            }
+                        }
+                    }
+                }
+
                 // Next Dose Carousel
                 if (uiState.nextDoseGroup.isNotEmpty()) {
                     item {
@@ -240,7 +311,7 @@ internal fun HomeScreenContent(
                                             alpha = lerp(1f, 0.5f, pageOffset)
                                         },
                                     onNavigateToDetails = { medicationId ->
-                                        navController.navigate("medicationDetail/$medicationId")
+                                        navController.navigate(com.d4viddf.medicationreminder.ui.navigation.Screen.MedicationDetails.createRoute(medicationId))
                                     }
                                 )
                             }
@@ -263,65 +334,95 @@ internal fun HomeScreenContent(
                 }
 
                 // Today's Schedule
-                item {
-                    Text(
-                        "TODAY'S SCHEDULE", // This could also be a string resource
-                        style = MaterialTheme.typography.titleLarge, // Increased font size
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                    )
+                stickyHeader {
+                    Surface(modifier = Modifier.fillParentMaxWidth()) { // Surface to provide a background
+                        Text(
+                            "TODAY'S SCHEDULE", // This could also be a string resource
+                            style = MaterialTheme.typography.titleLarge, // Increased font size
+                            modifier = Modifier
+                                .padding(top = 16.dp, bottom = 8.dp)
+                                .fillMaxWidth() // Ensure text background spans width
+                                .background(MaterialTheme.colorScheme.surface) // Match screen background
+                                .padding(horizontal = 16.dp) // Re-apply horizontal padding if consumed by Surface
+                        )
+                    }
                 }
 
                 uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
                     if (remindersInPart.isNotEmpty()) {
                         val isExpanded = sectionExpandedStates[partOfDay] ?: true // Default to expanded if not found
+                        val headerIndex = partOfDayHeaderIndices[partOfDay]
 
                         // Clickable Header for each section (Morning, Afternoon, etc.)
-                        item {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        sectionExpandedStates = sectionExpandedStates
-                                            .toMutableMap()
-                                            .apply { this[partOfDay] = !isExpanded }
-                                    }
-                                    .padding(vertical = 8.dp), // Added padding
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween // Pushes icon to the end
-                            ) {
-                                Text(
-                                    text = "$partOfDay (${
-                                        try {
-                                            LocalDateTime.parse(remindersInPart.first().formattedReminderTime, ReminderCalculator.storableDateTimeFormatter)
-                                                .format(timeFormatter)
-                                        } catch (e: Exception) { "" }
-                                    })",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    // Removed top padding from here, handled by Row
-                                )
-                                Icon(
-                                    imageVector = if (isExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                                    contentDescription = if (isExpanded) "Collapse $partOfDay" else "Expand $partOfDay"
-                                )
+                        stickyHeader(key = "header-$partOfDay") {
+                            Surface(modifier = Modifier.fillParentMaxWidth()) { // Surface for background
+                                val partOfDayTime = try {
+                                    LocalDateTime.parse(remindersInPart.first().formattedReminderTime, ReminderCalculator.storableDateTimeFormatter)
+                                        .format(timeFormatter)
+                                } catch (e: Exception) { "" }
+                                val expandedStateText = if (isExpanded) context.getString(R.string.state_expanded) else context.getString(R.string.state_collapsed)
+                                val actionText = if (isExpanded) context.getString(R.string.action_collapse) else context.getString(R.string.action_expand)
+                                val headerCd = context.getString(R.string.home_section_header_cd, partOfDay, partOfDayTime, expandedStateText, actionText)
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            if (headerIndex != null) {
+                                                coroutineScope.launch {
+                                                    lazyListState.animateScrollToItem(index = headerIndex)
+                                                }
+                                            }
+                                            // Toggle expansion state
+                                            sectionExpandedStates[partOfDay] = !isExpanded
+                                        }
+                                        .semantics { contentDescription = headerCd }
+                                        .background(MaterialTheme.colorScheme.surface) // Match screen background
+                                        .padding(vertical = 8.dp, horizontal = 16.dp), // Re-apply horizontal padding
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween // Pushes icon to the end
+                                ) {
+                                    Text(
+                                        text = "$partOfDay ($partOfDayTime)",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    // Icon's CD is good as is, it will be part of the Row's description
+                                    Icon(
+                                        imageVector = if (isExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                                        contentDescription = null // Described by the Row's CD
+                                        // Original: if (isExpanded) "Collapse $partOfDay" else "Expand $partOfDay"
+                                    )
+                                }
                             }
                         }
 
                         // Conditionally display items based on expanded state
                         if (isExpanded) {
                             items(remindersInPart, key = { "schedule-${it.reminder.id}" }) { scheduleItem ->
-                                TodayScheduleItem(
-                                    item = scheduleItem, // Pass the TodayScheduleUiItem
-                                    onMarkAsTaken = { reminder -> onMarkAsTaken(reminder) }, // ViewModel expects MedicationReminder
-                                    onNavigateToDetails = { medicationId ->
-                                        navController.navigate("medicationDetail/$medicationId")
-                                    }
-                                )
+                                // Apply horizontal padding to items if not already handled by their own content
+                                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                                    TodayScheduleItem(
+                                        item = scheduleItem, // Pass the TodayScheduleUiItem
+                                        onMarkAsTaken = { reminder -> onMarkAsTaken(reminder) }, // ViewModel expects MedicationReminder
+                                        onNavigateToDetails = { medicationId ->
+                                            navController.navigate(com.d4viddf.medicationreminder.ui.navigation.Screen.MedicationDetails.createRoute(medicationId))
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
-                item { Spacer(modifier = Modifier.height(64.dp)) }
+                item {
+                    Spacer(modifier = Modifier.height(64.dp))
+                } // Add some space at the bottom
             }
+
+            PullRefreshIndicator(
+                refreshing = uiState.isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 }
@@ -374,6 +475,7 @@ fun HomeScreenNewPreview() {
         HomeScreenContent(
             uiState = previewState,
             onMarkAsTaken = {}, // No-op for preview
+            onRefresh = {}, // No-op for preview
             navController = rememberNavController() // Pass a dummy NavController
         )
     }

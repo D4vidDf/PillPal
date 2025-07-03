@@ -16,6 +16,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,12 +49,22 @@ fun TodayScheduleItem(
     }
 
     val firstWordMedicationName = item.medicationName.split(" ").firstOrNull() ?: item.medicationName
+    val context = LocalContext.current
+
+    val cardCd = stringResource(
+        R.string.today_schedule_item_card_cd,
+        item.medicationName,
+        item.medicationDosage,
+        item.medicationTypeName ?: "",
+        item.formattedReminderTime
+    )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp) // Add some vertical padding between items
-            .clickable { onNavigateToDetails(item.reminder.medicationId) }, // Added clickable
+            .clickable { onNavigateToDetails(item.reminder.medicationId) }
+            .semantics { contentDescription = cardCd },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -104,6 +119,18 @@ fun TodayScheduleItem(
             Spacer(Modifier.width(8.dp))
 
             // Toggle to mark as taken
+            val switchCd = stringResource(
+                R.string.today_schedule_item_switch_cd,
+                item.medicationName,
+                item.medicationDosage,
+                item.formattedReminderTime
+            )
+            val switchStateDesc = if (item.reminder.isTaken) {
+                stringResource(R.string.switch_state_taken)
+            } else {
+                stringResource(R.string.switch_state_not_taken)
+            }
+
             Switch(
                 checked = item.reminder.isTaken,
                 onCheckedChange = { isChecked ->
@@ -112,6 +139,11 @@ fun TodayScheduleItem(
                     }
                 },
                 enabled = !item.reminder.isTaken,
+                modifier = Modifier.semantics {
+                    contentDescription = switchCd
+                    stateDescription = switchStateDesc
+                    // Role.Switch is automatically applied by the Switch composable
+                },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = MaterialTheme.colorScheme.primary,
                     checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),

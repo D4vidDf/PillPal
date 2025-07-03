@@ -138,7 +138,12 @@ fun MedicationVaultScreen(
                     SearchBar(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
+                            .padding(
+                                start = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp,
+                                end = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp,
+                                top = 0.dp, // Reduced top padding
+                                bottom = 8.dp // Retain bottom padding
+                            ),
                         inputField = {
                             SearchBarDefaults.InputField(
                                 query = currentSearchQuery,
