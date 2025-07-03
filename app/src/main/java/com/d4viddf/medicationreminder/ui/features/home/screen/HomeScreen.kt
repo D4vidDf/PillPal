@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -234,14 +235,15 @@ internal fun HomeScreenContent(
                                 val nextDoseAtTime = uiState.nextDoseAtTime
                                 val timeRemaining = uiState.nextDoseTimeRemaining
 
+                                val currentContext = LocalContext.current // For fallback string for AnnotatedString constructor
                                 val textToShow =
                                     if (nextDoseAtTime != null && timeRemaining != null) {
-                                        val baseText = LocalContext.current.getString(
+                                        val baseText = stringResource(
                                             R.string.next_dose_time_at_in,
                                             nextDoseAtTime,
                                             timeRemaining
                                         )
-                                        val timeRemainingText = LocalContext.current.getString(
+                                        val timeRemainingText = stringResource(
                                             R.string.next_dose_time_in,
                                             timeRemaining
                                         )
@@ -258,15 +260,15 @@ internal fun HomeScreenContent(
                                             AnnotatedString(baseText) // Fallback if substring not found
                                         }
                                     } else if (nextDoseAtTime != null) {
-                                        androidx.compose.ui.text.AnnotatedString(
-                                            LocalContext.current.getString(
+                                        AnnotatedString( // androidx.compose.ui.text. is implicit due to import
+                                            stringResource( // This is a @Composable call
                                                 R.string.next_dose_at,
                                                 nextDoseAtTime
                                             )
                                         )
                                     } else {
-                                        // Should not happen if nextDoseGroup is not empty, but as a fallback:
-                                        androidx.compose.ui.text.AnnotatedString("Next Dose")
+                                        // Should not happen if nextDoseGroup is not empty, use a string resource or a constant
+                                        AnnotatedString(stringResource(R.string.no_upcoming_doses_at_all))
                                     }
 
                                 Text(
