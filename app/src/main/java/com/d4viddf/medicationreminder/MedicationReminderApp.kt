@@ -53,7 +53,6 @@ fun MedicationReminderApp(
             val hideAllMainChrome = currentRoute in listOf(
                 // Screen.Settings.route, // Removed this line
                 Screen.AddMedication.route,
-                Screen.AddMedicationChoice.route,
                 Screen.Onboarding.route
             ) || currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
 
@@ -81,7 +80,6 @@ fun MedicationReminderApp(
                             navController = navController,
                             widthSizeClass = widthSizeClass,
                             isMainScaffold = false,
-                            modifier = Modifier.fillMaxSize(),
                             userPreferencesRepository = userPreferencesRepository,
                             startDestinationRoute = startRoute // Pass determined startRoute
                         )
@@ -121,7 +119,6 @@ fun MedicationReminderApp(
                             navController = navController,
                             widthSizeClass = widthSizeClass,
                             isMainScaffold = true,
-                            modifier = Modifier.fillMaxSize(),
                             userPreferencesRepository = userPreferencesRepository,
                             startDestinationRoute = startRoute // Pass determined startRoute
                         )

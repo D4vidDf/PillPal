@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -123,23 +124,16 @@ fun MedicationVaultScreen(
     }
 
     Scaffold(
-        topBar = {
-            // Only show a simple TopAppBar for the Vault screen if it's compact.
-            // The ListDetailPaneScaffold will handle its own search bar placement.
-            // Or, we can integrate the SearchBar into the TopAppBar area for compact mode.
-            // For now, let's assume the search bar is primary and no separate top app bar.
-            // If a title is needed, it could be placed above the SearchBar or handled differently.
-        }
     ) { paddingValues -> // Consume paddingValues
         NavigableListDetailPaneScaffold(
-            modifier = Modifier.fillMaxSize().padding(paddingValues), // Apply padding from MedicationVaultScreen's own Scaffold
+            modifier = Modifier.fillMaxSize(), // Apply padding from MedicationVaultScreen's own Scaffold
             navigator = scaffoldNavigator,
             listPane = {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .statusBarsPadding() // For status bar
-                        .padding(bottom = hostPaddingValues.calculateBottomPadding()) // For host's bottom bar (e.g., HorizontalFloatingToolbar)
+                        .padding(bottom = paddingValues.calculateBottomPadding()) // For host's bottom bar (e.g., HorizontalFloatingToolbar)
                 ) {
                     SearchBar(
                         modifier = Modifier

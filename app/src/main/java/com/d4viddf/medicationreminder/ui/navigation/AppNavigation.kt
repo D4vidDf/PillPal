@@ -1,8 +1,11 @@
 package com.d4viddf.medicationreminder.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +40,7 @@ import com.d4viddf.medicationreminder.ui.features.medication_details.screen.Medi
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.AllSchedulesScreen
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationHistoryScreen
+import com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen
 import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
@@ -83,6 +87,7 @@ sealed class Screen(val route: String) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
@@ -124,7 +129,7 @@ fun AppNavigation(
             }
             composable(Screen.MedicationVault.route) {
                 // Assuming MedicationVaultScreen has a similar structure to the old HomeScreen for list/detail
-                com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen(
+                MedicationVaultScreen(
                     navController = navController,
                     widthSizeClass = widthSizeClass,
                     sharedTransitionScope = currentSharedTransitionScope,
