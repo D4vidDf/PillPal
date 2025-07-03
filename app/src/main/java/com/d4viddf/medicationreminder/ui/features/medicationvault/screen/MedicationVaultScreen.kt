@@ -80,7 +80,8 @@ fun MedicationVaultScreen(
     widthSizeClass: WindowWidthSizeClass,
     sharedTransitionScope: SharedTransitionScope?, // For potential transitions if navigating out
     animatedVisibilityScope: AnimatedVisibilityScope?, // Same as above
-    viewModel: MedicationVaultViewModel = hiltViewModel()
+    viewModel: MedicationVaultViewModel = hiltViewModel(),
+    hostPaddingValues: PaddingValues = PaddingValues(0.dp) // New parameter for padding from hosting Scaffold
 ) {
     val medications by viewModel.medications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -131,10 +132,15 @@ fun MedicationVaultScreen(
         }
     ) { paddingValues -> // Consume paddingValues
         NavigableListDetailPaneScaffold(
-            modifier = Modifier.fillMaxSize().padding(paddingValues), // Apply padding from parent Scaffold
+            modifier = Modifier.fillMaxSize().padding(paddingValues), // Apply padding from MedicationVaultScreen's own Scaffold
             navigator = scaffoldNavigator,
             listPane = {
-                Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) { // Apply status bar padding
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding() // For status bar
+                        .padding(bottom = hostPaddingValues.calculateBottomPadding()) // For host's bottom bar (e.g., HorizontalFloatingToolbar)
+                ) {
                     SearchBar(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -331,7 +337,8 @@ fun MedicationVaultScreenCompactPreview() {
             navController = rememberNavController(),
             widthSizeClass = WindowWidthSizeClass.Compact,
             sharedTransitionScope = null,
-            animatedVisibilityScope = null
+            animatedVisibilityScope = null,
+            hostPaddingValues = PaddingValues(bottom = 56.dp) // Simulate bottom bar padding
         )
     }
 }
@@ -345,7 +352,8 @@ fun MedicationVaultScreenMediumPreview() {
             navController = rememberNavController(),
             widthSizeClass = WindowWidthSizeClass.Medium,
             sharedTransitionScope = null,
-            animatedVisibilityScope = null
+            animatedVisibilityScope = null,
+            hostPaddingValues = PaddingValues() // No bottom bar if rail is shown
         )
     }
 }
