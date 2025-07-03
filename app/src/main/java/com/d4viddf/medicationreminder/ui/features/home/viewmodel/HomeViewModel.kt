@@ -5,12 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import android.app.Application // Added for context
-import com.d4viddf.medicationreminder.R // Added for string resources
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.MedicationTypeRepository // Added
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext // Added for Hilt
 import kotlinx.coroutines.async
@@ -36,8 +36,6 @@ open class HomeViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository // Injected
 ) : ViewModel() {
-
-import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem // Added import
 
     data class HomeState(
         val nextDoseGroup: List<NextDoseUiItem> = emptyList(), // Changed to NextDoseUiItem

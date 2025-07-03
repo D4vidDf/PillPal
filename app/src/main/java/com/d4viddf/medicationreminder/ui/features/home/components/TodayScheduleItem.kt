@@ -1,9 +1,11 @@
 package com.d4viddf.medicationreminder.ui.features.home.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,9 +29,6 @@ import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
-@Composable
-import androidx.compose.foundation.clickable // Added for clickable
 
 @Composable
 fun TodayScheduleItem(
@@ -74,7 +73,7 @@ fun TodayScheduleItem(
                         .crossfade(true)
                         .error(R.drawable.medication_filled) // Also use fallback on error
                         .build(),
-                    placeholder = painterResource(R.drawable.medication_outline), // Placeholder while loading
+                    placeholder = painterResource(R.drawable.medication_filled), // Placeholder while loading
                     contentDescription = item.medicationTypeName ?: item.medicationName,
                     contentScale = ContentScale.Crop, // Or ContentScale.Fit
                     modifier = Modifier.fillMaxSize(),
