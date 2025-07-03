@@ -127,6 +127,35 @@ internal fun HomeScreenContent(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    val partOfDayHeaderIndices = remember { mutableMapOf<String, Int>() }
+
+    // Moved LaunchedEffect to a higher level (HomeScreenContent scope)
+    LaunchedEffect(
+        uiState.nextDoseGroup,
+        uiState.todaysReminders,
+        sectionExpandedStates.toMap()
+    ) {
+        var idx = 0
+        partOfDayHeaderIndices.clear()
+
+        if (uiState.nextDoseGroup.isNotEmpty()) {
+            idx++ // Next Dose Carousel
+        } else {
+            idx++ // "No upcoming doses" message
+        }
+        idx++ // "TODAY'S SCHEDULE" sticky header
+
+        uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
+            if (remindersInPart.isNotEmpty()) {
+                partOfDayHeaderIndices[partOfDay] = idx
+                idx++ // Part of Day Sticky Header
+                if (sectionExpandedStates[partOfDay] == true) {
+                    idx += remindersInPart.size // Items in this part of day
+                }
+            }
+        }
+    }
+
     // Define card width for tablets using HorizontalPager
     val tabletPagerItemWidth = screenWidthDp * 0.7f // Example: 70% of screen width for tablet items
 
@@ -186,7 +215,7 @@ internal fun HomeScreenContent(
                     CircularProgressIndicator()
                 }
             } else {
-                val partOfDayHeaderIndices = remember { mutableMapOf<String, Int>() }
+                // partOfDayHeaderIndices is now defined and calculated in HomeScreenContent scope
 
                 LazyColumn(
                     state = lazyListState,
@@ -196,38 +225,6 @@ internal fun HomeScreenContent(
                             // .padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy (16.dp) // This adds space *between* items
                 ) {
-
-                    // Calculate indices
-                    // This LaunchedEffect will recalculate indices if the data changes.
-                    // Note: This is a simplified index calculation. Complex layouts with varying item counts
-                    // per section might need more robust logic if items within sections can also be dynamic
-                    // beyond just expansion.
-                    LaunchedEffect(
-                        uiState.nextDoseGroup,
-                        uiState.todaysReminders,
-                        sectionExpandedStates.toMap()
-                    ) {
-                        var idx = 0
-                        partOfDayHeaderIndices.clear()
-
-                        if (uiState.nextDoseGroup.isNotEmpty()) {
-                            idx++ // Next Dose Carousel
-                        } else {
-                            idx++ // "No upcoming doses" message
-                        }
-                        idx++ // "TODAY'S SCHEDULE" sticky header
-
-                        uiState.todaysReminders.forEach { (partOfDay, remindersInPart) ->
-                            if (remindersInPart.isNotEmpty()) {
-                                partOfDayHeaderIndices[partOfDay] = idx
-                                idx++ // Part of Day Sticky Header
-                                if (sectionExpandedStates[partOfDay] == true) {
-                                    idx += remindersInPart.size // Items in this part of day
-                                }
-                            }
-                        }
-                    }
-
                     // Next Dose Carousel
                     if (uiState.nextDoseGroup.isNotEmpty()) {
                         item {
