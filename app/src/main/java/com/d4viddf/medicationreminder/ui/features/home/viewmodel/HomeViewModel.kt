@@ -44,7 +44,8 @@ open class HomeViewModel @Inject constructor(
         val nextDoseAtTime: String? = null, // Added for the time of the next dose
         val hasUnreadAlerts: Boolean = false,
         val isLoading: Boolean = true,
-        val currentGreeting: String = "" // Initialize with empty or default from strings
+        val currentGreeting: String = "", // Initialize with empty or default from strings
+        val isRefreshing: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(HomeState())
@@ -54,6 +55,15 @@ open class HomeViewModel @Inject constructor(
         loadTodaysSchedule()
         updateGreeting()
         // TODO: Load alert status here
+    }
+
+    fun refreshData() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isRefreshing = true)
+            // Call existing loading functions
+            updateGreeting() // Greetings might change based on time
+            loadTodaysSchedule() // This will handle isLoading and eventually set isRefreshing to false
+        }
     }
 
     private fun updateGreeting() {
@@ -213,7 +223,8 @@ open class HomeViewModel @Inject constructor(
                         todaysReminders = finalTodaysReminders, // Use the processed list
                         nextDoseTimeRemaining = timeRemainingString,
                         nextDoseAtTime = nextDoseAtTimeString,
-                        isLoading = false
+                        isLoading = false,
+                        isRefreshing = false // Ensure refreshing is also stopped
                     )
                 }
         }

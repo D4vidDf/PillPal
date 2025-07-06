@@ -1,8 +1,11 @@
 package com.d4viddf.medicationreminder.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +40,7 @@ import com.d4viddf.medicationreminder.ui.features.medication_details.screen.Medi
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.AllSchedulesScreen
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationHistoryScreen
+import com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen
 import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
@@ -83,15 +87,17 @@ sealed class Screen(val route: String) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
-    modifier: Modifier = Modifier, // Add this line
+    navHostModifier: Modifier = Modifier, // Renamed from modifier
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     isMainScaffold: Boolean, // Added parameter
     userPreferencesRepository: UserPreferencesRepository, // Still needed for OnboardingScreen
-    startDestinationRoute: String // Add this new parameter
+    startDestinationRoute: String, // Add this new parameter
+    hostScaffoldPadding: PaddingValues = PaddingValues() // New parameter for host's scaffold padding
 ) {
     SharedTransitionLayout { // `this` is SharedTransitionScope
         val currentSharedTransitionScope = this // Capture SharedTransitionScope
@@ -102,7 +108,8 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = startDestinationRoute, // USE THE PARAMETER HERE
-            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier) // Apply incoming modifier and then conditional padding
+            // Apply incoming navHostModifier and then conditional fillMaxSize based on isMainScaffold
+            modifier = navHostModifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
                 OnboardingScreen(
@@ -122,11 +129,12 @@ fun AppNavigation(
             }
             composable(Screen.MedicationVault.route) {
                 // Assuming MedicationVaultScreen has a similar structure to the old HomeScreen for list/detail
-                com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen(
+                MedicationVaultScreen(
                     navController = navController,
                     widthSizeClass = widthSizeClass,
                     sharedTransitionScope = currentSharedTransitionScope,
-                    animatedVisibilityScope = this
+                    animatedVisibilityScope = this,
+                    hostPaddingValues = hostScaffoldPadding // Pass down the host's scaffold padding
                 )
             }
             composable(Screen.AddMedicationChoice.route) { // New entry
