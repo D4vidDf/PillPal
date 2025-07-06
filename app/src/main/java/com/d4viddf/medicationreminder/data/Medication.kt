@@ -16,5 +16,6 @@ data class Medication(
     val endDate: String?,          // End date if the medication is not chronic (optional)
     val reminderTime: String?, // Nullable in case the reminder time is not set
     val registrationDate: String? = null, // New field
-    val nregistro: String? = null // CIMA registration number
+    val nregistro: String? = null, // CIMA registration number
+    val isFutureDose: Boolean = false // New field for UI interaction control
 )

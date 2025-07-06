@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,6 +53,16 @@ class MedicationViewModel @Inject constructor(
     private val _searchResults = MutableStateFlow<List<Medication>>(emptyList())
     val searchResults: StateFlow<List<Medication>> = _searchResults.asStateFlow()
 
+    // StateFlows for dose action confirmation dialogs
+    private val _showMarkAsTakenConfirmationDialog = MutableStateFlow(false)
+    val showMarkAsTakenConfirmationDialog: StateFlow<Boolean> = _showMarkAsTakenConfirmationDialog.asStateFlow()
+
+    private val _showSkipConfirmationDialog = MutableStateFlow(false)
+    val showSkipConfirmationDialog: StateFlow<Boolean> = _showSkipConfirmationDialog.asStateFlow()
+
+    private val _medicationIdForConfirmation = MutableStateFlow<Int?>(null)
+    val medicationIdForConfirmation: StateFlow<Int?> = _medicationIdForConfirmation.asStateFlow()
+
     init {
         observeMedications()
         observeSearchQueryAndMedications()
@@ -59,7 +71,33 @@ class MedicationViewModel @Inject constructor(
     private fun observeMedications() {
         viewModelScope.launch {
             medicationRepository.getAllMedications().collect { medications ->
-                _medications.value = medications // Directly update _medications
+                val now = LocalDateTime.now()
+                val today = LocalDate.now()
+                // Standard 12-hour format with AM/PM
+                val timeFormatter = try {
+                    DateTimeFormatter.ofPattern("h:mm a")
+                } catch (e: IllegalArgumentException) {
+                    Log.e("MedicationViewModel", "Error creating DateTimeFormatter: ${e.message}")
+                    // Fallback or decide how to handle this error, perhaps a static formatter
+                    // For now, if this fails, isFutureDose will likely default to false.
+                    null
+                }
+
+                val processedMedications = medications.map { medication ->
+                    var isFuture = false // Default to not a future dose
+                    if (timeFormatter != null && medication.reminderTime != null) {
+                        try {
+                            val reminderLocalTime = LocalTime.parse(medication.reminderTime.uppercase(), timeFormatter)
+                            val reminderDateTime = today.atTime(reminderLocalTime)
+                            isFuture = reminderDateTime.isAfter(now)
+                        } catch (e: DateTimeParseException) {
+                            Log.e("MedicationViewModel", "Could not parse reminderTime: ${medication.reminderTime} for medication ${medication.name}", e)
+                            // isFuture remains false if parsing fails
+                        }
+                    }
+                    medication.copy(isFutureDose = isFuture)
+                }
+                _medications.value = processedMedications
             }
         }
     }
@@ -215,5 +253,62 @@ class MedicationViewModel @Inject constructor(
             WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
             Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after deleting medication.")
         }
+    }
+
+    // --- Dose Action Functions ---
+
+    fun onMarkAsTakenRequested(medicationId: Int) {
+        _medicationIdForConfirmation.value = medicationId
+        _showMarkAsTakenConfirmationDialog.value = true
+        Log.d("DoseAction", "onMarkAsTakenRequested for medicationId: $medicationId")
+    }
+
+    fun onSkipRequested(medicationId: Int) {
+        _medicationIdForConfirmation.value = medicationId
+        _showSkipConfirmationDialog.value = true
+        Log.d("DoseAction", "onSkipRequested for medicationId: $medicationId")
+    }
+
+    fun confirmMarkAsTaken() {
+        val medId = _medicationIdForConfirmation.value
+        if (medId == null) {
+            Log.e("DoseAction", "confirmMarkAsTaken called with null medicationIdForConfirmation")
+            cancelDoseAction() // Reset dialog states
+            return
+        }
+        Log.d("DoseAction", "confirmMarkAsTaken for medicationId: $medId")
+        // TODO: Implement actual data modification logic here
+        // - Update repository (e.g., mark dose as taken for the specific reminder instance)
+        // - Create/update MedicationHistoryEntry
+        // - Potentially re-calculate progress if it's shown live
+
+        // Reset dialog state
+        _showMarkAsTakenConfirmationDialog.value = false
+        _medicationIdForConfirmation.value = null
+    }
+
+    fun confirmSkip() {
+        val medId = _medicationIdForConfirmation.value
+        if (medId == null) {
+            Log.e("DoseAction", "confirmSkip called with null medicationIdForConfirmation")
+            cancelDoseAction() // Reset dialog states
+            return
+        }
+        Log.d("DoseAction", "confirmSkip for medicationId: $medId")
+        // TODO: Implement actual data modification logic here
+        // - Update repository (e.g., mark dose as skipped for the specific reminder instance)
+        // - Create/update MedicationHistoryEntry (with skipped status)
+        // - Potentially re-calculate progress
+
+        // Reset dialog state
+        _showSkipConfirmationDialog.value = false
+        _medicationIdForConfirmation.value = null
+    }
+
+    fun cancelDoseAction() {
+        Log.d("DoseAction", "cancelDoseAction called")
+        _showMarkAsTakenConfirmationDialog.value = false
+        _showSkipConfirmationDialog.value = false
+        _medicationIdForConfirmation.value = null
     }
 }

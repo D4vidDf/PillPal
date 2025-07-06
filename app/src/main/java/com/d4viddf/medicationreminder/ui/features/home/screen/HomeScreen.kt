@@ -26,6 +26,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button // For dialog buttons
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // For dialog buttons
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
@@ -81,7 +84,12 @@ fun HomeScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val currentSearchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
-    // var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) } // Will be managed by scaffoldNavigator
+
+    // Dialog states from ViewModel
+    val showMarkAsTakenDialog by viewModel.showMarkAsTakenConfirmationDialog.collectAsState()
+    val showSkipDialog by viewModel.showSkipConfirmationDialog.collectAsState()
+    val medicationIdForDialog by viewModel.medicationIdForConfirmation.collectAsState()
+
 
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>() // Use Int? for nullable medication ID
     val mainMedicationListState = rememberLazyListState()
@@ -288,13 +296,55 @@ fun HomeScreen(
                         animatedVisibilityScope = animatedVisibilityScope,
                         modifier = Modifier.fillMaxSize(),
                         bottomContentPadding = if (widthSizeClass == WindowWidthSizeClass.Compact) topAppBarHeight else 0.dp,
-                        listState = mainMedicationListState
+                        listState = mainMedicationListState,
+                        onMarkAsTakenRequested = viewModel::onMarkAsTakenRequested,
+                        onSkipRequested = viewModel::onSkipRequested
+                    )
+                }
+
+                // --- Confirmation Dialogs ---
+                val medicationForDialog = medicationIdForDialog?.let { medId ->
+                    medications.find { it.id == medId } ?: searchResults.find { it.id == medId }
+                }
+
+                if (showMarkAsTakenDialog && medicationForDialog != null) {
+                    AlertDialog(
+                        onDismissRequest = { viewModel.cancelDoseAction() },
+                        title = { Text("Confirm Action") },
+                        text = { Text("Mark '${medicationForDialog.name}' as taken?") },
+                        confirmButton = {
+                            Button(onClick = { viewModel.confirmMarkAsTaken() }) {
+                                Text("Confirm")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { viewModel.cancelDoseAction() }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
+
+                if (showSkipDialog && medicationForDialog != null) {
+                    AlertDialog(
+                        onDismissRequest = { viewModel.cancelDoseAction() },
+                        title = { Text("Confirm Action") },
+                        text = { Text("Skip '${medicationForDialog.name}'?") },
+                        confirmButton = {
+                            Button(onClick = { viewModel.confirmSkip() }) {
+                                Text("Confirm")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { viewModel.cancelDoseAction() }) {
+                                Text("Cancel")
+                            }
+                        }
                     )
                 }
             }
         },
-        detailPane = { // Changed from secondaryPane
-            // `this` is ThreePaneScaffoldPaneScope
+        detailPane = {
             val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.contentKey
             if (selectedMedicationIdForDetail != null) {
                 MedicationDetailsScreen(

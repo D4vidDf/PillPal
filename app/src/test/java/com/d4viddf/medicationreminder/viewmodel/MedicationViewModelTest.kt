@@ -13,8 +13,25 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import android.content.Context
+import app.cash.turbine.test
+import com.d4viddf.medicationreminder.data.*
+import com.d4viddf.medicationreminder.logic.ReminderCalculator // Actual object, not mocked
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse // Added for boolean checks
+import org.junit.Assert.assertNull // Added for nullable checks
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import org.mockito.ArgumentMatchers.anyInt // For anyInt()
 import org.mockito.junit.MockitoJUnitRunner
 import java.time.LocalDate
 import java.time.LocalTime
@@ -37,6 +54,9 @@ class MedicationViewModelTest {
     @Mock
     private lateinit var scheduleRepository: MedicationScheduleRepository
 
+    @Mock // Mock for Context
+    private lateinit var mockContext: Context
+
     private lateinit var viewModel: MedicationViewModel
 
     private val dateStorableFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -57,29 +77,65 @@ class MedicationViewModelTest {
     fun setUp() {
         // Default mock for getAllMedications, can be overridden in specific tests
         `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(emptyList()))
-        // Mock other repository methods that might be called in init or other flows if necessary
-        // For instance, if observeMedicationAndRemindersForDailyProgress or similar were called in init:
-        `when`(reminderRepository.getRemindersForMedication(org.mockito.ArgumentMatchers.anyInt())).thenReturn(flowOf(emptyList()))
-        `when`(scheduleRepository.getSchedulesForMedication(org.mockito.ArgumentMatchers.anyInt())).thenReturn(flowOf(emptyList()))
-        `when`(medicationRepository.getMedicationById(org.mockito.ArgumentMatchers.anyInt())).thenReturn(null)
+        `when`(reminderRepository.getRemindersForMedication(anyInt())).thenReturn(flowOf(emptyList()))
+        `when`(scheduleRepository.getSchedulesForMedication(anyInt())).thenReturn(flowOf(emptyList()))
+        `when`(medicationRepository.getMedicationById(anyInt())).thenReturn(null)
+        // mockContext is already declared with @Mock, it will be initialized by MockitoJUnitRunner
+        // No need for: mockContext = org.mockito.Mockito.mock(Context::class.java)
 
-
-        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
+        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository, mockContext)
     }
 
+    // Updated createMedication to align with current Medication data class structure
+    // and provide defaults for new fields for existing tests.
     private fun createMedication(
         id: Int = testMedId,
-        name: String = "TestMed $id", // Added name parameter for easier testing of search
+        name: String = "TestMed $id",
         startDate: String,
-        endDate: String? = null
+        endDate: String? = null,
+        reminderTime: String? = null, // Added with default
+        color: String = "DEFAULT_COLOR", // Added with default
+        typeId: Int? = 1, // Added with default
+        dosage: String? = "1 pill", // Ensured it's present
+        packageSize: Int = 0, // Added with default
+        remainingDoses: Int = 0, // Added with default
+        isFutureDose: Boolean = false // Added with default
     ): Medication {
         return Medication(
             id = id,
             name = name,
-            dosage = "1 pill",
+            dosage = dosage,
             startDate = startDate,
             endDate = endDate,
-            notes = null
+            reminderTime = reminderTime,
+            color = color,
+            typeId = typeId,
+            packageSize = packageSize,
+            remainingDoses = remainingDoses,
+            isFutureDose = isFutureDose
+            // Assuming 'notes' is no longer part of Medication data class
+            // registrationDate and nregistro can use their defaults from data class
+        )
+    }
+
+    // Specific helper for future dose tests, more explicit about required fields for clarity
+    private fun createMedicationForFutureTest(
+        id: Int,
+        name: String,
+        reminderTime: String?,
+        color: String = "Blue",
+        typeId: Int? = 1,
+        dosage: String? = "1 pill",
+        packageSize: Int = 30,
+        remainingDoses: Int = 30,
+        startDate: String? = "01/01/2023",
+        endDate: String? = null
+    ): Medication {
+        return Medication(
+            id = id, name = name, reminderTime = reminderTime, color = color, typeId = typeId,
+            dosage = dosage, packageSize = packageSize, remainingDoses = remainingDoses,
+            startDate = startDate, endDate = endDate
+            // isFutureDose is calculated by ViewModel
         )
     }
 
@@ -388,5 +444,140 @@ class MedicationViewModelTest {
 
             cancelAndConsumeRemainingEvents()
         }
+    }
+
+    // --- Tests for isFutureDose and Dose Actions (NEW TESTS) ---
+
+    @Test
+    fun `isFutureDose calculation is correct for various times`() = runTest {
+        val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+        val now = LocalDateTime.now()
+
+        // Define times relative to 'now'
+        val pastTime = now.minusHours(1).format(timeFormatter)
+        val futureTime = now.plusHours(1).format(timeFormatter)
+        // For current time, use a time that will parse correctly but be slightly in past after parsing to avoid flakiness
+        val currentTime = now.minusMinutes(1).format(timeFormatter)
+
+
+        val testMedications = listOf(
+            createMedicationForFutureTest(id = 1, name = "Past Med", reminderTime = pastTime),
+            createMedicationForFutureTest(id = 2, name = "Future Med", reminderTime = futureTime),
+            createMedicationForFutureTest(id = 3, name = "Current Med", reminderTime = currentTime),
+            createMedicationForFutureTest(id = 4, name = "Null Time Med", reminderTime = null),
+            createMedicationForFutureTest(id = 5, name = "Invalid Time Med", reminderTime = "INVALID-TIME")
+        )
+
+        `when`(medicationRepository.getAllMedications()).thenReturn(flowOf(testMedications))
+        // Re-initialize viewModel to ensure it picks up the new mock data via its init block
+        // This is important because observeMedications() is called in init{}
+        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository, mockContext)
+
+        viewModel.medications.test {
+            val processedMedications = awaitItem() // First emission after processing
+
+            assertEquals("Processed medications list size", 5, processedMedications.size)
+            assertEquals("Past Med should not be future", false, processedMedications.find { it.id == 1 }?.isFutureDose)
+            assertEquals("Future Med should be future", true, processedMedications.find { it.id == 2 }?.isFutureDose)
+            assertEquals("Current Med should not be future", false, processedMedications.find { it.id == 3 }?.isFutureDose)
+            assertEquals("Null Time Med should not be future", false, processedMedications.find { it.id == 4 }?.isFutureDose)
+            assertEquals("Invalid Time Med should not be future", false, processedMedications.find { it.id == 5 }?.isFutureDose)
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onMarkAsTakenRequested updates dialog visibility and medicationId`() = runTest {
+        val testMedId = 123
+        viewModel.onMarkAsTakenRequested(testMedId)
+
+        assertTrue("Dialog should be visible after requesting mark as taken", viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertEquals("Medication ID for confirmation should be set", testMedId, viewModel.medicationIdForConfirmation.value)
+    }
+
+    @Test
+    fun `confirmMarkAsTaken resets dialog visibility and medicationId`() = runTest {
+        val testMedId = 123
+        viewModel.onMarkAsTakenRequested(testMedId) // Set initial state
+
+        // Pre-conditions
+        assertTrue(viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertEquals(testMedId, viewModel.medicationIdForConfirmation.value)
+
+        viewModel.confirmMarkAsTaken()
+
+        assertFalse("Dialog should be hidden after confirming mark as taken", viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertNull("Medication ID for confirmation should be reset", viewModel.medicationIdForConfirmation.value)
+    }
+
+    @Test
+    fun `confirmMarkAsTaken does nothing if medicationIdForConfirmation is null`() = runTest {
+        // Pre-conditions
+        assertNull(viewModel.medicationIdForConfirmation.value)
+        assertFalse(viewModel.showMarkAsTakenConfirmationDialog.value)
+
+        viewModel.confirmMarkAsTaken() // Action
+
+        assertFalse("Dialog visibility should remain false", viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertNull("Medication ID should remain null", viewModel.medicationIdForConfirmation.value)
+    }
+
+    @Test
+    fun `onSkipRequested updates dialog visibility and medicationId`() = runTest {
+        val testMedId = 456
+        viewModel.onSkipRequested(testMedId)
+
+        assertTrue("Dialog should be visible after requesting skip", viewModel.showSkipConfirmationDialog.value)
+        assertEquals("Medication ID for confirmation should be set", testMedId, viewModel.medicationIdForConfirmation.value)
+    }
+
+    @Test
+    fun `confirmSkip resets dialog visibility and medicationId`() = runTest {
+        val testMedId = 456
+        viewModel.onSkipRequested(testMedId) // Set initial state
+        // Pre-conditions
+        assertTrue(viewModel.showSkipConfirmationDialog.value)
+        assertEquals(testMedId, viewModel.medicationIdForConfirmation.value)
+
+        viewModel.confirmSkip()
+
+        assertFalse("Dialog should be hidden after confirming skip", viewModel.showSkipConfirmationDialog.value)
+        assertNull("Medication ID for confirmation should be reset", viewModel.medicationIdForConfirmation.value)
+    }
+
+    @Test
+    fun `confirmSkip does nothing if medicationIdForConfirmation is null`() = runTest {
+        // Pre-conditions
+        assertNull(viewModel.medicationIdForConfirmation.value)
+        assertFalse(viewModel.showSkipConfirmationDialog.value)
+
+        viewModel.confirmSkip() // Action
+
+        assertFalse("Dialog visibility should remain false", viewModel.showSkipConfirmationDialog.value)
+        assertNull("Medication ID should remain null", viewModel.medicationIdForConfirmation.value)
+    }
+
+    @Test
+    fun `cancelDoseAction resets all dialog states`() = runTest {
+        // Setup: make MarkAsTaken dialog active
+        viewModel.onMarkAsTakenRequested(1)
+        assertTrue(viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertEquals(1, viewModel.medicationIdForConfirmation.value)
+
+        viewModel.cancelDoseAction()
+
+        assertFalse("MarkAsTaken dialog should be hidden", viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertFalse("Skip dialog should be hidden", viewModel.showSkipConfirmationDialog.value)
+        assertNull("Medication ID for confirmation should be reset", viewModel.medicationIdForConfirmation.value)
+
+        // Setup: make Skip dialog active
+        viewModel.onSkipRequested(2)
+        assertTrue(viewModel.showSkipConfirmationDialog.value)
+        assertEquals(2, viewModel.medicationIdForConfirmation.value)
+
+        viewModel.cancelDoseAction()
+        assertFalse("MarkAsTaken dialog should be hidden after 2nd cancel", viewModel.showMarkAsTakenConfirmationDialog.value)
+        assertFalse("Skip dialog should be hidden after 2nd cancel", viewModel.showSkipConfirmationDialog.value)
+        assertNull("Medication ID should be reset after 2nd cancel", viewModel.medicationIdForConfirmation.value)
     }
 }

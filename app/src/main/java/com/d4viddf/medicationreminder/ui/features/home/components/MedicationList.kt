@@ -44,7 +44,9 @@ fun MedicationList(
     modifier: Modifier = Modifier, // This modifier is passed from HomeScreen
     bottomContentPadding: Dp,
     listState: LazyListState,
-    enableCardTransitions: Boolean // New parameter
+    enableCardTransitions: Boolean, // New parameter
+    onMarkAsTakenRequested: (medicationId: Int) -> Unit, // New action lambda
+    onSkipRequested: (medicationId: Int) -> Unit // New action lambda
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -82,9 +84,12 @@ fun MedicationList(
                     MedicationCard(
                         medication = medication,
                         onClick = { onItemClick(medication, index) },
-                        enableTransition = enableCardTransitions, // New line
-                        sharedTransitionScope = sharedTransitionScope, // Pass this
-                        animatedVisibilityScope = animatedVisibilityScope // Pass scope
+                        enableTransition = enableCardTransitions,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        isFutureDose = medication.isFutureDose, // Pass the flag
+                        onMarkAsTakenAction = { onMarkAsTakenRequested(medication.id) }, // Connect action
+                        onSkipAction = { onSkipRequested(medication.id) } // Connect action
                     )
                 }
             }
@@ -123,9 +128,11 @@ fun MedicationListPreview() {
             onRefresh = {},
             sharedTransitionScope = null, // Pass null for preview
             animatedVisibilityScope = null, // Preview won't have a real scope
-            bottomContentPadding = 0.dp, // Changed to 0.dp
-            listState = rememberLazyListState(), // Add this
-            enableCardTransitions = true // Add default for preview
+            bottomContentPadding = 0.dp,
+            listState = rememberLazyListState(),
+            enableCardTransitions = true,
+            onMarkAsTakenRequested = {}, // Dummy for preview
+            onSkipRequested = {} // Dummy for preview
         )
     }
 }
