@@ -46,12 +46,25 @@
             ><!-- This should be a ListenerService if it's receiving, or just a service if sending. The current implementation is a sender. -->
 
             <!-- If it were a listener, it would need an intent filter for messages or data changes -->
-            <!-- Example for a listener:
+            <!-- Example for a listener for messages:
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/mark_as_taken" />
             </intent-filter>
             -->
+        </service>
+
+        <!-- Service to listen for DataLayer changes from the phone -->
+        <service
+            android:name=".wear.services.WearDataListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <!-- Specific host and path if needed, or wildcard for all data items -->
+                <!-- <data android:scheme="wear" android:host="*" android:path="/today_schedule" /> -->
+                <!-- For pathPrefix or exact path matching, host must be specified. Using * for host is common. -->
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/today_schedule" />
+            </intent-filter>
         </service>
 
 

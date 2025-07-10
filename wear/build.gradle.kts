@@ -70,6 +70,9 @@ dependencies {
     // Coroutines support for Play Services Tasks (for .await())
     implementation(libs.kotlinx.coroutines.play.services) // Added for .await() with Play Services Tasks
 
+    // Gson for JSON deserialization
+    implementation("com.google.code.gson:gson:2.10.1")
+
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
