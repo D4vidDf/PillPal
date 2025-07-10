@@ -7,7 +7,7 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.tasks.await // Make sure this import is correct
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -80,9 +80,10 @@ open class MedicationReminderRepository @Inject constructor(
             val putDataMapReq = PutDataMapRequest.create("$REMINDER_PATH_PREFIX/${reminder.id}")
             putDataMapReq.dataMap.putInt(KEY_REMINDER_ID, reminder.id)
             putDataMapReq.dataMap.putBoolean(KEY_REMINDER_IS_TAKEN, reminder.isTaken)
-            putDataMapReq.dataMap.putString(KEY_REMINDER_TAKEN_AT, reminder.takenAt)
-            putDataMapReq.dataMap.putString(KEY_REMINDER_MEDICATION_NAME, reminder.medicationName) // Assuming medicationName is part of MedicationReminder
-            putDataMapReq.dataMap.putString(KEY_REMINDER_SCHEDULED_TIME, reminder.scheduledTime) // And scheduledTime
+            reminder.takenAt?.let { putDataMapReq.dataMap.putString(KEY_REMINDER_TAKEN_AT, it) }
+            // medicationName would require fetching from Medication table via medicationId, skipping for now
+            // putDataMapReq.dataMap.putString(KEY_REMINDER_MEDICATION_NAME, reminder.medicationName)
+            putDataMapReq.dataMap.putString(KEY_REMINDER_SCHEDULED_TIME, reminder.reminderTime)
             // Add other relevant fields
 
             val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
