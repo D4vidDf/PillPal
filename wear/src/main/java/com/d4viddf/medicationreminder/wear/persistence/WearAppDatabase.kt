@@ -9,7 +9,7 @@ import androidx.room.TypeConverters
 @Database(
     entities = [MedicationSyncEntity::class, ScheduleDetailSyncEntity::class],
     version = 1,
-    exportSchema = false // For simplicity in this example; for production, consider exporting schema.
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class WearAppDatabase : RoomDatabase() {
@@ -27,7 +27,6 @@ abstract class WearAppDatabase : RoomDatabase() {
                     WearAppDatabase::class.java,
                     "wear_medication_sync_db"
                 )
-                // .fallbackToDestructiveMigration() // Consider migration strategy for production
                 .build()
                 INSTANCE = instance
                 instance

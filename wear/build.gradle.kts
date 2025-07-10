@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp) // Added KSP plugin
 }
 
 android {
@@ -85,4 +86,9 @@ dependencies {
 
     implementation("androidx.wear.protolayout:protolayout:1.3.0")
     implementation("androidx.wear.protolayout:protolayout-material:1.3.0")
+
+    // Room Database for Wear
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
 }

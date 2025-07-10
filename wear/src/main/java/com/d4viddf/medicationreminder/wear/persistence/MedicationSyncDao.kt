@@ -28,12 +28,10 @@ interface MedicationSyncDao {
 
     @Transaction
     suspend fun clearAndInsertSyncData(medications: List<MedicationSyncEntity>, schedules: List<ScheduleDetailSyncEntity>) {
-        clearAllMedications() // schedules will be cleared by CASCADE if medicationId is the only PK part
-        // If schedule_details_sync has a composite PK that doesn't solely rely on medicationId for cascade, clear it explicitly.
-        // Given primaryKeys = ["medicationId", "scheduleId"], cascading from medications_sync should work.
-        // clearAllSchedules() // Might not be needed if cascade works as expected. For safety, can be kept.
+        clearAllMedications()
+        // clearAllSchedules() // This might be redundant if CASCADE DELETE works on medications_sync table for its related schedules.
         medications.forEach { insertMedicationSyncEntity(it) }
-        if (schedules.isNotEmpty()) { // Room doesn't like inserting empty lists for varargs/collections
+        if (schedules.isNotEmpty()) {
              insertScheduleDetailSyncEntities(schedules)
         }
     }
