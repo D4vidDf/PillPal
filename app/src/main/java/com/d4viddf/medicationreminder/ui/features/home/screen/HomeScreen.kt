@@ -16,6 +16,9 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.outlined.CloudOff // For not connected
+import androidx.compose.material.icons.outlined.Download // For app not installed
+import androidx.compose.material.icons.outlined.Watch // For connected app installed (optional variant)
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -34,11 +37,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +81,7 @@ import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.components.TodayScheduleItem
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus // Import WatchStatus
 import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -91,11 +97,20 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Collect navigation events
+    LaunchedEffect(key1 = Unit) { // Use Unit or a key that doesn't change often
+        viewModel.navigationEvents.collectLatest { route ->
+            navController.navigate(route)
+        }
+    }
+
     HomeScreenContent(
         uiState = uiState,
         onMarkAsTaken = viewModel::markAsTaken,
         onRefresh = viewModel::refreshData, // Pass refresh lambda
-        navController = navController
+        navController = navController, // Pass navController for other internal navigations if any
+        onWatchIconClick = { viewModel.handleWatchIconClick() } // Pass the handler
     )
 }
 
@@ -107,7 +122,8 @@ internal fun HomeScreenContent(
     uiState: HomeViewModel.HomeState,
     onMarkAsTaken: (MedicationReminder) -> Unit,
     onRefresh: () -> Unit, // Added onRefresh callback
-    navController: NavController
+    navController: NavController, // Keep for existing internal navigations
+    onWatchIconClick: () -> Unit // Added callback for watch icon click
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val configuration = LocalConfiguration.current
@@ -175,12 +191,36 @@ internal fun HomeScreenContent(
                 },
                 actions = {
                     val context = LocalContext.current
-                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
+
+                    // Watch Icon Button
+                    IconButton(onClick = onWatchIconClick) { // Use the passed callback
+                        val watchIcon = when (uiState.watchStatus) {
+                            WatchStatus.NOT_CONNECTED -> Icons.Outlined.CloudOff
+                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> Icons.Outlined.Download
+                            WatchStatus.CONNECTED_APP_INSTALLED -> Icons.Filled.Watch // Or Icons.Outlined.Watch for a consistent style
+                            WatchStatus.UNKNOWN -> Icons.Filled.Watch // Default
+                        }
+                        val iconTint = when (uiState.watchStatus) {
+                            WatchStatus.NOT_CONNECTED -> Color.Gray
+                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> MaterialTheme.colorScheme.error // Or a warning color
+                            WatchStatus.CONNECTED_APP_INSTALLED -> MaterialTheme.colorScheme.primary
+                            WatchStatus.UNKNOWN -> LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
+                        }
+                        val contentDescRes = when (uiState.watchStatus) {
+                            WatchStatus.NOT_CONNECTED -> R.string.home_button_cd_watch_not_connected
+                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> R.string.home_button_cd_watch_app_not_installed
+                            WatchStatus.CONNECTED_APP_INSTALLED -> R.string.home_button_cd_watch_connected
+                            WatchStatus.UNKNOWN -> R.string.home_button_cd_connect_wear_os // Default
+                        }
+
                         Icon(
-                            Icons.Filled.Watch,
-                            contentDescription = context.getString(R.string.home_button_cd_connect_wear_os)
+                            imageVector = watchIcon,
+                            contentDescription = context.getString(contentDescRes),
+                            tint = iconTint
                         )
                     }
+
+                    // Notifications Icon Button
                     IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
                         val notificationsCd = if (uiState.hasUnreadAlerts) {
                             context.getString(R.string.home_button_cd_notifications_unread)

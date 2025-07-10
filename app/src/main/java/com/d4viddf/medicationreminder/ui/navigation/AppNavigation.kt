@@ -44,6 +44,7 @@ import com.d4viddf.medicationreminder.ui.features.medicationvault.screen.Medicat
 import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
+import com.d4viddf.medicationreminder.ui.features.connecteddevices.screen.ConnectedDevicesScreen // Import the new screen
 
 // Define the routes for navigation
 
@@ -85,6 +86,7 @@ sealed class Screen(val route: String) {
     object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
     }
+    object ConnectedDevices : Screen("connected_devices_screen") // New screen route
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -360,6 +362,10 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
+            }
+
+            composable(Screen.ConnectedDevices.route) {
+                ConnectedDevicesScreen(navController = navController)
             }
         }
     }
