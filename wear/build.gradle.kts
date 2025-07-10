@@ -48,15 +48,32 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.wear.tooling.preview)
+    implementation(libs.androidx.wear.tooling.preview) // General Wear OS tooling
+    implementation(libs.androidx.wear.compose.material) // For Wear Compose Material components (Chip, ScalingLazyColumn)
+    implementation(libs.androidx.wear.compose.foundation) // For Wear Compose foundation (needed by material)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
+
+    // Tiles
     implementation(libs.androidx.tiles)
-    implementation(libs.androidx.tiles.material)
-    implementation(libs.androidx.tiles.tooling.preview)
+    implementation(libs.androidx.tiles.material) // For Material Design in Tiles
+    implementation(libs.androidx.wear.tiles) // Alias for androidx.tiles
+    implementation(libs.androidx.wear.tiles.material) // Alias for androidx.tiles.material
+    debugImplementation(libs.androidx.wear.tiles.tooling) // For tile previews
+
+    // Horologist for Compose previews and other utilities if needed (already present)
     implementation(libs.horologist.compose.tools)
+    // Horologist for Tiles if specific components are used (already present, though androidx.wear.tiles.material is primary)
     implementation(libs.horologist.tiles)
+
+
+    // Complications (already present, though not explicitly in this plan step)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
+
+    // For Guava ListenableFuture, often used with Tiles and Wearable Data Layer tasks
+    implementation(libs.guava)
+
+
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
