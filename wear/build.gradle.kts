@@ -73,6 +73,9 @@ dependencies {
     // For Guava ListenableFuture, often used with Tiles and Wearable Data Layer tasks
     implementation(libs.guava)
 
+    // Coroutines support for Play Services Tasks (for .await())
+    implementation(libs.kotlinx.coroutines.play.services) // Added for .await() with Play Services Tasks
+
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)

@@ -58,6 +58,7 @@ guava = "33.0.0-android" # Check for the latest compatible version
 # Versions for Wear Compose specifically
 wearComposeMaterial = "1.4.0-alpha08" // Example: Use the latest stable or desired alpha/beta
 wearComposeFoundation = "1.4.0-alpha08" // Example: Use the latest stable or desired alpha/beta
+kotlinxCoroutinesPlayServices = "1.8.1" # Check for latest
 
 
 [libraries]
@@ -143,6 +144,7 @@ androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "co
 # androidx-wear-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "tiles" } // Already defined as androidx-tiles
 # androidx-wear-tiles-material = { group = "androidx.wear.tiles", name = "tiles-material", version.ref = "tilesMaterial" } // Already defined as androidx-tiles-material
 # androidx-wear-tiles-tooling = { group = "androidx.wear.tiles", name = "tiles-tooling", version.ref = "tilesTooling" } // Already defined as androidx-tiles-tooling
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 
 
 [plugins]

@@ -3,12 +3,13 @@ package com.d4viddf.medreminder.wear.services
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.tasks.await // Ensure this import is present
 import java.nio.charset.StandardCharsets
 
 class WearableCommunicationService(
@@ -35,7 +36,7 @@ class WearableCommunicationService(
                     return@launch
                 }
                 // Send the message to all connected phone nodes (typically one)
-                nodes.forEach { node ->
+                nodes.forEach { node: Node -> // Explicitly type node
                     val reminderIdBytes = reminderId.toString().toByteArray(StandardCharsets.UTF_8)
                     messageClient.sendMessage(node.id, PATH_MARK_AS_TAKEN, reminderIdBytes)
                         .addOnSuccessListener {
