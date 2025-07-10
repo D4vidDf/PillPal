@@ -41,8 +41,10 @@
 
         <!-- DataLayerListenerService for receiving messages from the phone -->
         <service
-            android:name=".services.WearableCommunicationService" <!-- This should be a ListenerService if it's receiving, or just a service if sending. The current implementation is a sender. -->
-            android:exported="true">
+            android:name=".services.WearableCommunicationService"
+            android:exported="true"
+            ><!-- This should be a ListenerService if it's receiving, or just a service if sending. The current implementation is a sender. -->
+
             <!-- If it were a listener, it would need an intent filter for messages or data changes -->
             <!-- Example for a listener:
             <intent-filter>

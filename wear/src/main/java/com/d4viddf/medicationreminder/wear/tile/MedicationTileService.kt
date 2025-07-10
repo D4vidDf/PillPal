@@ -11,12 +11,10 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.tiles.ActionBuilders
 import androidx.wear.tiles.ColorBuilders
 import androidx.wear.tiles.DimensionBuilders
-import androidx.wear.tiles.DeviceParametersBuilders
 import androidx.wear.tiles.LayoutElementBuilders
 import androidx.wear.tiles.ModifiersBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.ResourceBuilders
-import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TimelineBuilders
 import androidx.wear.tiles.material.Typography
 import androidx.wear.tiles.material.layouts.PrimaryLayout
@@ -26,21 +24,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text as ComposeText
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme as ComposeMaterialTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column as ComposeColumn
 import androidx.compose.foundation.layout.Spacer as ComposeSpacer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight as ComposeFontWeight
 import androidx.compose.ui.platform.LocalContext
-import com.d4viddf.medreminder.wear.ui.MedicationReminder
-import com.d4viddf.medreminder.wear.ui.WearActivity
-import com.d4viddf.medreminder.wear.ui.formatTime
-import com.d4viddf.medreminder.wear.ui.getTimestamp
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
+import androidx.wear.tiles.TileBuilders
+import com.d4viddf.medicationreminder.wear.ui.MedicationReminder
+import com.d4viddf.medicationreminder.wear.ui.WearActivity
+import com.d4viddf.medicationreminder.wear.ui.formatTime
+import com.d4viddf.medicationreminder.wear.ui.getTimestamp
 import com.google.common.util.concurrent.Futures
-import java.util.Calendar
 
 private const val RESOURCES_VERSION = "1"
 // Placeholder for actual data fetching logic
@@ -60,7 +57,7 @@ class MedicationTileService : TileService() {
             .filter { it.time >= now && !it.isTaken }
             .minByOrNull { it.time }
 
-        val tile = Tile.Builder()
+        val tile = TileBuilders.Tile.Builder()
             .setResourcesVersion(RESOURCES_VERSION)
             .setTimeline(
                 TimelineBuilders.Timeline.Builder().addTimelineEntry(
@@ -168,7 +165,7 @@ fun TilePreview() {
     val context = LocalContext.current // Use LocalContext for preview
     val nextReminder = MedicationReminder("1", "Mestinon", "1 tablet", getTimestamp(9, 0))
 
-    ComposeMaterialTheme { // Wrap with a Compose Theme
+    MaterialTheme { // Wrap with a Compose Theme
         ComposeColumn( // Use aliased ComposeColumn
             modifier = androidx.compose.ui.Modifier
                 .fillMaxSize()
@@ -177,10 +174,10 @@ fun TilePreview() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ComposeText("Next Dose: ${formatTime(nextReminder.time)}", fontSize = 14.sp, color = Color.LightGray)
+            Text("Next Dose: ${formatTime(nextReminder.time)}", fontSize = 14.sp, color = Color.LightGray)
             ComposeSpacer(modifier = androidx.compose.ui.Modifier.height(8.dp)) // Use aliased ComposeSpacer
-            ComposeText(nextReminder.name, fontSize = 18.sp, fontWeight = ComposeFontWeight.Bold, color = Color.White)
-            ComposeText(nextReminder.dosage, fontSize = 14.sp, color = Color.Gray)
+            Text(nextReminder.name, fontSize = 18.sp, fontWeight = ComposeFontWeight.Bold, color = Color.White)
+            Text(nextReminder.dosage, fontSize = 14.sp, color = Color.Gray)
         }
     }
 }
@@ -193,7 +190,7 @@ fun TilePreview() {
 )
 @Composable
 fun NoDoseTilePreview() {
-    ComposeMaterialTheme { // Wrap with a Compose Theme
+    MaterialTheme { // Wrap with a Compose Theme
         ComposeColumn( // Use aliased ComposeColumn
             modifier = androidx.compose.ui.Modifier
                 .fillMaxSize()
@@ -202,7 +199,7 @@ fun NoDoseTilePreview() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ComposeText("No upcoming doses.", fontSize = 14.sp, color = Color.White)
+            Text("No upcoming doses.", fontSize = 14.sp, color = Color.White)
         }
     }
 }

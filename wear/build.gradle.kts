@@ -49,17 +49,12 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.wear.tooling.preview) // General Wear OS tooling
-    implementation(libs.androidx.wear.compose.material) // For Wear Compose Material components (Chip, ScalingLazyColumn)
-    implementation(libs.androidx.wear.compose.foundation) // For Wear Compose foundation (needed by material)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
 
     // Tiles
     implementation(libs.androidx.tiles)
     implementation(libs.androidx.tiles.material) // For Material Design in Tiles
-    implementation(libs.androidx.wear.tiles) // Alias for androidx.tiles
-    implementation(libs.androidx.wear.tiles.material) // Alias for androidx.tiles.material
-    debugImplementation(libs.androidx.wear.tiles.tooling) // For tile previews
 
     // Horologist for Compose previews and other utilities if needed (already present)
     implementation(libs.horologist.compose.tools)
@@ -69,9 +64,8 @@ dependencies {
 
     // Complications (already present, though not explicitly in this plan step)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
+    implementation(libs.tiles.tooling.preview)
 
-    // For Guava ListenableFuture, often used with Tiles and Wearable Data Layer tasks
-    implementation(libs.guava)
 
     // Coroutines support for Play Services Tasks (for .await())
     implementation(libs.kotlinx.coroutines.play.services) // Added for .await() with Play Services Tasks

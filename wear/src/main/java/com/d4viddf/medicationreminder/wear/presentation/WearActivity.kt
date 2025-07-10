@@ -3,18 +3,16 @@ package com.d4viddf.medicationreminder.wear.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 // Correct imports for Material Icons
-import androidx.compose.material.icons.Icons // General Icons
-import androidx.compose.material.icons.filled.Vaccines // Specific icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,7 +24,8 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.items
-import com.d4viddf.medreminder.wear.services.WearableCommunicationService
+import com.d4viddf.medicationreminder.wear.R
+import com.d4viddf.medicationreminder.wear.services.WearableCommunicationService
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -119,7 +118,7 @@ fun MedicationReminderChip(reminder: MedicationReminder, communicationService: W
             .padding(horizontal = 8.dp, vertical = 4.dp),
         icon = {
             Icon(
-                Icons.Filled.Vaccines, // Replace with actual medication icon later
+                painterResource(id = R.drawable.medication_filled), // Replace with actual medication icon later
                 contentDescription = "Medication icon",
                 modifier = Modifier.size(ChipDefaults.IconSize),
                 tint = MaterialTheme.colors.primary
@@ -174,13 +173,15 @@ fun getTimestamp(hour: Int, minute: Int): Long {
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    MainAppScreen(reminders = sampleReminders, communicationService = WearableCommunicationService(androidx.compose.ui.platform.LocalContext.current))
+    MainAppScreen(reminders = sampleReminders, communicationService = WearableCommunicationService(
+        LocalContext.current))
 }
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable
 fun EmptyStatePreview() {
-    MainAppScreen(reminders = emptyList(), communicationService = WearableCommunicationService(androidx.compose.ui.platform.LocalContext.current))
+    MainAppScreen(reminders = emptyList(), communicationService = WearableCommunicationService(
+        LocalContext.current))
 }
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
@@ -189,7 +190,7 @@ fun OnlyNextDosePreview() {
     MainAppScreen(reminders = listOf(
         MedicationReminder("1", "Mestinon", "1 tablet", getTimestamp(9, 0), false),
         MedicationReminder("2", "Valsartan", "1 tablet", getTimestamp(9, 0), false)
-    ), communicationService = WearableCommunicationService(androidx.compose.ui.platform.LocalContext.current))
+    ), communicationService = WearableCommunicationService(LocalContext.current))
 }
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
@@ -197,5 +198,5 @@ fun OnlyNextDosePreview() {
 fun OnlyLaterDosePreview() {
     MainAppScreen(reminders = listOf(
         MedicationReminder("3", "Mestinon", "1 tablet", getTimestamp(15, 0), false)
-    ), communicationService = WearableCommunicationService(androidx.compose.ui.platform.LocalContext.current))
+    ), communicationService = WearableCommunicationService(LocalContext.current))
 }
