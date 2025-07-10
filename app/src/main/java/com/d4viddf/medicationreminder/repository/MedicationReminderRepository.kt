@@ -7,7 +7,6 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.tasks.await // Make sure this import is correct
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -87,7 +86,7 @@ open class MedicationReminderRepository @Inject constructor(
             // Add other relevant fields
 
             val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
-            dataClient.putDataItem(putDataReq).await()
+            dataClient.putDataItem(putDataReq)
             Log.i(TAG, "Reminder ${reminder.id} data synced to watch.")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to sync reminder ${reminder.id} to watch: ${e.message}", e)
