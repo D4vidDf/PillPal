@@ -532,9 +532,11 @@ private class FakeNotificationSchedulerPreview : NotificationScheduler() {
 }
 
 private class FakeMedicationReminderRepositoryPreview(
+    private val context: Context, // Context first
     medicationReminderDao: MedicationReminderDao,
     firebaseSyncDao: FirebaseSyncDao
 ) : MedicationReminderRepository(
+    context, // Pass context
     medicationReminderDao,
     firebaseSyncDao
 ) {
