@@ -13,8 +13,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.Executors
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 
-class WearConnectivityHelper(private val context: Context) {
+@Singleton
+class WearConnectivityHelper @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
     private val nodeClient: NodeClient = Wearable.getNodeClient(context)
     private val capabilityClient = Wearable.getCapabilityClient(context)
