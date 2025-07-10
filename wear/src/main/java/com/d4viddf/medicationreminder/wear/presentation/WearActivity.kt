@@ -8,25 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-// Correct imports for Material Icons
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle // Example for taken
-import androidx.compose.material.icons.filled.Error // Example for disconnected
-import androidx.compose.material.icons.filled.RadioButtonUnchecked // Example for not taken
-import androidx.compose.material.icons.filled.Watch // Example for connected
+import android.app.Application // Needed for Preview ViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color // Keep for tinting
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.compose.viewModel // Ensure this import is correct
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -42,19 +37,14 @@ import androidx.wear.compose.material.items
 import androidx.wear.compose.material.rememberScalingLazyListState
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
-// import com.d4viddf.medicationreminder.wear.services.WearableCommunicationService // ViewModel handles this
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 
 class WearActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val wearViewModel: WearViewModel = viewModel(
-                factory = WearViewModelFactory(application)
-            )
+            // Ensure Application context is correctly passed if needed by factory, or use default Hilt/Lifecycle ways
+            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
             MainAppScreen(wearViewModel)
         }
     }
@@ -97,7 +87,10 @@ fun MainAppScreen(viewModel: WearViewModel) {
                         )
                     }
                     items(nextDoseGroup, key = { it.id }) { reminder ->
-                        MedicationReminderChip(reminder = reminder, viewModel = viewModel)
+                        MedicationReminderChip(
+                            reminder = reminder,
+                            onChipClick = { viewModel.markReminderAsTaken(reminder.underlyingReminderId) }
+                        )
                     }
                 }
 
@@ -116,7 +109,10 @@ fun MainAppScreen(viewModel: WearViewModel) {
                                 )
                             }
                             items(remindersForTime, key = { it.id }) { reminder ->
-                                MedicationReminderChip(reminder = reminder, viewModel = viewModel)
+                                MedicationReminderChip(
+                                    reminder = reminder,
+                                    onChipClick = { viewModel.markReminderAsTaken(reminder.underlyingReminderId) }
+                                )
                             }
                         }
                     }
@@ -143,7 +139,11 @@ fun MainAppScreen(viewModel: WearViewModel) {
                         )
                     }
                     items(takenReminders, key = { "taken_${it.id}" }) { reminder ->
-                        MedicationReminderChip(reminder = reminder, viewModel = viewModel, isTakenDisplay = true)
+                        MedicationReminderChip(
+                            reminder = reminder,
+                            onChipClick = { /* No action for already taken items */ },
+                            isTakenDisplay = true
+                        )
                     }
                 }
             }
@@ -153,10 +153,15 @@ fun MainAppScreen(viewModel: WearViewModel) {
 
 @Composable
 fun ConnectionStatusIcon(isConnected: Boolean) {
+    // USER: Please provide ic_watch_connected.xml and ic_watch_disconnected.xml drawables
+    // For now, using a placeholder if R.drawable.ic_watch_connected is not available.
+    // Using medication_filled as a stand-in for both and tinting it.
+    val iconRes = if (isConnected) R.drawable.medication_filled /* R.drawable.ic_watch_connected */ else R.drawable.medication_filled /* R.drawable.ic_watch_disconnected */
+    val tintColor = if (isConnected) Color.Green else Color.Red
     Icon(
-        imageVector = if (isConnected) Icons.Default.Watch else Icons.Default.Error,
+        painter = painterResource(id = iconRes),
         contentDescription = if (isConnected) "Connected to phone" else "Disconnected from phone",
-        tint = if (isConnected) Color.Green else Color.Red,
+        tint = tintColor,
         modifier = Modifier
             .size(24.dp)
             .padding(top = 4.dp)
@@ -167,8 +172,8 @@ fun ConnectionStatusIcon(isConnected: Boolean) {
 @Composable
 fun MedicationReminderChip(
     reminder: WearReminder,
-    viewModel: WearViewModel,
-    isTakenDisplay: Boolean = false // To differentiate display for already taken items
+    onChipClick: () -> Unit,
+    isTakenDisplay: Boolean = false
 ) {
     Chip(
         modifier = Modifier
@@ -176,15 +181,16 @@ fun MedicationReminderChip(
             .padding(horizontal = 8.dp, vertical = 4.dp),
         icon = {
             if (isTakenDisplay || reminder.isTaken) {
+                // USER: Please provide ic_check_circle.xml drawable
                 Icon(
-                    Icons.Filled.CheckCircle,
+                    painter = painterResource(id = R.drawable.medication_filled /* R.drawable.ic_check_circle */),
                     contentDescription = "Taken",
                     modifier = Modifier.size(ChipDefaults.IconSize),
-                    tint = Color.Green
+                    tint = Color.Green // Keeping tint for placeholder
                 )
             } else {
                 Icon(
-                    painterResource(id = R.drawable.medication_filled), // Replace with actual medication icon later
+                    painter = painterResource(id = R.drawable.medication_filled),
                     contentDescription = "Medication icon",
                     modifier = Modifier.size(ChipDefaults.IconSize),
                     tint = MaterialTheme.colors.primary
@@ -199,12 +205,12 @@ fun MedicationReminderChip(
                 }
             }
         },
-        secondaryLabel = { // Display time here as well
+        secondaryLabel = {
              Text(text = reminder.time, fontSize = 12.sp)
         },
         onClick = {
-            if (!reminder.isTaken && !isTakenDisplay) { // Only allow marking as taken if not already taken
-                viewModel.markReminderAsTaken(reminder.underlyingReminderId)
+            if (!reminder.isTaken && !isTakenDisplay) {
+                onChipClick()
             }
         },
         colors = if (isTakenDisplay || reminder.isTaken) {
@@ -223,34 +229,80 @@ val sampleWearReminders = listOf(
     WearReminder("item2_9am",2L, "Valsartan", "09:00", false, "1 tablet"),
     WearReminder("item3_3pm",3L, "Mestinon", "15:00", false, "1 tablet"),
     WearReminder("item4_1030am",4L, "Vitamin D", "10:30", false, "1 capsule"),
-    WearReminder("item5_1030am_taken",5L, "Aspirin", "10:30", true, "1 tablet") // Already taken
+    WearReminder("item5_1030am_taken",5L, "Aspirin", "10:30", true, "1 tablet")
 )
+
+// Simplified MainAppScreen for Previews that takes data directly
+@Composable
+fun PreviewMainAppScreen(reminders: List<WearReminder>, isConnected: Boolean) {
+    val upcomingReminders = reminders.filter { !it.isTaken }.sortedBy { it.time }
+    val nextDoseTime = upcomingReminders.firstOrNull()?.time
+    val nextDoseGroup = upcomingReminders.filter { it.time == nextDoseTime }
+    val laterDoses = upcomingReminders.filter { it.time != nextDoseTime && it.time > (nextDoseTime ?: "00:00") }
+    val listState = rememberScalingLazyListState()
+
+    MaterialTheme {
+        Scaffold(
+            timeText = { TimeText() },
+            vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
+            positionIndicator = { PositionIndicator(scalingLazyListState = listState) }
+        ) {
+            ScalingLazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item { ConnectionStatusIcon(isConnected = isConnected) }
+
+                if (nextDoseGroup.isNotEmpty()) {
+                    item { Text("Next: ${nextDoseGroup.first().time}", style = MaterialTheme.typography.title3, modifier = Modifier.padding(vertical = 8.dp)) }
+                    items(nextDoseGroup, key = { "next_${it.id}" }) { reminder ->
+                        MedicationReminderChip(reminder = reminder, onChipClick = { /* Preview no action */ })
+                    }
+                }
+                // ... (rest of the UI logic similar to MainAppScreen but using passed in reminders) ...
+                 if (laterDoses.isNotEmpty()) {
+                    val uniqueLaterTimes = laterDoses.map { it.time }.distinct().sorted()
+                    uniqueLaterTimes.forEach { time ->
+                        val remindersForTime = laterDoses.filter { it.time == time }
+                        if (remindersForTime.isNotEmpty()) {
+                            item { Text("Later: $time", style = MaterialTheme.typography.title3, modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp).fillMaxWidth()) }
+                            items(remindersForTime, key = { "later_${it.id}" }) { reminder ->
+                                MedicationReminderChip(reminder = reminder, onChipClick = { /* Preview no action */ })
+                            }
+                        }
+                    }
+                }
+                if (upcomingReminders.isEmpty()) {
+                    item { Text(if (isConnected) "No upcoming medications." else "Disconnected.", style = MaterialTheme.typography.body1, modifier = Modifier.padding(16.dp)) }
+                }
+                val takenReminders = reminders.filter { it.isTaken }.sortedByDescending { it.time }
+                if (takenReminders.isNotEmpty()) {
+                    item { Text("Taken Today", style = MaterialTheme.typography.title3, modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp).fillMaxWidth()) }
+                    items(takenReminders, key = { "taken_${it.id}" }) { reminder ->
+                        MedicationReminderChip(reminder = reminder, onChipClick = { /* Preview no action */ }, isTakenDisplay = true)
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    val app = LocalContext.current.applicationContext as Application
-    val viewModel = WearViewModel(app) // Create a dummy ViewModel for preview
-    // Populate with sample data for preview
-    (viewModel.reminders as kotlinx.coroutines.flow.MutableStateFlow).value = sampleWearReminders
-    MainAppScreen(viewModel = viewModel)
+    PreviewMainAppScreen(reminders = sampleWearReminders, isConnected = true)
 }
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable
 fun EmptyStatePreview() {
-     val app = LocalContext.current.applicationContext as Application
-    val viewModel = WearViewModel(app)
-    (viewModel.reminders as kotlinx.coroutines.flow.MutableStateFlow).value = emptyList()
-    MainAppScreen(viewModel = viewModel)
+    PreviewMainAppScreen(reminders = emptyList(), isConnected = true)
 }
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable
 fun DisconnectedPreview() {
-    val app = LocalContext.current.applicationContext as Application
-    val viewModel = WearViewModel(app)
-    (viewModel.reminders as kotlinx.coroutines.flow.MutableStateFlow).value = emptyList()
-    (viewModel.isConnectedToPhone as kotlinx.coroutines.flow.MutableStateFlow).value = false
-    MainAppScreen(viewModel = viewModel)
+    PreviewMainAppScreen(reminders = emptyList(), isConnected = false)
 }
