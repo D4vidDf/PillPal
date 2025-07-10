@@ -1,4 +1,4 @@
-package com.d4viddf.medreminder.wear.tile
+package com.d4viddf.medicationreminder.wear.tile
 
 import android.content.Context
 import androidx.compose.runtime.Composable

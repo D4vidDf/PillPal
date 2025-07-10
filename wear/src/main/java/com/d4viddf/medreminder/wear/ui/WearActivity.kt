@@ -1,4 +1,4 @@
-package com.d4viddf.medreminder.wear.ui
+package com.d4viddf.medicationreminder.wear.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
