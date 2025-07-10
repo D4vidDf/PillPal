@@ -2,7 +2,6 @@ package com.d4viddf.medicationreminder.wear.services
 
 import android.util.Log
 import com.d4viddf.medicationreminder.wear.data.WearReminder
-import com.d4viddf.medicationreminder.wear.data.WearReminderRepository // Assuming repository/ViewModel setup later
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
