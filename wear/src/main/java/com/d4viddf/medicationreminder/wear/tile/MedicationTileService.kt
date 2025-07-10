@@ -40,6 +40,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
+import androidx.wear.tooling.preview.devices.WearDevices
 import androidx.wear.compose.material.Text as ComposeText
 
 private const val RESOURCES_VERSION = "1"
@@ -158,7 +159,7 @@ class MedicationTileService : TileService() {
 
 // --- Previews for Tile ---
 @Preview(
-    device = Devices.WEAR_OS_SMALL_ROUND,
+    device = WearDevices.SMALL_ROUND,
     showSystemUi = true,
     backgroundColor = 0xff000000,
     showBackground = true
@@ -185,7 +186,7 @@ fun TilePreview() {
 }
 
 @Preview(
-    device = Devices.WEAR_OS_SMALL_ROUND,
+    device = WearDevices.SMALL_ROUND,
     showSystemUi = true,
     backgroundColor = 0xff000000,
     showBackground = true

@@ -26,6 +26,10 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
+import com.google.gson.Gson
+import kotlinx.coroutines.tasks.await
 
 @HiltViewModel
 class MedicationReminderViewModel @Inject constructor(
@@ -34,6 +38,9 @@ class MedicationReminderViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
+
+    private val dataClient by lazy { Wearable.getDataClient(appContext) }
+    private val gson by lazy { Gson() }
 
     private val _allRemindersForSelectedMedication = MutableStateFlow<List<MedicationReminder>>(emptyList())
     val allRemindersForSelectedMedication: StateFlow<List<MedicationReminder>> = _allRemindersForSelectedMedication
@@ -307,6 +314,42 @@ class MedicationReminderViewModel @Inject constructor(
             Log.i("MedReminderVM", "$funcTag: Final list size after sort and distinctBy: ${distinctList.size}.")
             _todayScheduleItems.value = distinctList
             Log.d("MedReminderVM", "$funcTag: Successfully updated _todayScheduleItems. Final items: ${distinctList.joinToString { it.time.toString() + " (T:" + it.isTaken + ", ID:"+ it.id +", DBID:"+it.underlyingReminderId+")" }}")
+            syncTodayScheduleToWear(distinctList)
+        }
+    }
+
+    private fun syncTodayScheduleToWear(scheduleItems: List<TodayScheduleItem>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Filter out items that are already taken to reduce payload if necessary,
+                // or send all and let the watch filter. For now, sending all.
+                // We need a class suitable for sending, which TodayScheduleItem might be,
+                // but LocalTime might not serialize well with Gson by default without adapter.
+                // For simplicity, let's convert LocalTime to string HH:mm
+                val simplifiedItems = scheduleItems.map { item ->
+                    // Create a new data class or map for serialization if TodayScheduleItem is complex
+                    // For now, assuming TodayScheduleItem is simple enough or Gson handles LocalTime (might need adapter)
+                    mapOf(
+                        "id" to item.id,
+                        "medicationName" to item.medicationName,
+                        "time" to item.time.format(DateTimeFormatter.ofPattern("HH:mm")), // Convert LocalTime to String
+                        "isTaken" to item.isTaken,
+                        "underlyingReminderId" to item.underlyingReminderId.toString(), // Ensure ID is string for DataMap
+                        "medicationScheduleId" to item.medicationScheduleId,
+                        "takenAt" to item.takenAt
+                        // Add other relevant fields
+                    )
+                }
+                val json = gson.toJson(simplifiedItems)
+                val putDataMapReq = PutDataMapRequest.create("/today_schedule")
+                putDataMapReq.dataMap.putString("schedule_json", json)
+                putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis()) // To ensure it always updates
+                val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
+                dataClient.putDataItem(putDataReq).await()
+                Log.i("MedReminderVM", "Successfully synced today's schedule to Wear OS. Items: ${simplifiedItems.size}")
+            } catch (e: Exception) {
+                Log.e("MedReminderVM", "Error syncing today's schedule to Wear OS", e)
+            }
         }
     }
 
@@ -490,7 +533,7 @@ class MedicationReminderViewModel @Inject constructor(
 
             // Refresh the list to show the new status.
             // especially if a new reminder was inserted (which gets a new ID).
-            loadTodaySchedule(medicationId)
+            loadTodaySchedule(medicationId) // This will also trigger syncTodayScheduleToWear
             Log.d("MedReminderVM", "Refreshed today's schedule after updating status for item: $itemId.")
         }
     }

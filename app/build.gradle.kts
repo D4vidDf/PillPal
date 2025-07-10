@@ -143,4 +143,10 @@ dependencies {
     // Wear OS
     implementation(libs.play.services.wearable)
     implementation("com.google.android.horologist:horologist-tiles:0.6.17")
+
+    // Explicitly add Gson for JSON serialization
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Coroutines support for Play Services Tasks (for .await())
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
 }

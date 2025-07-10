@@ -70,6 +70,12 @@ dependencies {
     // Coroutines support for Play Services Tasks (for .await())
     implementation(libs.kotlinx.coroutines.play.services) // Added for .await() with Play Services Tasks
 
+    // Gson for JSON deserialization
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // ViewModel Compose for viewModel() composable
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1") // Or use libs.androidx.lifecycle.viewmodel.compose
+
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
