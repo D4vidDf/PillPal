@@ -5,6 +5,6 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world">From the Square world,\nHello, %1$s!</string>
-    <string name="tile_label">Example tile</string>
-    <string name="complication_label">Example complication</string>
+    <string name="tile_label">Next Dose</string>
+    <string name="complication_label">Next Dose Complication</string>
 </resources>

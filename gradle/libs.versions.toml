@@ -53,6 +53,13 @@ tilesToolingPreview = "1.4.0"
 horologistComposeTools = "0.6.17"
 horologistTiles = "0.6.17"
 watchfaceComplicationsDataSourceKtx = "1.2.1"
+guava = "33.0.0-android" # Check for the latest compatible version
+
+# Versions for Wear Compose specifically
+wearComposeMaterial = "1.4.0-alpha08"
+wearComposeFoundation = "1.4.0-alpha08"
+tilesToolingPreviewVersion = "1.5.0"
+kotlinxCoroutinesPlayServices = "1.8.1" # Check for latest
 
 
 [libraries]
@@ -130,6 +137,16 @@ androidx-tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-
 horologist-compose-tools = { group = "com.google.android.horologist", name = "horologist-compose-tools", version.ref = "horologistComposeTools" }
 horologist-tiles = { group = "com.google.android.horologist", name = "horologist-tiles", version.ref = "horologistTiles" }
 androidx-watchface-complications-data-source-ktx = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "watchfaceComplicationsDataSourceKtx" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+
+# Specific Wear Compose libraries (if not covered by general compose material/foundation)
+androidx-wear-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "wearComposeMaterial" }
+androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "wearComposeFoundation" }
+tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-tooling-preview", version.ref = "tilesToolingPreviewVersion" }
+# androidx-wear-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "tiles" } // Already defined as androidx-tiles
+# androidx-wear-tiles-material = { group = "androidx.wear.tiles", name = "tiles-material", version.ref = "tilesMaterial" } // Already defined as androidx-tiles-material
+# androidx-wear-tiles-tooling = { group = "androidx.wear.tiles", name = "tiles-tooling", version.ref = "tilesTooling" } // Already defined as androidx-tiles-tooling
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 
 
 [plugins]

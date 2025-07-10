@@ -142,4 +142,5 @@ dependencies {
 
     // Wear OS
     implementation(libs.play.services.wearable)
+    implementation("com.google.android.horologist:horologist-tiles:0.6.17")
 }
