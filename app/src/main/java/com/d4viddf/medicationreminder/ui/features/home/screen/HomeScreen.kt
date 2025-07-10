@@ -549,7 +549,8 @@ fun HomeScreenNewPreview() {
             uiState = previewState,
             onMarkAsTaken = {}, // No-op for preview
             onRefresh = {}, // No-op for preview
-            navController = rememberNavController() // Pass a dummy NavController
+            navController = rememberNavController(), // Pass a dummy NavController
+            onWatchIconClick = {} // Add dummy handler for preview
         )
     }
 }

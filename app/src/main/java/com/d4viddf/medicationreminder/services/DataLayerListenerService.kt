@@ -2,27 +2,26 @@ package com.d4viddf.medicationreminder.services
 
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
-
 import android.util.Log
-import com.d4viddf.medicationreminder.data.MedicationFullSyncItem // New Sync Model
+import com.d4viddf.medicationreminder.data.MedicationFullSyncItem
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem // New Sync Model
+import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem
 import com.d4viddf.medicationreminder.data.ScheduleType // Enum for schedule type
 import com.d4viddf.medicationreminder.data.TodayScheduleItem
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.repository.MedicationTypeRepository // For medication type details
+import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.google.gson.Gson // Already here from previous change, good.
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await // Already here from previous change, good.
+import kotlinx.coroutines.tasks.await
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -40,13 +39,14 @@ class DataLayerListenerService : WearableListenerService() {
     @Inject
     lateinit var medicationReminderRepository: MedicationReminderRepository
     @Inject
-    lateinit var medicationRepository: MedicationRepository // Added
+    lateinit var medicationRepository: MedicationRepository
     @Inject
-    lateinit var scheduleRepository: MedicationScheduleRepository // Added
+    lateinit var scheduleRepository: MedicationScheduleRepository
+    @Inject
+    lateinit var medicationTypeRepository: MedicationTypeRepository
 
-    private val dataClient by lazy { Wearable.getDataClient(this) } // Added
-    private val gson by lazy { Gson() } // Added
-
+    private val dataClient by lazy { Wearable.getDataClient(this) }
+    private val gson by lazy { Gson() }
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -73,13 +73,22 @@ class DataLayerListenerService : WearableListenerService() {
                             val success = medicationReminderRepository.markReminderAsTaken(reminderId, currentTimeIso)
                             if (success) {
                                 Log.i(TAG, "Reminder $reminderId marked as taken successfully via watch.")
-                                // Now fetch the medicationId for this reminder to update its schedule
                                 val reminder = medicationReminderRepository.getReminderById(reminderId)
                                 if (reminder != null) {
                                     val medicationId = reminder.medicationId
-                                    // Fetch and sync the updated schedule for this medication
                                     val updatedScheduleItems = getTodayScheduleForMedication(medicationId)
-                                    syncTodayScheduleToWear(updatedScheduleItems)
+                                    val jsonPayload = gson.toJson(updatedScheduleItems.map { item ->
+                                        mapOf(
+                                            "id" to item.id,
+                                            "medicationName" to item.medicationName,
+                                            "time" to item.time.format(DateTimeFormatter.ofPattern("HH:mm")),
+                                            "isTaken" to item.isTaken,
+                                            "underlyingReminderId" to item.underlyingReminderId.toString(),
+                                            "medicationScheduleId" to item.medicationScheduleId,
+                                            "takenAt" to item.takenAt
+                                        )
+                                    })
+                                    sendDataToWear(PATH_TODAY_SCHEDULE_SYNC, jsonPayload, "today's schedule (update)")
                                 } else {
                                     Log.e(TAG, "Could not find reminder with ID $reminderId to get medicationId for sync.")
                                 }
@@ -94,7 +103,6 @@ class DataLayerListenerService : WearableListenerService() {
                     Log.e(TAG, "Could not parse reminder ID from message data: $reminderIdString")
                 }
             }
-            // Add other message paths here if needed
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
             }
@@ -103,10 +111,9 @@ class DataLayerListenerService : WearableListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceJob.cancel() // Cancel coroutines when the service is destroyed
+        serviceJob.cancel()
     }
 
-    // Adapted from MedicationReminderViewModel
     private suspend fun getTodayScheduleForMedication(medicationId: Int): List<TodayScheduleItem> {
         val funcTag = "DataLayerListenerSvc.getTodaySchedule[MedId:$medicationId]"
         Log.d(TAG, "$funcTag: Starting to load today's schedule.")
@@ -119,7 +126,6 @@ class DataLayerListenerService : WearableListenerService() {
 
         if (!medication.endDate.isNullOrBlank()) {
             try {
-                // Use the same date format as ReminderCalculator.dateStorableFormatter
                 val endDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 val endDateValue = LocalDate.parse(medication.endDate, endDateFormatter)
                 if (endDateValue.isBefore(LocalDate.now())) {
@@ -135,7 +141,7 @@ class DataLayerListenerService : WearableListenerService() {
         val today = LocalDate.now()
         val currentTime = LocalTime.now()
         val potentialSlotsToday = mutableListOf<TodayScheduleItem>()
-        val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME // Added
+        val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
         val allDbReminders = medicationReminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
 
@@ -244,26 +250,18 @@ class DataLayerListenerService : WearableListenerService() {
                 .thenByDescending { it.underlyingReminderId != 0L }
                 .thenByDescending { it.isTaken }
         )
-        val distinctList = sortedList.distinctBy {
+        return sortedList.distinctBy {
             if (it.isTaken && it.underlyingReminderId != 0L) "db_taken_${it.underlyingReminderId}"
             else if (it.isTaken && it.takenAt != null) "adhoc_taken_${it.takenAt}"
             else "slot_untaken_${it.medicationScheduleId}_${it.time.truncatedTo(ChronoUnit.MINUTES)}"
         }
-        Log.i(TAG, "$funcTag: Final list size: ${distinctList.size}.")
-        return distinctList
     }
 
-
-    @Inject
-    lateinit var medicationTypeRepository: MedicationTypeRepository // Added for type info
-
-
-    // Generic method to send data to wear
     private fun sendDataToWear(path: String, jsonData: String, itemTypeForLog: String) {
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val putDataMapReq = PutDataMapRequest.create(path)
-                putDataMapReq.dataMap.putString("sync_data_json", jsonData) // Generic key
+                putDataMapReq.dataMap.putString("sync_data_json", jsonData)
                 putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
                 val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
                 dataClient.putDataItem(putDataReq).await()
@@ -278,12 +276,10 @@ class DataLayerListenerService : WearableListenerService() {
         private const val TAG = "DataLayerListenerSvc"
         private const val PATH_MARK_AS_TAKEN = "/mark_as_taken"
         private const val PATH_REQUEST_INITIAL_SYNC = "/request_initial_sync"
-        private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync" // New path for full data
-        // Old path for today's schedule, can be deprecated or kept for specific updates
+        private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync"
         private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule"
     }
 
-    // Modified method to trigger a full sync with comprehensive data
     private suspend fun triggerFullSyncToWear() {
         Log.i(TAG, "Starting full medication data sync to Wear OS.")
         val allDbMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
@@ -297,10 +293,9 @@ class DataLayerListenerService : WearableListenerService() {
         val medicationFullSyncItems = mutableListOf<MedicationFullSyncItem>()
 
         for (medication in allDbMedications) {
-            // Filter out medications that have an end date in the past
             if (!medication.endDate.isNullOrBlank()) {
                 try {
-                    val endDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy") // Assuming this format from your codebase
+                    val endDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
                     val endDateValue = LocalDate.parse(medication.endDate, endDateFormatter)
                     if (endDateValue.isBefore(LocalDate.now())) {
                         Log.i(TAG, "Skipping medication ${medication.name} (ID: ${medication.id}) for sync as its endDate ($endDateValue) is in the past.")
@@ -313,30 +308,28 @@ class DataLayerListenerService : WearableListenerService() {
 
             val schedulesForMed = scheduleRepository.getSchedulesForMedication(medication.id).firstOrNull() ?: emptyList()
             val scheduleDetailSyncItems = schedulesForMed.mapNotNull { schedule ->
-                // Basic validation: if schedule type is specific times but no times are set, it might be invalid
-                if (schedule.scheduleType == ScheduleType.DAILY_SPECIFIC_TIMES && schedule.specificTimes.isNullOrEmpty()) {
-                    Log.w(TAG, "Medication ${medication.id}, Schedule ${schedule.id} is DAILY_SPECIFIC_TIMES but has no specific times. Skipping this schedule.")
-                    null // Skip this invalid schedule
+                if ((schedule.scheduleType == ScheduleType.DAILY || schedule.scheduleType == ScheduleType.CUSTOM_ALARMS) && schedule.specificTimes.isNullOrEmpty()) {
+                    Log.w(TAG, "Medication ${medication.id}, Schedule ${schedule.id} is ${schedule.scheduleType.name} but has no specific times. Skipping this schedule.")
+                    null
                 } else {
                     MedicationScheduleDetailSyncItem(
-                        scheduleId = schedule.id,
-                        scheduleType = schedule.scheduleType.name, // Convert enum to string
-                        specificTimes = schedule.specificTimes?.map { LocalTime.parse(it).format(DateTimeFormatter.ofPattern("HH:mm")) },
+                        scheduleId = schedule.id.toLong(),
+                        scheduleType = schedule.scheduleType.name,
+                        specificTimes = schedule.specificTimes?.map { it.format(DateTimeFormatter.ofPattern("HH:mm")) },
                         intervalHours = schedule.intervalHours,
                         intervalMinutes = schedule.intervalMinutes,
                         intervalStartTime = schedule.intervalStartTime?.let { LocalTime.parse(it).format(DateTimeFormatter.ofPattern("HH:mm")) },
                         intervalEndTime = schedule.intervalEndTime?.let { LocalTime.parse(it).format(DateTimeFormatter.ofPattern("HH:mm")) },
-                        dailyRepetitionDays = schedule.daysOfWeek // Assuming daysOfWeek is already List<String> like ["MONDAY", "TUESDAY"]
+                        dailyRepetitionDays = schedule.daysOfWeek?.map { it.name }
                     )
                 }
             }
 
-            if (schedulesForMed.isNotEmpty() && scheduleDetailSyncItems.isEmpty() && schedulesForMed.any { it.scheduleType == ScheduleType.DAILY_SPECIFIC_TIMES && it.specificTimes.isNullOrEmpty()}) {
-                // This case means all schedules for this medication were skipped due to being invalid (e.g. specific times type with no times)
-                Log.w(TAG, "Medication ${medication.name} (ID: ${medication.id}) has schedules, but all were deemed invalid for sync (e.g., specific times type with no times). Skipping this medication from sync.")
-                continue // Skip this medication if all its schedules are invalid
+            if (schedulesForMed.isNotEmpty() && scheduleDetailSyncItems.isEmpty() &&
+                schedulesForMed.any { (it.scheduleType == ScheduleType.DAILY || it.scheduleType == ScheduleType.CUSTOM_ALARMS) && it.specificTimes.isNullOrEmpty() }) {
+                Log.w(TAG, "Medication ${medication.name} (ID: ${medication.id}) has schedules, but all were deemed invalid for sync. Skipping this medication.")
+                continue
             }
-
 
             var medicationTypeName: String? = null
             var medicationIconUrl: String? = null
@@ -355,8 +348,8 @@ class DataLayerListenerService : WearableListenerService() {
                     typeName = medicationTypeName,
                     typeIconUrl = medicationIconUrl,
                     schedules = scheduleDetailSyncItems,
-                    startDate = medication.startDate, // Assuming format "dd/MM/yyyy"
-                    endDate = medication.endDate // Assuming format "dd/MM/yyyy"
+                    startDate = medication.startDate,
+                    endDate = medication.endDate
                 )
             )
         }
@@ -368,9 +361,5 @@ class DataLayerListenerService : WearableListenerService() {
         val jsonToSend = gson.toJson(medicationFullSyncItems)
         sendDataToWear(PATH_FULL_MED_DATA_SYNC, jsonToSend, "full medication data")
         Log.i(TAG, "Full medication data sync triggered. Sent ${medicationFullSyncItems.size} medication items.")
-
-        // For backwards compatibility or specific today's view, you might still want to send the old format:
-        // val todayScheduleItems = medicationFullSyncItems.flatMap { medSyncItem -> ... convert to TodayScheduleItem ... }
-        // sendDataToWear(PATH_TODAY_SCHEDULE_SYNC, gson.toJson(todayScheduleItems), "today's schedule")
     }
 }
