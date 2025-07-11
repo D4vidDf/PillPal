@@ -90,11 +90,12 @@ class MedicationTileService : TileService() {
                 TileBuilders.Tile.Builder()
                     .setResourcesVersion(RESOURCES_VERSION)
                     .setTimeline(
-                        TimelineBuilders.Timeline.Builder().addTimelineEntry( // Use TimelineBuilders
-                            TimelineBuilders.TimelineEntry.Builder().setLayout( // Use TimelineBuilders
-                                LayoutElementBuilders.Layout.Builder().setRoot(
+                        TimelineBuilders.Timeline.Builder().addTimelineEntry(
+                            TimelineBuilders.TimelineEntry.Builder().setLayout(
+                                // Use Layout.fromLayoutElement, ensuring it's from protolayout.LayoutElementBuilders
+                                androidx.wear.protolayout.LayoutElementBuilders.Layout.fromLayoutElement(
                                     tileLayout(this, nextReminderInfo, requestParams.deviceConfiguration)
-                                ).build()
+                                )
                             ).build()
                         ).build()
                     )
