@@ -98,12 +98,31 @@ class MedicationTileService : TileService() {
                 fetchNextReminder()
             },
             { nextReminderInfo ->
+                // Create the timeline using the fetched reminder info
+                val singleTileTimeline = TimelineBuilders.Timeline.Builder()
+                    .addTimelineEntry(
+                        TimelineBuilders.TimelineEntry.Builder()
+                            .setLayout(
+                                LayoutElementBuilders.Layout.Builder()
+                                    .setRoot(
+                                        tileLayout( // Call tileLayout here
+                                            this@MedicationTileService, // Context
+                                            nextReminderInfo,
+                                            requestParams.deviceConfiguration // DeviceParameters
+                                        )
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+
                 TileBuilders.Tile.Builder()
                     .setResourcesVersion(RESOURCES_VERSION)
-
+                    .setTileTimeline(singleTileTimeline) // Set the timeline here
                     .build()
             },
-            ContextCompat.getMainExecutor(this) // Corrected executor usage
+            ContextCompat.getMainExecutor(this)
         )
     }
 
