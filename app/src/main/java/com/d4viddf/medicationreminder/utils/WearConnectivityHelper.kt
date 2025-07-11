@@ -109,7 +109,7 @@ class WearConnectivityHelper @Inject constructor(
     }
 
     fun openPlayStoreOnWatch(nodeId: String) {
-        val watchAppPackageName = "com.d4viddf.medicationreminder.wear"
+        val watchAppPackageName = "com.d4viddf.medicationreminder"
         val playStoreUri = Uri.parse("market://details?id=$watchAppPackageName")
         val intent = Intent(Intent.ACTION_VIEW)
             .setData(playStoreUri)

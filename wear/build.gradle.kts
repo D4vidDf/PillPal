@@ -13,8 +13,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 26
+        versionName = "0.0.2_wear"
 
     }
 
