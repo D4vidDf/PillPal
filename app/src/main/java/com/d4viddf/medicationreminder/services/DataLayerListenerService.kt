@@ -32,6 +32,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import com.d4viddf.medicationreminder.utils.WearConnectivityHelper // Added import
 
 @AndroidEntryPoint
 class DataLayerListenerService : WearableListenerService() {

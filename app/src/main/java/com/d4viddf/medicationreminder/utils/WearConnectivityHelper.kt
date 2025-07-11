@@ -44,6 +44,27 @@ class WearConnectivityHelper @Inject constructor(
         }
     }
 
+    suspend fun isAppInstalledOnNode(nodeId: String): Boolean {
+        if (!isWatchConnected()) {
+            Log.d(TAG, "isAppInstalledOnNode: No watch connected, returning false for node $nodeId.")
+            return false
+        }
+        try {
+            Log.d(TAG, "isAppInstalledOnNode: Checking capability $WATCH_APP_CAPABILITY for specific node $nodeId")
+            val capabilityInfo = capabilityClient
+                .getCapability(WATCH_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
+                .await()
+            // Check if the specific node is in the list of nodes with the capability and is nearby
+            val nodeInCapability = capabilityInfo.nodes.find { it.id == nodeId }
+            val isInstalledOnThisNode = nodeInCapability != null && nodeInCapability.isNearby
+            Log.d(TAG, "isAppInstalledOnNode: App installed on node $nodeId and nearby: $isInstalledOnThisNode")
+            return isInstalledOnThisNode
+        } catch (e: Exception) {
+            Log.e(TAG, "isAppInstalledOnNode: Error checking capability for node $nodeId", e)
+            return false
+        }
+    }
+
     fun observeConnectionStatus(): Flow<Boolean> = flow {
         emit(isWatchConnected())
         // A more robust implementation would use a listener for NodeClient or CapabilityClient
