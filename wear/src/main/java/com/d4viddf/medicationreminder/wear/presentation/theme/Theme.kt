@@ -3,8 +3,8 @@ package com.d4viddf.medicationreminder.wear.presentation.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.protolayout.material.LayoutElementBuilders.LayoutColor
 import androidx.wear.protolayout.material3.ColorScheme
+import androidx.wear.protolayout.types.LayoutColor
 
 // Define M3 Color Scheme
 private val LightColors = ColorScheme(
