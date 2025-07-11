@@ -44,6 +44,27 @@ class WearConnectivityHelper @Inject constructor(
         }
     }
 
+    suspend fun isAppInstalledOnNode(nodeId: String): Boolean {
+        if (!isWatchConnected()) {
+            Log.d(TAG, "isAppInstalledOnNode: No watch connected, returning false for node $nodeId.")
+            return false
+        }
+        try {
+            Log.d(TAG, "isAppInstalledOnNode: Checking capability $WATCH_APP_CAPABILITY for specific node $nodeId")
+            val capabilityInfo = capabilityClient
+                .getCapability(WATCH_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
+                .await()
+            // Check if the specific node is in the list of nodes with the capability and is nearby
+            val nodeInCapability = capabilityInfo.nodes.find { it.id == nodeId }
+            val isInstalledOnThisNode = nodeInCapability != null && nodeInCapability.isNearby
+            Log.d(TAG, "isAppInstalledOnNode: App installed on node $nodeId and nearby: $isInstalledOnThisNode")
+            return isInstalledOnThisNode
+        } catch (e: Exception) {
+            Log.e(TAG, "isAppInstalledOnNode: Error checking capability for node $nodeId", e)
+            return false
+        }
+    }
+
     fun observeConnectionStatus(): Flow<Boolean> = flow {
         emit(isWatchConnected())
         // A more robust implementation would use a listener for NodeClient or CapabilityClient
@@ -132,6 +153,32 @@ class WearConnectivityHelper @Inject constructor(
 
         } catch (e: Exception) {
             Log.e(TAG, "Exception while trying to open Play Store on watch for node $nodeId: ${e.message}", e)
+        }
+    }
+
+    fun openPlayStoreOnPhone() {
+        // Opens the Play Store on the phone to the Wear OS app's page.
+        // The package name is the same for the Wear OS app module.
+        val wearAppPackageName = "com.d4viddf.medicationreminder.wear" // Make sure this is the applicationId of your wear module
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$wearAppPackageName")).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            Log.d(TAG, "openPlayStoreOnPhone: Attempting to open Play Store on phone for $wearAppPackageName")
+            context.startActivity(intent)
+        } catch (e: android.content.ActivityNotFoundException) {
+            Log.e(TAG, "openPlayStoreOnPhone: Play Store app not found on phone.", e)
+            // Fallback to website if Play Store app is not available
+            try {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$wearAppPackageName")).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(webIntent)
+            } catch (webEx: Exception) {
+                Log.e(TAG, "openPlayStoreOnPhone: Could not open Play Store via web browser either.", webEx)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "openPlayStoreOnPhone: Error opening Play Store on phone for $wearAppPackageName", e)
         }
     }
 }

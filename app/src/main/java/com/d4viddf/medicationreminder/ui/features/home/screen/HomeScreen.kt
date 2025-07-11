@@ -195,31 +195,36 @@ internal fun HomeScreenContent(
                     val context = LocalContext.current
 
                     // Watch Icon Button
-                    IconButton(onClick = onWatchIconClick) { // Use the passed callback
-                        val watchIcon = when (uiState.watchStatus) {
-                            WatchStatus.NOT_CONNECTED -> Icons.Outlined.CloudOff
-                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> Icons.Outlined.Download
-                            WatchStatus.CONNECTED_APP_INSTALLED -> Icons.Filled.Watch // Or Icons.Outlined.Watch for a consistent style
-                            WatchStatus.UNKNOWN -> Icons.Filled.Watch // Default
-                        }
-                        val iconTint = when (uiState.watchStatus) {
-                            WatchStatus.NOT_CONNECTED -> Color.Gray
-                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> MaterialTheme.colorScheme.error // Or a warning color
-                            WatchStatus.CONNECTED_APP_INSTALLED -> MaterialTheme.colorScheme.primary
-                            WatchStatus.UNKNOWN -> LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
-                        }
-                        val contentDescRes = when (uiState.watchStatus) {
-                            WatchStatus.NOT_CONNECTED -> R.string.home_button_cd_watch_not_connected
-                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> R.string.home_button_cd_watch_app_not_installed
-                            WatchStatus.CONNECTED_APP_INSTALLED -> R.string.home_button_cd_watch_connected
-                            WatchStatus.UNKNOWN -> R.string.home_button_cd_connect_wear_os // Default
+                    IconButton(onClick = onWatchIconClick) {
+                        val isWatchConnected = uiState.watchStatus == WatchStatus.CONNECTED_APP_INSTALLED ||
+                                uiState.watchStatus == WatchStatus.CONNECTED_APP_NOT_INSTALLED
+
+                        val iconTint = if (isWatchConnected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current.copy(alpha = LocalContentAlpha.current) // Muted if not connected
                         }
 
-                        Icon(
-                            imageVector = watchIcon,
-                            contentDescription = context.getString(contentDescRes),
-                            tint = iconTint
-                        )
+                        val contentDesc = if (isWatchConnected) {
+                            stringResource(R.string.home_button_cd_watch_connected_settings) // New string resource needed
+                        } else {
+                            stringResource(R.string.home_button_cd_watch_disconnected_settings) // New string resource needed
+                        }
+
+                        BadgedBox(
+                            badge = {
+                                if (isWatchConnected) {
+                                    Badge() // Shows a small dot
+                                }
+                            },
+                            modifier = Modifier.semantics { contentDescription = contentDesc }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Watch, // Static Watch Icon
+                                contentDescription = null, // Content description handled by BadgedBox
+                                tint = iconTint
+                            )
+                        }
                     }
 
                     // Notifications Icon Button

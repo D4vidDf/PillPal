@@ -73,47 +73,8 @@ open class HomeViewModel @Inject constructor(
 
     fun handleWatchIconClick() {
         viewModelScope.launch {
-            when (_uiState.value.watchStatus) {
-                WatchStatus.NOT_CONNECTED -> {
-                    // Guide user to Wear OS pairing or Bluetooth settings
-                    // Try specific Wear OS setup intent first
-                    val wearSetupIntent = Intent("com.google.android.gms.wearable.SETUP_WEARABLE_API")
-                    wearSetupIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    try {
-                        application.startActivity(wearSetupIntent)
-                        Log.i("HomeViewModel", "Attempting to launch Wear OS setup.")
-                    } catch (e: Exception) {
-                        Log.w("HomeViewModel", "Wear OS setup intent failed, falling back to Bluetooth settings.", e)
-                        // Fallback to general Bluetooth settings
-                        val bluetoothSettingsIntent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
-                        bluetoothSettingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        try {
-                            application.startActivity(bluetoothSettingsIntent)
-                        } catch (settingsException: Exception) {
-                            Log.e("HomeViewModel", "Could not launch Bluetooth settings.", settingsException)
-                            // Potentially show a toast to the user that settings could not be opened
-                        }
-                    }
-                }
-                WatchStatus.CONNECTED_APP_NOT_INSTALLED -> {
-                    val nodeId = wearConnectivityHelper.getConnectedWatchNodeId()
-                    if (nodeId != null) {
-                        wearConnectivityHelper.openPlayStoreOnWatch(nodeId)
-                    } else {
-                        Log.w("HomeViewModel", "Watch connected but node ID is null, cannot open Play Store.")
-                        // Optionally, trigger a status refresh or inform user
-                    }
-                }
-                WatchStatus.CONNECTED_APP_INSTALLED -> {
-                    Log.i("HomeViewModel", "Watch icon clicked: App installed. Navigating to Connected Devices screen.")
-                    _navigationChannel.send(com.d4viddf.medicationreminder.ui.navigation.Screen.ConnectedDevices.route)
-                }
-                WatchStatus.UNKNOWN -> {
-                    // Optionally, trigger a status refresh
-                    Log.i("HomeViewModel", "Watch icon clicked: Status UNKNOWN. Refreshing status.")
-                    updateWatchStatus()
-                }
-            }
+            Log.i("HomeViewModel", "Watch icon clicked. Navigating to Connected Devices screen.")
+            _navigationChannel.send(com.d4viddf.medicationreminder.ui.navigation.Screen.ConnectedDevices.route)
         }
     }
 

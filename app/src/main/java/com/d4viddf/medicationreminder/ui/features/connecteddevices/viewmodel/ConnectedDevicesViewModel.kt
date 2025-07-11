@@ -20,7 +20,8 @@ import javax.inject.Inject
 data class ConnectedDeviceUiItem(
     val id: String,
     val displayName: String,
-    val isNearby: Boolean
+    val isNearby: Boolean,
+    val isAppInstalled: Boolean // Added app installed status
 )
 
 data class ConnectedDevicesScreenState(
@@ -56,8 +57,18 @@ class ConnectedDevicesViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 val nodes = nodeClient.connectedNodes.await()
+                val deviceItems = nodes.map { node ->
+                    // For each node, check if the app is installed
+                    val isAppInstalled = wearConnectivityHelper.isAppInstalledOnNode(node.id) // Use new method
+                    ConnectedDeviceUiItem(
+                        id = node.id,
+                        displayName = node.displayName,
+                        isNearby = node.isNearby,
+                        isAppInstalled = isAppInstalled
+                    )
+                }
                 _uiState.value = _uiState.value.copy(
-                    connectedDevices = nodes.map { ConnectedDeviceUiItem(it.id, it.displayName, it.isNearby) },
+                    connectedDevices = deviceItems,
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -132,5 +143,11 @@ class ConnectedDevicesViewModel @Inject constructor(
 
     fun consumedSyncErrorMessage() {
         _uiState.value = _uiState.value.copy(showSyncErrorMessage = false)
+    }
+
+    fun openPlayStoreOnWatch(nodeId: String) {
+        viewModelScope.launch {
+            wearConnectivityHelper.openPlayStoreOnWatch(nodeId)
+        }
     }
 }

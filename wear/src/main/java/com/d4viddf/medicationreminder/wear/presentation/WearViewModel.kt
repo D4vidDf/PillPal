@@ -251,4 +251,29 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         // The listener will simply stop being active when the ViewModel's scope is cleared.
         Log.d(TAG, "ViewModel cleared, capability listener removed.")
     }
+
+    fun requestPhoneToOpenPlayStore() {
+        viewModelScope.launch {
+            try {
+                val capabilityInfo = capabilityClient
+                    .getCapability(PHONE_APP_CAPABILITY_NAME, CapabilityClient.FILTER_REACHABLE)
+                    .await()
+                val phoneNode = capabilityInfo.nodes.firstOrNull { it.isNearby }
+
+                if (phoneNode != null) {
+                    messageClient.sendMessage(phoneNode.id, "/open_play_store", ByteArray(0)) // Using the path defined in phone app's DataLayerListenerService
+                        .addOnSuccessListener {
+                            Log.i(TAG, "Request to open Play Store on phone sent to ${phoneNode.displayName}")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Failed to send request to open Play Store on phone", e)
+                        }
+                } else {
+                    Log.w(TAG, "Cannot request phone to open Play Store: No connected phone node found with capability $PHONE_APP_CAPABILITY_NAME.")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception while requesting phone to open Play Store", e)
+            }
+        }
+    }
 }

@@ -75,7 +75,8 @@ fun ConnectedDevicesScreen(
             uiState = uiState,
             onRefreshDevices = { viewModel.fetchConnectedDevices() },
             onSyncData = { viewModel.triggerSyncWithWatch() },
-            onPairDevice = { viewModel.openPairingFlow() }
+            onPairDevice = { viewModel.openPairingFlow() },
+            onDownloadApp = { nodeId -> viewModel.openPlayStoreOnWatch(nodeId) } // Pass action to ViewModel
         )
     }
 }
@@ -86,7 +87,8 @@ fun ConnectedDevicesScreenContent(
     uiState: ConnectedDevicesScreenState,
     onRefreshDevices: () -> Unit,
     onSyncData: () -> Unit,
-    onPairDevice: () -> Unit
+            onPairDevice: () -> Unit,
+            onDownloadApp: (String) -> Unit // Added callback for downloading app
 ) {
     Column(
         modifier = modifier
@@ -107,7 +109,7 @@ fun ConnectedDevicesScreenContent(
                 )
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(uiState.connectedDevices, key = { it.id }) { device ->
-                        DeviceItem(device = device)
+                        DeviceItem(device = device, onDownloadApp = { onDownloadApp(device.id) })
                     }
                 }
             }
@@ -117,7 +119,7 @@ fun ConnectedDevicesScreenContent(
 
         Button(
             onClick = onSyncData,
-            enabled = uiState.connectedDevices.any { it.isNearby } && !uiState.isLoading
+            enabled = uiState.connectedDevices.any { it.isNearby && it.isAppInstalled } && !uiState.isLoading // Sync enabled if app installed
         ) {
             Icon(Icons.Filled.Sync, contentDescription = "Sync Icon", modifier = Modifier.size(ButtonDefaults.IconSize))
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
@@ -131,7 +133,7 @@ fun ConnectedDevicesScreenContent(
 }
 
 @Composable
-fun DeviceItem(device: ConnectedDeviceUiItem) {
+fun DeviceItem(device: ConnectedDeviceUiItem, onDownloadApp: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -141,16 +143,31 @@ fun DeviceItem(device: ConnectedDeviceUiItem) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(Icons.Filled.Watch, contentDescription = "Watch device", modifier = Modifier.size(40.dp))
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = device.displayName, style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = if (device.isNearby) "Nearby" else "Not nearby (connection may be limited)",
-                    style = MaterialTheme.typography.bodySmall
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Watch, contentDescription = "Watch device", modifier = Modifier.size(40.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(text = device.displayName, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = if (device.isNearby) "Nearby" else "Not nearby",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (!device.isAppInstalled) {
+                        Text(
+                            text = "App not installed",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+            if (!device.isAppInstalled && device.isNearby) {
+                Button(onClick = onDownloadApp) {
+                    Text("Download App")
+                }
             }
         }
     }
@@ -200,7 +217,8 @@ fun ConnectedDevicesScreenContentPreview_NoDevices() {
             uiState = ConnectedDevicesScreenState(connectedDevices = emptyList(), isLoading = false),
             onRefreshDevices = {},
             onSyncData = {},
-            onPairDevice = {}
+            onPairDevice = {},
+            onDownloadApp = {} // Added
         )
     }
 }
@@ -212,14 +230,15 @@ fun ConnectedDevicesScreenContentPreview_WithDevices() {
         ConnectedDevicesScreenContent(
             uiState = ConnectedDevicesScreenState(
                 connectedDevices = listOf(
-                    ConnectedDeviceUiItem("node1", "Pixel Watch", true),
-                    ConnectedDeviceUiItem("node2", "Galaxy Watch", false)
+                    ConnectedDeviceUiItem("node1", "Pixel Watch", true, isAppInstalled = true), // Added isAppInstalled
+                    ConnectedDeviceUiItem("node2", "Galaxy Watch", false, isAppInstalled = false) // Added isAppInstalled
                 ),
                 isLoading = false
             ),
             onRefreshDevices = {},
             onSyncData = {},
-            onPairDevice = {}
+            onPairDevice = {},
+            onDownloadApp = {} // Added
         )
     }
 }

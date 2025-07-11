@@ -38,6 +38,17 @@ import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Wearable
 
+// Import M3 theme and components
+import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
+import com.d4viddf.medicationreminder.wear.presentation.components.ConnectionStatusIcon
+import com.d4viddf.medicationreminder.wear.presentation.components.MedicationReminderChip
+// M3 Text if needed, though current Text calls might resolve to M2 Text if not fully qualified
+import androidx.wear.compose.material3.Text as M3Text
+// M2 MaterialTheme is used by Scaffold, TimeText etc. If Scaffold becomes M3, this will change.
+// For now, let M2 MaterialTheme be the one for the overall screen, components use M3 theme internally if they are M3.
+// This can lead to inconsistencies, ideal solution is full M3 screen.
+
+
 class WearActivity : ComponentActivity() {
 
     // 1. Declare CapabilityClient and the capability name
@@ -82,10 +93,10 @@ fun MainAppScreen(viewModel: WearViewModel) {
 
     val listState = rememberScalingLazyListState()
 
-    MaterialTheme {
-        Scaffold(
-            timeText = { TimeText() },
-            vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
+    MedicationReminderTheme { // Use M3 Theme
+        Scaffold( // This is M2 Scaffold. For full M3, this would be androidx.wear.compose.material3.Scaffold
+            timeText = { TimeText() }, // M2 TimeText
+            vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) }, // M2 Vignette
             positionIndicator = { PositionIndicator(scalingLazyListState = listState) }
         ) {
             ScalingLazyColumn(
@@ -99,14 +110,14 @@ fun MainAppScreen(viewModel: WearViewModel) {
 
                 if (nextDoseGroup.isNotEmpty()) {
                     item {
-                        Text(
-                            text = "Next: ${nextDoseGroup.first().time}", // All in group have same time
-                            style = MaterialTheme.typography.title3,
+                        M3Text( // Use M3Text
+                            text = "Next: ${nextDoseGroup.first().time}",
+                            style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
                     items(nextDoseGroup, key = { it.id }) { reminder ->
-                        MedicationReminderChip(
+                        MedicationReminderChip( // This is now the imported M3 version
                             reminder = reminder,
                             onChipClick = { viewModel.markReminderAsTaken(reminder.underlyingReminderId) }
                         )
@@ -120,15 +131,15 @@ fun MainAppScreen(viewModel: WearViewModel) {
                         val remindersForTime = laterDoses.filter { it.time == time }
                         if (remindersForTime.isNotEmpty()) {
                             item {
-                                Text(
+                                M3Text( // Use M3Text
                                     text = "Later: $time",
-                                    style = MaterialTheme.typography.title3,
+                                    style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                                         .fillMaxWidth()
                                 )
                             }
                             items(remindersForTime, key = { it.id }) { reminder ->
-                                MedicationReminderChip(
+                                MedicationReminderChip( // Imported M3 version
                                     reminder = reminder,
                                     onChipClick = { viewModel.markReminderAsTaken(reminder.underlyingReminderId) }
                                 )
@@ -139,9 +150,9 @@ fun MainAppScreen(viewModel: WearViewModel) {
 
                 if (upcomingReminders.isEmpty()) {
                     item {
-                        Text(
+                        M3Text( // Use M3Text
                             text = if (isConnected) "No upcoming medications." else "Disconnected. Waiting for data...",
-                            style = MaterialTheme.typography.body1,
+                            style = androidx.wear.compose.material3.MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(16.dp)
                         )
                     }
@@ -151,14 +162,14 @@ fun MainAppScreen(viewModel: WearViewModel) {
                 val takenReminders = reminders.filter { it.isTaken }.sortedByDescending { it.time }
                 if (takenReminders.isNotEmpty()) {
                     item {
-                        Text(
+                        M3Text( // Use M3Text
                             text = "Taken Today",
-                            style = MaterialTheme.typography.title3,
+                            style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp).fillMaxWidth()
                         )
                     }
                     items(takenReminders, key = { "taken_${it.id}" }) { reminder ->
-                        MedicationReminderChip(
+                        MedicationReminderChip( // Imported M3 version
                             reminder = reminder,
                             onChipClick = { /* No action for already taken items */ },
                             isTakenDisplay = true
@@ -170,77 +181,14 @@ fun MainAppScreen(viewModel: WearViewModel) {
     }
 }
 
-@Composable
-fun ConnectionStatusIcon(isConnected: Boolean) {
-    // USER: Please provide ic_watch_connected.xml and ic_watch_disconnected.xml drawables
-    // For now, using a placeholder if R.drawable.ic_watch_connected is not available.
-    // Using medication_filled as a stand-in for both and tinting it.
-    val iconRes = if (isConnected) R.drawable.medication_filled /* R.drawable.ic_watch_connected */ else R.drawable.medication_filled /* R.drawable.ic_watch_disconnected */
-    val tintColor = if (isConnected) Color.Green else Color.Red
-    Icon(
-        painter = painterResource(id = iconRes),
-        contentDescription = if (isConnected) "Connected to phone" else "Disconnected from phone",
-        tint = tintColor,
-        modifier = Modifier
-            .size(24.dp)
-            .padding(top = 4.dp)
-    )
-}
+// REMOVE local ConnectionStatusIcon definition - it's now imported
+// @Composable
+// fun ConnectionStatusIcon(isConnected: Boolean) { ... }
 
 
-@Composable
-fun MedicationReminderChip(
-    reminder: WearReminder,
-    onChipClick: () -> Unit,
-    isTakenDisplay: Boolean = false
-) {
-    Chip(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        icon = {
-            if (isTakenDisplay || reminder.isTaken) {
-                // USER: Please provide ic_check_circle.xml drawable
-                Icon(
-                    painter = painterResource(id = R.drawable.medication_filled /* R.drawable.ic_check_circle */),
-                    contentDescription = "Taken",
-                    modifier = Modifier.size(ChipDefaults.IconSize),
-                    tint = Color.Green // Keeping tint for placeholder
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.medication_filled),
-                    contentDescription = "Medication icon",
-                    modifier = Modifier.size(ChipDefaults.IconSize),
-                    tint = MaterialTheme.colors.primary
-                )
-            }
-        },
-        label = {
-            Column {
-                Text(text = reminder.medicationName, fontWeight = FontWeight.Bold)
-                if (reminder.dosage != null) {
-                    Text(text = reminder.dosage, fontSize = 12.sp)
-                }
-            }
-        },
-        secondaryLabel = {
-             Text(text = reminder.time, fontSize = 12.sp)
-        },
-        onClick = {
-            if (!reminder.isTaken && !isTakenDisplay) {
-                onChipClick()
-            }
-        },
-        colors = if (isTakenDisplay || reminder.isTaken) {
-            ChipDefaults.secondaryChipColors()
-        } else {
-            ChipDefaults.primaryChipColors(
-                backgroundColor = MaterialTheme.colors.surface
-            )
-        }
-    )
-}
+// REMOVE local MedicationReminderChip definition - it's now imported
+// @Composable
+// fun MedicationReminderChip( ... ) { ... }
 
 // Sample data for preview and initial testing - using WearReminder
 val sampleWearReminders = listOf(

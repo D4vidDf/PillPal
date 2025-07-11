@@ -1,72 +1,70 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter to find the
- * most up to date changes to the libraries and their usages.
- */
-
 package com.d4viddf.medicationreminder.wear.presentation
 
+
+// Added missing imports
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
-import androidx.wear.tooling.preview.devices.WearDevices
-import com.d4viddf.medicationreminder.wear.R
-import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.d4viddf.medicationreminder.wear.presentation.components.WearApp
+
+
+const val PREFS_NAME = "MedicationReminderPrefs"
+const val KEY_FIRST_LAUNCH = "isFirstLaunch"
 
 class MainActivity : ComponentActivity() {
+    // Removed: private lateinit var wearViewModel: WearViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
-
         setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
-            WearApp("Android")
+            // ViewModel is initialized here, within a Composable context
+            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
+            WearApp(wearViewModel = wearViewModel)
         }
+    }
+    // Removed unused requestOpenPlayStoreOnPhone method from MainActivity
+}
+
+// Removed WearApp - moved to components/WearApp.kt
+
+// Removed RemindersContent - moved to components/RemindersContent.kt
+
+// Removed ConnectionStatusIcon - moved to components/ConnectionStatusIcon.kt
+
+// Removed MedicationReminderChip - moved to components/MedicationReminderChip.kt
+
+// Removed OnboardingScreen - moved to components/OnboardingScreen.kt
+
+// Removed DeviceNotConnectedScreen - moved to components/DeviceNotConnectedScreen.kt
+
+// Greeting function is unused and can be removed.
+// Removed Greeting
+
+fun checkAlarmPermission(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.SCHEDULE_EXACT_ALARM
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
     }
 }
 
-@Composable
-fun WearApp(greetingName: String) {
-    MedicationReminderTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
-        ) {
-            TimeText()
-            Greeting(greetingName = greetingName)
-        }
-    }
-}
+// Removed DefaultPreview - moved to components/WearApp.kt
 
-@Composable
-fun Greeting(greetingName: String) {
-    Text(
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colors.primary,
-        text = stringResource(R.string.hello_world, greetingName)
-    )
-}
+// Removed OnboardingPreview - moved to components/OnboardingScreen.kt
 
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
-}
+// Removed NotConnectedPreview - moved to components/DeviceNotConnectedScreen.kt
+
+// Removed WearAppConnectedPreview - moved to components/WearApp.kt
