@@ -48,6 +48,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
+import androidx.wear.tiles.TimelineBuilders // Added import for TimelineBuilders
 import androidx.wear.tooling.preview.devices.WearDevices
 import androidx.wear.compose.material.Text as ComposeText
 
@@ -88,9 +89,9 @@ class MedicationTileService : TileService() {
             { nextReminderInfo ->
                 TileBuilders.Tile.Builder()
                     .setResourcesVersion(RESOURCES_VERSION)
-                    .setTimeline( // Corrected method name: setTimeline
-                        TileBuilders.Timeline.Builder().addTimelineEntry(
-                            TileBuilders.TimelineEntry.Builder().setLayout(
+                    .setTimeline(
+                        TimelineBuilders.Timeline.Builder().addTimelineEntry( // Use TimelineBuilders
+                            TimelineBuilders.TimelineEntry.Builder().setLayout( // Use TimelineBuilders
                                 LayoutElementBuilders.Layout.Builder().setRoot(
                                     tileLayout(this, nextReminderInfo, requestParams.deviceConfiguration)
                                 ).build()
