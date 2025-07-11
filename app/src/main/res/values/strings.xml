@@ -405,4 +405,8 @@
     <string name="home_button_cd_watch_connected">Watch connected</string>
     <string name="home_button_cd_watch_app_not_installed">Watch connected, app not installed</string>
 
+    <!-- New strings for BadgedBox content description -->
+    <string name="home_button_cd_watch_connected_settings">Wear OS device connected. Open connection settings.</string>
+    <string name="home_button_cd_watch_disconnected_settings">Wear OS device not connected. Open connection settings.</string>
+
 </resources>
