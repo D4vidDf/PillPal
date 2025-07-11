@@ -47,8 +47,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -196,12 +198,7 @@ internal fun HomeScreenContent(
 
                     // Watch Icon Button
                     IconButton(onClick = onWatchIconClick) { // Use the passed callback
-                        val watchIcon = when (uiState.watchStatus) {
-                            WatchStatus.NOT_CONNECTED -> Icons.Outlined.CloudOff
-                            WatchStatus.CONNECTED_APP_NOT_INSTALLED -> Icons.Outlined.Download
-                            WatchStatus.CONNECTED_APP_INSTALLED -> Icons.Filled.Watch // Or Icons.Outlined.Watch for a consistent style
-                            WatchStatus.UNKNOWN -> Icons.Filled.Watch // Default
-                        }
+                        val watchIcon = painterResource(R.drawable.rounded_watch_24)
                         val iconTint = when (uiState.watchStatus) {
                             WatchStatus.NOT_CONNECTED -> Color.Gray
                             WatchStatus.CONNECTED_APP_NOT_INSTALLED -> MaterialTheme.colorScheme.error // Or a warning color
@@ -216,7 +213,7 @@ internal fun HomeScreenContent(
                         }
 
                         Icon(
-                            imageVector = watchIcon,
+                            watchIcon,
                             contentDescription = context.getString(contentDescRes),
                             tint = iconTint
                         )
