@@ -103,7 +103,7 @@ class MedicationTileService : TileService() {
                     .addTimelineEntry(
                         TimelineBuilders.TimelineEntry.Builder()
                             .setLayout(
-                                LayoutElementBuilders.Layout.Builder()
+                                androidx.wear.tiles.LayoutElementBuilders.Layout.Builder() // Explicitly use tiles version
                                     .setRoot(
                                         tileLayout( // Call tileLayout here
                                             this@MedicationTileService, // Context

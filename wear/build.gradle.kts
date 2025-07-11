@@ -88,6 +88,7 @@ dependencies {
 
     implementation(libs.androidx.wear.protolayout.material)
     implementation(libs.androidx.wear.protolayout.material3)
+    implementation("androidx.wear:protolayout-adapter:1.0.0") // Added adapter
 
     implementation(libs.androidx.tiles)
     implementation(libs.androidx.tiles.material)
