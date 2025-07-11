@@ -1,11 +1,7 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter to find the
- * most up to date changes to the libraries and their usages.
- */
-
 package com.d4viddf.medicationreminder.wear.presentation
 
 import android.Manifest
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -32,52 +28,45 @@ import androidx.wear.compose.material.*
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
-// Removed Node and Wearable imports from here, should be handled by ViewModel
-import kotlinx.coroutines.launch
-// Removed tasks.await from here
+import com.d4viddf.medicationreminder.wear.data.WearReminder // Import for WearReminder data class
+
+// Added missing imports
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
 
 const val PREFS_NAME = "MedicationReminderPrefs"
 const val KEY_FIRST_LAUNCH = "isFirstLaunch"
 
 class MainActivity : ComponentActivity() {
+    private lateinit var wearViewModel: WearViewModel // Declare ViewModel instance
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setTheme(android.R.style.Theme_DeviceDefault)
 
+        // Initialize ViewModel here
+        wearViewModel = viewModel(factory = WearViewModelFactory(application))
+
         setContent {
-            // Initialize ViewModel here
-            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
-            WearApp(wearViewModel = wearViewModel)
+            WearApp(wearViewModel = wearViewModel) // Pass only the ViewModel
         }
     }
-
-    // openPlayStoreOnPhone might be better in ViewModel or a helper if it needs context beyond activity
-    // For now, let it be here if WearApp calls it directly.
-    // However, the "Try Connection" button should now be more nuanced.
-    // If disconnected, it might mean "Try to connect" or "Open settings" or "Open on phone".
-    // The WearViewModel's requestInitialSync might be relevant here.
-    private fun openPlayStoreOnPhone() {
-        // This specific implementation sends a message to the phone.
-        // It should be triggered by the ViewModel based on its state.
-        // For now, this function can be called by the ViewModel.
-        val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
-        wearViewModel.requestPhoneToOpenPlayStore() // New method in ViewModel
-    }
+    // Removed unused requestOpenPlayStoreOnPhone method from MainActivity
 }
 
 @Composable
-fun WearApp(wearViewModel: WearViewModel) {
+fun WearApp(wearViewModel: WearViewModel) { // Removed mainActivity parameter
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     var isFirstLaunch by remember { mutableStateOf(sharedPreferences.getBoolean(KEY_FIRST_LAUNCH, true)) }
     var hasAlarmPermission by remember { mutableStateOf(checkAlarmPermission(context)) }
 
-    // Get connection status from ViewModel
     val isConnected by wearViewModel.isConnectedToPhone.collectAsState()
-    // Get reminders from ViewModel
     val reminders by wearViewModel.reminders.collectAsState()
-
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -94,7 +83,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                 .background(MaterialTheme.colors.background),
             contentAlignment = Alignment.Center
         ) {
-            TimeText() // Keep TimeText, common for Wear OS screens
+            TimeText()
 
             if (isFirstLaunch) {
                 OnboardingScreen(
@@ -105,7 +94,6 @@ fun WearApp(wearViewModel: WearViewModel) {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 permissionLauncher.launch(Manifest.permission.SCHEDULE_EXACT_ALARM)
                             }
-                            // After onboarding, the ViewModel should already be trying to connect/sync
                         }
                     },
                     hasAlarmPermission = hasAlarmPermission,
@@ -116,21 +104,13 @@ fun WearApp(wearViewModel: WearViewModel) {
                     }
                 )
             } else {
-                // After onboarding, show main content driven by ViewModel's state
-                // This combines logic from the original WearApp and MainAppScreen from WearActivity
                 if (!isConnected) {
                     DeviceNotConnectedScreen(
                         onTryConnection = {
-                            // This should trigger the ViewModel to attempt connection or guide user
-                            // For now, let's assume it means "ask phone to open play store to guide setup"
-                            // This would be a good candidate for a ViewModel action.
-                            wearViewModel.requestPhoneToOpenPlayStore()
+                            wearViewModel.requestPhoneToOpenPlayStore() // Call ViewModel method directly
                         }
                     )
                 } else {
-                    // If connected, display reminders content (simplified from MainAppScreen)
-                    // Or, if MainActivity is just for onboarding, it should navigate to WearActivity
-                    // For this fix, let's integrate reminder display here.
                     RemindersContent(reminders = reminders, viewModel = wearViewModel)
                 }
             }
@@ -138,88 +118,20 @@ fun WearApp(wearViewModel: WearViewModel) {
     }
 }
 
-// Copied from WearActivity.kt
-@Composable
-fun ConnectionStatusIcon(isConnected: Boolean) {
-    val iconRes = if (isConnected) R.drawable.medication_filled /* R.drawable.ic_watch_connected */ else R.drawable.medication_filled /* R.drawable.ic_watch_disconnected */
-    val tintColor = if (isConnected) Color.Green else Color.Red
-    Icon(
-        painter = painterResource(id = iconRes),
-        contentDescription = if (isConnected) "Connected to phone" else "Disconnected from phone",
-        tint = tintColor,
-        modifier = Modifier
-            .size(24.dp)
-            .padding(top = 4.dp)
-    )
-}
-
-// Copied from WearActivity.kt
-@Composable
-fun MedicationReminderChip(
-    reminder: WearReminder,
-    onChipClick: () -> Unit,
-    isTakenDisplay: Boolean = false // Added to match WearActivity's version for consistency
-) {
-    Chip(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        icon = {
-            if (isTakenDisplay || reminder.isTaken) {
-                Icon(
-                    painter = painterResource(id = R.drawable.medication_filled /* R.drawable.ic_check_circle */),
-                    contentDescription = "Taken",
-                    modifier = Modifier.size(ChipDefaults.IconSize),
-                    tint = Color.Green
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.medication_filled),
-                    contentDescription = "Medication icon",
-                    modifier = Modifier.size(ChipDefaults.IconSize),
-                    tint = MaterialTheme.colors.primary
-                )
-            }
-        },
-        label = {
-            Column {
-                Text(text = reminder.medicationName, fontWeight = FontWeight.Bold)
-                if (reminder.dosage != null) {
-                    Text(text = reminder.dosage, fontSize = 12.sp)
-                }
-            }
-        },
-        secondaryLabel = {
-             Text(text = reminder.time, fontSize = 12.sp)
-        },
-        onClick = {
-            if (!reminder.isTaken && !isTakenDisplay) {
-                onChipClick()
-            }
-        },
-        colors = if (isTakenDisplay || reminder.isTaken) {
-            ChipDefaults.secondaryChipColors()
-        } else {
-            ChipDefaults.primaryChipColors(
-                backgroundColor = MaterialTheme.colors.surface
-            )
-        }
-    )
-}
-
 
 @Composable
 fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
-    // This is a simplified version of MainAppScreen's content display logic
-    // It should be adapted from WearActivity.MainAppScreen
-    ConnectionStatusIcon(isConnected = viewModel.isConnectedToPhone.collectAsState().value) // Added status icon
+    val isConnectedState by viewModel.isConnectedToPhone.collectAsState()
+    ConnectionStatusIcon(isConnected = isConnectedState) // Display connection status icon
+
     val upcomingReminders = reminders.filter { !it.isTaken }.sortedBy { it.time }
 
     if (upcomingReminders.isEmpty()) {
         Text(
-            text = "No upcoming medications.", // Assuming connected if this screen is shown
+            text = "No upcoming medications.",
             style = MaterialTheme.typography.body1,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            textAlign = TextAlign.Center
         )
     } else {
         val listState = rememberScalingLazyListState()
@@ -247,8 +159,7 @@ fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
                     )
                 }
             }
-            // Add logic for laterDoses and takenReminders if needed, similar to WearActivity.MainAppScreen
-             if (laterDoses.isNotEmpty()) {
+            if (laterDoses.isNotEmpty()) {
                 val uniqueLaterTimes = laterDoses.map { it.time }.distinct().sorted()
                 uniqueLaterTimes.forEach { time ->
                     val remindersForTime = laterDoses.filter { it.time == time }
@@ -270,10 +181,72 @@ fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
                     }
                 }
             }
+            // Consider adding taken reminders section if desired
         }
     }
 }
 
+@Composable
+fun ConnectionStatusIcon(isConnected: Boolean) {
+    val iconResId = R.drawable.medication_filled // Replace with actual icons
+    val tint = if (isConnected) Color.Green else Color.Red
+    val contentDesc = if (isConnected) "Connected to phone" else "Disconnected from phone"
+
+    Icon(
+        painter = painterResource(id = iconResId),
+        contentDescription = contentDesc,
+        tint = tint,
+        modifier = Modifier
+            .size(24.dp)
+            .padding(top = 4.dp)
+    )
+}
+
+@Composable
+fun MedicationReminderChip(
+    reminder: WearReminder,
+    onChipClick: () -> Unit,
+    isTakenDisplay: Boolean = false
+) {
+    Chip(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        icon = {
+            val iconResId = R.drawable.medication_filled // Replace
+            val iconTint = if (isTakenDisplay || reminder.isTaken) Color.Green else MaterialTheme.colors.primary
+            val iconDesc = if (isTakenDisplay || reminder.isTaken) "Taken" else "Medication icon"
+
+            Icon(
+                painter = painterResource(id = iconResId),
+                contentDescription = iconDesc,
+                modifier = Modifier.size(ChipDefaults.IconSize),
+                tint = iconTint
+            )
+        },
+        label = {
+            Column {
+                Text(text = reminder.medicationName, fontWeight = FontWeight.Bold)
+                reminder.dosage?.let { Text(text = it, fontSize = 12.sp) }
+            }
+        },
+        secondaryLabel = {
+            Text(text = reminder.time, fontSize = 12.sp)
+        },
+        onClick = {
+            if (!reminder.isTaken && !isTakenDisplay) {
+                onChipClick()
+            }
+        },
+        colors = if (isTakenDisplay || reminder.isTaken) {
+            ChipDefaults.secondaryChipColors()
+        } else {
+            ChipDefaults.primaryChipColors(
+                backgroundColor = MaterialTheme.colors.surface
+            )
+        }
+    )
+}
 
 @Composable
 fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onRequestPermission: () -> Unit) {
@@ -329,6 +302,7 @@ fun DeviceNotConnectedScreen(onTryConnection: () -> Unit) {
     }
 }
 
+// Greeting function is likely unused now but kept for reference / safety.
 @Composable
 fun Greeting(greetingName: String) {
     Text(
@@ -346,15 +320,21 @@ fun checkAlarmPermission(context: Context): Boolean {
             Manifest.permission.SCHEDULE_EXACT_ALARM
         ) == PackageManager.PERMISSION_GRANTED
     } else {
-        true // For older versions, permission is granted by default or not needed
+        true
     }
 }
-
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    WearApp()
+    MedicationReminderTheme {
+        // For preview, we need a Context to create an Application instance for WearViewModel.
+        val context = LocalContext.current
+        WearApp(
+            wearViewModel = WearViewModel(context.applicationContext as Application)
+            // Removed mainActivity parameter
+        )
+    }
 }
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
@@ -370,5 +350,21 @@ fun OnboardingPreview() {
 fun NotConnectedPreview() {
     MedicationReminderTheme {
         DeviceNotConnectedScreen({})
+    }
+}
+
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, name = "WearApp Connected Preview")
+@Composable
+fun WearAppConnectedPreview() {
+    val application = LocalContext.current.applicationContext as Application
+    val previewViewModel = WearViewModel(application)
+    // To show connected state with reminders, you'd ideally have a way to set
+    // the ViewModel's state here, or use a fake ViewModel.
+    // e.g., previewViewModel._isConnectedToPhone.value = true (if not private)
+    MedicationReminderTheme {
+        WearApp(
+            wearViewModel = previewViewModel
+            // Removed mainActivity parameter from this preview as well
+        )
     }
 }
