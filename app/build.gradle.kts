@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.androidx.adaptive)
     implementation(libs.adaptive.layout)
     implementation(libs.androidx.adaptive.navigation)
+    implementation(libs.androidx.wear.remote.interactions)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 

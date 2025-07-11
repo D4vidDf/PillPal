@@ -7,7 +7,6 @@ import com.d4viddf.medicationreminder.data.MedicationReminder
 import android.app.Application // Added for context
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.data.MedicationTypeRepository // Added
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import android.content.Intent // For launching intents
 import android.provider.Settings // For Bluetooth settings
 import android.util.Log // For logging
+import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -95,7 +95,7 @@ open class HomeViewModel @Inject constructor(
                         }
                     }
                 }
-                WatchStatus.CONNECTED__APP_NOT_INSTALLED -> {
+                WatchStatus.CONNECTED_APP_NOT_INSTALLED -> {
                     val nodeId = wearConnectivityHelper.getConnectedWatchNodeId()
                     if (nodeId != null) {
                         wearConnectivityHelper.openPlayStoreOnWatch(nodeId)

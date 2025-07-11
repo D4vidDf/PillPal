@@ -1,5 +1,7 @@
 package com.d4viddf.medicationreminder.repository
 
+import com.d4viddf.medicationreminder.data.MedicationType
+import com.d4viddf.medicationreminder.data.MedicationTypeDao
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton

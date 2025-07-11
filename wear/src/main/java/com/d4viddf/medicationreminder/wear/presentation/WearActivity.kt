@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.wear.ui
+package com.d4viddf.medicationreminder.wear.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import android.app.Application // Needed for Preview ViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color // Keep for tinting
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,8 +35,6 @@ import androidx.wear.compose.material.items
 import androidx.wear.compose.material.rememberScalingLazyListState
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
-import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
-import com.d4viddf.medicationreminder.wear.presentation.WearViewModelFactory
 
 
 class WearActivity : ComponentActivity() {
@@ -291,11 +287,7 @@ fun PreviewMainAppScreen(reminders: List<WearReminder>, isConnected: Boolean) {
 }
 
 
-@Preview(device = "id:wearos_small_round", showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    PreviewMainAppScreen(reminders = sampleWearReminders, isConnected = true)
-}
+
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable
