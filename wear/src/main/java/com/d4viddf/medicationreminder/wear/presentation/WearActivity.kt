@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.wear.ui
+package com.d4viddf.medicationreminder.wear.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,20 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import android.app.Application // Needed for Preview ViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color // Keep for tinting
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel // Ensure this import is correct
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -37,18 +35,37 @@ import androidx.wear.compose.material.items
 import androidx.wear.compose.material.rememberScalingLazyListState
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
-import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
-import com.d4viddf.medicationreminder.wear.presentation.WearViewModelFactory
-
+import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.Wearable
 
 class WearActivity : ComponentActivity() {
+
+    // 1. Declare CapabilityClient and the capability name
+    private lateinit var capabilityClient: CapabilityClient
+    private val CAPABILITY_NAME = "medication_reminder_wear_app"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 2. Initialize the CapabilityClient
+        capabilityClient = Wearable.getCapabilityClient(this)
+
         setContent {
-            // Ensure Application context is correctly passed if needed by factory, or use default Hilt/Lifecycle ways
             val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
             MainAppScreen(wearViewModel)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 3. Add the capability when the app is in the foreground
+        capabilityClient.addLocalCapability(CAPABILITY_NAME)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 4. Remove the capability when the app is not in the foreground
+        capabilityClient.removeLocalCapability(CAPABILITY_NAME)
     }
 }
 
@@ -291,11 +308,7 @@ fun PreviewMainAppScreen(reminders: List<WearReminder>, isConnected: Boolean) {
 }
 
 
-@Preview(device = "id:wearos_small_round", showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    PreviewMainAppScreen(reminders = sampleWearReminders, isConnected = true)
-}
+
 
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 @Composable

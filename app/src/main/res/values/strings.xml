@@ -400,4 +400,9 @@
     <string name="action_expand">Expand</string>
     <string name="home_section_header_cd">Home section header</string>
 
+    <!-- Wear OS Connection Status -->
+    <string name="home_button_cd_watch_not_connected">Watch not connected</string>
+    <string name="home_button_cd_watch_connected">Watch connected</string>
+    <string name="home_button_cd_watch_app_not_installed">Watch connected, app not installed</string>
+
 </resources>

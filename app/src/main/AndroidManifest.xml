@@ -13,6 +13,16 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Permissions for Wear OS connection -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- WAKE_LOCK might be useful for long-running sync operations -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+
     <application
         android:name=".MedicationReminderApplication"
         android:allowBackup="true"

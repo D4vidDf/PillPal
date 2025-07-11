@@ -7,18 +7,25 @@ import com.d4viddf.medicationreminder.data.MedicationReminder
 import android.app.Application // Added for context
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.data.MedicationTypeRepository // Added
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus // Added WatchStatus
+import com.d4viddf.medicationreminder.utils.WearConnectivityHelper // Added WearConnectivityHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext // Added for Hilt
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
+import android.content.Intent // For launching intents
+import android.provider.Settings // For Bluetooth settings
+import android.util.Log // For logging
+import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -34,7 +41,8 @@ open class HomeViewModel @Inject constructor(
     private val application: Application, // Injected Application context
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
-    private val medicationTypeRepository: MedicationTypeRepository // Injected
+    private val medicationTypeRepository: MedicationTypeRepository, // Injected
+    private val wearConnectivityHelper: WearConnectivityHelper // Injected WearConnectivityHelper
 ) : ViewModel() {
 
     data class HomeState(
@@ -45,16 +53,68 @@ open class HomeViewModel @Inject constructor(
         val hasUnreadAlerts: Boolean = false,
         val isLoading: Boolean = true,
         val currentGreeting: String = "", // Initialize with empty or default from strings
-        val isRefreshing: Boolean = false
+        val isRefreshing: Boolean = false,
+        val watchStatus: WatchStatus = WatchStatus.UNKNOWN // Added watch status
     )
 
     private val _uiState = MutableStateFlow(HomeState())
     open val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
 
+    // Channel for navigation events
+    private val _navigationChannel = Channel<String>()
+    val navigationEvents = _navigationChannel.receiveAsFlow()
+
     init {
         loadTodaysSchedule()
         updateGreeting()
+        updateWatchStatus() // Call new function
         // TODO: Load alert status here
+    }
+
+    fun handleWatchIconClick() {
+        viewModelScope.launch {
+            when (_uiState.value.watchStatus) {
+                WatchStatus.NOT_CONNECTED -> {
+                    // Guide user to Wear OS pairing or Bluetooth settings
+                    // Try specific Wear OS setup intent first
+                    val wearSetupIntent = Intent("com.google.android.gms.wearable.SETUP_WEARABLE_API")
+                    wearSetupIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    try {
+                        application.startActivity(wearSetupIntent)
+                        Log.i("HomeViewModel", "Attempting to launch Wear OS setup.")
+                    } catch (e: Exception) {
+                        Log.w("HomeViewModel", "Wear OS setup intent failed, falling back to Bluetooth settings.", e)
+                        // Fallback to general Bluetooth settings
+                        val bluetoothSettingsIntent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+                        bluetoothSettingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        try {
+                            application.startActivity(bluetoothSettingsIntent)
+                        } catch (settingsException: Exception) {
+                            Log.e("HomeViewModel", "Could not launch Bluetooth settings.", settingsException)
+                            // Potentially show a toast to the user that settings could not be opened
+                        }
+                    }
+                }
+                WatchStatus.CONNECTED_APP_NOT_INSTALLED -> {
+                    val nodeId = wearConnectivityHelper.getConnectedWatchNodeId()
+                    if (nodeId != null) {
+                        wearConnectivityHelper.openPlayStoreOnWatch(nodeId)
+                    } else {
+                        Log.w("HomeViewModel", "Watch connected but node ID is null, cannot open Play Store.")
+                        // Optionally, trigger a status refresh or inform user
+                    }
+                }
+                WatchStatus.CONNECTED_APP_INSTALLED -> {
+                    Log.i("HomeViewModel", "Watch icon clicked: App installed. Navigating to Connected Devices screen.")
+                    _navigationChannel.send(com.d4viddf.medicationreminder.ui.navigation.Screen.ConnectedDevices.route)
+                }
+                WatchStatus.UNKNOWN -> {
+                    // Optionally, trigger a status refresh
+                    Log.i("HomeViewModel", "Watch icon clicked: Status UNKNOWN. Refreshing status.")
+                    updateWatchStatus()
+                }
+            }
+        }
     }
 
     fun refreshData() {
@@ -63,6 +123,21 @@ open class HomeViewModel @Inject constructor(
             // Call existing loading functions
             updateGreeting() // Greetings might change based on time
             loadTodaysSchedule() // This will handle isLoading and eventually set isRefreshing to false
+            updateWatchStatus() // Also update watch status on refresh
+        }
+    }
+
+    private fun updateWatchStatus() {
+        viewModelScope.launch {
+            val isConnected = wearConnectivityHelper.isWatchConnected()
+            if (!isConnected) {
+                _uiState.value = _uiState.value.copy(watchStatus = WatchStatus.NOT_CONNECTED)
+                return@launch
+            }
+            val isAppInstalled = wearConnectivityHelper.isWatchAppInstalled()
+            _uiState.value = _uiState.value.copy(
+                watchStatus = if (isAppInstalled) WatchStatus.CONNECTED_APP_INSTALLED else WatchStatus.CONNECTED_APP_NOT_INSTALLED
+            )
         }
     }
 
