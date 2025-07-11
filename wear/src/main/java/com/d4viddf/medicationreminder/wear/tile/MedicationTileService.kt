@@ -45,13 +45,14 @@ import androidx.compose.foundation.layout.Spacer as ComposeSpacer
 import androidx.compose.ui.Alignment
 import androidx.media3.common.Timeline
 import androidx.compose.ui.text.font.FontWeight as ComposeFontWeight
-import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
 import androidx.wear.tiles.TimelineBuilders // Added import for TimelineBuilders
 import androidx.wear.tooling.preview.devices.WearDevices
 import androidx.wear.compose.material.Text as ComposeText
+// Import M3 theme
+import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
 
 private const val RESOURCES_VERSION = "1"
 private const val TILE_ID = "medication_tile"
@@ -330,7 +331,7 @@ fun TilePreview() {
         time = LocalTime.of(9, 0)
     )
 
-    MaterialTheme {
+    MedicationReminderTheme {
         ComposeColumn(
             modifier = androidx.compose.ui.Modifier
                 .fillMaxSize()
@@ -356,7 +357,7 @@ fun TilePreview() {
 )
 @Composable
 fun NoDoseTilePreview() {
-    MaterialTheme {
+    MedicationReminderTheme {
         ComposeColumn(
             modifier = androidx.compose.ui.Modifier
                 .fillMaxSize()
