@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.d4viddf.medicationreminder.wear"
+        applicationId = "com.d4viddf.medicationreminder"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
