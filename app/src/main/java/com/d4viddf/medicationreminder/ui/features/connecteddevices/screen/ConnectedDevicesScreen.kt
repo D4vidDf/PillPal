@@ -217,7 +217,8 @@ fun ConnectedDevicesScreenContentPreview_NoDevices() {
             uiState = ConnectedDevicesScreenState(connectedDevices = emptyList(), isLoading = false),
             onRefreshDevices = {},
             onSyncData = {},
-            onPairDevice = {}
+            onPairDevice = {},
+            onDownloadApp = {} // Added
         )
     }
 }
@@ -229,14 +230,15 @@ fun ConnectedDevicesScreenContentPreview_WithDevices() {
         ConnectedDevicesScreenContent(
             uiState = ConnectedDevicesScreenState(
                 connectedDevices = listOf(
-                    ConnectedDeviceUiItem("node1", "Pixel Watch", true),
-                    ConnectedDeviceUiItem("node2", "Galaxy Watch", false)
+                    ConnectedDeviceUiItem("node1", "Pixel Watch", true, isAppInstalled = true), // Added isAppInstalled
+                    ConnectedDeviceUiItem("node2", "Galaxy Watch", false, isAppInstalled = false) // Added isAppInstalled
                 ),
                 isLoading = false
             ),
             onRefreshDevices = {},
             onSyncData = {},
-            onPairDevice = {}
+            onPairDevice = {},
+            onDownloadApp = {} // Added
         )
     }
 }

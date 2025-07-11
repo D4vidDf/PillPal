@@ -59,7 +59,7 @@ class ConnectedDevicesViewModel @Inject constructor(
                 val nodes = nodeClient.connectedNodes.await()
                 val deviceItems = nodes.map { node ->
                     // For each node, check if the app is installed
-                    val isAppInstalled = wearConnectivityHelper.isAppInstalledOnNode(node.id)
+                    val isAppInstalled = wearConnectivityHelper.isWatchAppInstalled(node.id) // Corrected method name
                     ConnectedDeviceUiItem(
                         id = node.id,
                         displayName = node.displayName,

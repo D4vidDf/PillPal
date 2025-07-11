@@ -52,8 +52,12 @@ class DataLayerListenerService : WearableListenerService() {
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
     // For opening Play Store on phone
-    private val wearConnectivityHelper by lazy { WearConnectivityHelper(this) }
+    private lateinit var wearConnectivityHelper: WearConnectivityHelper // Initialize in onCreate
 
+    override fun onCreate() {
+        super.onCreate()
+        wearConnectivityHelper = WearConnectivityHelper(applicationContext)
+    }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
         super.onMessageReceived(messageEvent)
