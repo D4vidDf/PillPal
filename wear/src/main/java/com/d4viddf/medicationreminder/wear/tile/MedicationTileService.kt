@@ -55,8 +55,17 @@ import androidx.wear.compose.material.Text as ComposeText
 private const val RESOURCES_VERSION = "1"
 private const val TILE_ID = "medication_tile"
 
+// Constants for ReminderDetailActivity
+private const val REMINDER_DETAIL_ACTIVITY_CLASS_NAME = "com.d4viddf.medicationreminder.wear.presentation.ReminderDetailActivity"
+internal const val EXTRA_MEDICATION_ID = "com.d4viddf.medicationreminder.wear.EXTRA_MEDICATION_ID"
+internal const val EXTRA_MEDICATION_NAME = "com.d4viddf.medicationreminder.wear.EXTRA_MEDICATION_NAME"
+internal const val EXTRA_DOSAGE = "com.d4viddf.medicationreminder.wear.EXTRA_DOSAGE"
+internal const val EXTRA_TIME_STR = "com.d4viddf.medicationreminder.wear.EXTRA_TIME_STR"
+
+
 // --- Data structure for displaying reminders on the tile ---
 internal data class TileReminderInfo(
+    val medicationId: Int, // To identify the medication for details view / phone interaction
     val name: String,
     val dosage: String?,
     val time: LocalTime // Using LocalTime for easier comparison
@@ -159,6 +168,7 @@ class MedicationTileService : TileService() {
                             specificTimes?.forEach { time ->
                                 allPotentialReminders.add(
                                     TileReminderInfo(
+                                        medicationId = medication.medicationId,
                                         name = medication.name,
                                         dosage = medication.dosage,
                                         time = time
@@ -182,6 +192,7 @@ class MedicationTileService : TileService() {
                                 if (currentTimeSlot.isAfter(LocalTime.MIDNIGHT) || currentTimeSlot == LocalTime.MIDNIGHT) {
                                     allPotentialReminders.add(
                                         TileReminderInfo(
+                                            medicationId = medication.medicationId,
                                             name = medication.name,
                                             dosage = medication.dosage,
                                             time = currentTimeSlot
@@ -214,15 +225,15 @@ class MedicationTileService : TileService() {
         deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.LayoutElement {
 
-        val launchAppClickable = ActionBuilders.LaunchAction.Builder()
-            .setAndroidActivity(
-                ActionBuilders.AndroidActivity.Builder()
-                    .setClassName(WearActivity::class.java.name)
-                    .setPackageName(context.packageName)
-                    .build()
-            ).build()
-
         if (nextReminder == null) {
+            // Layout for "No upcoming doses" - launches main app
+            val launchMainAppClickable = ActionBuilders.LaunchAction.Builder()
+                .setAndroidActivity(
+                    ActionBuilders.AndroidActivity.Builder()
+                        .setClassName(WearActivity::class.java.name)
+                        .setPackageName(context.packageName)
+                        .build()
+                ).build()
             return PrimaryLayout.Builder(deviceParameters)
                 .setContent(
                     Text.Builder(context, "No upcoming doses.")
@@ -234,12 +245,45 @@ class MedicationTileService : TileService() {
                     CompactChip.Builder(
                         context,
                         "Open App",
-                        ModifiersBuilders.Clickable.Builder().setOnClick(launchAppClickable).build(),
+                        ModifiersBuilders.Clickable.Builder().setOnClick(launchMainAppClickable).build(),
                         deviceParameters
                     ).build()
                 )
                 .build()
         }
+
+        // Layout for displaying the next reminder - launches ReminderDetailActivity
+        val androidActivityBuilder = ActionBuilders.AndroidActivity.Builder()
+            .setPackageName(context.packageName)
+            .setClassName(REMINDER_DETAIL_ACTIVITY_CLASS_NAME)
+            .addKeyToExtraMapping(
+                EXTRA_MEDICATION_ID,
+                ActionBuilders.AndroidIntentExtra.newBuilder()
+                    .setIntValue(nextReminder.medicationId)
+                    .build()
+            )
+            .addKeyToExtraMapping(
+                EXTRA_MEDICATION_NAME,
+                ActionBuilders.AndroidIntentExtra.newBuilder()
+                    .setStringValue(nextReminder.name)
+                    .build()
+            )
+            .addKeyToExtraMapping(
+                EXTRA_DOSAGE,
+                ActionBuilders.AndroidIntentExtra.newBuilder()
+                    .setStringValue(nextReminder.dosage ?: "")
+                    .build()
+            )
+            .addKeyToExtraMapping(
+                EXTRA_TIME_STR,
+                ActionBuilders.AndroidIntentExtra.newBuilder()
+                    .setStringValue(formatLocalTime(nextReminder.time))
+                    .build()
+            )
+
+        val launchDetailViewClickable = ActionBuilders.LaunchAction.Builder()
+            .setAndroidActivity(androidActivityBuilder.build())
+            .build()
 
         return PrimaryLayout.Builder(deviceParameters)
             .setPrimaryLabelTextContent(
@@ -267,8 +311,8 @@ class MedicationTileService : TileService() {
             .setPrimaryChipContent(
                 CompactChip.Builder(
                     context,
-                    "Open App",
-                    ModifiersBuilders.Clickable.Builder().setOnClick(launchAppClickable).build(),
+                    "View Details", // Updated chip text
+                    ModifiersBuilders.Clickable.Builder().setOnClick(launchDetailViewClickable).build(), // Updated action
                     deviceParameters
                 ).build()
             )
@@ -288,6 +332,7 @@ class MedicationTileService : TileService() {
 fun TilePreview() {
     // Use TileReminderInfo and LocalTime for the preview
     val nextReminder = TileReminderInfo(
+        medicationId = 1, // Added dummy medicationId for preview
         name = "Mestinon",
         dosage = "1 tablet",
         time = LocalTime.of(9, 0)
