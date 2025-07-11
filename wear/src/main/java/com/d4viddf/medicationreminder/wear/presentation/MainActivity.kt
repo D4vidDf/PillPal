@@ -63,18 +63,17 @@ const val PREFS_NAME = "MedicationReminderPrefs"
 const val KEY_FIRST_LAUNCH = "isFirstLaunch"
 
 class MainActivity : ComponentActivity() {
-    private lateinit var wearViewModel: WearViewModel // Declare ViewModel instance
+    // Removed: private lateinit var wearViewModel: WearViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setTheme(android.R.style.Theme_DeviceDefault)
 
-        // Initialize ViewModel here
-        wearViewModel = viewModel(factory = WearViewModelFactory(application))
-
         setContent {
-            WearApp(wearViewModel = wearViewModel) // Pass only the ViewModel
+            // ViewModel is initialized here, within a Composable context
+            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
+            WearApp(wearViewModel = wearViewModel)
         }
     }
     // Removed unused requestOpenPlayStoreOnPhone method from MainActivity

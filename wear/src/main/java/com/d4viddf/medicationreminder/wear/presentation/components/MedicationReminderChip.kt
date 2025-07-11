@@ -6,21 +6,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color // Keep for direct Color usage if any, though M3 theme is preferred
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material3.Chip
-import androidx.wear.compose.material3.ChipDefaults
-import androidx.wear.compose.material3.Icon
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.Chip // Explicit M3 import
+import androidx.wear.compose.material3.ChipDefaults // Explicit M3 import
+import androidx.wear.compose.material3.Icon // Explicit M3 import
+import androidx.wear.compose.material3.MaterialTheme // Explicit M3 import
+import androidx.wear.compose.material3.Text // Explicit M3 import
+import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
-import androidx.compose.ui.tooling.preview.Preview // Added
-import androidx.wear.tooling.preview.devices.WearDevices // Added
-import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme // Added
+import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
 
 @Composable
 fun MedicationReminderChip(
@@ -28,7 +28,7 @@ fun MedicationReminderChip(
     onChipClick: () -> Unit,
     isTakenDisplay: Boolean = false
 ) {
-    Chip(
+    Chip( // Should resolve to M3 Chip
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -38,7 +38,7 @@ fun MedicationReminderChip(
             }
         },
         label = {
-            Text(
+            Text( // M3 Text
                 text = reminder.medicationName,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
@@ -46,7 +46,7 @@ fun MedicationReminderChip(
         },
         secondaryLabel = {
             reminder.dosage?.let {
-                Text(
+                Text( // M3 Text
                     text = it,
                     fontSize = 12.sp,
                     maxLines = 1
@@ -62,19 +62,19 @@ fun MedicationReminderChip(
             }
             val iconDesc = if (isTakenDisplay || reminder.isTaken) "Taken" else "Medication icon"
 
-            Icon(
+            Icon( // M3 Icon
                 painter = painterResource(id = iconResId),
                 contentDescription = iconDesc,
-                modifier = Modifier.size(ChipDefaults.IconSize),
+                modifier = Modifier.size(ChipDefaults.IconSize), // M3 ChipDefaults
                 tint = iconTint
             )
         },
         colors = if (isTakenDisplay || reminder.isTaken) {
-            ChipDefaults.secondaryChipColors(
+            ChipDefaults.secondaryChipColors( // M3 ChipDefaults
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
             )
         } else {
-            ChipDefaults.primaryChipColors(
+            ChipDefaults.primaryChipColors( // M3 ChipDefaults
                 containerColor = MaterialTheme.colorScheme.surface
             )
         }
