@@ -50,7 +50,7 @@ dependencies {
     // implementation(libs.androidx.compose.material) // Replaced by M3
     // implementation(libs.androidx.compose.foundation) // Replaced by Wear specific foundation
     implementation(libs.androidx.wear.compose.foundation) // M3 Foundation for Wear
-    implementation(libs.androidx.wear.compose.material3) // M3 Material for Wear
+    implementation(libs.wear.compose.material)
     implementation(libs.androidx.wear.tooling.preview) // General Wear OS tooling
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)

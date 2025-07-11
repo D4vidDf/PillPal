@@ -12,8 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material3.Chip // Explicit M3 import
-import androidx.wear.compose.material3.ChipDefaults // Explicit M3 import
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material3.Icon // Explicit M3 import
 import androidx.wear.compose.material3.MaterialTheme // Explicit M3 import
 import androidx.wear.compose.material3.Text // Explicit M3 import
@@ -71,11 +71,11 @@ fun MedicationReminderChip(
         },
         colors = if (isTakenDisplay || reminder.isTaken) {
             ChipDefaults.secondaryChipColors( // M3 ChipDefaults
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                backgroundColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
             )
         } else {
             ChipDefaults.primaryChipColors( // M3 ChipDefaults
-                containerColor = MaterialTheme.colorScheme.surface
+                backgroundColor = MaterialTheme.colorScheme.surfaceContainer
             )
         }
     )

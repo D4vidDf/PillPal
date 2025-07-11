@@ -26,9 +26,7 @@ private val LightColors = ColorScheme(
     onErrorContainer = Color.Black,
     background = Color(0xFF121212), // Dark background for Wear OS
     onBackground = Color.White,
-    surface = Color(0xFF1E1E1E), // Slightly lighter dark surface
     onSurface = Color.White,
-    surfaceVariant = Color(0xFF303030),
     onSurfaceVariant = Color(0xFFB0B0B0), // Lighter grey for less emphasis
     outline = Color(0xFF505050)
 )
