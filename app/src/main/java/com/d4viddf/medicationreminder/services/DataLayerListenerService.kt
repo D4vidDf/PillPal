@@ -51,11 +51,20 @@ class DataLayerListenerService : WearableListenerService() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
+    // For opening Play Store on phone
+    private val wearConnectivityHelper by lazy { WearConnectivityHelper(this) }
+
+
     override fun onMessageReceived(messageEvent: MessageEvent) {
         super.onMessageReceived(messageEvent)
         Log.d(TAG, "Message received: ${messageEvent.path} from node ${messageEvent.sourceNodeId}")
 
         when (messageEvent.path) {
+            PATH_OPEN_PLAY_STORE_ON_PHONE -> {
+                Log.i(TAG, "Received request to open Play Store on phone from watch node: ${messageEvent.sourceNodeId}")
+                // The WearConnectivityHelper's openPlayStoreOnPhone method is designed for this
+                wearConnectivityHelper.openPlayStoreOnPhone()
+            }
             PATH_REQUEST_INITIAL_SYNC -> {
                 Log.i(TAG, "Received initial sync request from watch.")
                 serviceScope.launch {
@@ -278,6 +287,7 @@ class DataLayerListenerService : WearableListenerService() {
         private const val PATH_REQUEST_INITIAL_SYNC = "/request_initial_sync"
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync"
         private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule"
+        private const val PATH_OPEN_PLAY_STORE_ON_PHONE = "/open_play_store" // Path from Wear OS app
     }
 
     private suspend fun triggerFullSyncToWear() {
