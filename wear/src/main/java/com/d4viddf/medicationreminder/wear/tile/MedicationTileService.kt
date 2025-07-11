@@ -33,6 +33,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import android.util.Log
+import androidx.core.content.ContextCompat // Added import for ContextCompat
 // Jetpack Compose imports for Previews
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -87,7 +88,7 @@ class MedicationTileService : TileService() {
             { nextReminderInfo ->
                 TileBuilders.Tile.Builder()
                     .setResourcesVersion(RESOURCES_VERSION)
-                    .setTileTimeline(
+                    .setTimeline( // Corrected method name: setTimeline
                         TileBuilders.Timeline.Builder().addTimelineEntry(
                             TileBuilders.TimelineEntry.Builder().setLayout(
                                 LayoutElementBuilders.Layout.Builder().setRoot(
@@ -98,7 +99,7 @@ class MedicationTileService : TileService() {
                     )
                     .build()
             },
-            this.mainExecutor // Execute the transformation on the main thread
+            ContextCompat.getMainExecutor(this) // Corrected executor usage
         )
     }
 
