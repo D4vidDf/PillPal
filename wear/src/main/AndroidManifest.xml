@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.d4viddf.medicationreminder.wear"> <!-- Ensure this matches your build.gradle's applicationId for the wear module -->
 
     <uses-feature android:name="android.hardware.type.watch" />
 
@@ -12,9 +13,8 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
 
-        <!-- Declare WearActivity -->
         <activity
-            android:name=".presentation.WearActivity"
+            android:name=".presentation.WearActivity" <!-- Corrected to .presentation.WearActivity -->
             android:exported="true"
             android:label="@string/app_name"
             android:taskAffinity="">
@@ -24,7 +24,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Declare MedicationTileService -->
         <service
             android:name=".tile.MedicationTileService"
             android:exported="true"
@@ -33,35 +32,25 @@
             <intent-filter>
                 <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
             </intent-filter>
-            <!-- Add preview for the tile -->
             <meta-data
                 android:name="androidx.wear.tiles.PREVIEW"
                 android:resource="@drawable/tile_preview" />
         </service>
 
         <!--
-        WearableCommunicationService is not an Android Service component, it's a helper class.
-        It should not be declared as a <service> in the manifest.
-        The ViewModel instantiates and uses it directly.
-        <service
-            android:name=".services.WearableCommunicationService"
-            android:exported="true"
-            >
-        </service>
+        WearableCommunicationService is not an Android Service component.
+        It was removed from manifest declaration.
         -->
 
-        <!-- Service to listen for DataLayer changes from the phone -->
         <service
             android:name=".services.WearDataListenerService"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/today_schedule" />
-                <!-- Also ensure /full_medication_data_sync is here if WearDataListenerService handles it -->
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/full_medication_data_sync"/>
             </intent-filter>
         </service>
-
 
         <uses-library
             android:name="com.google.android.wearable"
@@ -70,7 +59,6 @@
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
 
-        <!-- Explicitly point to capabilities -->
         <meta-data
             android:name="com.google.android.wearable.CAPABILITIES"
             android:resource="@xml/wear_capabilities"/>
