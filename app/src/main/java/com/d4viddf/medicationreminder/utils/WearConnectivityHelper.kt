@@ -155,4 +155,30 @@ class WearConnectivityHelper @Inject constructor(
             Log.e(TAG, "Exception while trying to open Play Store on watch for node $nodeId: ${e.message}", e)
         }
     }
+
+    fun openPlayStoreOnPhone() {
+        // Opens the Play Store on the phone to the Wear OS app's page.
+        // The package name is the same for the Wear OS app module.
+        val wearAppPackageName = "com.d4viddf.medicationreminder.wear" // Make sure this is the applicationId of your wear module
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$wearAppPackageName")).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            Log.d(TAG, "openPlayStoreOnPhone: Attempting to open Play Store on phone for $wearAppPackageName")
+            context.startActivity(intent)
+        } catch (e: android.content.ActivityNotFoundException) {
+            Log.e(TAG, "openPlayStoreOnPhone: Play Store app not found on phone.", e)
+            // Fallback to website if Play Store app is not available
+            try {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$wearAppPackageName")).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(webIntent)
+            } catch (webEx: Exception) {
+                Log.e(TAG, "openPlayStoreOnPhone: Could not open Play Store via web browser either.", webEx)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "openPlayStoreOnPhone: Error opening Play Store on phone for $wearAppPackageName", e)
+        }
+    }
 }
