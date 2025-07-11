@@ -33,6 +33,7 @@ import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.items
 import androidx.wear.compose.material.rememberScalingLazyListState
+import androidx.wear.protolayout.material.Text
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.google.android.gms.wearable.CapabilityClient
@@ -43,7 +44,6 @@ import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminder
 import com.d4viddf.medicationreminder.wear.presentation.components.ConnectionStatusIcon
 import com.d4viddf.medicationreminder.wear.presentation.components.MedicationReminderChip
 // M3 Text if needed, though current Text calls might resolve to M2 Text if not fully qualified
-import androidx.wear.compose.material3.Text as M3Text
 // M2 MaterialTheme is used by Scaffold, TimeText etc. If Scaffold becomes M3, this will change.
 // For now, let M2 MaterialTheme be the one for the overall screen, components use M3 theme internally if they are M3.
 // This can lead to inconsistencies, ideal solution is full M3 screen.
@@ -110,9 +110,9 @@ fun MainAppScreen(viewModel: WearViewModel) {
 
                 if (nextDoseGroup.isNotEmpty()) {
                     item {
-                        M3Text( // Use M3Text
+                        Text( // Use M3Text
                             text = "Next: ${nextDoseGroup.first().time}",
-                            style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.body1,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
@@ -131,9 +131,9 @@ fun MainAppScreen(viewModel: WearViewModel) {
                         val remindersForTime = laterDoses.filter { it.time == time }
                         if (remindersForTime.isNotEmpty()) {
                             item {
-                                M3Text( // Use M3Text
+                                Text( // Use M3Text
                                     text = "Later: $time",
-                                    style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.body1,
                                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                                         .fillMaxWidth()
                                 )
@@ -150,9 +150,9 @@ fun MainAppScreen(viewModel: WearViewModel) {
 
                 if (upcomingReminders.isEmpty()) {
                     item {
-                        M3Text( // Use M3Text
+                        Text( // Use M3Text
                             text = if (isConnected) "No upcoming medications." else "Disconnected. Waiting for data...",
-                            style = androidx.wear.compose.material3.MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.body1,
                             modifier = Modifier.padding(16.dp)
                         )
                     }
@@ -162,9 +162,9 @@ fun MainAppScreen(viewModel: WearViewModel) {
                 val takenReminders = reminders.filter { it.isTaken }.sortedByDescending { it.time }
                 if (takenReminders.isNotEmpty()) {
                     item {
-                        M3Text( // Use M3Text
+                        Text( // Use M3Text
                             text = "Taken Today",
-                            style = androidx.wear.compose.material3.MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.body1,
                             modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp).fillMaxWidth()
                         )
                     }

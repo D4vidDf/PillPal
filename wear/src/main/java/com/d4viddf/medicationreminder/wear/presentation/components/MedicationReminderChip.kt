@@ -14,9 +14,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
-import androidx.wear.compose.material3.Icon // Explicit M3 import
-import androidx.wear.compose.material3.MaterialTheme // Explicit M3 import
-import androidx.wear.compose.material3.Text // Explicit M3 import
+import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
+import androidx.wear.protolayout.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
@@ -56,9 +57,9 @@ fun MedicationReminderChip(
         icon = {
             val iconResId = R.drawable.medication_filled
             val iconTint = if (isTakenDisplay || reminder.isTaken) {
-                MaterialTheme.colorScheme.tertiary
+                MaterialTheme.colors.secondary
             } else {
-                MaterialTheme.colorScheme.primary
+                MaterialTheme.colors.primary
             }
             val iconDesc = if (isTakenDisplay || reminder.isTaken) "Taken" else "Medication icon"
 
@@ -71,11 +72,11 @@ fun MedicationReminderChip(
         },
         colors = if (isTakenDisplay || reminder.isTaken) {
             ChipDefaults.secondaryChipColors( // M3 ChipDefaults
-                backgroundColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f)
+                backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.7f)
             )
         } else {
             ChipDefaults.primaryChipColors( // M3 ChipDefaults
-                backgroundColor = MaterialTheme.colorScheme.surfaceContainer
+                backgroundColor = MaterialTheme.colors.surface
             )
         }
     )

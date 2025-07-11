@@ -43,6 +43,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column as ComposeColumn
 import androidx.compose.foundation.layout.Spacer as ComposeSpacer
 import androidx.compose.ui.Alignment
+import androidx.media3.common.Timeline
 import androidx.compose.ui.text.font.FontWeight as ComposeFontWeight
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.tiles.RequestBuilders
@@ -98,16 +99,7 @@ class MedicationTileService : TileService() {
             { nextReminderInfo ->
                 TileBuilders.Tile.Builder()
                     .setResourcesVersion(RESOURCES_VERSION)
-                    .setTimeline(
-                        TimelineBuilders.Timeline.Builder().addTimelineEntry(
-                            TimelineBuilders.TimelineEntry.Builder().setLayout(
-                                // Use Layout.fromLayoutElement, ensuring it's from protolayout.LayoutElementBuilders
-                                androidx.wear.protolayout.LayoutElementBuilders.Layout.fromLayoutElement(
-                                    tileLayout(this, nextReminderInfo, requestParams.deviceConfiguration)
-                                )
-                            ).build()
-                        ).build()
-                    )
+
                     .build()
             },
             ContextCompat.getMainExecutor(this) // Corrected executor usage
@@ -258,26 +250,26 @@ class MedicationTileService : TileService() {
             .setClassName(REMINDER_DETAIL_ACTIVITY_CLASS_NAME)
             .addKeyToExtraMapping(
                 EXTRA_MEDICATION_ID,
-                ActionBuilders.AndroidIntentExtra.newBuilder()
-                    .setIntValue(nextReminder.medicationId)
+                ActionBuilders.AndroidIntExtra.Builder()
+                    .setValue(nextReminder.medicationId)
                     .build()
             )
             .addKeyToExtraMapping(
                 EXTRA_MEDICATION_NAME,
-                ActionBuilders.AndroidIntentExtra.newBuilder()
-                    .setStringValue(nextReminder.name)
+                ActionBuilders.AndroidStringExtra.Builder()
+                    .setValue(nextReminder.name)
                     .build()
             )
             .addKeyToExtraMapping(
                 EXTRA_DOSAGE,
-                ActionBuilders.AndroidIntentExtra.newBuilder()
-                    .setStringValue(nextReminder.dosage ?: "")
+                ActionBuilders.AndroidStringExtra.Builder()
+                    .setValue(nextReminder.dosage ?: "")
                     .build()
             )
             .addKeyToExtraMapping(
                 EXTRA_TIME_STR,
-                ActionBuilders.AndroidIntentExtra.newBuilder()
-                    .setStringValue(formatLocalTime(nextReminder.time))
+                ActionBuilders.AndroidStringExtra.Builder()
+                    .setValue(formatLocalTime(nextReminder.time))
                     .build()
             )
 

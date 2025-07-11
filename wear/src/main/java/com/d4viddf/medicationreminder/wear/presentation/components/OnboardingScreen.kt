@@ -10,12 +10,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ButtonDefaults
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.Text
 import com.d4viddf.medicationreminder.wear.R
 import androidx.compose.ui.tooling.preview.Preview // Added
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices // Added
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme // Added
 
@@ -32,8 +32,8 @@ fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onReque
         item(key = "onboarding_title") {
             Text(
                 text = stringResource(R.string.onboarding_message_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.title2,
+                color = MaterialTheme.colors.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
             )
@@ -41,8 +41,8 @@ fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onReque
         item(key = "onboarding_body") {
             Text(
                 text = stringResource(R.string.onboarding_message_body),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -56,8 +56,8 @@ fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onReque
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        backgroundColor = MaterialTheme.colors.primary,
+                        contentColor = MaterialTheme.colors.onPrimary
                     )
                 ) {
                     Text(stringResource(R.string.enable_alarms_permission))
@@ -72,8 +72,8 @@ fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onReque
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth(),
                  colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
+                    backgroundColor = MaterialTheme.colors.secondary,
+                    contentColor = MaterialTheme.colors.onSecondary
                 )
             ) {
                 Text(stringResource(R.string.got_it))

@@ -2,9 +2,8 @@ package com.d4viddf.medicationreminder.wear.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.Typography
-import androidx.wear.compose.material3.ColorScheme
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.protolayout.material3.ColorScheme
 
 // Define M3 Color Scheme
 private val LightColors = ColorScheme(
@@ -40,7 +39,7 @@ fun MedicationReminderTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colorScheme = LightColors, // Using our defined M3 colors
+        colors = MaterialTheme.colors, // Using our defined M3 colors
         // typography = AppTypography, // Optionally provide custom typography
         content = content
     )
