@@ -86,31 +86,15 @@ class DataLayerListenerService : WearableListenerService() {
                             val currentTimeIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(Date())
                             val success = medicationReminderRepository.markReminderAsTaken(reminderId, currentTimeIso)
                             if (success) {
-                                Log.i(TAG, "Reminder $reminderId marked as taken successfully via watch.")
-                                val reminder = medicationReminderRepository.getReminderById(reminderId)
-                                if (reminder != null) {
-                                    val medicationId = reminder.medicationId
-                                    val updatedScheduleItems = getTodayScheduleForMedication(medicationId)
-                                    val jsonPayload = gson.toJson(updatedScheduleItems.map { item ->
-                                        mapOf(
-                                            "id" to item.id,
-                                            "medicationName" to item.medicationName,
-                                            "time" to item.time.format(DateTimeFormatter.ofPattern("HH:mm")),
-                                            "isTaken" to item.isTaken,
-                                            "underlyingReminderId" to item.underlyingReminderId.toString(),
-                                            "medicationScheduleId" to item.medicationScheduleId,
-                                            "takenAt" to item.takenAt
-                                        )
-                                    })
-                                    sendDataToWear(PATH_TODAY_SCHEDULE_SYNC, jsonPayload, "today's schedule (update)")
-                                } else {
-                                    Log.e(TAG, "Could not find reminder with ID $reminderId to get medicationId for sync.")
-                                }
+                                Log.i(TAG, "Reminder $reminderId marked as taken successfully via watch. Triggering full sync.")
+                                // Instead of sending a specific today_schedule update, trigger a full sync.
+                                // This simplifies watch-side logic as it only needs to handle one data path for updates.
+                                triggerFullSyncToWear()
                             } else {
                                 Log.e(TAG, "Failed to mark reminder $reminderId as taken via watch.")
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error marking reminder as taken or syncing: ${e.message}", e)
+                            Log.e(TAG, "Error marking reminder as taken or triggering full sync: ${e.message}", e)
                         }
                     }
                 } else {

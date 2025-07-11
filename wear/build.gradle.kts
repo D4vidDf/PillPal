@@ -50,8 +50,7 @@ dependencies {
     // implementation(libs.androidx.compose.material) // Replaced by M3
     // implementation(libs.androidx.compose.foundation) // Replaced by Wear specific foundation
     implementation(libs.androidx.wear.compose.foundation) // M3 Foundation for Wear
-    implementation(libs.wear.compose.material)
-    implementation(libs.androidx.wear.tooling.preview) // General Wear OS tooling
+    implementation(libs.androidx.tiles.tooling.preview) // General Wear OS tooling
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
 
@@ -77,7 +76,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     // ViewModel Compose for viewModel() composable
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1") // Or use libs.androidx.lifecycle.viewmodel.compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
+    implementation(libs.androidx.media3.common.ktx) // Or use libs.androidx.lifecycle.viewmodel.compose
 
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -86,9 +86,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.tiles.tooling)
 
-    implementation("androidx.wear.protolayout:protolayout:1.3.0")
-    implementation("androidx.wear.protolayout:protolayout-material:1.3.0")
+    implementation(libs.androidx.wear.protolayout.material)
+    implementation(libs.androidx.wear.protolayout.material3)
 
+    implementation(libs.androidx.tiles)
+    implementation(libs.androidx.tiles.material)
     // Room Database for Wear
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)

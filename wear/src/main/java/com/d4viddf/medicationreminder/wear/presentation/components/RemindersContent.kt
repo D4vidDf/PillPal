@@ -13,8 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 // Ensure items is correctly imported if needed, often covered by ScalingLazyColumn import
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.Text
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
 import androidx.compose.ui.tooling.preview.Preview // Added
@@ -22,6 +20,8 @@ import androidx.wear.tooling.preview.devices.WearDevices // Added
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme // Added
 import androidx.compose.ui.platform.LocalContext // Added
 import android.app.Application // Added
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
 
 @Composable
 fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
@@ -42,8 +42,8 @@ fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
             item {
                 Text(
                     text = "No upcoming medications.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onBackground,
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
@@ -59,8 +59,8 @@ fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
                 item {
                     Text(
                         text = "Next: ${nextDoseGroup.first().time}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.title2,
+                        color = MaterialTheme.colors.onBackground,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -80,8 +80,8 @@ fun RemindersContent(reminders: List<WearReminder>, viewModel: WearViewModel) {
                         item {
                             Text(
                                 text = "Later: $time",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.title2,
+                                color = MaterialTheme.colors.onBackground,
                                 modifier = Modifier
                                     .padding(vertical = 8.dp, horizontal = 16.dp)
                                     .fillMaxWidth()

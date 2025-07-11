@@ -59,7 +59,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         observeSyncedMedications()
         listenForConnectionChanges()
         registerMessageListener()
-        requestInitialSync()
+        // Request initial sync will be triggered by listenForConnectionChanges or if already connected
     }
 
     private fun observeSyncedMedications() {
@@ -230,18 +230,38 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     PHONE_APP_CAPABILITY_NAME,
                     CapabilityClient.FILTER_REACHABLE
                 ).await()
-                _isConnectedToPhone.value = capabilityInfo.nodes.any { it.isNearby }
-                Log.d(TAG, "Initial capability check: ${capabilityInfo.name}, Connected: ${_isConnectedToPhone.value}")
+                val currentlyConnected = capabilityInfo.nodes.any { it.isNearby }
+                _isConnectedToPhone.value = currentlyConnected
+                Log.d(TAG, "Initial capability check: ${capabilityInfo.name}, Connected: $currentlyConnected")
+                if (currentlyConnected && _reminders.value.isEmpty()) {
+                    Log.i(TAG, "Connected on init and reminders are empty, requesting initial sync.")
+                    requestInitialSync()
+                } else if (!currentlyConnected) {
+                    // Fallback to node client check if capability is not immediately available but nodes might be
+                    checkConnectionStatus()
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching initial capability", e)
-                checkConnectionStatus()
+                checkConnectionStatus() // Check nodes as a fallback
             }
         }
     }
 
     override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
-        _isConnectedToPhone.value = capabilityInfo.nodes.any { it.isNearby }
-        Log.d(TAG, "Capability changed: ${capabilityInfo.name}, Connected: ${_isConnectedToPhone.value}, Nodes: ${capabilityInfo.nodes.joinToString { it.displayName }}")
+        val previouslyConnected = _isConnectedToPhone.value
+        val currentlyConnected = capabilityInfo.nodes.any { it.isNearby }
+        _isConnectedToPhone.value = currentlyConnected
+
+        Log.d(TAG, "Capability changed: ${capabilityInfo.name}, WasConnected: $previouslyConnected, NowConnected: $currentlyConnected, Nodes: ${capabilityInfo.nodes.joinToString { it.displayName }}")
+
+        if (currentlyConnected && (!previouslyConnected || _reminders.value.isEmpty())) {
+            Log.i(TAG, "Connection established or re-established, or reminders empty. Requesting initial sync.")
+            requestInitialSync()
+        } else if (!currentlyConnected && previouslyConnected) {
+            Log.i(TAG, "Disconnected from phone.")
+            // Optionally, clear reminders or show a disconnected state more prominently
+            // _reminders.value = emptyList() // Or rely on cached data if implementing that
+        }
     }
 
     override fun onCleared() {

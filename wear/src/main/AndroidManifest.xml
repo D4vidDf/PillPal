@@ -61,10 +61,11 @@
         android:name=".presentation.DataLayerService"
         android:exported="true">
         <intent-filter>
-            <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+            <!-- Removed DATA_CHANGED action from this service to avoid conflict -->
             <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
             <action android:name="com.google.android.gms.wearable.CAPABILITY_CHANGED" />
-            <data android:scheme="wear" android:host="*" android:pathPrefix="/"/>
+            <!-- Data path filtering is typically not needed for MESSAGE_RECEIVED or CAPABILITY_CHANGED -->
+            <!-- If specific message paths were to be filtered here, they would need specific data tags -->
         </intent-filter>
     </service>
     <meta-data

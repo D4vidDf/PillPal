@@ -7,17 +7,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material3.Icon
-import androidx.wear.compose.material3.MaterialTheme
 import com.d4viddf.medicationreminder.wear.R
 import androidx.compose.ui.tooling.preview.Preview // Added for Preview
+import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.tooling.preview.devices.WearDevices // Added for WearDevices
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme // Added for Theme
 
 @Composable
 fun ConnectionStatusIcon(isConnected: Boolean) {
     val iconResId = R.drawable.medication_filled // Replace with actual icons if available
-    val tint = if (isConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    val tint = if (isConnected) MaterialTheme.colors.primary else MaterialTheme.colors.error
     val contentDesc = if (isConnected) "Connected to phone" else "Disconnected from phone"
 
     Icon(

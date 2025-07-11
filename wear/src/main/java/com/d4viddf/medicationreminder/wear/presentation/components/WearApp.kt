@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.wear.compose.material.TimeText
 // Use M3 MaterialTheme
-import androidx.wear.compose.material3.MaterialTheme
 import com.d4viddf.medicationreminder.wear.presentation.KEY_FIRST_LAUNCH
 import com.d4viddf.medicationreminder.wear.presentation.PREFS_NAME
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
@@ -24,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview // Added
 import androidx.wear.tooling.preview.devices.WearDevices // Added
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme // Added
 import android.app.Application // Added for preview ViewModel instantiation
+import androidx.wear.compose.material.MaterialTheme
 
 // Removed MedicationReminderTheme import from here, will use M3 theme from presentation.theme
 
@@ -50,7 +50,7 @@ fun WearApp(wearViewModel: WearViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colors.background),
             contentAlignment = Alignment.Center
         ) {
             TimeText() // M2 TimeText, generally okay to mix for this element
