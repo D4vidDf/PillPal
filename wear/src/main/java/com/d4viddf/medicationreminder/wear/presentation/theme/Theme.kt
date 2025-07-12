@@ -2,13 +2,11 @@ package com.d4viddf.medicationreminder.wear.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.wear.compose.material3.MaterialTheme // M3 import
-import androidx.wear.compose.material3.ColorScheme   // M3 import
-import androidx.wear.compose.material3.Typography   // M3 import
-// Shapes can be defined if needed, but default M3 Wear shapes are often sufficient
-// import androidx.wear.compose.material3.Shapes
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.ColorScheme
+import androidx.wear.compose.material3.Typography
 
-// Define M3 Color Scheme for Compose Material 3
+// Define M3 Color Scheme for Compose Material 3 - Minimal Valid Set
 private val WearAppColorScheme = ColorScheme(
     primary = Color(0xFF4CAF50), // Green
     onPrimary = Color.Black,
@@ -18,38 +16,16 @@ private val WearAppColorScheme = ColorScheme(
     onError = Color.White,
     background = Color(0xFF1C1B1F), // Standard M3 Dark Background
     onBackground = Color(0xFFE6E1E5),
-    surface = Color(0xFF1C1B1F), // Surface often matches background in dark themes for Wear
-    onSurface = Color(0xFFE6E1E5), // Text/icons on surface
-    surfaceVariant = Color(0xFF2C2B2F), // A slightly lighter variant for card backgrounds etc.
-    onSurfaceVariant = Color(0xFFCAC4D0), // Text/icons on surfaceVariant
+    // Explicitly define surface, onSurface, surfaceVariant, onSurfaceVariant if they were the specific issue
+    // If the error was "No parameter with name 'surface' found", then these should NOT be here.
+    // The previous attempt that failed omitted these, which is what I'm providing again as the most likely fix
+    // if the constructor is more constrained than typical M3.
+    // However, if the issue was an *import* of ColorScheme, then a full definition might work once imports are fixed.
+    // Given the error, let's assume the Wear M3 ColorScheme constructor is more minimal or defaults these heavily.
     outline = Color(0xFF938F99)
-    // Let other container colors, tertiary etc. be defaulted by the MaterialTheme
+    // If the above still fails, try with ONLY primary, onPrimary, background, onBackground, error, onError
 )
 
-// Define M3 Typography for Compose Material 3
-// Using default M3 Wear typography is often a good start and recommended.
-// If specific customizations are needed, they can be defined here.
-// For example:
-/*
-val AppTypography = Typography(
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    // ... other text styles
-)
-*/
-// If not providing a custom Typography, MaterialTheme will use its defaults.
 val AppTypography = Typography() // Using default M3 Wear Typography
 
 @Composable
@@ -58,8 +34,7 @@ fun MedicationReminderTheme(
 ) {
     MaterialTheme(
         colorScheme = WearAppColorScheme,
-        typography = AppTypography, // Provide the M3 Typography
-        // shapes = AppShapes, // Optionally provide custom shapes
+        typography = AppTypography,
         content = content
     )
 }

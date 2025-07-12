@@ -1,12 +1,10 @@
 package com.d4viddf.medicationreminder.wear.presentation.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.*
@@ -21,7 +19,7 @@ fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
             .fillMaxWidth()
             .padding(vertical = 2.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if(reminder.isTaken) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if(reminder.isTaken) MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Row(
@@ -53,21 +51,19 @@ fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
             if (!reminder.isTaken) {
                 Button(
                     onClick = onMarkAsTaken,
-                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Check,
+                        painterResource(R.drawable.rounded_check),
                         contentDescription = stringResource(R.string.mark_as_taken),
                         modifier = Modifier.size(ButtonDefaults.SmallIconSize)
                     )
                 }
             } else {
                 Icon(
-                    imageVector = Icons.Filled.CheckCircle,
+                    painterResource(R.drawable.rounded_check_circle_24),
                     contentDescription = stringResource(R.string.already_taken),
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
                 )
             }
         }

@@ -1,8 +1,6 @@
 package com.d4viddf.medicationreminder.wear.presentation.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,11 +17,14 @@ import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.ChipDefaults // For IconSize
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.wear.compose.material.ChipDefaults
 
 @Composable
 fun MedicationReminderChip(
@@ -45,7 +46,7 @@ fun MedicationReminderChip(
             .padding(horizontal = 8.dp, vertical = 4.dp),
         enabled = !displayAsTaken,
         colors = CardDefaults.cardColors(
-            containerColor = if (displayAsTaken) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surface,
+            containerColor = if (displayAsTaken) MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceContainer,
             contentColor = if (displayAsTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
         )
     ) {
@@ -136,7 +137,7 @@ fun PreviewMedicationReminderChipTaken() {
                 takenAt = "2023-01-01T12:00:00Z"
             ),
             onChipClick = {}
-            // isTakenDisplay = true // Not needed if reminder.isTaken is source of truth
+            // isTakenDisplay = true // Redundant if reminder.isTaken is used
         )
     }
 }
@@ -150,11 +151,11 @@ fun PreviewMedicationReminderChipNoDosage() {
                 id = "chip3",
                 medicationId = 3,
                 scheduleId = 3L,
-                underlyingReminderId = 103L,
+                underlyingReminderId = 3L,
                 medicationName = "Metformin",
                 time = "14:00",
                 isTaken = false,
-                dosage = null,
+                dosage = null, // Explicitly null
                 takenAt = null
             ),
             onChipClick = {}

@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.wear.presentation
 
 import android.app.Application
 import android.util.Log
+import androidx.concurrent.futures.await
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.wear.data.WearReminder

@@ -47,8 +47,6 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.wear.compose.material3) // Added M3 Material
-    implementation(libs.androidx.wear.compose.navigation) // Added M3 Navigation
     implementation(libs.androidx.wear.compose.foundation) // M3 Foundation for Wear
     implementation(libs.androidx.tiles.tooling.preview) // General Wear OS tooling
     implementation(libs.androidx.activity.compose)
@@ -77,6 +75,10 @@ dependencies {
 
     // ViewModel Compose for viewModel() composable
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.wear.compose.material)
+    implementation(libs.androidx.wear.remote.interactions)
+    implementation(libs.androidx.concurrent.futures)
     // implementation(libs.androidx.media3.common.ktx) // Or use libs.androidx.lifecycle.viewmodel.compose // Consider if media3 is needed for wear
 
 
@@ -96,5 +98,4 @@ dependencies {
     implementation(libs.room.ktx)
 
     // For ListenableFuture.await()
-    implementation(libs.androidx.concurrent.futures.ktx)
 }

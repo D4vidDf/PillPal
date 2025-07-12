@@ -68,6 +68,8 @@ media3CommonKtx = "1.7.1" # Check for latest
 androidx-wear-tiles = "1.5.0"
 androidx-wear-protolayout = "1.3.0"
 horologist = "0.7.12-alpha"
+composeNavigation = "1.5.0-beta05"
+concurrentFutures = "1.3.0-rc01"
 
 
 [libraries]
@@ -146,7 +148,7 @@ androidx-watchface-complications-data-source-ktx = { group = "androidx.wear.watc
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 
 # Specific Wear Compose libraries (if not covered by general compose material/foundation)
-androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "wearComposeFoundation" }
+androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version = "1.5.0-beta05" }
 wear-compose-material = { module = "androidx.wear.compose:compose-material3", version.ref = "wearComposeMaterial3" }
 tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-tooling-preview", version.ref = "tilesToolingPreviewVersion" }
 # androidx-wear-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "tiles" } // Already defined as androidx-tiles
@@ -165,6 +167,8 @@ androidx-wear-tiles-renderer = { module = "androidx.wear.tiles:tiles-renderer", 
 androidx-wear-tiles-tooling-preview = { module = "androidx.wear.tiles:tiles-tooling-preview", version.ref = "androidx-wear-tiles" }
 
 horologist-tiles = { module = "com.google.android.horologist:horologist-tiles", version.ref = "horologist" }
+androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }
+androidx-concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures", version.ref = "concurrentFutures" }
 
 
 [plugins]

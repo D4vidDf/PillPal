@@ -19,6 +19,7 @@ import com.d4viddf.medicationreminder.services.PreReminderForegroundService
 import com.d4viddf.medicationreminder.utils.FileLogger
 // import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
 import com.d4viddf.medicationreminder.data.MedicationReminder // Import MedicationReminder
+import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
