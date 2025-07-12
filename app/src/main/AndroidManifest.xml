@@ -38,6 +38,10 @@
         android:localeConfig="@xml/locales_config"
         android:pageSizeCompat="enabled"
         >
+        <meta-data
+            android:name="com.google.android.wearable.capabilities"
+            android:resource="@xml/wear" />
+
         <!-- Main Activity Declaration -->
         <activity
             android:name=".MainActivity"

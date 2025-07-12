@@ -143,6 +143,7 @@ dependencies {
 
     // Wear OS
     implementation(libs.play.services.wearable)
+    implementation("com.google.android.gms:play-services-wearable:18.2.0")
     implementation("com.google.android.horologist:horologist-tiles:0.6.17")
 
     // Explicitly add Gson for JSON serialization

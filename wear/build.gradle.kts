@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.d4viddf.medicationreminder"
+        applicationId = "com.d4viddf.medicationreminder.wear"
         minSdk = 30
         targetSdk = 36
         versionCode = 27
@@ -34,7 +34,6 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    useLibrary("wear-sdk")
     buildFeatures {
         compose = true
     }
