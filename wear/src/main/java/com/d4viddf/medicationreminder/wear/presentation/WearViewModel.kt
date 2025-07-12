@@ -26,7 +26,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import androidx.wear.remote.interactions.RemoteActivityHelper
-import androidx.concurrent.futures.asListenableFuture
+import androidx.concurrent.futures.asListenableFuture // Ensure this import is present
 
 class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
 
@@ -59,8 +59,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     init {
         observeMedicationAndReminderStates()
         registerCapabilityListener()
-        // Initial check can also be triggered here or from UI
-        checkPhoneAppInstallationInternal()
+        checkPhoneAppInstallationInternal() // Perform an initial check
     }
 
     private fun registerCapabilityListener() {
@@ -71,22 +70,19 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     private fun observeMedicationAndReminderStates() {
         viewModelScope.launch {
             medicationSyncDao.getAllMedicationsWithSchedules()
-                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao ->
+                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao -> // Corrected lambda params
                     Log.d(TAG, "Observed ${medsFromDao.size} meds & ${statesFromDao.size} states from Room.")
                     calculateRemindersFromSyncData(medsFromDao, statesFromDao)
                 }.collect { calculatedReminders ->
                     _reminders.value = calculatedReminders
                     val currentStatus = _phoneAppStatus.value
-                    // Update status based on data only if we were in a state expecting data
                     if (currentStatus == PhoneAppStatus.INSTALLED_DATA_REQUESTED || currentStatus == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        val hasMedsDefinitions = medsFromDao.isNotEmpty()
-                        // If we have medication definitions, consider it "WITH_DATA", even if no reminders are calculated for *today*
-                        // If medsFromDao is empty after a sync, it means no medications are configured on phone.
-                        _phoneAppStatus.value = if (hasMedsDefinitions) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
-                    } else if (currentStatus == PhoneAppStatus.INSTALLED_WITH_DATA && medsFromDao.isEmpty() && calculatedReminders.isEmpty()){
-                        // If we previously had data, but now sync results in empty meds AND empty reminders, it might be that all meds were deleted on phone
-                         _phoneAppStatus.value = PhoneAppStatus.INSTALLED_NO_DATA
+                        val hasActualData = medsFromDao.isNotEmpty() // Corrected: Use medsFromDao
+                        _phoneAppStatus.value = if (hasActualData) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
+                    } else if (currentStatus != PhoneAppStatus.NOT_INSTALLED_ANDROID && currentStatus != PhoneAppStatus.UNKNOWN ) {
+                         val hasActualData = medsFromDao.isNotEmpty() // Corrected: Use medsFromDao
+                        _phoneAppStatus.value = if (hasActualData || calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     }
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
                 }
@@ -214,8 +210,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
 
     private data class AdhocTakenPayload(val medicationId: Int, val scheduleId: Long, val reminderTimeKey: String, val takenAt: String)
 
-    // Internal function for initial check, can be called from init or UI
-    private fun checkPhoneAppInstallationInternal() {
+    private fun checkPhoneAppInstallationInternal() { // Renamed to avoid conflict if a public one is added for UI direct call
         if (_phoneAppStatus.value == PhoneAppStatus.CHECKING && _isLoading.value) return
         _phoneAppStatus.value = PhoneAppStatus.CHECKING
         _isLoading.value = true
@@ -243,16 +238,17 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         }
     }
 
-
     // Public function to be called from UI (e.g., on a button click or LaunchedEffect)
+    // Pass clients from UI context
     fun triggerPhoneAppCheckAndSync(remoteActivityHelper: RemoteActivityHelper, messageClient: MessageClient) {
-         checkPhoneAppInstallation(capabilityClient, remoteActivityHelper, messageClient)
+         checkPhoneAppInstallation(this.capabilityClient, remoteActivityHelper, messageClient)
     }
 
+    // This is the version called by triggerPhoneAppCheckAndSync and onCapabilityChanged
     private fun checkPhoneAppInstallation(
-        capClient: CapabilityClient, // Use passed client
-        remoteHelper: RemoteActivityHelper, // Use passed helper
-        msgClient: MessageClient // Use passed client
+        capClient: CapabilityClient,
+        remoteHelper: RemoteActivityHelper, // Keep for openPlayStoreOnPhone
+        msgClient: MessageClient
     ) {
         if (_phoneAppStatus.value == PhoneAppStatus.CHECKING && _isLoading.value) return
         _phoneAppStatus.value = PhoneAppStatus.CHECKING
@@ -332,7 +328,6 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
             val phoneNode = capabilityInfo.nodes.firstOrNull { it.isNearby }
             if (phoneNode != null) {
                 Log.i(TAG, "Phone app capability detected on node: ${phoneNode.displayName}.")
-                // If was not installed or checking, or had no data, now request it.
                 if (_phoneAppStatus.value == PhoneAppStatus.NOT_INSTALLED_ANDROID ||
                     _phoneAppStatus.value == PhoneAppStatus.UNKNOWN ||
                     _phoneAppStatus.value == PhoneAppStatus.CHECKING ||
@@ -342,7 +337,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     _isLoading.value = true
                     requestInitialSyncData(Wearable.getMessageClient(getApplication()), phoneNode.id)
                 } else {
-                     Log.i(TAG, "Phone app capability present, current status is ${_phoneAppStatus.value}. No immediate sync action unless data is missing.")
+                     Log.i(TAG, "Phone app capability present, current status is ${_phoneAppStatus.value}. No immediate sync action unless data was missing.")
                 }
             } else {
                 Log.w(TAG, "Phone app capability lost or no reachable node.")
@@ -365,7 +360,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     android.content.Intent(android.content.Intent.ACTION_VIEW)
                         .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
                         .setData(android.net.Uri.parse(PLAY_STORE_APP_URI))
-                ).asListenableFuture().await()
+                ).asListenableFuture().await() // Corrected await call
                 Log.i(TAG, "Attempted to open Play Store on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open Play Store on phone", e)
@@ -381,5 +376,4 @@ enum class PhoneAppStatus {
     INSTALLED_DATA_REQUESTED,
     INSTALLED_NO_DATA,
     NOT_INSTALLED_ANDROID,
-    // NOT_INSTALLED_IOS // Removed
 }

@@ -9,10 +9,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.runtime.* // Added for getValue
+// Icons import is not strictly needed here if MedicationListItem handles its own icons
+// import androidx.compose.material.icons.Icons
+// import androidx.compose.material.icons.filled.Check
+// import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,15 +23,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.items
+// TransformingLazyColumn and items are used in RemindersContent, not directly here
+// import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+// import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.*
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
-import com.d4viddf.medicationreminder.wear.data.WearReminder
+// import com.d4viddf.medicationreminder.wear.data.WearReminder // Used by RemindersContent
 import com.d4viddf.medicationreminder.wear.presentation.*
 import com.google.android.gms.wearable.Wearable
+// Import RemindersContent, which itself imports MedicationListItem
+import com.d4viddf.medicationreminder.wear.presentation.components.RemindersContent
 
 @Composable
 fun WearApp(wearViewModel: WearViewModel) {
@@ -49,7 +53,8 @@ fun WearApp(wearViewModel: WearViewModel) {
         hasAlarmPermission = isGranted
         if (!isGranted) {
             Log.w("WearApp", "Schedule exact alarm permission denied by user.")
-            // Consider showing a persistent message if permission is crucial and denied
+            // TODO: Show a toast or Snackbar equivalent for Wear OS if permission is critical
+            // Toast.makeText(context, R.string.permission_denied_alarm, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -63,16 +68,14 @@ fun WearApp(wearViewModel: WearViewModel) {
             TimeText()
 
             LaunchedEffect(Unit) {
-                // Pass the already available capabilityClient from ViewModel if possible,
-                // or ensure it's correctly scoped here. For simplicity, re-getting.
-                wearViewModel.triggerPhoneAppCheckAndSync( // Updated to new public method
-                    RemoteActivityHelper(context), // Pass as parameter
-                    Wearable.getMessageClient(context) // Pass as parameter
+                wearViewModel.triggerPhoneAppCheckAndSync(
+                    RemoteActivityHelper(context),
+                    Wearable.getMessageClient(context)
                 )
             }
 
             if (isFirstLaunch) {
-                OnboardingScreen(
+                OnboardingScreen( // Assuming OnboardingScreen.kt exists and is M3 compatible
                     onDismiss = {
                         sharedPreferences.edit().putBoolean(KEY_FIRST_LAUNCH, false).apply()
                         isFirstLaunch = false
@@ -119,17 +122,16 @@ fun WearApp(wearViewModel: WearViewModel) {
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 Button(onClick = {
-                                    wearViewModel.triggerPhoneAppCheckAndSync( // Updated to new public method
+                                    wearViewModel.triggerPhoneAppCheckAndSync(
                                         RemoteActivityHelper(context),
                                         Wearable.getMessageClient(context)
                                     )
                                 }) {
                                     Text(stringResource(R.string.retry_sync))
                                 }
-                                // Show stale list if available and loading/syncing in background
                                 if (reminders.isNotEmpty()){
                                      Spacer(modifier = Modifier.height(8.dp))
-                                     RemindersContent(
+                                     RemindersContent( // Calling the imported RemindersContent
                                         reminders = reminders,
                                         onMarkAsTaken = { reminderToTake ->
                                             wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
@@ -148,7 +150,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                         } else {
-                            RemindersContent(
+                            RemindersContent( // Calling the imported RemindersContent
                                 reminders = reminders,
                                 onMarkAsTaken = { reminderToTake ->
                                     wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
@@ -162,15 +164,13 @@ fun WearApp(wearViewModel: WearViewModel) {
     }
 }
 
-// MedicationListItem is now part of this file as per previous fixes.
-// RemindersContent is also here.
+// MedicationListItem and RemindersContent are now in their own files.
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultWearAppPreview() {
     MedicationReminderTheme {
         val context = LocalContext.current.applicationContext as Application
-        // Use viewModel() delegate for previews to get a lifecycle-aware ViewModel
         val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context))
         WearApp(wearViewModel = previewViewModel)
     }

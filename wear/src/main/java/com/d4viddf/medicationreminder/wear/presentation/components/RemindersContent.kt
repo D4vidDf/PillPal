@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue // Ensured import
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -13,7 +13,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-// import androidx.lifecycle.viewmodel.compose.viewModel // Not needed here directly
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.ListHeader
@@ -22,22 +21,19 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
-// import com.d4viddf.medicationreminder.wear.presentation.WearViewModel // Not needed here directly
-// import com.d4viddf.medicationreminder.wear.presentation.WearViewModelFactory // Not needed here
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
+// Import the newly created MedicationListItem
+import com.d4viddf.medicationreminder.wear.presentation.components.MedicationListItem
 
 @Composable
 fun RemindersContent(
     reminders: List<WearReminder>,
-    onMarkAsTaken: (WearReminder) -> Unit // Expects the full WearReminder object
+    onMarkAsTaken: (WearReminder) -> Unit
 ) {
-    // isConnectedToPhone logic is removed, WearApp controls when this is shown.
-    // This composable now assumes it's only displayed when there are reminders to show.
-
     if (reminders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
             Text(
-                text = stringResource(R.string.no_reminders_today), // Updated string
+                text = stringResource(R.string.no_reminders_today),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
@@ -56,14 +52,9 @@ fun RemindersContent(
             }
         }
         items(items = reminders, key = { it.id }) { reminder ->
-            // Assuming MedicationReminderChip is the M3 version from MedicationReminderChip.kt
-            // or that MedicationListItem is the intended composable here.
-            // The errors previously mentioned MedicationReminderChip argument mismatches.
-            // If MedicationListItem is used from WearApp.kt, this call needs to match its signature.
-            // For now, let's assume MedicationListItem is the one to use from WearApp.kt
-            MedicationListItem( // This was the composable defined within WearApp.kt
+            MedicationListItem( // Now using the imported component
                 reminder = reminder,
-                onMarkAsTaken = { onMarkAsTaken(reminder) } // Pass the full reminder object
+                onMarkAsTaken = { onMarkAsTaken(reminder) }
             )
         }
     }
