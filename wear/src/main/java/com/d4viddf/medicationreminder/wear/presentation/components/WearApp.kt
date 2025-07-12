@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel // Added for preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.*
@@ -45,12 +45,10 @@ fun WearApp(wearViewModel: WearViewModel) {
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
-            hasAlarmPermission = true
-        } else {
-            // Handle permission denial if necessary, e.g., show a message
-            // For now, just updates hasAlarmPermission
-            hasAlarmPermission = false
+        hasAlarmPermission = isGranted
+        if (!isGranted) {
+            // TODO: Optionally show a message explaining why the permission is important
+            Log.w("WearApp", "Schedule exact alarm permission denied by user.")
         }
     }
 
@@ -107,15 +105,12 @@ fun WearApp(wearViewModel: WearViewModel) {
                             }
                         }
                     }
-                    // PhoneAppStatus.NOT_INSTALLED_IOS was removed from enum
-                    // Handle this case if it can occur, or remove if not possible with current logic
-                    // For now, it will fall into UNKNOWN or another state if PhoneDeviceType is removed.
-                    // Assuming if capability is not found, it's treated as NOT_INSTALLED_ANDROID
+                    // NOT_INSTALLED_IOS case removed as enum was updated
 
                     PhoneAppStatus.INSTALLED_NO_DATA, PhoneAppStatus.INSTALLED_DATA_REQUESTED -> {
-                        if (isLoading && reminders.isEmpty()) { // Show loading only if reminders are also empty
+                        if (isLoading && reminders.isEmpty()) {
                             CircularProgressIndicator()
-                        } else if (reminders.isEmpty()) { // If not loading but reminders empty
+                        } else if (reminders.isEmpty()) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.padding(16.dp)) {
                                 Text(
                                     text = stringResource(R.string.no_reminders_today_syncing),
@@ -124,7 +119,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 Button(onClick = {
-                                    wearViewModel.checkPhoneAppInstallation(
+                                    wearViewModel.checkPhoneAppInstallation( // Re-trigger check and sync attempt
                                         Wearable.getCapabilityClient(context),
                                         RemoteActivityHelper(context),
                                         Wearable.getMessageClient(context)
@@ -133,10 +128,10 @@ fun WearApp(wearViewModel: WearViewModel) {
                                     Text(stringResource(R.string.retry_sync))
                                 }
                             }
-                        } else { // Has reminders, even if still "INSTALLED_DATA_REQUESTED"
+                        } else {
                             RemindersContent(
                                 reminders = reminders,
-                                onMarkAsTaken = { reminderToTake ->
+                                onMarkAsTaken = { reminderToTake -> // Correctly call the ViewModel function
                                     wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
                                 }
                             )
@@ -153,7 +148,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                         } else {
                             RemindersContent(
                                 reminders = reminders,
-                                onMarkAsTaken = { reminderToTake ->
+                                onMarkAsTaken = { reminderToTake -> // Correctly call the ViewModel function
                                     wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
                                 }
                             )
@@ -171,7 +166,7 @@ fun RemindersContent(reminders: List<WearReminder>, onMarkAsTaken: (WearReminder
         modifier = Modifier.fillMaxSize()
     ) {
         items(reminders, key = { it.id }) { reminder ->
-            MedicationListItem(reminder = reminder, onMarkAsTaken = {
+            MedicationListItem(reminder = reminder, onMarkAsTaken = { // Pass the specific reminder object
                 onMarkAsTaken(reminder)
             })
         }
@@ -216,7 +211,7 @@ fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
                 Button(
                     onClick = onMarkAsTaken,
                     modifier = Modifier.size(ButtonDefaults.SmallButtonSize),
-                    colors = ButtonDefaults.filledTonalButtonColors() // Example M3 button style
+                    colors = ButtonDefaults.filledTonalButtonColors()
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Check,
@@ -226,9 +221,9 @@ fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
                 }
             } else {
                 Icon(
-                    imageVector = Icons.Filled.CheckCircle, // Changed for taken state
+                    imageVector = Icons.Filled.CheckCircle, // Using CheckCircle for taken state
                     contentDescription = stringResource(R.string.already_taken),
-                    tint = MaterialTheme.colorScheme.primary, // Use primary color for taken indication
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
                 )
             }
@@ -243,7 +238,6 @@ fun DefaultWearAppPreview() {
     MedicationReminderTheme {
         val context = LocalContext.current.applicationContext as Application
         val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context))
-        // ViewModel will be in its initial state (UNKNOWN or CHECKING)
         WearApp(wearViewModel = previewViewModel)
     }
 }
