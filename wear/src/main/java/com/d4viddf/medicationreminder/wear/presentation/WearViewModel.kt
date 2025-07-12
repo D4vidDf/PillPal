@@ -25,7 +25,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import androidx.wear.phone.interactions.PhoneDeviceType
+// Removed: import androidx.wear.phone.interactions.PhoneDeviceType
 import androidx.wear.remote.interactions.RemoteActivityHelper
 
 class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
@@ -51,12 +51,11 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         private const val REQUEST_INITIAL_SYNC_PATH = "/request_initial_sync"
         private const val MARK_AS_TAKEN_PATH = "/mark_as_taken"
         private const val ADHOC_TAKEN_PATH = "/mark_adhoc_taken_on_watch"
-        private const val PLAY_STORE_APP_URI = "market://details?id=com.d4viddf.medicationreminder" // Ensure this is correct phone app package
+        private const val PLAY_STORE_APP_URI = "market://details?id=com.d4viddf.medicationreminder"
     }
 
     init {
         observeMedicationAndReminderStates()
-        // Initial capability check is triggered from UI (WearApp)
     }
 
     private fun observeMedicationAndReminderStates() {
@@ -67,13 +66,11 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     calculateRemindersFromSyncData(medsWithSchedules, reminderStates)
                 }.collect { calculatedReminders ->
                     _reminders.value = calculatedReminders
-                    // isLoading should be false here as data processing is done
                     if (_phoneAppStatus.value == PhoneAppStatus.INSTALLED_DATA_REQUESTED || _phoneAppStatus.value == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        _phoneAppStatus.value = if (calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
-                    } else if (_phoneAppStatus.value != PhoneAppStatus.NOT_INSTALLED_ANDROID && _phoneAppStatus.value != PhoneAppStatus.NOT_INSTALLED_IOS && _phoneAppStatus.value != PhoneAppStatus.UNKNOWN ) {
-                        // If already installed and got an update, reflect it
-                         _phoneAppStatus.value = if (calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
+                        _phoneAppStatus.value = if (calculatedReminders.isNotEmpty() || !medsWithSchedules.isNullOrEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
+                    } else if (_phoneAppStatus.value != PhoneAppStatus.NOT_INSTALLED_ANDROID && _phoneAppStatus.value != PhoneAppStatus.UNKNOWN ) { // Removed NOT_INSTALLED_IOS
+                         _phoneAppStatus.value = if (calculatedReminders.isNotEmpty() || !medsWithSchedules.isNullOrEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     }
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
                 }
@@ -108,12 +105,9 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                         gson.fromJson<List<String>>(json, typeToken)
                      }.getOrNull()
                 }
-
-                // TODO: The underlyingReminderId logic needs to be robust.
-                // If the phone sends a unique ID for each reminder instance, that should be stored and used.
-                // For now, using scheduleEntity.scheduleId as a placeholder if no better ID is available from sync.
-                // This ID is critical for matching "taken" status back to the phone.
-                val phoneGeneratedReminderIdForSchedule = scheduleEntity.scheduleId // Placeholder logic
+                // Using scheduleEntity.scheduleId as a stand-in for underlyingReminderId if a more specific one isn't available.
+                // This part is crucial and depends on how the phone app structures its reminder IDs for specific instances.
+                val phoneGeneratedReminderIdForSchedule = scheduleEntity.scheduleId
 
                 if (scheduleEntity.scheduleType == "DAILY_SPECIFIC_TIMES" || scheduleEntity.scheduleType == "CUSTOM_ALARMS") {
                     if (dailyRepetitionDays.isNullOrEmpty() || dailyRepetitionDays.contains(today.dayOfWeek.name.toString())) {
@@ -126,7 +120,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                                     id = reminderInstanceId,
                                     medicationId = medication.medicationId,
                                     scheduleId = scheduleEntity.scheduleId,
-                                    underlyingReminderId = phoneGeneratedReminderIdForSchedule, // This should be the actual phone DB ID for this instance if available
+                                    underlyingReminderId = phoneGeneratedReminderIdForSchedule, // This should be the actual specific instance ID from phone if available
                                     medicationName = medication.name,
                                     dosage = medication.dosage,
                                     time = reminderTimeKey,
@@ -157,7 +151,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                                     id = reminderInstanceId,
                                     medicationId = medication.medicationId,
                                     scheduleId = scheduleEntity.scheduleId,
-                                    underlyingReminderId = phoneGeneratedReminderIdForSchedule, // Placeholder
+                                    underlyingReminderId = phoneGeneratedReminderIdForSchedule,
                                     medicationName = medication.name,
                                     dosage = medication.dosage,
                                     time = reminderTimeKey,
@@ -193,12 +187,14 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
             medicationSyncDao.insertOrUpdateReminderState(newState)
             Log.i(TAG, "Marked reminder ${reminder.id} as taken locally on watch.")
 
-            if (reminder.underlyingReminderId != 0L && reminder.underlyingReminderId != reminder.scheduleId) { // Assuming scheduleId is a fallback if no specific phone instance ID
+            // Use reminder.underlyingReminderId which should be the phone's DB ID for this specific instance
+            if (reminder.underlyingReminderId != 0L) {
                 markReminderAsTakenOnPhone(reminder.underlyingReminderId.toString(), Wearable.getMessageClient(getApplication()))
             } else {
+                // This case is for when the watch generates a reminder instance not directly tied to a phone DB reminder ID
                 val adhocTakenData = AdhocTakenPayload(reminder.medicationId, reminder.scheduleId, reminder.time, now)
                 val jsonData = gson.toJson(adhocTakenData)
-                Log.w(TAG, "No specific phone DB ID for ${reminder.id} (underlyingID: ${reminder.underlyingReminderId}). Sending ad-hoc taken message: $jsonData")
+                Log.w(TAG, "No specific phone DB ID for ${reminder.id}. Sending ad-hoc taken message: $jsonData")
                 sendMessageToPhone(ADHOC_TAKEN_PATH, jsonData.toByteArray(Charsets.UTF_8))
             }
         }
@@ -211,7 +207,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         remoteActivityHelper: RemoteActivityHelper,
         messageClient: MessageClient
     ) {
-        if (_phoneAppStatus.value == PhoneAppStatus.CHECKING && _isLoading.value) return // Already checking
+        if (_phoneAppStatus.value == PhoneAppStatus.CHECKING && _isLoading.value) return
         _phoneAppStatus.value = PhoneAppStatus.CHECKING
         _isLoading.value = true
         viewModelScope.launch {
@@ -227,12 +223,9 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     requestInitialSyncData(messageClient, phoneNode.id)
                 } else {
                     Log.w(TAG, "Phone app capability '$PHONE_APP_CAPABILITY_NAME' not found.")
-                    val deviceType = PhoneDeviceType.getPhoneDeviceType(getApplication<Application>().applicationContext)
-                    _phoneAppStatus.value = when (deviceType) {
-                        PhoneDeviceType.DEVICE_TYPE_ANDROID -> PhoneAppStatus.NOT_INSTALLED_ANDROID
-                        PhoneDeviceType.DEVICE_TYPE_IOS -> PhoneAppStatus.NOT_INSTALLED_IOS
-                        else -> PhoneAppStatus.UNKNOWN
-                    }
+                    // Assume Android if capability not found, as per user feedback.
+                    // No need to distinguish iOS for opening store if PhoneDeviceType is removed.
+                    _phoneAppStatus.value = PhoneAppStatus.NOT_INSTALLED_ANDROID
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
@@ -241,13 +234,12 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                 _isLoading.value = false
             }
         }
-        capabilityClient.removeListener(this, PHONE_APP_CAPABILITY_NAME) // Re-register to ensure it's fresh
+        capabilityClient.removeListener(this, PHONE_APP_CAPABILITY_NAME)
         capabilityClient.addListener(this, PHONE_APP_CAPABILITY_NAME)
     }
 
     private fun requestInitialSyncData(messageClient: MessageClient, nodeId: String) {
         viewModelScope.launch {
-            // isLoading is true from checkPhoneAppInstallation or onCapabilityChanged
             sendMessageToNode(messageClient, nodeId, REQUEST_INITIAL_SYNC_PATH, ByteArray(0))
                 .addOnSuccessListener {
                     Log.i(TAG, "Initial sync request sent to node $nodeId. Status: ${_phoneAppStatus.value}")
@@ -268,6 +260,10 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         }
     }
 
+    private suspend fun sendMessageToNode(messageClient: MessageClient, nodeId: String, path: String, data: ByteArray): com.google.android.gms.tasks.Task<Int> {
+        return messageClient.sendMessage(nodeId, path, data)
+    }
+
     private suspend fun sendMessageToPhone(path: String, data: ByteArray, specificMessageClient: MessageClient? = null): com.google.android.gms.tasks.Task<Int>? {
         val client = specificMessageClient ?: Wearable.getMessageClient(getApplication<Application>())
         try {
@@ -276,9 +272,9 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                 .await()
             val phoneNode = capabilityInfo.nodes.firstOrNull { it.isNearby }
             if (phoneNode != null) {
-                return client.sendMessage(phoneNode.id, path, data)
-                    .addOnSuccessListener { Log.i(TAG,"Message $path sent to ${phoneNode.displayName}") }
-                    .addOnFailureListener { e -> Log.e(TAG, "Failed to send message $path to ${phoneNode.displayName}", e) }
+                return sendMessageToNode(client, phoneNode.id, path, data)
+                    // .addOnSuccessListener { Log.i(TAG,"Message $path sent to ${phoneNode.displayName}") } // Logging done in sendMessageToNode
+                    // .addOnFailureListener { e -> Log.e(TAG, "Failed to send message $path to ${phoneNode.displayName}", e) }
             } else {
                 Log.w(TAG, "Cannot send message $path: No connected phone node with capability.")
             }
@@ -288,15 +284,13 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         return null
     }
 
-
     override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
         Log.d(TAG, "onCapabilityChanged: ${capabilityInfo.name}, Nodes: ${capabilityInfo.nodes.joinToString { it.displayName }}")
         if (capabilityInfo.name == PHONE_APP_CAPABILITY_NAME) {
             val phoneNode = capabilityInfo.nodes.firstOrNull { it.isNearby }
             if (phoneNode != null) {
                 if (_phoneAppStatus.value == PhoneAppStatus.NOT_INSTALLED_ANDROID ||
-                    _phoneAppStatus.value == PhoneAppStatus.NOT_INSTALLED_IOS ||
-                    _phoneAppStatus.value == PhoneAppStatus.UNKNOWN ||
+                    _phoneAppStatus.value == PhoneAppStatus.UNKNOWN || // Removed NOT_INSTALLED_IOS
                     _phoneAppStatus.value == PhoneAppStatus.CHECKING ||
                     _phoneAppStatus.value == PhoneAppStatus.INSTALLED_NO_DATA) {
                     Log.i(TAG, "Phone app connected/reconnected or was missing data: ${phoneNode.displayName}. Updating status and requesting initial sync.")
@@ -308,13 +302,8 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                 }
             } else {
                 Log.w(TAG, "Phone app capability lost or no reachable node.")
-                 val currentContext = getApplication<Application>().applicationContext
-                 val deviceType = PhoneDeviceType.getPhoneDeviceType(currentContext)
-                _phoneAppStatus.value = when (deviceType) {
-                    PhoneDeviceType.DEVICE_TYPE_ANDROID -> PhoneAppStatus.NOT_INSTALLED_ANDROID
-                    PhoneDeviceType.DEVICE_TYPE_IOS -> PhoneAppStatus.NOT_INSTALLED_IOS
-                    else -> PhoneAppStatus.UNKNOWN
-                }
+                // Assume Android and not installed if capability is lost, as per user feedback
+                _phoneAppStatus.value = PhoneAppStatus.NOT_INSTALLED_ANDROID
                 _isLoading.value = false
             }
         }
@@ -349,5 +338,5 @@ enum class PhoneAppStatus {
     INSTALLED_DATA_REQUESTED,
     INSTALLED_NO_DATA,
     NOT_INSTALLED_ANDROID,
-    NOT_INSTALLED_IOS
+    // NOT_INSTALLED_IOS // Removed as per user feedback
 }

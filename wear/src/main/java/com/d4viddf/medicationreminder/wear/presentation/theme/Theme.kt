@@ -9,31 +9,21 @@ import androidx.wear.compose.material3.Typography   // M3 import
 // import androidx.wear.compose.material3.Shapes
 
 // Define M3 Color Scheme for Compose Material 3
-// Simplified to address potential constructor issues with surface/surfaceVariant
 private val WearAppColorScheme = ColorScheme(
     primary = Color(0xFF4CAF50), // Green
     onPrimary = Color.Black,
-    // primaryContainer = Color(0xFFC8E6C9), // Defaulted
-    // onPrimaryContainer = Color.Black,    // Defaulted
     secondary = Color(0xFF03A9F4), // Light Blue
     onSecondary = Color.Black,
-    // secondaryContainer = Color(0xFFB3E5FC), // Defaulted
-    // onSecondaryContainer = Color.Black,     // Defaulted
-    // tertiary = Color(0xFFFFC107), // Amber - Defaulted
-    // onTertiary = Color.Black,        // Defaulted
-    // tertiaryContainer = Color(0xFFFFECB3),// Defaulted
-    // onTertiaryContainer = Color.Black,   // Defaulted
     error = Color(0xFFF44336), // Red
     onError = Color.White,
-    // errorContainer = Color(0xFFFFCDD2), // Defaulted
-    // onErrorContainer = Color.Black,    // Defaulted
     background = Color(0xFF1C1B1F), // Standard M3 Dark Background
     onBackground = Color(0xFFE6E1E5),
-    surface = Color(0xFF1C1B1F), // Explicitly define surface, often same as background
-    onSurface = Color(0xFFE6E1E5),
-    surfaceVariant = Color(0xFF49454F), // Explicitly define surfaceVariant
-    onSurfaceVariant = Color(0xFFCAC4D0),
+    surface = Color(0xFF1C1B1F), // Surface often matches background in dark themes for Wear
+    onSurface = Color(0xFFE6E1E5), // Text/icons on surface
+    surfaceVariant = Color(0xFF2C2B2F), // A slightly lighter variant for card backgrounds etc.
+    onSurfaceVariant = Color(0xFFCAC4D0), // Text/icons on surfaceVariant
     outline = Color(0xFF938F99)
+    // Let other container colors, tertiary etc. be defaulted by the MaterialTheme
 )
 
 // Define M3 Typography for Compose Material 3

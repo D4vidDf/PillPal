@@ -25,4 +25,6 @@
     <string name="open_play_store">Open Store</string>
     <string name="retry_sync">Retry Sync</string>
     <string name="permission_denied_alarm">Alarm permission is needed for reminders.</string>
+    <string name="reminder_time_prefix">Time: %1$s</string>
+    <string name="reminder_dosage_prefix">Dosage: %1$s</string>
 </resources>
