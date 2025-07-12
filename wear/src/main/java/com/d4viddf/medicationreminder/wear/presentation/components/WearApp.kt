@@ -9,10 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.runtime.*
+import androidx.compose.runtime.* // For remember, mutableStateOf, LaunchedEffect, getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,17 +19,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.*
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
-import com.d4viddf.medicationreminder.wear.data.WearReminder // Now directly used by MedicationListItem
-import com.d4viddf.medicationreminder.wear.presentation.*
+import com.d4viddf.medicationreminder.wear.presentation.* // Import PhoneAppStatus, WearViewModelFactory etc.
 import com.google.android.gms.wearable.Wearable
-// Import RemindersContent, which itself imports MedicationListItem
+// Import RemindersContent (which itself imports MedicationListItem)
 import com.d4viddf.medicationreminder.wear.presentation.components.RemindersContent
+import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
 
 @Composable
 fun WearApp(wearViewModel: WearViewModel) {
@@ -160,7 +155,6 @@ fun WearApp(wearViewModel: WearViewModel) {
         }
     }
 }
-
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable

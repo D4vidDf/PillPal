@@ -26,8 +26,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import androidx.wear.remote.interactions.RemoteActivityHelper
-// androidx.concurrent.futures.asListenableFuture // Removed
-// The .await() extension for ListenableFuture comes from androidx.concurrent:concurrent-futures-ktx
+// No import for asListenableFuture needed; .await() is an extension from concurrent-futures-ktx
 
 class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
 
@@ -45,7 +44,6 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     }
     private val gson = Gson()
     private val capabilityClient: CapabilityClient by lazy { Wearable.getCapabilityClient(getApplication<Application>()) }
-
 
     private val PHONE_APP_CAPABILITY_NAME = "medication_reminder_phone_app_capability"
 
@@ -71,32 +69,31 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     private fun observeMedicationAndReminderStates() {
         viewModelScope.launch {
             medicationSyncDao.getAllMedicationsWithSchedules()
-                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao -> // Lambda parameters
-                    Log.d(TAG, "Observed ${medsFromDao.size} meds & ${statesFromDao.size} states from Room.")
-                    // Pass the actual Flow results to calculateRemindersFromSyncData
-                    calculateRemindersFromSyncData(medsFromDao, statesFromDao) // Use lambda params
+                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDaoLambda, statesFromDaoLambda ->
+                    Log.d(TAG, "Observed ${medsFromDaoLambda.size} meds & ${statesFromDaoLambda.size} states from Room.")
+                    calculateRemindersFromSyncData(medsFromDaoLambda, statesFromDaoLambda)
                 }.collect { calculatedReminders ->
                     _reminders.value = calculatedReminders
                     val currentStatus = _phoneAppStatus.value
 
-                    // This logic needs to know if the *source* of medications (medsFromDao) was empty.
-                    // The `combine` gives the latest of each. We need to make decision based on that.
-                    // A simple way: if current status implies we are waiting for data, then update status based on what came.
+                    // This logic needs to correctly reflect the source data.
+                    // The `combine` means we get the latest from both flows.
+                    // We need to check the `medsFromDaoLambda` that was used for the current `calculatedReminders`.
+                    // This is tricky because `collect` only sees the result.
+                    // A more robust way is to pass the source list size or emptiness along with calculatedReminders.
+                    // For now, we'll assume if INSTALLED_DATA_REQUESTED, the status updates based on calculatedReminders.
+
                     if (currentStatus == PhoneAppStatus.INSTALLED_DATA_REQUESTED || currentStatus == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        // To determine if actual medication *definitions* exist, we need to inspect the source that `calculatedReminders` was based on.
-                        // This is tricky here as `medsFromDao` isn't directly available in the `collect` block.
-                        // A pragmatic approach: if calculatedReminders is empty, assume no schedulable data.
-                        // For a more accurate "INSTALLED_NO_DATA" (meaning no definitions), the combine block would need to emit a Pair or wrapper.
-                        // For now, if calculatedReminders is empty, we'll say INSTALLED_NO_DATA for simplicity if we were expecting data.
+                        // If we were waiting for data, and we got an empty list of *calculated* reminders,
+                        // it could be because there are no meds defined, or no meds for *today*.
+                        // To distinguish "no meds configured" from "no meds for today", we'd need the source list (medsFromDaoLambda).
+                        // For now, if calculated is empty, we'll show INSTALLED_NO_DATA.
                         _phoneAppStatus.value = if (calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     } else if (currentStatus == PhoneAppStatus.INSTALLED_WITH_DATA && calculatedReminders.isEmpty()) {
-                        // If we previously had data, but now sync results in empty calculated reminders
                          _phoneAppStatus.value = PhoneAppStatus.INSTALLED_NO_DATA
                     }
-                    // If status was already NOT_INSTALLED_ANDROID or UNKNOWN, a data update (even to empty) shouldn't change it to INSTALLED_NO_DATA
-                    // unless onCapabilityChanged has already set it to INSTALLED_DATA_REQUESTED.
-
+                    // Avoid changing status if it's already NOT_INSTALLED or UNKNOWN from just a data update
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
                 }
         }
