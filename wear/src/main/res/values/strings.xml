@@ -27,4 +27,6 @@
     <string name="permission_denied_alarm">Alarm permission is needed for reminders.</string>
     <string name="reminder_time_prefix">Time: %1$s</string>
     <string name="reminder_dosage_prefix">Dosage: %1$s</string>
+    <string name="checking_for_updates">Checking for updates...</string>
+    <string name="todays_reminders_header">Today\'s Reminders</string>
 </resources>

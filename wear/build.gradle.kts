@@ -94,4 +94,7 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
+
+    // For ListenableFuture.await()
+    implementation(libs.androidx.concurrent.futures.ktx)
 }

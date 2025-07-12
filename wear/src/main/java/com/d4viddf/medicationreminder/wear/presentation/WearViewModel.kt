@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
-import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity // Ensure this is imported
+import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.CapabilityInfo
@@ -20,13 +20,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await // Standard await for GMS Tasks
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-// import androidx.wear.phone.interactions.PhoneDeviceType // Removed as requested
 import androidx.wear.remote.interactions.RemoteActivityHelper
+import androidx.concurrent.futures.asListenableFuture // Added for ListenableFuture.await()
 
 class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
 
@@ -51,32 +51,29 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         private const val REQUEST_INITIAL_SYNC_PATH = "/request_initial_sync"
         private const val MARK_AS_TAKEN_PATH = "/mark_as_taken"
         private const val ADHOC_TAKEN_PATH = "/mark_adhoc_taken_on_watch"
-        private const val PLAY_STORE_APP_URI = "market://details?id=com.d4viddf.medicationreminder" // Ensure this is correct phone app package
+        private const val PLAY_STORE_APP_URI = "market://details?id=com.d4viddf.medicationreminder"
     }
 
     init {
         observeMedicationAndReminderStates()
-        // Initial capability check is triggered from UI (WearApp's LaunchedEffect)
     }
 
     private fun observeMedicationAndReminderStates() {
         viewModelScope.launch {
             medicationSyncDao.getAllMedicationsWithSchedules()
-                .combine(medicationSyncDao.getAllReminderStates()) { medsWithSchedules, reminderStates ->
-                    Log.d(TAG, "Observed ${medsWithSchedules.size} meds & ${reminderStates.size} states from Room.")
-                    calculateRemindersFromSyncData(medsWithSchedules, reminderStates)
+                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao -> // Renamed lambda params
+                    Log.d(TAG, "Observed ${medsFromDao.size} meds & ${statesFromDao.size} states from Room.")
+                    calculateRemindersFromSyncData(medsFromDao, statesFromDao)
                 }.collect { calculatedReminders ->
                     _reminders.value = calculatedReminders
-                    // isLoading should be false here as data processing is done
                     val currentStatus = _phoneAppStatus.value
                     if (currentStatus == PhoneAppStatus.INSTALLED_DATA_REQUESTED || currentStatus == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        // Check if medsWithSchedules itself is null or empty before deciding INSTALLED_NO_DATA
-                        val hasActualData = medsWithSchedules.isNotEmpty() // Check based on the source of truth
+                        val hasActualData = _reminders.value.isNotEmpty() // Check calculatedReminders, not the source flow parameter
                         _phoneAppStatus.value = if (hasActualData) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     } else if (currentStatus != PhoneAppStatus.NOT_INSTALLED_ANDROID && currentStatus != PhoneAppStatus.UNKNOWN ) {
-                         val hasActualData = medsWithSchedules.isNotEmpty()
-                        _phoneAppStatus.value = if (hasActualData || calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
+                         val hasActualData = _reminders.value.isNotEmpty()
+                        _phoneAppStatus.value = if (hasActualData) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     }
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
                 }
@@ -111,10 +108,10 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                         gson.fromJson<List<String>>(json, typeToken)
                      }.getOrNull()
                 }
-                val phoneGeneratedReminderIdForSchedule = scheduleEntity.scheduleId // This is likely scheduleId, not specific instanceId from phone.
+                val phoneGeneratedReminderIdForSchedule = scheduleEntity.scheduleId
 
                 if (scheduleEntity.scheduleType == "DAILY_SPECIFIC_TIMES" || scheduleEntity.scheduleType == "CUSTOM_ALARMS") {
-                    if (dailyRepetitionDays.isNullOrEmpty() || dailyRepetitionDays.contains(today.dayOfWeek.name)) { // Use .name for DayOfWeek
+                    if (dailyRepetitionDays.isNullOrEmpty() || dailyRepetitionDays.contains(today.dayOfWeek.name)) {
                         specificTimes?.forEach { time ->
                             val reminderTimeKey = time.format(DateTimeFormatter.ofPattern("HH:mm"))
                             val reminderInstanceId = "med${medication.medicationId}_sched${scheduleEntity.scheduleId}_day${today.toEpochDay()}_time${reminderTimeKey.replace(":", "")}"
@@ -320,7 +317,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     android.content.Intent(android.content.Intent.ACTION_VIEW)
                         .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
                         .setData(android.net.Uri.parse(PLAY_STORE_APP_URI))
-                ).await() // This await is for the Task from startRemoteActivity
+                ).asListenableFuture().await() // Corrected await call
                 Log.i(TAG, "Attempted to open Play Store on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open Play Store on phone", e)
