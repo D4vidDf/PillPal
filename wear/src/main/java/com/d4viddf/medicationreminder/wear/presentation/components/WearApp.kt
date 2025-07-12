@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.runtime.*
+import androidx.compose.runtime.* // Added for getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle // Correct import for getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
@@ -49,8 +49,7 @@ fun WearApp(wearViewModel: WearViewModel) {
         hasAlarmPermission = isGranted
         if (!isGranted) {
             Log.w("WearApp", "Schedule exact alarm permission denied by user.")
-            // TODO: Show a message to the user that permission is important for reminders
-            // Toast.makeText(context, R.string.permission_denied_alarm, Toast.LENGTH_LONG).show()
+            // Consider showing a persistent message if permission is crucial and denied
         }
     }
 
@@ -64,10 +63,11 @@ fun WearApp(wearViewModel: WearViewModel) {
             TimeText()
 
             LaunchedEffect(Unit) {
-                wearViewModel.checkPhoneAppInstallation(
-                    Wearable.getCapabilityClient(context),
-                    RemoteActivityHelper(context),
-                    Wearable.getMessageClient(context)
+                // Pass the already available capabilityClient from ViewModel if possible,
+                // or ensure it's correctly scoped here. For simplicity, re-getting.
+                wearViewModel.triggerPhoneAppCheckAndSync( // Updated to new public method
+                    RemoteActivityHelper(context), // Pass as parameter
+                    Wearable.getMessageClient(context) // Pass as parameter
                 )
             }
 
@@ -110,7 +110,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                     PhoneAppStatus.INSTALLED_NO_DATA, PhoneAppStatus.INSTALLED_DATA_REQUESTED -> {
                         if (isLoading && reminders.isEmpty()) {
                             CircularProgressIndicator()
-                        } else  { // Show message or list even if loading but some old data exists
+                        } else  {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.padding(16.dp)) {
                                 Text(
                                     text = if (reminders.isEmpty()) stringResource(R.string.no_reminders_today_syncing) else stringResource(R.string.checking_for_updates),
@@ -119,15 +119,15 @@ fun WearApp(wearViewModel: WearViewModel) {
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 Button(onClick = {
-                                    wearViewModel.checkPhoneAppInstallation(
-                                        Wearable.getCapabilityClient(context),
+                                    wearViewModel.triggerPhoneAppCheckAndSync( // Updated to new public method
                                         RemoteActivityHelper(context),
                                         Wearable.getMessageClient(context)
                                     )
                                 }) {
                                     Text(stringResource(R.string.retry_sync))
                                 }
-                                if (reminders.isNotEmpty()){ // Show stale list if available
+                                // Show stale list if available and loading/syncing in background
+                                if (reminders.isNotEmpty()){
                                      Spacer(modifier = Modifier.height(8.dp))
                                      RemindersContent(
                                         reminders = reminders,
@@ -162,97 +162,15 @@ fun WearApp(wearViewModel: WearViewModel) {
     }
 }
 
-// RemindersContent and MedicationListItem are now expected to be in their own files if they were separate.
-// If they were inline, their M3 versions are assumed here. Let's put their correct M3 versions here for clarity.
-
-@Composable
-fun RemindersContent(reminders: List<WearReminder>, onMarkAsTaken: (WearReminder) -> Unit) {
-    TransformingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally // Added for centering items like headers if any
-    ) {
-        // Optional: Header for the list
-        if (reminders.isNotEmpty()) {
-            item {
-                ListHeader { // M3 ListHeader
-                    Text(stringResource(R.string.todays_reminders_header))
-                }
-            }
-        }
-        items(items = reminders, key = { it.id }) { reminder ->
-            MedicationListItem(reminder = reminder, onMarkAsTaken = {
-                onMarkAsTaken(reminder)
-            })
-        }
-    }
-}
-
-@Composable
-fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
-    Card(
-        onClick = { /* TODO: Decide if item click does something, e.g. details */ },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp, horizontal = 8.dp), // Reduced vertical padding
-        colors = CardDefaults.cardColors(
-            containerColor = if(reminder.isTaken) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp), // Adjusted padding
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                Text(
-                    text = reminder.medicationName,
-                    style = MaterialTheme.typography.titleSmall, // Adjusted for less emphasis than bodyLarge
-                    color = if (reminder.isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.reminder_time_prefix, reminder.time),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (reminder.isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (reminder.dosage?.isNotBlank() == true) {
-                    Text(
-                        text = stringResource(R.string.reminder_dosage_prefix, reminder.dosage),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (reminder.isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            if (!reminder.isTaken) {
-                Button(
-                    onClick = onMarkAsTaken,
-                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = stringResource(R.string.mark_as_taken),
-                        modifier = Modifier.size(ButtonDefaults.SmallIconSize)
-                    )
-                }
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = stringResource(R.string.already_taken),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
-                )
-            }
-        }
-    }
-}
+// MedicationListItem is now part of this file as per previous fixes.
+// RemindersContent is also here.
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultWearAppPreview() {
     MedicationReminderTheme {
         val context = LocalContext.current.applicationContext as Application
+        // Use viewModel() delegate for previews to get a lifecycle-aware ViewModel
         val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context))
         WearApp(wearViewModel = previewViewModel)
     }
