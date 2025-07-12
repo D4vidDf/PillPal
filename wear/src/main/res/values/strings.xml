@@ -14,4 +14,19 @@
     <string name="got_it">Got It</string>
     <string name="device_not_connected">Device Not Connected</string>
     <string name="try_connection">Try Connection</string>
+    <string name="retry_connection">Retry Connection</string>
+
+    <string name="no_reminders_today">No reminders for today.</string>
+    <string name="no_reminders_today_syncing">No reminders yet. Syncing with phone...</string>
+    <string name="mark_as_taken">Mark as Taken</string>
+    <string name="already_taken">Taken</string>
+    <string name="phone_app_not_installed_android">Phone app needed. Tap to install from Play Store.</string>
+    <string name="phone_app_not_installed_ios">Phone app needed. Please install it on your iPhone.</string>
+    <string name="open_play_store">Open Store</string>
+    <string name="retry_sync">Retry Sync</string>
+    <string name="permission_denied_alarm">Alarm permission is needed for reminders.</string>
+    <string name="reminder_time_prefix">Time: %1$s</string>
+    <string name="reminder_dosage_prefix">Dosage: %1$s</string>
+    <string name="checking_for_updates">Checking for updates...</string>
+    <string name="todays_reminders_header">Today\'s Reminders</string>
 </resources>

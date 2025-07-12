@@ -4,82 +4,98 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color // Keep for direct Color usage if any, though M3 theme is preferred
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
-import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
-import androidx.wear.protolayout.material.Text
+import androidx.wear.compose.material3.Card
+import androidx.wear.compose.material3.CardDefaults
+import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.wear.compose.material.ChipDefaults
 
 @Composable
 fun MedicationReminderChip(
     reminder: WearReminder,
     onChipClick: () -> Unit,
-    isTakenDisplay: Boolean = false
+    isTakenDisplay: Boolean = false // Kept for parity with old code, but reminder.isTaken is primary
 ) {
-    Chip( // Should resolve to M3 Chip
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+    // isTakenDisplay is effectively overridden by reminder.isTaken for actual state
+    val displayAsTaken = reminder.isTaken || isTakenDisplay
+
+    Card(
         onClick = {
-            if (!reminder.isTaken && !isTakenDisplay) {
+            if (!displayAsTaken) { // Only allow click if not already considered taken for display/action
                 onChipClick()
             }
         },
-        label = {
-            Text( // M3 Text
-                text = reminder.medicationName,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        enabled = !displayAsTaken,
+        colors = CardDefaults.cardColors(
+            containerColor = if (displayAsTaken) MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = if (displayAsTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp), // Inner padding for content
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.medication_filled), // Ensure this drawable exists
+                contentDescription = "Medication icon", // Generic description
+                modifier = Modifier.size(ChipDefaults.LargeIconSize), // M3 ChipDefaults for standard icon size
+                tint = if (displayAsTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
             )
-        },
-        secondaryLabel = {
-            reminder.dosage?.let {
-                Text( // M3 Text
-                    text = it,
-                    fontSize = 12.sp,
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = reminder.medicationName,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.titleSmall // M3 Typography
+                )
+                Text(
+                    text = reminder.time, // Just the time
+                    style = MaterialTheme.typography.bodyMedium, // M3 Typography
                     maxLines = 1
                 )
+                reminder.dosage?.let {
+                    if (it.isNotBlank()){
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall, // M3 Typography
+                            maxLines = 1
+                        )
+                    }
+                }
             }
-        },
-        icon = {
-            val iconResId = R.drawable.medication_filled
-            val iconTint = if (isTakenDisplay || reminder.isTaken) {
-                MaterialTheme.colors.secondary
-            } else {
-                MaterialTheme.colors.primary
-            }
-            val iconDesc = if (isTakenDisplay || reminder.isTaken) "Taken" else "Medication icon"
-
-            Icon( // M3 Icon
-                painter = painterResource(id = iconResId),
-                contentDescription = iconDesc,
-                modifier = Modifier.size(ChipDefaults.IconSize), // M3 ChipDefaults
-                tint = iconTint
-            )
-        },
-        colors = if (isTakenDisplay || reminder.isTaken) {
-            ChipDefaults.secondaryChipColors( // M3 ChipDefaults
-                backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.7f)
-            )
-        } else {
-            ChipDefaults.primaryChipColors( // M3 ChipDefaults
-                backgroundColor = MaterialTheme.colors.surface
-            )
+            // Optional: Add an explicit checkmark icon if 'taken' similar to MedicationListItem
+            // if (displayAsTaken) {
+            //     Icon(
+            //         imageVector = Icons.Filled.CheckCircle,
+            //         contentDescription = stringResource(R.string.already_taken),
+            //         tint = MaterialTheme.colorScheme.primary,
+            //         modifier = Modifier.size(ChipDefaults.IconSize)
+            //     )
+            // }
         }
-    )
+    }
 }
 
 // Previews for MedicationReminderChip
@@ -88,7 +104,17 @@ fun MedicationReminderChip(
 fun PreviewMedicationReminderChipUpcoming() {
     MedicationReminderTheme {
         MedicationReminderChip(
-            reminder = WearReminder("chip1", 1L, "Amoxicillin", "10:00", false, "1 tablet"),
+            reminder = WearReminder(
+                id = "chip1",
+                medicationId = 1,
+                scheduleId = 1L,
+                underlyingReminderId = 101L, // Example phone DB ID
+                medicationName = "Amoxicillin",
+                time = "10:00",
+                isTaken = false,
+                dosage = "1 tablet",
+                takenAt = null
+            ),
             onChipClick = {}
         )
     }
@@ -99,9 +125,19 @@ fun PreviewMedicationReminderChipUpcoming() {
 fun PreviewMedicationReminderChipTaken() {
     MedicationReminderTheme {
         MedicationReminderChip(
-            reminder = WearReminder("chip2", 2L, "Vitamin D", "12:00", true, "1 capsule"),
-            onChipClick = {},
-            isTakenDisplay = true
+            reminder = WearReminder(
+                id = "chip2",
+                medicationId = 2,
+                scheduleId = 2L,
+                underlyingReminderId = 102L,
+                medicationName = "Vitamin D",
+                time = "12:00",
+                isTaken = true,
+                dosage = "1 capsule",
+                takenAt = "2023-01-01T12:00:00Z"
+            ),
+            onChipClick = {}
+            // isTakenDisplay = true // Redundant if reminder.isTaken is used
         )
     }
 }
@@ -111,7 +147,17 @@ fun PreviewMedicationReminderChipTaken() {
 fun PreviewMedicationReminderChipNoDosage() {
     MedicationReminderTheme {
         MedicationReminderChip(
-            reminder = WearReminder("chip3", 3L, "Metformin", "14:00", false, null),
+            reminder = WearReminder(
+                id = "chip3",
+                medicationId = 3,
+                scheduleId = 3L,
+                underlyingReminderId = 3L,
+                medicationName = "Metformin",
+                time = "14:00",
+                isTaken = false,
+                dosage = null, // Explicitly null
+                takenAt = null
+            ),
             onChipClick = {}
         )
     }

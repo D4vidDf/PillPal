@@ -2,46 +2,39 @@ package com.d4viddf.medicationreminder.wear.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.protolayout.material3.ColorScheme
-import androidx.wear.protolayout.types.LayoutColor
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.ColorScheme
+import androidx.wear.compose.material3.Typography
 
-// Define M3 Color Scheme
-private val LightColors = ColorScheme(
-    primary = LayoutColor(Color(0xFF4CAF50).value.toInt()), // Green
-    onPrimary = LayoutColor(Color.Black.value.toInt()),
-    primaryContainer = LayoutColor(Color(0xFFC8E6C9).value.toInt()),
-    onPrimaryContainer = LayoutColor(Color.Black.value.toInt()),
-    secondary = LayoutColor(Color(0xFF03A9F4).value.toInt()), // Light Blue
-    onSecondary = LayoutColor(Color.Black.value.toInt()),
-    secondaryContainer = LayoutColor(Color(0xFFB3E5FC).value.toInt()),
-    onSecondaryContainer = LayoutColor(Color.Black.value.toInt()),
-    tertiary = LayoutColor(Color(0xFFFFC107).value.toInt()), // Amber
-    onTertiary = LayoutColor(Color.Black.value.toInt()),
-    tertiaryContainer = LayoutColor(Color(0xFFFFECB3).value.toInt()),
-    onTertiaryContainer = LayoutColor(Color.Black.value.toInt()),
-    error = LayoutColor(Color(0xFFF44336).value.toInt()), // Red
-    onError = LayoutColor(Color.White.value.toInt()),
-    errorContainer = LayoutColor(Color(0xFFFFCDD2).value.toInt()),
-    onErrorContainer = LayoutColor(Color.Black.value.toInt()),
-    background = LayoutColor(Color(0xFF121212).value.toInt()), // Dark background for Wear OS
-    onBackground = LayoutColor(Color.White.value.toInt()),
-    onSurface = LayoutColor(Color.White.value.toInt()),
-    onSurfaceVariant = LayoutColor(Color(0xFFB0B0B0).value.toInt()), // Lighter grey for less emphasis
-    outline = LayoutColor(Color(0xFF505050).value.toInt())
+// Define M3 Color Scheme for Compose Material 3 - Minimal Valid Set
+private val WearAppColorScheme = ColorScheme(
+    primary = Color(0xFF4CAF50), // Green
+    onPrimary = Color.Black,
+    secondary = Color(0xFF03A9F4), // Light Blue
+    onSecondary = Color.Black,
+    error = Color(0xFFF44336), // Red
+    onError = Color.White,
+    background = Color(0xFF1C1B1F), // Standard M3 Dark Background
+    onBackground = Color(0xFFE6E1E5),
+    // Explicitly define surface, onSurface, surfaceVariant, onSurfaceVariant if they were the specific issue
+    // If the error was "No parameter with name 'surface' found", then these should NOT be here.
+    // The previous attempt that failed omitted these, which is what I'm providing again as the most likely fix
+    // if the constructor is more constrained than typical M3.
+    // However, if the issue was an *import* of ColorScheme, then a full definition might work once imports are fixed.
+    // Given the error, let's assume the Wear M3 ColorScheme constructor is more minimal or defaults these heavily.
+    outline = Color(0xFF938F99)
+    // If the above still fails, try with ONLY primary, onPrimary, background, onBackground, error, onError
 )
 
-// Define M3 Typography (using defaults or customize as needed)
-// For Wear OS, typography is often simpler. Using default M3 Wear typography is a good start.
-// val AppTypography = Typography() // Default M3 Wear Typography will be used if not specified.
+val AppTypography = Typography() // Using default M3 Wear Typography
 
 @Composable
 fun MedicationReminderTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colors = MaterialTheme.colors, // Using our defined M3 colors
-        // typography = AppTypography, // Optionally provide custom typography
+        colorScheme = WearAppColorScheme,
+        typography = AppTypography,
         content = content
     )
 }

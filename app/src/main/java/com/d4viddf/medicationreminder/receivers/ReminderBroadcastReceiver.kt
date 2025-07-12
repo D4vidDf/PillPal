@@ -19,6 +19,7 @@ import com.d4viddf.medicationreminder.services.PreReminderForegroundService
 import com.d4viddf.medicationreminder.utils.FileLogger
 // import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
 import com.d4viddf.medicationreminder.data.MedicationReminder // Import MedicationReminder
+import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -151,24 +152,28 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                         val callingNotificationLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Calling NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, notificationSoundUri=$notificationSoundUri, medicationColorHex=$medicationColorHex, medicationTypeName=$medicationTypeName"
                         Log.d(TAG, callingNotificationLog)
                         FileLogger.log(TAG, callingNotificationLog)
+                        val capabilityClient = Wearable.getCapabilityClient(context)
                         NotificationHelper.showReminderNotification(
                             context, reminderId, medicationName, medicationDosage,
                             isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
                             notificationSoundUri,
                             medicationColorHex,
-                            medicationTypeName
+                            medicationTypeName,
+                            capabilityClient // Pass capabilityClient
                         )
                     } catch (e: Exception) {
                         val errorCoroutineLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Error in coroutine for ReminderId: $reminderId"
                         Log.e(TAG, errorCoroutineLog, e)
                         FileLogger.log(TAG, errorCoroutineLog, e)
-                        val fallbackLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Fallback NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, null, null, null"
+                        val fallbackLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Fallback NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, null, null, null, capabilityClient"
                         Log.d(TAG, fallbackLog)
                         FileLogger.log(TAG, fallbackLog)
+                        val capabilityClient = Wearable.getCapabilityClient(context) // Get client for fallback too
                         NotificationHelper.showReminderNotification(
                             context, reminderId, medicationName, medicationDosage,
                             isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
-                            null, null, null
+                            null, null, null,
+                            capabilityClient // Pass capabilityClient
                         )
                     } finally {
                         pendingResult.finish()

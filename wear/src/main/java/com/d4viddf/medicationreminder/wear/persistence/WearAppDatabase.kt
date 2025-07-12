@@ -7,8 +7,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [MedicationSyncEntity::class, ScheduleDetailSyncEntity::class],
-    version = 1,
+    entities = [MedicationSyncEntity::class, ScheduleDetailSyncEntity::class, ReminderStateEntity::class], // Added ReminderStateEntity
+    version = 2, // Incremented version
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -27,6 +27,7 @@ abstract class WearAppDatabase : RoomDatabase() {
                     WearAppDatabase::class.java,
                     "wear_medication_sync_db"
                 )
+                .fallbackToDestructiveMigration() // Added for schema changes during development
                 .build()
                 INSTANCE = instance
                 instance

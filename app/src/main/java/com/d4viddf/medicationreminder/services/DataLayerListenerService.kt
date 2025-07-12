@@ -87,9 +87,7 @@ class DataLayerListenerService : WearableListenerService() {
                             val success = medicationReminderRepository.markReminderAsTaken(reminderId, currentTimeIso)
                             if (success) {
                                 Log.i(TAG, "Reminder $reminderId marked as taken successfully via watch. Triggering full sync.")
-                                // Instead of sending a specific today_schedule update, trigger a full sync.
-                                // This simplifies watch-side logic as it only needs to handle one data path for updates.
-                                triggerFullSyncToWear()
+                                triggerFullSyncToWear() // Ensure this is called to update the watch
                             } else {
                                 Log.e(TAG, "Failed to mark reminder $reminderId as taken via watch.")
                             }
@@ -99,6 +97,32 @@ class DataLayerListenerService : WearableListenerService() {
                     }
                 } else {
                     Log.e(TAG, "Could not parse reminder ID from message data: $reminderIdString")
+                }
+            }
+            // Ensure DATA_CHANGED is handled if you are using DataItems for other purposes.
+            // For now, the primary sync is triggered by messages.
+            PATH_ADHOC_TAKEN_ON_WATCH -> {
+                val payloadJson = String(messageEvent.data, StandardCharsets.UTF_8)
+                Log.d(TAG, "Received adhoc_taken_on_watch with payload: $payloadJson")
+                try {
+                    val payload = gson.fromJson(payloadJson, AdhocTakenPayload::class.java)
+                    // TODO: Implement logic to find or create a reminder record on the phone
+                    // based on medicationId, scheduleId, reminderTimeKey, and mark it as taken at payload.takenAt.
+                    // This might involve:
+                    // 1. Checking if an existing reminder in phone's DB matches these criteria for today.
+                    // 2. If not, potentially creating a new reminder record for this ad-hoc taken event.
+                    // 3. Then marking it as taken.
+                    // For now, just log it.
+                    Log.i(TAG, "Processing ad-hoc taken event: MedID=${payload.medicationId}, SchedID=${payload.scheduleId}, TimeKey=${payload.reminderTimeKey}, TakenAt=${payload.takenAt}")
+                    // After processing, trigger a full sync to ensure watch reflects any server-side changes or consolidations.
+                    serviceScope.launch {
+                        // Example: medicationReminderRepository.recordAdhocTakenEvent(payload.medicationId, payload.scheduleId, payload.reminderTimeKey, payload.takenAt)
+                        // For now, simply log and trigger sync. A more robust implementation is needed here.
+                        Log.w(TAG, "Ad-hoc taken event processing logic is a TODO. Triggering full sync.")
+                        triggerFullSyncToWear()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error processing adhoc_taken_on_watch payload: $payloadJson", e)
                 }
             }
             else -> {
@@ -112,151 +136,11 @@ class DataLayerListenerService : WearableListenerService() {
         serviceJob.cancel()
     }
 
-    private suspend fun getTodayScheduleForMedication(medicationId: Int): List<TodayScheduleItem> {
-        val funcTag = "DataLayerListenerSvc.getTodaySchedule[MedId:$medicationId]"
-        Log.d(TAG, "$funcTag: Starting to load today's schedule.")
-
-        val medication = medicationRepository.getMedicationById(medicationId)
-        if (medication == null) {
-            Log.w(TAG, "$funcTag: Medication not found.")
-            return emptyList()
-        }
-
-        if (!medication.endDate.isNullOrBlank()) {
-            try {
-                val endDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                val endDateValue = LocalDate.parse(medication.endDate, endDateFormatter)
-                if (endDateValue.isBefore(LocalDate.now())) {
-                    Log.i(TAG, "$funcTag: Medication ${medication.name} (ID: $medicationId) has an endDate ($endDateValue) in the past. Returning empty schedule.")
-                    return emptyList()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "$funcTag: Error parsing endDate '${medication.endDate}'. Proceeding.", e)
-            }
-        }
-
-        val schedules = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()
-        val today = LocalDate.now()
-        val currentTime = LocalTime.now()
-        val potentialSlotsToday = mutableListOf<TodayScheduleItem>()
-        val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-
-        val allDbReminders = medicationReminderRepository.getRemindersForMedication(medicationId).firstOrNull() ?: emptyList()
-
-        schedules?.forEach { schedule ->
-            if (schedule.scheduleType == com.d4viddf.medicationreminder.data.ScheduleType.INTERVAL &&
-                schedule.intervalStartTime.isNullOrBlank()) { // Type B (Continuous)
-                val lastTakenDbReminder = allDbReminders
-                    .filter { it.isTaken && it.takenAt != null && it.medicationId == medicationId }
-                    .maxByOrNull { LocalDateTime.parse(it.takenAt, storableDateTimeFormatter) }
-                val lastTakenDateTime = lastTakenDbReminder?.takenAt?.let {
-                    try { LocalDateTime.parse(it, storableDateTimeFormatter) } catch (e: Exception) { null }
-                }
-                val remindersForTodayMap = ReminderCalculator.generateRemindersForPeriod(
-                    medication = medication,
-                    schedule = schedule,
-                    periodStartDate = today,
-                    periodEndDate = today,
-                    lastTakenDateTime = lastTakenDateTime
-                )
-                val dailySlotsFromTypeB = remindersForTodayMap[today] ?: emptyList()
-                dailySlotsFromTypeB.forEach { slotTime ->
-                    potentialSlotsToday.add(
-                        TodayScheduleItem(
-                            id = "slot_typeB_${medication.id}_${schedule.id}_${slotTime.toNanoOfDay()}",
-                            medicationName = medication.name,
-                            time = slotTime,
-                            isPast = currentTime.isAfter(slotTime),
-                            isTaken = false,
-                            underlyingReminderId = 0L,
-                            medicationScheduleId = schedule.id,
-                            takenAt = null
-                        )
-                    )
-                }
-            } else { // Type A and others
-                val dailySlots = ReminderCalculator.getAllPotentialSlotsForDay(schedule, today)
-                dailySlots.forEach { slotTime ->
-                    potentialSlotsToday.add(
-                        TodayScheduleItem(
-                            id = "slot_${medication.id}_${schedule.id}_${slotTime.toNanoOfDay()}",
-                            medicationName = medication.name,
-                            time = slotTime,
-                            isPast = currentTime.isAfter(slotTime),
-                            isTaken = false,
-                            underlyingReminderId = 0L,
-                            medicationScheduleId = schedule.id,
-                            takenAt = null
-                        )
-                    )
-                }
-            }
-        }
-
-        val relevantDbReminders = allDbReminders.filter { reminder ->
-            val reminderScheduledDate = try { LocalDateTime.parse(reminder.reminderTime, storableDateTimeFormatter).toLocalDate() } catch (e: Exception) { null }
-            val reminderTakenDate = reminder.takenAt?.let { try { LocalDateTime.parse(it, storableDateTimeFormatter).toLocalDate() } catch (e: Exception) { null } }
-            reminderScheduledDate?.isEqual(today) == true || reminderTakenDate?.isEqual(today) == true
-        }
-
-        val finalTodayScheduleItems = mutableListOf<TodayScheduleItem>()
-        val processedDbReminderIds = mutableSetOf<Int>()
-
-        potentialSlotsToday.forEach { slot ->
-            val matchingDbReminder = relevantDbReminders.find { dbReminder ->
-                val dbReminderTime = try { LocalDateTime.parse(dbReminder.reminderTime, storableDateTimeFormatter) } catch (e: Exception) { null }
-                dbReminder.medicationScheduleId == slot.medicationScheduleId &&
-                        dbReminderTime?.toLocalDate()?.isEqual(today) == true &&
-                        dbReminderTime.toLocalTime().truncatedTo(ChronoUnit.MINUTES) == slot.time.truncatedTo(ChronoUnit.MINUTES)
-            }
-            if (matchingDbReminder != null) {
-                finalTodayScheduleItems.add(
-                    slot.copy(
-                        isTaken = matchingDbReminder.isTaken,
-                        takenAt = matchingDbReminder.takenAt,
-                        underlyingReminderId = matchingDbReminder.id.toLong()
-                    )
-                )
-                processedDbReminderIds.add(matchingDbReminder.id)
-            } else {
-                finalTodayScheduleItems.add(slot)
-            }
-        }
-
-        relevantDbReminders.forEach { dbReminder ->
-            if (dbReminder.isTaken && !processedDbReminderIds.contains(dbReminder.id)) {
-                val takenAtDateTime = dbReminder.takenAt?.let { try { LocalDateTime.parse(it, storableDateTimeFormatter) } catch (e: Exception) { null } }
-                if (takenAtDateTime != null && takenAtDateTime.toLocalDate().isEqual(today)) {
-                    finalTodayScheduleItems.add(
-                        TodayScheduleItem(
-                            id = "adhoc_${dbReminder.id}",
-                            medicationName = medication.name,
-                            time = takenAtDateTime.toLocalTime(),
-                            isPast = currentTime.isAfter(takenAtDateTime.toLocalTime()),
-                            isTaken = true,
-                            underlyingReminderId = dbReminder.id.toLong(),
-                            medicationScheduleId = dbReminder.medicationScheduleId ?: 0,
-                            takenAt = dbReminder.takenAt
-                        )
-                    )
-                }
-            }
-        }
-
-        val sortedList = finalTodayScheduleItems.sortedWith(
-            compareBy<TodayScheduleItem> { it.time }
-                .thenByDescending { it.underlyingReminderId != 0L }
-                .thenByDescending { it.isTaken }
-        )
-        return sortedList.distinctBy {
-            if (it.isTaken && it.underlyingReminderId != 0L) "db_taken_${it.underlyingReminderId}"
-            else if (it.isTaken && it.takenAt != null) "adhoc_taken_${it.takenAt}"
-            else "slot_untaken_${it.medicationScheduleId}_${it.time.truncatedTo(ChronoUnit.MINUTES)}"
-        }
-    }
+    // Removed getTodayScheduleForMedication as full sync is preferred.
+    // If specific today schedule sync is ever re-introduced, this can be added back.
 
     private fun sendDataToWear(path: String, jsonData: String, itemTypeForLog: String) {
-        serviceScope.launch(Dispatchers.IO) {
+        serviceScope.launch(Dispatchers.IO) { // Ensure this is on a background thread
             try {
                 val putDataMapReq = PutDataMapRequest.create(path)
                 putDataMapReq.dataMap.putString("sync_data_json", jsonData)
@@ -275,9 +159,13 @@ class DataLayerListenerService : WearableListenerService() {
         private const val PATH_MARK_AS_TAKEN = "/mark_as_taken"
         private const val PATH_REQUEST_INITIAL_SYNC = "/request_initial_sync"
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync"
-        private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule"
+        // private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule" // Considered legacy, full sync preferred
         private const val PATH_OPEN_PLAY_STORE_ON_PHONE = "/open_play_store" // Path from Wear OS app
+        private const val PATH_ADHOC_TAKEN_ON_WATCH = "/mark_adhoc_taken_on_watch" // Path from Wear OS for ad-hoc
     }
+
+    // Payload class for ad-hoc taken events from watch
+    private data class AdhocTakenPayload(val medicationId: Int, val scheduleId: Long, val reminderTimeKey: String, val takenAt: String)
 
     private suspend fun triggerFullSyncToWear() {
         Log.i(TAG, "Starting full medication data sync to Wear OS.")

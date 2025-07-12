@@ -14,6 +14,13 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
 
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+        <meta-data
+            android:name="com.google.android.wearable.capabilities"
+            android:resource="@xml/wear" />
+
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
@@ -25,18 +32,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".tile.MedicationTileService"
-            android:exported="true"
-            android:label="@string/tile_label"
-            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
-            <intent-filter>
-                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
-            </intent-filter>
-            <meta-data
-                android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@drawable/tile_preview" />
-        </service>
 
         <!--
         WearableCommunicationService is not an Android Service component.
@@ -62,19 +57,15 @@
         android:exported="true">
         <intent-filter>
             <!-- Removed DATA_CHANGED action from this service to avoid conflict -->
+            <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
             <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
             <action android:name="com.google.android.gms.wearable.CAPABILITY_CHANGED" />
+            <data android:scheme="wear" android:host="*" android:pathPrefix="/"/>
             <!-- Data path filtering is typically not needed for MESSAGE_RECEIVED or CAPABILITY_CHANGED -->
             <!-- If specific message paths were to be filtered here, they would need specific data tags -->
         </intent-filter>
     </service>
-    <meta-data
-        android:name="com.google.android.wearable.standalone"
-        android:value="false" />
-    <meta-data
-        android:name="com.google.android.wearable.capabilities"
-        android:resource="@xml/wear" />
-
+    <!-- standalone and capabilities meta-data moved higher up in the application block -->
 
 </application>
 

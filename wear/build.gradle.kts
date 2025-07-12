@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp) // Added KSP plugin
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -13,8 +13,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 30
         targetSdk = 36
-        versionCode = 26
-        versionName = "0.0.2_wear"
+        versionCode = 27
+        versionName = "0.0.3_wear"
 
     }
 
@@ -47,8 +47,6 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    // implementation(libs.androidx.compose.material) // Replaced by M3
-    // implementation(libs.androidx.compose.foundation) // Replaced by Wear specific foundation
     implementation(libs.androidx.wear.compose.foundation) // M3 Foundation for Wear
     implementation(libs.androidx.tiles.tooling.preview) // General Wear OS tooling
     implementation(libs.androidx.activity.compose)
@@ -66,7 +64,7 @@ dependencies {
 
     // Complications (already present, though not explicitly in this plan step)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
-    implementation(libs.tiles.tooling.preview)
+    // implementation(libs.tiles.tooling.preview) // Duplicate of androidx.wear.compose.ui.tooling or similar, ensure one
 
 
     // Coroutines support for Play Services Tasks (for .await())
@@ -77,22 +75,27 @@ dependencies {
 
     // ViewModel Compose for viewModel() composable
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
-    implementation(libs.androidx.media3.common.ktx) // Or use libs.androidx.lifecycle.viewmodel.compose
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.wear.compose.material)
+    implementation(libs.androidx.wear.remote.interactions)
+    implementation(libs.androidx.concurrent.futures)
+    // implementation(libs.androidx.media3.common.ktx) // Or use libs.androidx.lifecycle.viewmodel.compose // Consider if media3 is needed for wear
 
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    debugImplementation(libs.androidx.tiles.tooling)
+    debugImplementation(libs.androidx.tiles.tooling) // This is for tiles debugging
 
-    implementation(libs.androidx.wear.protolayout.material)
+    // Protolayout for Tiles (M3 version is good)
     implementation(libs.androidx.wear.protolayout.material3)
 
-    implementation(libs.androidx.tiles)
-    implementation(libs.androidx.tiles.material)
+
     // Room Database for Wear
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
+
+    // For ListenableFuture.await()
 }

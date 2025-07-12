@@ -150,4 +150,5 @@ dependencies {
 
     // Coroutines support for Play Services Tasks (for .await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
+    wearApp(project(":wear"))
 }
