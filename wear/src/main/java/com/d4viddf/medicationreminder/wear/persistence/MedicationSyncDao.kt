@@ -43,4 +43,29 @@ interface MedicationSyncDao {
     @Transaction
     @Query("SELECT * FROM medications_sync WHERE medicationId = :medicationId")
     fun getMedicationWithSchedulesById(medicationId: Int): Flow<MedicationWithSchedulesPojo?>
+
+    // Reminder State Operations
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateReminderState(reminderState: ReminderStateEntity)
+
+    @Query("SELECT * FROM reminder_states WHERE reminderInstanceId = :reminderInstanceId")
+    suspend fun getReminderState(reminderInstanceId: String): ReminderStateEntity?
+
+    @Query("SELECT * FROM reminder_states")
+    fun getAllReminderStates(): Flow<List<ReminderStateEntity>>
+
+    @Query("DELETE FROM reminder_states")
+    suspend fun clearAllReminderStates()
+
+    // Update clearAndInsertSyncData to also clear reminder states
+    @Transaction
+    suspend fun clearAndInsertFullSyncData(medications: List<MedicationSyncEntity>, schedules: List<ScheduleDetailSyncEntity>) {
+        clearAllMedications() // This should also clear schedules due to CASCADE if set up, otherwise clear them explicitly
+        clearAllSchedules() // Explicitly clear schedules
+        clearAllReminderStates() // Clear reminder states as well
+        medications.forEach { insertMedicationSyncEntity(it) }
+        if (schedules.isNotEmpty()) {
+            insertScheduleDetailSyncEntities(schedules)
+        }
+    }
 }

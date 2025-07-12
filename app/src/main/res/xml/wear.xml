@@ -1,10 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<wearableApp package="com.d4viddf.medicationreminder">
-    <capabilities>
-        <!--
-        This declares that the phone app provides the 'medication_reminder_phone_app' capability.
-        The watch app will look for this specific name to confirm the phone app is installed.
-        -->
-        <capability name="medication_reminder_phone_app" />
-    </capabilities>
-</wearableApp>
+<resources>
+    <string-array name="android_wear_capabilities">
+        <item>medication_reminder_phone_app_capability</item>
+    </string-array>
+</resources>

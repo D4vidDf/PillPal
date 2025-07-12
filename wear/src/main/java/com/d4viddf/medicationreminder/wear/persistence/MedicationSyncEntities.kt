@@ -52,3 +52,13 @@ data class MedicationWithSchedulesPojo(
     )
     val schedules: List<ScheduleDetailSyncEntity>
 )
+
+@Entity(tableName = "reminder_states")
+data class ReminderStateEntity(
+    @PrimaryKey val reminderInstanceId: String, // Unique ID for each reminder slot (e.g., medId_scheduleId_timestampEpochSeconds)
+    val medicationId: Int, // Foreign key to MedicationSyncEntity might be useful for cleanup
+    val scheduleId: Long,  // Foreign key to ScheduleDetailSyncEntity might be useful
+    val reminderTimeKey: String, // E.g., "HH:mm" or a specific timestamp part to identify the slot for non-synced reminders
+    var isTaken: Boolean,
+    var takenAt: String? // ISO 8601 timestamp string when taken
+)

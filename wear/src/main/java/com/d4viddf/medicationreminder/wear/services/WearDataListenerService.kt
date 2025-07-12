@@ -19,10 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-// TODO: Replace with actual Hilt injection or manual singleton access for repository/ViewModel
-object GlobalWearReminderRepository { // Temporary placeholder
-    val reminders = kotlinx.coroutines.flow.MutableStateFlow<List<WearReminder>>(emptyList())
-}
+// Removed GlobalWearReminderRepository object
 
 class WearDataListenerService : WearableListenerService() {
 
@@ -36,41 +33,44 @@ class WearDataListenerService : WearableListenerService() {
             if (event.type == DataEvent.TYPE_CHANGED) {
                 val dataItem = event.dataItem
                 when (dataItem.uri.path) {
+                    // Legacy path - to be removed or refactored if still needed for a specific purpose.
+                    // For now, commenting out to focus on PATH_FULL_MED_DATA_SYNC
+                    /*
                     TODAY_SCHEDULE_PATH -> {
-                        Log.i(TAG, "Received data update for $TODAY_SCHEDULE_PATH (legacy or specific today view)")
-                        // Current logic for TODAY_SCHEDULE_PATH - might be deprecated or used for quick updates
-                        try {
-                            val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
-                            val json = dataMap.getString("schedule_json") // Assuming old key was "schedule_json"
-                            if (json != null) {
-                                val typeToken = object : TypeToken<List<Map<String, Any?>>>() {}.type
-                                val receivedMaps: List<Map<String, Any?>> = gson.fromJson(json, typeToken)
-                                val reminders = receivedMaps.mapNotNull { map ->
-                                    try {
-                                        WearReminder(
-                                            id = map["id"] as? String ?: System.currentTimeMillis().toString(),
-                                            underlyingReminderId = (map["underlyingReminderId"] as? String)?.toLongOrNull() ?: 0L,
-                                            medicationName = map["medicationName"] as? String ?: "Unknown",
-                                            time = map["time"] as? String ?: "00:00",
-                                            isTaken = map["isTaken"] as? Boolean ?: false,
-                                            dosage = map["dosage"] as? String ?: ""
-                                        )
-                                    } catch (e: Exception) {
-                                        Log.e(TAG, "Error parsing individual reminder map for legacy schedule: $map", e)
-                                        null
-                                    }
-                                }
-                                serviceScope.launch {
-                                    GlobalWearReminderRepository.reminders.value = reminders
-                                    Log.i(TAG, "Updated global reminder state (legacy) with ${reminders.size} items.")
-                                }
-                            } else {
-                                Log.w(TAG, "schedule_json is null in DataItem for $TODAY_SCHEDULE_PATH.")
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error processing data item for $TODAY_SCHEDULE_PATH", e)
-                        }
+                        Log.i(TAG, "Received data update for $TODAY_SCHEDULE_PATH (legacy). Processing skipped.")
+                        // try {
+                        //     val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                        //     val json = dataMap.getString("schedule_json")
+                        //     if (json != null) {
+                        //         val typeToken = object : TypeToken<List<Map<String, Any?>>>() {}.type
+                        //         val receivedMaps: List<Map<String, Any?>> = gson.fromJson(json, typeToken)
+                        //         val reminders = receivedMaps.mapNotNull { map ->
+                        //             try {
+                        //                 WearReminder(
+                        //                     id = map["id"] as? String ?: System.currentTimeMillis().toString(),
+                        //                     underlyingReminderId = (map["underlyingReminderId"] as? String)?.toLongOrNull() ?: 0L,
+                        //                     medicationName = map["medicationName"] as? String ?: "Unknown",
+                        //                     time = map["time"] as? String ?: "00:00",
+                        //                     isTaken = map["isTaken"] as? Boolean ?: false,
+                        //                     dosage = map["dosage"] as? String ?: ""
+                        //                 )
+                        //             } catch (e: Exception) {
+                        //                 Log.e(TAG, "Error parsing individual reminder map for legacy schedule: $map", e)
+                        //                 null
+                        //             }
+                        //         }
+                        //         // serviceScope.launch {
+                        //         //     GlobalWearReminderRepository.reminders.value = reminders // No longer used
+                        //         //     Log.i(TAG, "Updated global reminder state (legacy $TODAY_SCHEDULE_PATH) with ${reminders.size} items.")
+                        //         // }
+                        //     } else {
+                        //         Log.w(TAG, "schedule_json is null in DataItem for $TODAY_SCHEDULE_PATH.")
+                        //     }
+                        // } catch (e: Exception) {
+                        //     Log.e(TAG, "Error processing data item for $TODAY_SCHEDULE_PATH", e)
+                        // }
                     }
+                    */
                     PATH_FULL_MED_DATA_SYNC -> {
                         Log.i(TAG, "Received data update for $PATH_FULL_MED_DATA_SYNC")
                         try {
@@ -111,10 +111,9 @@ class WearDataListenerService : WearableListenerService() {
 
                                 serviceScope.launch {
                                     val dao = WearAppDatabase.getDatabase(applicationContext).medicationSyncDao()
-                                    dao.clearAndInsertSyncData(medicationEntities, scheduleEntities)
-                                    Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room.")
-                                    // TODO: Trigger UI update or ViewModel refresh if needed, now that data is in Room.
-                                    // For example, WearViewModel could observe the DAO.
+                                    // Use the renamed DAO method
+                                    dao.clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
+                                    Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room via $PATH_FULL_MED_DATA_SYNC.")
                                 }
                             } else {
                                 Log.w(TAG, "sync_data_json is null in DataItem for $PATH_FULL_MED_DATA_SYNC.")
@@ -123,25 +122,28 @@ class WearDataListenerService : WearableListenerService() {
                             Log.e(TAG, "Error processing data item for $PATH_FULL_MED_DATA_SYNC", e)
                         }
                     }
+                    else -> {
+                        Log.w(TAG, "Received data for unknown path: ${dataItem.uri.path}")
+                    }
                 }
             } else if (event.type == DataEvent.TYPE_DELETED) {
-                // Handle deletions if necessary, e.g., clear specific data or all data.
-                // For full sync, TYPE_CHANGED with new data (even if empty) is often sufficient.
                 Log.i(TAG, "Data item deleted: ${event.dataItem.uri}")
                 if (event.dataItem.uri.path == PATH_FULL_MED_DATA_SYNC) {
-                    Log.i(TAG, "$PATH_FULL_MED_DATA_SYNC deleted. Clearing local synced data.")
+                    Log.i(TAG, "$PATH_FULL_MED_DATA_SYNC deleted. Clearing local synced medication data from Room.")
                     serviceScope.launch {
                         val dao = WearAppDatabase.getDatabase(applicationContext).medicationSyncDao()
-                        dao.clearAllMedications() // This should cascade and clear schedules too
-                        // dao.clearAllSchedules() // Explicitly if needed
-                        Log.i(TAG, "Cleared all synced medication data from Room.")
-                    }
-                } else if (event.dataItem.uri.path == TODAY_SCHEDULE_PATH) {
-                     Log.i(TAG, "DataItem for $TODAY_SCHEDULE_PATH deleted. Clearing legacy reminders.")
-                    serviceScope.launch {
-                        GlobalWearReminderRepository.reminders.value = emptyList()
+                        dao.clearAllMedications()
+                        dao.clearAllSchedules() // Explicitly clear schedules
+                        dao.clearAllReminderStates() // Also clear reminder states
+                        Log.i(TAG, "Cleared all synced medication, schedule, and reminder state data from Room.")
                     }
                 }
+                // else if (event.dataItem.uri.path == TODAY_SCHEDULE_PATH) { // Legacy
+                //     Log.i(TAG, "DataItem for $TODAY_SCHEDULE_PATH deleted. Clearing legacy GlobalWearReminderRepository.")
+                //     serviceScope.launch {
+                //         // GlobalWearReminderRepository.reminders.value = emptyList() // No longer used
+                //     }
+                // }
             }
         }
     }
@@ -153,7 +155,7 @@ class WearDataListenerService : WearableListenerService() {
 
     companion object {
         private const val TAG = "WearDataListenerSvc"
-        private const val TODAY_SCHEDULE_PATH = "/today_schedule" // Legacy or specific today view
+        // private const val TODAY_SCHEDULE_PATH = "/today_schedule" // Legacy, commented out
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync" // New path
     }
 }

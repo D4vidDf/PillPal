@@ -14,6 +14,13 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
 
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="false" />
+        <meta-data
+            android:name="com.google.android.wearable.capabilities"
+            android:resource="@xml/wear" />
+
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
@@ -68,13 +75,7 @@
             <!-- If specific message paths were to be filtered here, they would need specific data tags -->
         </intent-filter>
     </service>
-    <meta-data
-        android:name="com.google.android.wearable.standalone"
-        android:value="false" />
-    <meta-data
-        android:name="com.google.android.wearable.capabilities"
-        android:resource="@xml/wear" />
-
+    <!-- standalone and capabilities meta-data moved higher up in the application block -->
 
 </application>
 
