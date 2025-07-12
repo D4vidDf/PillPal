@@ -194,13 +194,13 @@ fun WearApp(wearViewModel: WearViewModel) {
 
 
 @Composable
-fun RemindersContent(reminders: List<WearReminder>, onMarkAsTaken: (String) -> Unit) {
-    TransformingLazyColumn( // M3 list
+fun RemindersContent(reminders: List<WearReminder>, onMarkAsTaken: (WearReminder) -> Unit) { // Pass full WearReminder
+    TransformingLazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        items(reminders, key = { it.id }) { reminder -> // Added key for stability
+        items(reminders, key = { it.id }) { reminder ->
             MedicationListItem(reminder = reminder, onMarkAsTaken = {
-                onMarkAsTaken(reminder.underlyingReminderId.toString())
+                onMarkAsTaken(reminder) // Pass the full reminder object
             })
         }
     }
@@ -208,56 +208,55 @@ fun RemindersContent(reminders: List<WearReminder>, onMarkAsTaken: (String) -> U
 
 @Composable
 fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
-    // Using M3 Card for list items, or could be a custom Row with M3 Button/Text
-    androidx.wear.compose.material3.Card( // Explicitly M3 Card
-        onClick = { /* Decide if card itself is clickable, e.g., to show details */ },
+    androidx.wear.compose.material3.Card(
+        onClick = { /* TODO: Decide if item click does something, e.g. details */ },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp) // Adjusted padding
+            .padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(all = 12.dp), // Padding inside the card
+                .padding(all = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(
                     text = reminder.medicationName,
-                    style = MaterialTheme.typography.bodyLarge, // M3 Typography
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Time: ${reminder.time}",
-                    style = MaterialTheme.typography.labelMedium, // M3 Typography
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (reminder.dosage?.isNotBlank() == true) {
                     Text(
                         text = "Dosage: ${reminder.dosage}",
-                        style = MaterialTheme.typography.labelMedium, // M3 Typography
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             if (!reminder.isTaken) {
-                Button( // M3 Button or IconButton
+                Button(
                     onClick = onMarkAsTaken,
-                    modifier = Modifier.size(40.dp) // M3 Buttons have different default sizing
+                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize) // M3 standard size
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Check, // M3 Icons
+                        imageVector = Icons.Filled.Check,
                         contentDescription = stringResource(R.string.mark_as_taken),
-                        // tint = MaterialTheme.colorScheme.primary // M3: tint is often handled by ButtonColors
+                        modifier = Modifier.size(ButtonDefaults.SmallIconSize) // M3 standard icon size
                     )
                 }
             } else {
                 Icon(
-                    imageVector = Icons.Filled.Close, // M3 Icons (or CheckCircle for taken state)
+                    imageVector = Icons.Filled.Close, // Or Icons.Filled.CheckCircle for "taken"
                     contentDescription = stringResource(R.string.already_taken),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, // M3 color
-                    modifier = Modifier.size(40.dp)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize) // Keep consistent sizing
                 )
             }
         }
@@ -270,9 +269,9 @@ fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
 fun DefaultPreview() {
     MedicationReminderTheme {
         val context = LocalContext.current.applicationContext as Application
+        // For previews, it's better to create a WearViewModel with mocked dependencies or a fake implementation
+        // For now, just instantiating, but this won't show real data or states effectively.
         val previewViewModel = WearViewModel(context)
-        // Simulate a state for preview
-        // previewViewModel.phoneAppStatus.value = PhoneAppStatus.NOT_INSTALLED_ANDROID
         WearApp(
             wearViewModel = previewViewModel
         )
@@ -283,43 +282,31 @@ fun DefaultPreview() {
 @Composable
 fun WearAppConnectedPreview() {
     val application = LocalContext.current.applicationContext as Application
-    val previewViewModel = WearViewModel(application)
-    // Simulate connected state with some data for preview
-    previewViewModel._phoneAppStatus.value = PhoneAppStatus.INSTALLED_WITH_DATA // Internal access for preview setup
-    previewViewModel._reminders.value = listOf( // Internal access for preview setup
-        WearReminder("prev1", 1L, "Metformin", "08:00", false, "1 tab"),
-        WearReminder("prev2", 2L, "Lisinopril", "08:00", true, "1 tab"),
-        WearReminder("prev3", 3L, "Aspirin", "12:00", false, "100mg")
-    )
+    val previewViewModel = WearViewModel(application) // Real VM, state needs to be manipulated for preview if possible
+    // To truly preview states, you'd ideally have a way to set StateFlow values in the ViewModel for previewing,
+    // or use a fake ViewModel designed for previews.
+    // previewViewModel._phoneAppStatus.value = PhoneAppStatus.INSTALLED_WITH_DATA // This is not ideal as it accesses private state
+    // previewViewModel._reminders.value = listOf(...)
     MedicationReminderTheme {
-        WearApp(
-            wearViewModel = previewViewModel
-        )
+         WearApp(wearViewModel = previewViewModel) // Shows default (likely loading or no connection)
     }
 }
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, name = "WearApp Not Installed Preview")
 @Composable
 fun WearAppNotInstalledPreview() {
-    val application = LocalContext.current.applicationContext as Application
-    val previewViewModel = WearViewModel(application)
-    previewViewModel._phoneAppStatus.value = PhoneAppStatus.NOT_INSTALLED_ANDROID
     MedicationReminderTheme {
-        WearApp(
-            wearViewModel = previewViewModel
-        )
+        // This preview will likely show the "Checking" state or "Unknown"
+        // as the ViewModel's default state without specific mocking.
+        WearApp(WearViewModel(LocalContext.current.applicationContext as Application))
     }
 }
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, name = "WearApp Loading Preview")
 @Composable
 fun WearAppLoadingPreview() {
-    val application = LocalContext.current.applicationContext as Application
-    val previewViewModel = WearViewModel(application)
-    previewViewModel._phoneAppStatus.value = PhoneAppStatus.CHECKING
-    MedicationReminderTheme {
-        WearApp(
-            wearViewModel = previewViewModel
-        )
+     MedicationReminderTheme {
+        // This preview will likely show the "Checking" state or "Unknown"
+        WearApp(WearViewModel(LocalContext.current.applicationContext as Application))
     }
 }
