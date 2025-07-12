@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources>
+    <!--
+    This declares that the watch app provides the 'medication_reminder_wear_app' capability.
+    The phone app will look for this specific name.
+    -->
     <string-array name="android_wear_capabilities">
         <item>medication_reminder_wear_app</item>
     </string-array>
