@@ -16,10 +16,14 @@
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
-            android:value="true" />
+            android:value="false" />
         <meta-data
             android:name="com.google.android.wearable.capabilities"
-            android:resource="@xml/wear" />
+            android:resource="@xml/wear_capabilities" />
+
+        <queries>
+            <package android:name="com.d4viddf.medicationreminder" />
+        </queries>
 
         <activity
             android:name=".presentation.MainActivity"
