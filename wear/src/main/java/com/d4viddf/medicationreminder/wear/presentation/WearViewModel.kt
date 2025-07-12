@@ -20,13 +20,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.tasks.await // For GMS Tasks
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import androidx.wear.remote.interactions.RemoteActivityHelper
-import androidx.concurrent.futures.asListenableFuture // Ensure this import is present
+// androidx.concurrent.futures.asListenableFuture // Not needed for ListenableFuture.await()
+// The .await() extension for ListenableFuture comes directly from androidx.concurrent:concurrent-futures-ktx
 
 class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
 
@@ -59,7 +60,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     init {
         observeMedicationAndReminderStates()
         registerCapabilityListener()
-        checkPhoneAppInstallationInternal() // Perform an initial check
+        checkPhoneAppInstallationInternal()
     }
 
     private fun registerCapabilityListener() {
@@ -70,7 +71,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     private fun observeMedicationAndReminderStates() {
         viewModelScope.launch {
             medicationSyncDao.getAllMedicationsWithSchedules()
-                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao -> // Corrected lambda params
+                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao ->
                     Log.d(TAG, "Observed ${medsFromDao.size} meds & ${statesFromDao.size} states from Room.")
                     calculateRemindersFromSyncData(medsFromDao, statesFromDao)
                 }.collect { calculatedReminders ->
@@ -78,10 +79,10 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
                     val currentStatus = _phoneAppStatus.value
                     if (currentStatus == PhoneAppStatus.INSTALLED_DATA_REQUESTED || currentStatus == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        val hasActualData = medsFromDao.isNotEmpty() // Corrected: Use medsFromDao
+                        val hasActualData = medsFromDao.isNotEmpty() // Correctly use medsFromDao
                         _phoneAppStatus.value = if (hasActualData) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     } else if (currentStatus != PhoneAppStatus.NOT_INSTALLED_ANDROID && currentStatus != PhoneAppStatus.UNKNOWN ) {
-                         val hasActualData = medsFromDao.isNotEmpty() // Corrected: Use medsFromDao
+                         val hasActualData = medsFromDao.isNotEmpty() // Correctly use medsFromDao
                         _phoneAppStatus.value = if (hasActualData || calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     }
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
@@ -210,7 +211,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
 
     private data class AdhocTakenPayload(val medicationId: Int, val scheduleId: Long, val reminderTimeKey: String, val takenAt: String)
 
-    private fun checkPhoneAppInstallationInternal() { // Renamed to avoid conflict if a public one is added for UI direct call
+    private fun checkPhoneAppInstallationInternal() {
         if (_phoneAppStatus.value == PhoneAppStatus.CHECKING && _isLoading.value) return
         _phoneAppStatus.value = PhoneAppStatus.CHECKING
         _isLoading.value = true
@@ -238,16 +239,13 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         }
     }
 
-    // Public function to be called from UI (e.g., on a button click or LaunchedEffect)
-    // Pass clients from UI context
     fun triggerPhoneAppCheckAndSync(remoteActivityHelper: RemoteActivityHelper, messageClient: MessageClient) {
          checkPhoneAppInstallation(this.capabilityClient, remoteActivityHelper, messageClient)
     }
 
-    // This is the version called by triggerPhoneAppCheckAndSync and onCapabilityChanged
     private fun checkPhoneAppInstallation(
         capClient: CapabilityClient,
-        remoteHelper: RemoteActivityHelper, // Keep for openPlayStoreOnPhone
+        remoteHelper: RemoteActivityHelper,
         msgClient: MessageClient
     ) {
         if (_phoneAppStatus.value == PhoneAppStatus.CHECKING && _isLoading.value) return
@@ -294,7 +292,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         }
     }
 
-    private fun markReminderAsTakenOnPhone(phoneDbReminderId: String, specificMessageClient: MessageClient? = null) {
+    private fun markReminderAsTakenOnPhone(phoneDbReminderId: String, specificMessageClient: MessageClient? = null) { // Made specificMessageClient optional
         viewModelScope.launch {
             sendMessageToPhone(MARK_AS_TAKEN_PATH, phoneDbReminderId.toByteArray(Charsets.UTF_8), specificMessageClient)
         }
@@ -307,7 +305,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     private suspend fun sendMessageToPhone(path: String, data: ByteArray, specificMessageClient: MessageClient? = null): com.google.android.gms.tasks.Task<Int>? {
         val client = specificMessageClient ?: Wearable.getMessageClient(getApplication<Application>())
         try {
-            val capabilityInfo = capabilityClient // Use the class instance
+            val capabilityInfo = capabilityClient
                 .getCapability(PHONE_APP_CAPABILITY_NAME, CapabilityClient.FILTER_REACHABLE)
                 .await()
             val phoneNode = capabilityInfo.nodes.firstOrNull { it.isNearby }
@@ -356,11 +354,12 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     fun openPlayStoreOnPhone(remoteActivityHelper: RemoteActivityHelper) {
         viewModelScope.launch {
             try {
+                // Correctly await ListenableFuture
                 remoteActivityHelper.startRemoteActivity(
                     android.content.Intent(android.content.Intent.ACTION_VIEW)
                         .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
                         .setData(android.net.Uri.parse(PLAY_STORE_APP_URI))
-                ).asListenableFuture().await() // Corrected await call
+                ).asListenableFuture().await() // Use asListenableFuture().await()
                 Log.i(TAG, "Attempted to open Play Store on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open Play Store on phone", e)
