@@ -1,5 +1,5 @@
-<resources>
-    <string-array name="android_wear_capabilities">
-        <item>medication_reminder_wear_app</item>
-    </string-array>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<wearableApp package="com.d4viddf.medicationreminder.wear"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <capability android:name="medication_reminder_wear_app" />
+</wearableApp>

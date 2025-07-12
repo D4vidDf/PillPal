@@ -46,7 +46,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     private val gson = Gson()
     private val capabilityClient: CapabilityClient by lazy { Wearable.getCapabilityClient(getApplication<Application>()) }
 
-    private val PHONE_APP_CAPABILITY_NAME = "medication_reminder_phone_app_capability"
+    private val PHONE_APP_CAPABILITY_NAME = "medication_reminder_phone_app"
 
     companion object {
         private const val TAG = "WearViewModel"

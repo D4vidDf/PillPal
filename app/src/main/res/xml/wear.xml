@@ -1,5 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Define a capability name that the phone app advertises.
+         This should match PHONE_APP_CAPABILITY_NAME in WearViewModel -->
     <string-array name="android_wear_capabilities">
-        <item>medication_reminder_phone_app_capability</item>
+        <item>medication_reminder_phone_app</item>
     </string-array>
 </resources>

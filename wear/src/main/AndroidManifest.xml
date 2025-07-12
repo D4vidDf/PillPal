@@ -16,7 +16,7 @@
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
-            android:value="false" />
+            android:value="true" />
         <meta-data
             android:name="com.google.android.wearable.capabilities"
             android:resource="@xml/wear" />
@@ -57,8 +57,10 @@
         android:exported="true">
         <intent-filter>
             <!-- Removed DATA_CHANGED action from this service to avoid conflict -->
+            <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
             <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
             <action android:name="com.google.android.gms.wearable.CAPABILITY_CHANGED" />
+            <data android:scheme="wear" android:host="*" android:pathPrefix="/"/>
             <!-- Data path filtering is typically not needed for MESSAGE_RECEIVED or CAPABILITY_CHANGED -->
             <!-- If specific message paths were to be filtered here, they would need specific data tags -->
         </intent-filter>
