@@ -26,8 +26,8 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import androidx.wear.remote.interactions.RemoteActivityHelper
-// androidx.concurrent.futures.asListenableFuture // Not needed for ListenableFuture.await()
 // The .await() extension for ListenableFuture comes directly from androidx.concurrent:concurrent-futures-ktx
+// No specific import like asListenableFuture is needed for it.
 
 class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
 
@@ -71,19 +71,32 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     private fun observeMedicationAndReminderStates() {
         viewModelScope.launch {
             medicationSyncDao.getAllMedicationsWithSchedules()
-                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao ->
-                    Log.d(TAG, "Observed ${medsFromDao.size} meds & ${statesFromDao.size} states from Room.")
-                    calculateRemindersFromSyncData(medsFromDao, statesFromDao)
+                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDaoLambda, statesFromDaoLambda -> // Corrected lambda params
+                    Log.d(TAG, "Observed ${medsFromDaoLambda.size} meds & ${statesFromDaoLambda.size} states from Room.")
+                    // Pass the actual LiveData/Flow results to calculateRemindersFromSyncData
+                    calculateRemindersFromSyncData(medsFromDaoLambda, statesFromDaoLambda)
                 }.collect { calculatedReminders ->
                     _reminders.value = calculatedReminders
                     val currentStatus = _phoneAppStatus.value
+
+                    // We need to know if the *source* of medications (medsFromDaoLambda) was empty to determine INSTALLED_NO_DATA
+                    // This requires a slightly different approach or passing medsFromDaoLambda size info through
+                    // For simplicity here, if calculatedReminders is empty after a sync request, we might assume no data.
+                    // A better way is to check the source that went into calculateRemindersFromSyncData.
+                    // Let's refine the status update based on whether meds definitions were synced.
+                    // This part of the logic is tricky without knowing the exact state of medsFromDaoLambda *at the point of collection*.
+                    // The combine operator gives us the latest from both flows.
+                    // We assume that if `calculatedReminders` is empty AND we were expecting data, it means no functional data.
                     if (currentStatus == PhoneAppStatus.INSTALLED_DATA_REQUESTED || currentStatus == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        val hasActualData = medsFromDao.isNotEmpty() // Correctly use medsFromDao
-                        _phoneAppStatus.value = if (hasActualData) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
+                        // If medsFromDaoLambda (the source) was empty, it's truly NO_DATA.
+                        // This info isn't directly in calculatedReminders.
+                        // We'll infer: if calculatedReminders is empty, it implies no schedulable meds.
+                        val hasAnySchedulableMedications = _reminders.value.isNotEmpty() // Check current state of reminders after calculation
+                        _phoneAppStatus.value = if (hasAnySchedulableMedications) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     } else if (currentStatus != PhoneAppStatus.NOT_INSTALLED_ANDROID && currentStatus != PhoneAppStatus.UNKNOWN ) {
-                         val hasActualData = medsFromDao.isNotEmpty() // Correctly use medsFromDao
-                        _phoneAppStatus.value = if (hasActualData || calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
+                         val hasAnySchedulableMedications = _reminders.value.isNotEmpty()
+                        _phoneAppStatus.value = if (hasAnySchedulableMedications) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     }
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
                 }
@@ -91,8 +104,8 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     }
 
     private fun calculateRemindersFromSyncData(
-        medicationsWithSchedules: List<MedicationWithSchedulesPojo>,
-        reminderStates: List<ReminderStateEntity>
+        medicationsWithSchedules: List<MedicationWithSchedulesPojo>, // This is medsFromDaoLambda
+        reminderStates: List<ReminderStateEntity>     // This is statesFromDaoLambda
     ): List<WearReminder> {
         val today = LocalDate.now()
         val allCalculatedReminders = mutableListOf<WearReminder>()
@@ -292,7 +305,7 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
         }
     }
 
-    private fun markReminderAsTakenOnPhone(phoneDbReminderId: String, specificMessageClient: MessageClient? = null) { // Made specificMessageClient optional
+    private fun markReminderAsTakenOnPhone(phoneDbReminderId: String, specificMessageClient: MessageClient? = null) {
         viewModelScope.launch {
             sendMessageToPhone(MARK_AS_TAKEN_PATH, phoneDbReminderId.toByteArray(Charsets.UTF_8), specificMessageClient)
         }
@@ -354,12 +367,11 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
     fun openPlayStoreOnPhone(remoteActivityHelper: RemoteActivityHelper) {
         viewModelScope.launch {
             try {
-                // Correctly await ListenableFuture
                 remoteActivityHelper.startRemoteActivity(
                     android.content.Intent(android.content.Intent.ACTION_VIEW)
                         .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
                         .setData(android.net.Uri.parse(PLAY_STORE_APP_URI))
-                ).asListenableFuture().await() // Use asListenableFuture().await()
+                ).await() // Corrected: Direct await on ListenableFuture
                 Log.i(TAG, "Attempted to open Play Store on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open Play Store on phone", e)
