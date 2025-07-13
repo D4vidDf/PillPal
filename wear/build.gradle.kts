@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.d4viddf.medicationreminder.wear"
+        applicationId = "com.d4viddf.medicationreminder"
         minSdk = 30
         targetSdk = 36
         versionCode = 27
@@ -70,10 +70,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services) // Added for .await() with Play Services Tasks
 
     // Gson for JSON deserialization
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.1")
 
     // ViewModel Compose for viewModel() composable
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
     implementation(libs.androidx.compose.navigation)
     implementation(libs.wear.compose.material)
     implementation(libs.androidx.wear.remote.interactions)
