@@ -158,20 +158,6 @@ class DataLayerListenerService : WearableListenerService() {
     // Removed getTodayScheduleForMedication as full sync is preferred.
     // If specific today schedule sync is ever re-introduced, this can be added back.
 
-    private fun sendDataToWear(path: String, jsonData: String, itemTypeForLog: String) {
-        serviceScope.launch(Dispatchers.IO) { // Ensure this is on a background thread
-            try {
-                val putDataMapReq = PutDataMapRequest.create(path)
-                putDataMapReq.dataMap.putString("sync_data_json", jsonData)
-                putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
-                val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
-                dataClient.putDataItem(putDataReq).await()
-                Log.i(TAG, "Successfully synced $itemTypeForLog to Wear OS via $path. JSON size: ${jsonData.length}")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error syncing $itemTypeForLog to Wear OS via $path", e)
-            }
-        }
-    }
 
     companion object {
         private const val TAG = "DataLayerListenerSvc"
@@ -189,12 +175,6 @@ class DataLayerListenerService : WearableListenerService() {
     suspend fun triggerFullSyncToWear() {
         Log.i(TAG, "Starting full medication data sync to Wear OS.")
         val allDbMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
-
-        if (allDbMedications.isEmpty()) {
-            Log.i(TAG, "No medications found to sync.")
-            sendDataToWear(PATH_FULL_MED_DATA_SYNC, gson.toJson(emptyList<MedicationFullSyncItem>()), "full medication data (empty)")
-            return
-        }
 
         val medicationFullSyncItems = mutableListOf<MedicationFullSyncItem>()
 
@@ -265,7 +245,11 @@ class DataLayerListenerService : WearableListenerService() {
         }
 
         val jsonToSend = gson.toJson(medicationFullSyncItems)
-        sendDataToWear(PATH_FULL_MED_DATA_SYNC, jsonToSend, "full medication data")
+        val putDataMapReq = PutDataMapRequest.create(PATH_FULL_MED_DATA_SYNC)
+        putDataMapReq.dataMap.putString("sync_data_json", jsonToSend)
+        putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
+        val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
+        dataClient.putDataItem(putDataReq).await()
         Log.i(TAG, "Full medication data sync triggered. Sent ${medicationFullSyncItems.size} medication items.")
     }
 }
