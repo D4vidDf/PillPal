@@ -9,11 +9,8 @@ import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
-import com.google.android.gms.wearable.CapabilityInfo
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
-import com.google.android.gms.wearable.MessageEvent
-import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -151,24 +148,6 @@ class WearDataListenerService : WearableListenerService() {
         }
     }
 
-    override fun onMessageReceived(messageEvent: MessageEvent) {
-        super.onMessageReceived(messageEvent)
-        Log.d(TAG, "Message received: ${messageEvent.path}")
-        if (messageEvent.path == REQUEST_MANUAL_SYNC_PATH) {
-            // The phone is asking us to request a sync.
-            // This is part of the manual sync flow initiated from the phone app.
-            Log.i(TAG, "Received manual sync request from phone. Triggering request for initial sync.")
-            val messageClient = Wearable.getMessageClient(this)
-            messageClient.sendMessage(messageEvent.sourceNodeId, "/request_initial_sync", null)
-        }
-    }
-
-    override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
-        super.onCapabilityChanged(capabilityInfo)
-        Log.d(TAG, "Capability Changed: $capabilityInfo")
-        // You can add logic here if you need to react to phone app changes
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         serviceJob.cancel()
@@ -176,8 +155,8 @@ class WearDataListenerService : WearableListenerService() {
 
     companion object {
         private const val TAG = "WearDataListenerSvc"
+        // private const val TODAY_SCHEDULE_PATH = "/today_schedule" // Legacy, commented out
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync" // New path
-        private const val REQUEST_MANUAL_SYNC_PATH = "/request_manual_sync"
     }
 }
 
