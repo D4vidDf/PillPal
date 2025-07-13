@@ -94,6 +94,9 @@ dependencies {
     implementation(libs.adaptive.layout)
     implementation(libs.androidx.adaptive.navigation)
     implementation(libs.androidx.wear.remote.interactions)
+    implementation(libs.google.guava)
+    implementation(libs.concurrent.futures)
+    implementation(libs.kotlinx.coroutines.guava)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
@@ -143,7 +146,6 @@ dependencies {
 
     // Wear OS
     implementation(libs.play.services.wearable)
-    implementation("com.google.android.horologist:horologist-tiles:0.6.17")
 
     // Explicitly add Gson for JSON serialization
     implementation("com.google.code.gson:gson:2.10.1")

@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
+    <queries>
+        <package android:name="com.d4viddf.medicationreminder" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -16,10 +20,10 @@
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
-            android:value="true" />
+            android:value="false" />
         <meta-data
             android:name="com.google.android.wearable.capabilities"
-            android:resource="@xml/wear" />
+            android:resource="@array/android_wear_capabilities" />
 
         <activity
             android:name=".presentation.MainActivity"

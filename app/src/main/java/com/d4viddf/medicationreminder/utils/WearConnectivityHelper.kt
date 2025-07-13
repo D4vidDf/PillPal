@@ -141,7 +141,7 @@ class WearConnectivityHelper @Inject constructor(
             val remoteActivityHelper = RemoteActivityHelper(context, executor)
             val resultFuture = remoteActivityHelper.startRemoteActivity(intent, nodeId)
 
-            Futures.addCallback(resultFuture, object : FutureCallback<Void> {
+            Futures.addCallback(resultFuture, object : FutureCallback<Void?> {
                 override fun onSuccess(result: Void?) {
                     Log.i(TAG, "Successfully requested Play Store on watch $nodeId")
                 }
@@ -159,7 +159,7 @@ class WearConnectivityHelper @Inject constructor(
     fun openPlayStoreOnPhone() {
         // Opens the Play Store on the phone to the Wear OS app's page.
         // The package name is the same for the Wear OS app module.
-        val wearAppPackageName = "com.d4viddf.medicationreminder.wear" // Make sure this is the applicationId of your wear module
+        val wearAppPackageName = "com.d4viddf.medicationreminder" // Make sure this is the applicationId of your wear module
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$wearAppPackageName")).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
