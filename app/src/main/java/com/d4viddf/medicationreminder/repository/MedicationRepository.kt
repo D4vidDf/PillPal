@@ -10,6 +10,8 @@ import com.d4viddf.medicationreminder.data.MedicationReminderDao
 import com.d4viddf.medicationreminder.data.SyncStatus
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Intent
+import com.d4viddf.medicationreminder.common.IntentActionConstants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDateTime
@@ -38,6 +40,7 @@ open class MedicationRepository @Inject constructor(
                 syncStatus = SyncStatus.PENDING
             )
         )
+        sendDataChangedBroadcast()
         return newId
     }
 
@@ -46,6 +49,7 @@ open class MedicationRepository @Inject constructor(
         firebaseSyncDao.insertSyncRecord(
             FirebaseSync(entityName = "Medication", entityId = medication.id, syncStatus = SyncStatus.PENDING)
         )
+        sendDataChangedBroadcast()
     }
 
     suspend fun deleteMedication(medication: Medication) {
@@ -70,6 +74,7 @@ open class MedicationRepository @Inject constructor(
         firebaseSyncDao.insertSyncRecord(
             FirebaseSync(entityName = "Medication", entityId = medication.id, syncStatus = SyncStatus.PENDING)
         )
+        sendDataChangedBroadcast()
     }
 
     suspend fun updateDoseCount(medicationId: Int, remainingDoses: Int) {
@@ -82,6 +87,11 @@ open class MedicationRepository @Inject constructor(
 
     open suspend fun getMedicationById(medicationId: Int): Medication? {
         return medicationDao.getMedicationById(medicationId)
+    }
+
+    private fun sendDataChangedBroadcast() {
+        val intent = Intent(IntentActionConstants.ACTION_DATA_CHANGED)
+        context.sendBroadcast(intent)
     }
 }
 

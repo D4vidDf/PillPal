@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper
 import com.google.android.gms.wearable.Node
+import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,41 +81,14 @@ class ConnectedDevicesViewModel @Inject constructor(
 
     fun triggerSyncWithWatch() {
         viewModelScope.launch {
-            // We need a node ID to send the message.
-            // If multiple devices, decide which one to sync with (e.g., the first one, or one with capability)
-            val targetNodeId = uiState.value.connectedDevices.firstOrNull { it.isNearby }?.id
-            // Or, preferably, get the node with the app capability from WearConnectivityHelper if it's the phone app asking watch to sync
-            // However, the plan is for the phone app to trigger its *own* sync process that then pushes to the watch.
-            // So, we'll call the DataLayerListenerService's full sync method.
-            // For now, let's assume this button triggers the phone to re-evaluate its data and push to the watch.
-            // This could be done by sending a message to its own DataLayerListenerService or calling a repository method directly.
-
-            // For now, let's re-use the concept of the DataLayerListenerService performing the sync
-            // The phone app itself can trigger its DataLayerListenerService to perform a full sync.
-            // This is a bit indirect. A more direct way would be to have a shared "SyncManager" or similar.
-            // Let's simulate by invoking what the DataLayerListenerService would do.
-
-            // The most straightforward way to re-trigger the phone's sync logic that pushes to the watch
-            // is to call the same methods that DataLayerListenerService calls.
-            // However, DataLayerListenerService is a service.
-            // Let's simplify for now: this button will tell the *watch* to request data again.
-            // This keeps the phone's sync logic centralized in DataLayerListenerService upon request.
-
-            if (targetNodeId != null) {
-                Log.i(TAG, "Requesting manual data sync from watch node: $targetNodeId")
-                messageClient.sendMessage(targetNodeId, REQUEST_MANUAL_SYNC_PATH, null)
-                    .addOnSuccessListener {
-                        Log.i(TAG, "Manual sync request message sent successfully to $targetNodeId.")
-                        _uiState.value = _uiState.value.copy(showSyncSuccessMessage = true)
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "Failed to send manual sync request message to $targetNodeId.", e)
-                        _uiState.value = _uiState.value.copy(showSyncErrorMessage = true)
-                    }
-            } else {
-                 Log.w(TAG, "No connected device found to trigger sync with.")
+            try {
+                val intent = Intent(IntentActionConstants.ACTION_DATA_CHANGED)
+                application.sendBroadcast(intent)
+                _uiState.value = _uiState.value.copy(showSyncSuccessMessage = true)
+                Log.i(TAG, "Manual sync broadcast sent.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send manual sync broadcast.", e)
                 _uiState.value = _uiState.value.copy(showSyncErrorMessage = true)
-                // If no devices, perhaps offer to pair.
             }
         }
     }

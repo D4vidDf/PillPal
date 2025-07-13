@@ -11,6 +11,11 @@ import com.d4viddf.medicationreminder.data.TodayScheduleItem
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -58,6 +63,8 @@ class DataLayerListenerService : WearableListenerService() {
     override fun onCreate() {
         super.onCreate()
         wearConnectivityHelper = WearConnectivityHelper(applicationContext)
+        val filter = IntentFilter(IntentActionConstants.ACTION_DATA_CHANGED)
+        registerReceiver(dataChangeReceiver, filter)
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
@@ -131,9 +138,21 @@ class DataLayerListenerService : WearableListenerService() {
         }
     }
 
+    private val dataChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == IntentActionConstants.ACTION_DATA_CHANGED) {
+                Log.d(TAG, "Received data changed broadcast, triggering full sync to wear.")
+                serviceScope.launch {
+                    triggerFullSyncToWear()
+                }
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         serviceJob.cancel()
+        unregisterReceiver(dataChangeReceiver)
     }
 
     // Removed getTodayScheduleForMedication as full sync is preferred.
@@ -167,7 +186,7 @@ class DataLayerListenerService : WearableListenerService() {
     // Payload class for ad-hoc taken events from watch
     private data class AdhocTakenPayload(val medicationId: Int, val scheduleId: Long, val reminderTimeKey: String, val takenAt: String)
 
-    private suspend fun triggerFullSyncToWear() {
+    suspend fun triggerFullSyncToWear() {
         Log.i(TAG, "Starting full medication data sync to Wear OS.")
         val allDbMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
 

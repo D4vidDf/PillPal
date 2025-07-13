@@ -12,6 +12,7 @@ class DataLayerService : WearableListenerService() {
 
     private val CAPABILITY_NAME = "medication_reminder_wear_app"
     private val TAG = "DataLayerService"
+    private const val REQUEST_MANUAL_SYNC_PATH = "/request_manual_sync"
 
     private lateinit var capabilityClient: CapabilityClient
 
@@ -41,7 +42,13 @@ class DataLayerService : WearableListenerService() {
     override fun onMessageReceived(messageEvent: MessageEvent) {
         super.onMessageReceived(messageEvent)
         Log.d(TAG, "Message received: ${messageEvent.path}")
-        // Handle incoming messages from the phone app here
+        if (messageEvent.path == REQUEST_MANUAL_SYNC_PATH) {
+            // The phone is asking us to request a sync.
+            // This is part of the manual sync flow initiated from the phone app.
+            Log.i(TAG, "Received manual sync request from phone. Triggering request for initial sync.")
+            val messageClient = Wearable.getMessageClient(this)
+            messageClient.sendMessage(messageEvent.sourceNodeId, "/request_initial_sync", null)
+        }
     }
 
     // This is called when data items are changed (synced)
