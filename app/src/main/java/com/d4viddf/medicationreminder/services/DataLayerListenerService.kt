@@ -251,5 +251,31 @@ class DataLayerListenerService : WearableListenerService() {
         val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
         dataClient.putDataItem(putDataReq).await()
         Log.i(TAG, "Full medication data sync triggered. Sent ${medicationFullSyncItems.size} medication items.")
+
+        sendTodayReminders()
+    }
+
+    private suspend fun sendTodayReminders() {
+        val today = LocalDate.now()
+        val reminders = medicationReminderRepository.getRemindersForDate(today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+        val simplifiedItems = reminders.map { reminder ->
+            TodayScheduleItem(
+                id = reminder.id.toString(),
+                medicationName = reminder.medicationName,
+                time = reminder.time,
+                isTaken = reminder.isTaken,
+                underlyingReminderId = reminder.id.toString(),
+                medicationScheduleId = reminder.medicationScheduleId,
+                takenAt = reminder.takenAt
+            )
+        }
+
+        val json = gson.toJson(simplifiedItems)
+        val putDataMapReq = PutDataMapRequest.create("/today_schedule")
+        putDataMapReq.dataMap.putString("schedule_json", json)
+        putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
+        val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
+        dataClient.putDataItem(putDataReq).await()
+        Log.i(TAG, "Sent ${simplifiedItems.size} today reminders to Wear OS.")
     }
 }
