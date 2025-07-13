@@ -245,28 +245,6 @@ object NotificationHelper {
         notificationCompatBuilder.setContentText(notificationText)
         notificationCompatBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(notificationText))
 
-        // Asynchronously check for watch capability before building and showing
-        val WEAR_APP_CAPABILITY_NAME = "medication_reminder_wear_app_capability"
-        capabilityClient.getCapability(WEAR_APP_CAPABILITY_NAME, CapabilityClient.FILTER_REACHABLE)
-            .addOnSuccessListener { capabilityInfo ->
-                val node = capabilityInfo.nodes.firstOrNull()
-                if (node != null) {
-                    Log.i(TAG, "Watch app ($WEAR_APP_CAPABILITY_NAME) is reachable on node ${node.displayName}. Setting notification to localOnly.")
-                    notificationCompatBuilder.setLocalOnly(true)
-                } else {
-                    Log.i(TAG, "Watch app ($WEAR_APP_CAPABILITY_NAME) not reachable. Notification will bridge.")
-                }
-                val finalNotification = notificationCompatBuilder.build()
-                finalNotification.flags = finalNotification.flags or Notification.FLAG_INSISTENT
-                showNotificationInternal(context, reminderDbId, finalNotification)
-            }
-            .addOnFailureListener { exception ->
-                Log.w(TAG, "Failed to get watch app capability. Notification will bridge.", exception)
-                val finalNotification = notificationCompatBuilder.build()
-                finalNotification.flags = finalNotification.flags or Notification.FLAG_INSISTENT
-                showNotificationInternal(context, reminderDbId, finalNotification)
-            }
-        // Original direct showNotificationInternal call is removed as it's now handled by listeners
     }
 
     private fun showNotificationInternal(context: Context, id: Int, notification: Notification) {
