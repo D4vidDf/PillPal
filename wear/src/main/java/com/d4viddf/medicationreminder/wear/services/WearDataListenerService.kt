@@ -9,6 +9,7 @@ import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
+import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
@@ -83,11 +84,14 @@ class WearDataListenerService : WearableListenerService() {
                                     try {
                                         WearReminder(
                                             id = map["id"] as? String ?: System.currentTimeMillis().toString(),
+                                            medicationId = (map["medicationId"] as? Double)?.toInt() ?: 0,
+                                            scheduleId = (map["medicationScheduleId"] as? Double)?.toLong() ?: 0L,
                                             underlyingReminderId = (map["underlyingReminderId"] as? String)?.toLongOrNull() ?: 0L,
                                             medicationName = map["medicationName"] as? String ?: "Unknown",
                                             time = map["time"] as? String ?: "00:00",
                                             isTaken = map["isTaken"] as? Boolean ?: false,
-                                            dosage = map["dosage"] as? String ?: ""
+                                            dosage = map["dosage"] as? String ?: "",
+                                            takenAt = map["takenAt"] as? String
                                         )
                                     } catch (e: Exception) {
                                         Log.e(TAG, "Error parsing individual reminder map for legacy schedule: $map", e)
@@ -99,11 +103,11 @@ class WearDataListenerService : WearableListenerService() {
                                     reminders.forEach { reminder ->
                                         val state = ReminderStateEntity(
                                             reminderInstanceId = reminder.id,
-                                            medicationId = 0, // Not available in this legacy path
-                                            scheduleId = 0, // Not available in this legacy path
+                                            medicationId = reminder.medicationId,
+                                            scheduleId = reminder.scheduleId,
                                             reminderTimeKey = reminder.time,
                                             isTaken = reminder.isTaken,
-                                            takenAt = null // Not available in this legacy path
+                                            takenAt = reminder.takenAt
                                         )
                                         dao.insertOrUpdateReminderState(state)
                                     }
