@@ -124,38 +124,90 @@ class DataLayerService : WearableListenerService() {
                         // is already present in the WearViewModel. The ViewModel will be updated to
                         // observe the changes in the database and update the UI accordingly.
                     }
-                when {
-                    dataItem.uri.path?.startsWith("/reminder/") == true -> {
+                when (dataItem.uri.path) {
+                    "/full_medication_data_sync" -> {
                         try {
                             val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
-                            val reminderId = dataMap.getInt("reminder_id")
-                            val isTaken = dataMap.getBoolean("reminder_is_taken")
-                            val takenAt = dataMap.getString("reminder_taken_at")
-                            val reminderTime = dataMap.getString("reminder_sched_time")
-                            val medicationName = dataMap.getString("reminder_med_name") ?: "Unknown"
+                            val json = dataMap.getString("sync_data_json")
+                            if (json != null) {
+                                val typeToken = object : TypeToken<List<MedicationFullSyncItem>>() {}.type
+                                val receivedSyncItems: List<MedicationFullSyncItem> = Gson().fromJson(json, typeToken)
+                                Log.d(TAG, "Successfully deserialized ${receivedSyncItems.size} MedicationFullSyncItem(s).")
 
-                            if (reminderTime != null) {
-                                val reminder = Reminder(
-                                    id = reminderId,
-                                    isTaken = isTaken,
-                                    takenAt = takenAt,
-                                    reminderTime = reminderTime,
-                                    medicationName = medicationName
-                                )
+                                val medicationEntities = receivedSyncItems.map { syncItem ->
+                                    MedicationSyncEntity(
+                                        medicationId = syncItem.medicationId,
+                                        name = syncItem.name,
+                                        dosage = syncItem.dosage,
+                                        color = syncItem.color,
+                                        typeName = syncItem.typeName,
+                                        typeIconUrl = syncItem.typeIconUrl,
+                                        startDate = syncItem.startDate,
+                                        endDate = syncItem.endDate
+                                    )
+                                }
+                                val scheduleEntities = receivedSyncItems.flatMap { syncItem ->
+                                    syncItem.schedules.map { scheduleDetail ->
+                                        ScheduleDetailSyncEntity(
+                                            medicationId = syncItem.medicationId,
+                                            scheduleId = scheduleDetail.scheduleId,
+                                            scheduleType = scheduleDetail.scheduleType,
+                                            specificTimesJson = scheduleDetail.specificTimes?.let { Gson().toJson(it) },
+                                            intervalHours = scheduleDetail.intervalHours,
+                                            intervalMinutes = scheduleDetail.intervalMinutes,
+                                            intervalStartTime = scheduleDetail.intervalStartTime,
+                                            intervalEndTime = scheduleDetail.intervalEndTime,
+                                            dailyRepetitionDaysJson = scheduleDetail.dailyRepetitionDays?.let { Gson().toJson(it) }
+                                        )
+                                    }
+                                }
 
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    val dao = WearAppDatabase.getDatabase(applicationContext)
-                                        .reminderDao()
-                                    dao.insertOrUpdate(reminder)
-                                    Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
+                                    val dao = WearAppDatabase.getDatabase(applicationContext).medicationSync_dao()
+                                    dao.clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
+                                    Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room.")
                                 }
+                            } else {
+                                Log.w(TAG, "sync_data_json is null in DataItem.")
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error processing data item for /reminder/", e)
+                            Log.e(TAG, "Error processing data item for /full_medication_data_sync", e)
                         }
                     }
+                    "/today_schedule" -> {
+                        // This part is left intentionally blank as the logic to handle today's schedule
+                        // is already present in the WearViewModel. The ViewModel will be updated to
+                        // observe the changes in the database and update the UI accordingly.
+                    }
                     else -> {
-                        // Do nothing
+                        if (dataItem.uri.path != null && dataItem.uri.path.startsWith("/reminder/")) {
+                            try {
+                                val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                                val reminderId = dataMap.getInt("reminder_id")
+                                val isTaken = dataMap.getBoolean("reminder_is_taken")
+                                val takenAt = dataMap.getString("reminder_taken_at")
+                                val reminderTime = dataMap.getString("reminder_sched_time")
+                                val medicationName = dataMap.getString("reminder_med_name") ?: "Unknown"
+
+                                if (reminderTime != null) {
+                                    val reminder = Reminder(
+                                        id = reminderId,
+                                        isTaken = isTaken,
+                                        takenAt = takenAt,
+                                        reminderTime = reminderTime,
+                                        medicationName = medicationName
+                                    )
+
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val dao = WearAppDatabase.getDatabase(applicationContext).reminderDao()
+                                        dao.insertOrUpdate(reminder)
+                                        Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error processing data item for /reminder/", e)
+                            }
+                        }
                     }
                 }
                 }
