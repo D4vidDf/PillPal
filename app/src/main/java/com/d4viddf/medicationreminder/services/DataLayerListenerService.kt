@@ -64,7 +64,7 @@ class DataLayerListenerService : WearableListenerService() {
         super.onCreate()
         wearConnectivityHelper = WearConnectivityHelper(applicationContext)
         val filter = IntentFilter(IntentActionConstants.ACTION_DATA_CHANGED)
-        registerReceiver(dataChangeReceiver, filter)
+        registerReceiver(dataChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
