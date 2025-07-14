@@ -149,12 +149,6 @@ class DataLayerService : WearableListenerService() {
                                         Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
                                     }
                                 }
-
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    val dao = WearAppDatabase.getDatabase(applicationContext).reminderDao()
-                                    dao.insertOrUpdate(reminder)
-                                    Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
-                                }
                             } catch (e: Exception) {
                                 Log.e(TAG, "Error processing data item for /reminder/", e)
                             }
