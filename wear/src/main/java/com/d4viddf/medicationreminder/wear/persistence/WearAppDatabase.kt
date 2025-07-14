@@ -7,14 +7,15 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [MedicationSyncEntity::class, ScheduleDetailSyncEntity::class, ReminderStateEntity::class], // Added ReminderStateEntity
-    version = 2, // Incremented version
+    entities = [MedicationSyncEntity::class, ScheduleDetailSyncEntity::class, ReminderStateEntity::class, Reminder::class],
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class WearAppDatabase : RoomDatabase() {
 
     abstract fun medicationSyncDao(): MedicationSyncDao
+    abstract fun reminderDao(): ReminderDao
 
     companion object {
         @Volatile

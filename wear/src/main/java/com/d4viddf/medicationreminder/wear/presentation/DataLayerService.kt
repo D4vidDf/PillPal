@@ -1,12 +1,15 @@
 package com.d4viddf.medicationreminder.wear.presentation
 
+import android.content.ContentValues.TAG
+import android.content.Intent
 import android.util.Log
-import com.google.android.gms.wearable.CapabilityClient
-import com.google.android.gms.wearable.CapabilityInfo
 import com.d4viddf.medicationreminder.wear.data.MedicationFullSyncItem
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.Reminder
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
+import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.CapabilityInfo
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -22,49 +25,45 @@ import kotlinx.coroutines.launch
 class DataLayerService : WearableListenerService() {
 
     private val CAPABILITY_NAME = "medication_reminder_wear_app"
-    private val TAG = "DataLayerService"
-
     private lateinit var capabilityClient: CapabilityClient
 
     override fun onCreate() {
         super.onCreate()
         capabilityClient = Wearable.getCapabilityClient(this)
         Log.d(TAG, "Service created, advertising capability.")
-        // Advertise the capability as soon as the service is created
         capabilityClient.addLocalCapability(CAPABILITY_NAME)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Service destroyed, removing capability.")
-        // Clean up when the service is destroyed
         capabilityClient.removeLocalCapability(CAPABILITY_NAME)
     }
 
-    // This is called when a connected device's capabilities change
     override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
         super.onCapabilityChanged(capabilityInfo)
         Log.d(TAG, "Capability Changed: $capabilityInfo")
-        // You can add logic here if you need to react to phone app changes
     }
 
-    // This is called when you receive a message from the phone
     override fun onMessageReceived(messageEvent: MessageEvent) {
         super.onMessageReceived(messageEvent)
         Log.d(TAG, "Message received: ${messageEvent.path}")
         if (messageEvent.path == "/request_manual_sync") {
-            // The phone is asking us to request a sync.
-            // This is part of the manual sync flow initiated from the phone app.
             Log.i(TAG, "Received manual sync request from phone. Triggering request for initial sync.")
             val messageClient = Wearable.getMessageClient(this)
             messageClient.sendMessage(messageEvent.sourceNodeId, "/request_initial_sync", null)
+        } else if (messageEvent.path == "/start_activity") {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
         }
     }
 
-    // This is called when data items are changed (synced)
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         super.onDataChanged(dataEvents)
         Log.d(TAG, "Data changed. Event count: ${dataEvents.count}")
+
         dataEvents.forEach { event ->
             if (event.type == DataEvent.TYPE_CHANGED) {
                 val dataItem = event.dataItem
@@ -96,19 +95,27 @@ class DataLayerService : WearableListenerService() {
                                             medicationId = syncItem.medicationId,
                                             scheduleId = scheduleDetail.scheduleId,
                                             scheduleType = scheduleDetail.scheduleType,
-                                            specificTimesJson = scheduleDetail.specificTimes?.let { Gson().toJson(it) },
+                                            specificTimesJson = scheduleDetail.specificTimes?.let {
+                                                Gson().toJson(
+                                                    it
+                                                )
+                                            },
                                             intervalHours = scheduleDetail.intervalHours,
                                             intervalMinutes = scheduleDetail.intervalMinutes,
                                             intervalStartTime = scheduleDetail.intervalStartTime,
                                             intervalEndTime = scheduleDetail.intervalEndTime,
-                                            dailyRepetitionDaysJson = scheduleDetail.dailyRepetitionDays?.let { Gson().toJson(it) }
+                                            dailyRepetitionDaysJson = scheduleDetail.dailyRepetitionDays?.let {
+                                                Gson().toJson(
+                                                    it
+                                                )
+                                            }
                                         )
                                     }
                                 }
 
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    val dao = WearAppDatabase.getDatabase(applicationContext).medicationSyncDao()
-                                    dao.clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
+                                    val db = WearAppDatabase.getDatabase(applicationContext)
+                                    db.medicationSyncDao().clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
                                     Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room.")
                                 }
                             } else {
@@ -119,9 +126,37 @@ class DataLayerService : WearableListenerService() {
                         }
                     }
                     "/today_schedule" -> {
-                        // This part is left intentionally blank as the logic to handle today's schedule
-                        // is already present in the WearViewModel. The ViewModel will be updated to
-                        // observe the changes in the database and update the UI accordingly.
+                        // Logic for today's schedule is handled in WearViewModel
+                    }
+                    else -> {
+                        if (dataItem.uri.path?.startsWith("/reminder/") == true) {
+                            try {
+                                val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                                val reminderId = dataMap.getInt("reminder_id")
+                                val isTaken = dataMap.getBoolean("reminder_is_taken")
+                                val takenAt = dataMap.getString("reminder_taken_at")
+                                val reminderTime = dataMap.getString("reminder_sched_time")
+                                val medicationName = dataMap.getString("reminder_med_name") ?: "Unknown"
+
+                                if (reminderTime != null) {
+                                    val reminder = Reminder(
+                                        id = reminderId,
+                                        isTaken = isTaken,
+                                        takenAt = takenAt,
+                                        reminderTime = reminderTime,
+                                        medicationName = medicationName
+                                    )
+
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val dao = WearAppDatabase.getDatabase(applicationContext).reminderDao()
+                                        dao.insertOrUpdate(reminder)
+                                        Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error processing data item for /reminder/", e)
+                            }
+                        }
                     }
                 }
             }

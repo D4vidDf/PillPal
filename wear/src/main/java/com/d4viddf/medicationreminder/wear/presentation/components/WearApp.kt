@@ -23,6 +23,7 @@ import androidx.wear.compose.material3.*
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
+import com.d4viddf.medicationreminder.wear.data.WearRepository
 import com.d4viddf.medicationreminder.wear.presentation.* // Import PhoneAppStatus, WearViewModelFactory etc.
 import com.google.android.gms.wearable.Wearable
 // Import RemindersContent (which itself imports MedicationListItem)
@@ -156,12 +157,16 @@ fun WearApp(wearViewModel: WearViewModel) {
     }
 }
 
+
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultWearAppPreview() {
     MedicationReminderTheme {
         val context = LocalContext.current.applicationContext as Application
-        val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context))
+        val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context, wearRepository = WearRepository(
+            context
+        )
+        ))
         WearApp(wearViewModel = previewViewModel)
     }
 }
