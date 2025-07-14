@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.services
 
+import android.annotation.SuppressLint
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
@@ -11,6 +12,11 @@ import com.d4viddf.medicationreminder.data.TodayScheduleItem
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -55,9 +61,12 @@ class DataLayerListenerService : WearableListenerService() {
     // For opening Play Store on phone
     private lateinit var wearConnectivityHelper: WearConnectivityHelper // Initialize in onCreate
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
         wearConnectivityHelper = WearConnectivityHelper(applicationContext)
+        val filter = IntentFilter(IntentActionConstants.ACTION_DATA_CHANGED)
+        registerReceiver(dataChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
@@ -131,28 +140,26 @@ class DataLayerListenerService : WearableListenerService() {
         }
     }
 
+    private val dataChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == IntentActionConstants.ACTION_DATA_CHANGED) {
+                Log.d(TAG, "Received data changed broadcast, triggering full sync to wear.")
+                serviceScope.launch {
+                    triggerFullSyncToWear()
+                }
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         serviceJob.cancel()
+        unregisterReceiver(dataChangeReceiver)
     }
 
     // Removed getTodayScheduleForMedication as full sync is preferred.
     // If specific today schedule sync is ever re-introduced, this can be added back.
 
-    private fun sendDataToWear(path: String, jsonData: String, itemTypeForLog: String) {
-        serviceScope.launch(Dispatchers.IO) { // Ensure this is on a background thread
-            try {
-                val putDataMapReq = PutDataMapRequest.create(path)
-                putDataMapReq.dataMap.putString("sync_data_json", jsonData)
-                putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
-                val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
-                dataClient.putDataItem(putDataReq).await()
-                Log.i(TAG, "Successfully synced $itemTypeForLog to Wear OS via $path. JSON size: ${jsonData.length}")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error syncing $itemTypeForLog to Wear OS via $path", e)
-            }
-        }
-    }
 
     companion object {
         private const val TAG = "DataLayerListenerSvc"
@@ -167,15 +174,9 @@ class DataLayerListenerService : WearableListenerService() {
     // Payload class for ad-hoc taken events from watch
     private data class AdhocTakenPayload(val medicationId: Int, val scheduleId: Long, val reminderTimeKey: String, val takenAt: String)
 
-    private suspend fun triggerFullSyncToWear() {
+    suspend fun triggerFullSyncToWear() {
         Log.i(TAG, "Starting full medication data sync to Wear OS.")
         val allDbMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
-
-        if (allDbMedications.isEmpty()) {
-            Log.i(TAG, "No medications found to sync.")
-            sendDataToWear(PATH_FULL_MED_DATA_SYNC, gson.toJson(emptyList<MedicationFullSyncItem>()), "full medication data (empty)")
-            return
-        }
 
         val medicationFullSyncItems = mutableListOf<MedicationFullSyncItem>()
 
@@ -246,7 +247,50 @@ class DataLayerListenerService : WearableListenerService() {
         }
 
         val jsonToSend = gson.toJson(medicationFullSyncItems)
-        sendDataToWear(PATH_FULL_MED_DATA_SYNC, jsonToSend, "full medication data")
+        val putDataMapReq = PutDataMapRequest.create(PATH_FULL_MED_DATA_SYNC)
+        putDataMapReq.dataMap.putString("sync_data_json", jsonToSend)
+        putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
+        val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
+        dataClient.putDataItem(putDataReq).await()
         Log.i(TAG, "Full medication data sync triggered. Sent ${medicationFullSyncItems.size} medication items.")
+
+        sendTodayReminders()
+    }
+
+    private suspend fun sendTodayReminders() {
+        val today = LocalDate.now()
+        val allMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
+        val allSchedules = scheduleRepository.getAllSchedules().firstOrNull() ?: emptyList()
+        val reminders = mutableListOf<TodayScheduleItem>()
+
+        for (medication in allMedications) {
+            val schedules = allSchedules.filter { it.medicationId == medication.id }
+            for (schedule in schedules) {
+                val reminderTimes = ReminderCalculator.generateRemindersForPeriod(medication, schedule, today, today)
+                reminderTimes[today]?.forEach { time ->
+                    val reminderDateTime = LocalDateTime.of(today, time)
+                    reminders.add(
+                        TodayScheduleItem(
+                            id = System.currentTimeMillis().toString(),
+                            medicationName = medication.name,
+                            time = time,
+                            isTaken = false, // This will be updated by the watch
+                            underlyingReminderId = 0L, // Not applicable here
+                            medicationScheduleId = schedule.id,
+                            takenAt = null,
+                            isPast = reminderDateTime.isBefore(LocalDateTime.now())
+                        )
+                    )
+                }
+            }
+        }
+
+        val json = gson.toJson(reminders)
+        val putDataMapReq = PutDataMapRequest.create("/today_schedule")
+        putDataMapReq.dataMap.putString("schedule_json", json)
+        putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
+        val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
+        dataClient.putDataItem(putDataReq).await()
+        Log.i(TAG, "Sent ${reminders.size} today reminders to Wear OS.")
     }
 }

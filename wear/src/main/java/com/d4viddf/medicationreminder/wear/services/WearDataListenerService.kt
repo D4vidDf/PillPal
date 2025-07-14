@@ -9,6 +9,7 @@ import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
+import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
@@ -71,6 +72,54 @@ class WearDataListenerService : WearableListenerService() {
                         // }
                     }
                     */
+                    TODAY_SCHEDULE_PATH -> {
+                        Log.i(TAG, "Received data update for $TODAY_SCHEDULE_PATH.")
+                        try {
+                            val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                            val json = dataMap.getString("schedule_json")
+                            if (json != null) {
+                                val typeToken = object : TypeToken<List<Map<String, Any?>>>() {}.type
+                                val receivedMaps: List<Map<String, Any?>> = gson.fromJson(json, typeToken)
+                                val reminders = receivedMaps.mapNotNull { map ->
+                                    try {
+                                        WearReminder(
+                                            id = map["id"] as? String ?: System.currentTimeMillis().toString(),
+                                            medicationId = (map["medicationId"] as? Double)?.toInt() ?: 0,
+                                            scheduleId = (map["medicationScheduleId"] as? Double)?.toLong() ?: 0L,
+                                            underlyingReminderId = (map["underlyingReminderId"] as? String)?.toLongOrNull() ?: 0L,
+                                            medicationName = map["medicationName"] as? String ?: "Unknown",
+                                            time = map["time"] as? String ?: "00:00",
+                                            isTaken = map["isTaken"] as? Boolean ?: false,
+                                            dosage = map["dosage"] as? String ?: "",
+                                            takenAt = map["takenAt"] as? String
+                                        )
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error parsing individual reminder map for legacy schedule: $map", e)
+                                        null
+                                    }
+                                }
+                                serviceScope.launch {
+                                    val dao = WearAppDatabase.getDatabase(applicationContext).medicationSyncDao()
+                                    reminders.forEach { reminder ->
+                                        val state = ReminderStateEntity(
+                                            reminderInstanceId = reminder.id,
+                                            medicationId = reminder.medicationId,
+                                            scheduleId = reminder.scheduleId,
+                                            reminderTimeKey = reminder.time,
+                                            isTaken = reminder.isTaken,
+                                            takenAt = reminder.takenAt
+                                        )
+                                        dao.insertOrUpdateReminderState(state)
+                                    }
+                                    Log.i(TAG, "Updated ${reminders.size} reminder states from $TODAY_SCHEDULE_PATH.")
+                                }
+                            } else {
+                                Log.w(TAG, "schedule_json is null in DataItem for $TODAY_SCHEDULE_PATH.")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error processing data item for $TODAY_SCHEDULE_PATH", e)
+                        }
+                    }
                     PATH_FULL_MED_DATA_SYNC -> {
                         Log.i(TAG, "Received data update for $PATH_FULL_MED_DATA_SYNC")
                         try {
@@ -155,7 +204,7 @@ class WearDataListenerService : WearableListenerService() {
 
     companion object {
         private const val TAG = "WearDataListenerSvc"
-        // private const val TODAY_SCHEDULE_PATH = "/today_schedule" // Legacy, commented out
+        private const val TODAY_SCHEDULE_PATH = "/today_schedule"
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync" // New path
     }
 }
