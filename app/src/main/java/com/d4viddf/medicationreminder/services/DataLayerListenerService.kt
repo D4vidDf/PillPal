@@ -50,8 +50,6 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var scheduleRepository: MedicationScheduleRepository
     @Inject
     lateinit var medicationTypeRepository: MedicationTypeRepository
-    @Inject
-    lateinit var reminderCalculator: ReminderCalculator
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val gson by lazy { Gson() }
@@ -275,8 +273,8 @@ class DataLayerListenerService : WearableListenerService() {
                             medicationName = medication.name,
                             time = time.format(DateTimeFormatter.ofPattern("HH:mm")),
                             isTaken = false, // This will be updated by the watch
-                            underlyingReminderId = "0", // Not applicable here
-                            medicationScheduleId = schedule.id.toLong(),
+                            underlyingReminderId = 0L.toString(), // Not applicable here
+                            medicationScheduleId = schedule.id,
                             takenAt = null,
                             isPast = reminderDateTime.isBefore(LocalDateTime.now())
                         )
