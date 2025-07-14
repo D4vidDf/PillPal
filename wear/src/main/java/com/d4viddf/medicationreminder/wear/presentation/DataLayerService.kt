@@ -124,7 +124,8 @@ class DataLayerService : WearableListenerService() {
                         // is already present in the WearViewModel. The ViewModel will be updated to
                         // observe the changes in the database and update the UI accordingly.
                     }
-                  if (dataItem.uri.path != null && dataItem.uri.path?.startsWith("/reminder/") == true) {
+                when {
+                    dataItem.uri.path?.startsWith("/reminder/") == true -> {
                         try {
                             val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
                             val reminderId = dataMap.getInt("reminder_id")
@@ -153,6 +154,10 @@ class DataLayerService : WearableListenerService() {
                             Log.e(TAG, "Error processing data item for /reminder/", e)
                         }
                     }
+                    else -> {
+                        // Do nothing
+                    }
+                }
                 }
             }
         }
