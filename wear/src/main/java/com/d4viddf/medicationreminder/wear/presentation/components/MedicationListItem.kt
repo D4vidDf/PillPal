@@ -55,6 +55,8 @@ fun MedicationListItem(
             if (!reminder.isTaken) {
                 Button(
                     onClick = onMarkAsTaken,
+                    modifier = Modifier.size(32.dp).padding(0.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(
