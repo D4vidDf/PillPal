@@ -7,9 +7,16 @@ import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Wearable
+import com.d4viddf.medicationreminder.wear.data.WearRepository
 import com.d4viddf.medicationreminder.wear.presentation.components.WearApp
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WearActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var wearRepository: WearRepository
 
     private lateinit var capabilityClient: CapabilityClient
     // Ensure this capability name matches exactly what's in wear/src/main/res/xml/wear.xml
@@ -20,7 +27,7 @@ class WearActivity : ComponentActivity() {
         capabilityClient = Wearable.getCapabilityClient(this)
 
         setContent {
-            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
+            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application, wearRepository))
             WearApp(wearViewModel = wearViewModel) // This is components.WearApp
         }
     }

@@ -156,12 +156,14 @@ fun WearApp(wearViewModel: WearViewModel) {
     }
 }
 
+import com.d4viddf.medicationreminder.wear.data.WearRepository
+
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultWearAppPreview() {
     MedicationReminderTheme {
         val context = LocalContext.current.applicationContext as Application
-        val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context))
+        val previewViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application = context, wearRepository = WearRepository(context)))
         WearApp(wearViewModel = previewViewModel)
     }
 }

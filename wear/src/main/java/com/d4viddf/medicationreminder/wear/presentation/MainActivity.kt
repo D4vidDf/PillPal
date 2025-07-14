@@ -12,14 +12,19 @@ import androidx.activity.compose.setContent
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.d4viddf.medicationreminder.wear.data.WearRepository
 import com.d4viddf.medicationreminder.wear.presentation.components.WearApp
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 
 const val PREFS_NAME = "MedicationReminderPrefs"
 const val KEY_FIRST_LAUNCH = "isFirstLaunch"
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    // Removed: private lateinit var wearViewModel: WearViewModel
+    @Inject
+    lateinit var wearRepository: WearRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -28,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // ViewModel is initialized here, within a Composable context
-            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application))
+            val wearViewModel: WearViewModel = viewModel(factory = WearViewModelFactory(application, wearRepository))
             WearApp(wearViewModel = wearViewModel)
         }
     }
