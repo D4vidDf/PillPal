@@ -29,4 +29,8 @@
     <string name="reminder_dosage_prefix">Dosage: %1$s</string>
     <string name="checking_for_updates">Checking for updates...</string>
     <string name="todays_reminders_header">Today\'s Reminders</string>
+    <string name="more_options">More</string>
+    <string name="sync_with_phone">Sync with phone</string>
+    <string name="open_app_on_phone">Open app on phone</string>
+    <string name="settings">Settings</string>
 </resources>

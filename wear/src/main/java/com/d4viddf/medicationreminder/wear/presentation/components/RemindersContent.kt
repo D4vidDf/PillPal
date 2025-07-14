@@ -13,9 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
@@ -28,7 +26,8 @@ import com.d4viddf.medicationreminder.wear.presentation.components.MedicationLis
 @Composable
 fun RemindersContent(
     reminders: List<WearReminder>,
-    onMarkAsTaken: (WearReminder) -> Unit
+    onMarkAsTaken: (WearReminder) -> Unit,
+    onMoreClick: () -> Unit
 ) {
     if (reminders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -42,20 +41,32 @@ fun RemindersContent(
         return
     }
 
-    TransformingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
+    ScalingLazyColumn(
+        modifier = Modifier.fillMaxSize().padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
-            ListHeader {
-                Text(stringResource(R.string.todays_reminders_header))
-            }
-        }
-        items(items = reminders, key = { it.id }) { reminder ->
-            MedicationListItem( // Now using the imported component
-                reminder = reminder,
-                onMarkAsTaken = { onMarkAsTaken(reminder) }
+            Text(
+                text = stringResource(R.string.todays_reminders_header),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+        }
+        items(reminders.size) { index ->
+            val reminder = reminders[index]
+            MedicationListItem(
+                reminder = reminder,
+                onMarkAsTaken = { onMarkAsTaken(reminder) },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+        item {
+            Button(
+                onClick = onMoreClick,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(text = stringResource(R.string.more_options))
+            }
         }
     }
 }

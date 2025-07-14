@@ -24,7 +24,7 @@ import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminder
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material3.ChipDefaults
 
 @Composable
 fun MedicationReminderChip(

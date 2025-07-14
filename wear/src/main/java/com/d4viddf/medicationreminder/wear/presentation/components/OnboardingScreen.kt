@@ -26,7 +26,7 @@ fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onReque
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         state = rememberScalingLazyListState() // M3 compatible
