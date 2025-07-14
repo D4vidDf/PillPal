@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.wear.compose.material)
     implementation(libs.androidx.wear.remote.interactions)
     implementation(libs.androidx.concurrent.futures)
+    implementation(libs.horologist.compose.layout)
+    implementation(libs.androidx.material.icons.core)
     // implementation(libs.androidx.media3.common.ktx) // Or use libs.androidx.lifecycle.viewmodel.compose // Consider if media3 is needed for wear
 
 
