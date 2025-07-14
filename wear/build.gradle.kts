@@ -58,6 +58,7 @@ dependencies {
 
     // Horologist for Compose previews and other utilities if needed (already present)
     implementation(libs.horologist.compose.tools)
+    implementation("com.google.android.horologist:horologist-compose-layout:0.5.1")
     // Horologist for Tiles if specific components are used (already present, though androidx.wear.tiles.material is primary)
     implementation(libs.horologist.tiles)
 
