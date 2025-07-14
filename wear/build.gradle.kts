@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -95,6 +96,10 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
+
+    // Hilt for Dependency Injection
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     // For ListenableFuture.await()
 }

@@ -5,6 +5,7 @@ import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.CapabilityInfo
 import com.d4viddf.medicationreminder.wear.data.MedicationFullSyncItem
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.Reminder
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
 import com.google.android.gms.wearable.DataEvent
@@ -133,13 +134,21 @@ class DataLayerService : WearableListenerService() {
                                 val reminderTime = dataMap.getString("reminder_sched_time")
                                 val medicationName = dataMap.getString("reminder_med_name") ?: "Unknown"
 
-                                val reminder = Reminder(
-                                    id = reminderId,
-                                    isTaken = isTaken,
-                                    takenAt = takenAt,
-                                    reminderTime = reminderTime,
-                                    medicationName = medicationName
-                                )
+                                if (reminderTime != null) {
+                                    val reminder = Reminder(
+                                        id = reminderId,
+                                        isTaken = isTaken,
+                                        takenAt = takenAt,
+                                        reminderTime = reminderTime,
+                                        medicationName = medicationName
+                                    )
+
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val dao = WearAppDatabase.getDatabase(applicationContext).reminderDao()
+                                        dao.insertOrUpdate(reminder)
+                                        Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
+                                    }
+                                }
 
                                 CoroutineScope(Dispatchers.IO).launch {
                                     val dao = WearAppDatabase.getDatabase(applicationContext).reminderDao()
