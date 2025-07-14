@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.services
 
+import android.annotation.SuppressLint
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
@@ -60,6 +61,7 @@ class DataLayerListenerService : WearableListenerService() {
     // For opening Play Store on phone
     private lateinit var wearConnectivityHelper: WearConnectivityHelper // Initialize in onCreate
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
         wearConnectivityHelper = WearConnectivityHelper(applicationContext)
@@ -271,9 +273,9 @@ class DataLayerListenerService : WearableListenerService() {
                         TodayScheduleItem(
                             id = System.currentTimeMillis().toString(),
                             medicationName = medication.name,
-                            time = time.format(DateTimeFormatter.ofPattern("HH:mm")),
+                            time = time,
                             isTaken = false, // This will be updated by the watch
-                            underlyingReminderId = 0L.toString(), // Not applicable here
+                            underlyingReminderId = 0L, // Not applicable here
                             medicationScheduleId = schedule.id,
                             takenAt = null,
                             isPast = reminderDateTime.isBefore(LocalDateTime.now())

@@ -6,9 +6,6 @@ import com.d4viddf.medicationreminder.data.MedicationSchedule
 import android.content.Context
 import android.content.Intent
 import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.data.FirebaseSync
-import com.d4viddf.medicationreminder.data.FirebaseSyncDao
-import com.d4viddf.medicationreminder.data.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationScheduleDao
 import com.d4viddf.medicationreminder.data.SyncStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
