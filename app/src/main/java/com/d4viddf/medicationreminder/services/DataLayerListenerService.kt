@@ -271,12 +271,12 @@ class DataLayerListenerService : WearableListenerService() {
                     val reminderDateTime = LocalDateTime.of(today, time)
                     reminders.add(
                         TodayScheduleItem(
-                            id = "${medication.id}_${schedule.id}_${today}_$time",
+                            id = System.currentTimeMillis().toString(),
                             medicationName = medication.name,
                             time = time.format(DateTimeFormatter.ofPattern("HH:mm")),
                             isTaken = false, // This will be updated by the watch
                             underlyingReminderId = "0", // Not applicable here
-                            medicationScheduleId = schedule.id,
+                            medicationScheduleId = schedule.id.toLong(),
                             takenAt = null,
                             isPast = reminderDateTime.isBefore(LocalDateTime.now())
                         )
