@@ -6,6 +6,7 @@ import androidx.concurrent.futures.await
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.wear.data.WearReminder
+import com.d4viddf.medicationreminder.wear.data.WearRepository
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
 import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity
@@ -16,6 +17,7 @@ import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,10 +28,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 import androidx.wear.remote.interactions.RemoteActivityHelper
 // No import for asListenableFuture needed; .await() is an extension from concurrent-futures-ktx
 
-class WearViewModel(application: Application) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
+@HiltViewModel
+class WearViewModel @Inject constructor(
+    application: Application,
+    private val wearRepository: WearRepository
+) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
 
     private val _reminders = MutableStateFlow<List<WearReminder>>(emptyList())
     val reminders: StateFlow<List<WearReminder>> = _reminders.asStateFlow()
@@ -208,8 +215,11 @@ class WearViewModel(application: Application) : AndroidViewModel(application), C
             medicationSyncDao.insertOrUpdateReminderState(newState)
             Log.i(TAG, "Marked reminder ${reminder.id} as taken locally on watch.")
 
-            if (reminder.underlyingReminderId != 0L && reminder.underlyingReminderId != reminder.scheduleId) {
-                markReminderAsTakenOnPhone(reminder.underlyingReminderId.toString())
+            // Extract the reminder ID from the composite key
+            val reminderId = reminder.id.split("_").getOrNull(0)?.replace("med", "")?.toIntOrNull()
+
+            if (reminderId != null) {
+                wearRepository.sendReminderTakenMessage(reminderId)
             } else {
                 val adhocTakenData = AdhocTakenPayload(reminder.medicationId, reminder.scheduleId, reminder.time, now)
                 val jsonData = gson.toJson(adhocTakenData)

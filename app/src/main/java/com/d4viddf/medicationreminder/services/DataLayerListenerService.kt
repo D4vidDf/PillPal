@@ -134,6 +134,15 @@ class DataLayerListenerService : WearableListenerService() {
                     Log.e(TAG, "Error processing adhoc_taken_on_watch payload: $payloadJson", e)
                 }
             }
+            "/reminder-taken" -> {
+                val reminderId = String(messageEvent.data).toIntOrNull()
+                if (reminderId != null) {
+                    serviceScope.launch {
+                        val currentTimeIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(Date())
+                        medicationReminderRepository.markReminderAsTaken(reminderId, currentTimeIso)
+                    }
+                }
+            }
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
             }
