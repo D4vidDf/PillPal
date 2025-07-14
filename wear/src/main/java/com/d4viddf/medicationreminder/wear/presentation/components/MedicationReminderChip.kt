@@ -24,7 +24,7 @@ import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminder
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material3.ChipDefaults
 
 @Composable
 fun MedicationReminderChip(
@@ -65,7 +65,7 @@ fun MedicationReminderChip(
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = reminder.medicationName,
+                    text = reminder.medicationName.split(" ").first(),
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     style = MaterialTheme.typography.titleSmall // M3 Typography
