@@ -163,7 +163,7 @@ class DataLayerService : WearableListenerService() {
                                 }
 
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    val dao = WearAppDatabase.getDatabase(applicationContext).medicationSync_dao()
+                                    val dao = WearAppDatabase.getDatabase(applicationContext).medicationSyncDao()
                                     dao.clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
                                     Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room.")
                                 }
