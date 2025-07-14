@@ -124,34 +124,35 @@ class DataLayerService : WearableListenerService() {
                         // is already present in the WearViewModel. The ViewModel will be updated to
                         // observe the changes in the database and update the UI accordingly.
                     }
-                if (dataItem.uri.path != null && dataItem.uri.path.startsWith("/reminder/")) {
-                    try {
-                        val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
-                        val reminderId = dataMap.getInt("reminder_id")
-                        val isTaken = dataMap.getBoolean("reminder_is_taken")
-                        val takenAt = dataMap.getString("reminder_taken_at")
-                        val reminderTime = dataMap.getString("reminder_sched_time")
-                        val medicationName = dataMap.getString("reminder_med_name") ?: "Unknown"
+                  if (dataItem.uri.path != null && dataItem.uri.path?.startsWith("/reminder/") == true) {
+                        try {
+                            val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                            val reminderId = dataMap.getInt("reminder_id")
+                            val isTaken = dataMap.getBoolean("reminder_is_taken")
+                            val takenAt = dataMap.getString("reminder_taken_at")
+                            val reminderTime = dataMap.getString("reminder_sched_time")
+                            val medicationName = dataMap.getString("reminder_med_name") ?: "Unknown"
 
-                        if (reminderTime != null) {
-                            val reminder = Reminder(
-                                id = reminderId,
-                                isTaken = isTaken,
-                                takenAt = takenAt,
-                                reminderTime = reminderTime,
-                                medicationName = medicationName
-                            )
+                            if (reminderTime != null) {
+                                val reminder = Reminder(
+                                    id = reminderId,
+                                    isTaken = isTaken,
+                                    takenAt = takenAt,
+                                    reminderTime = reminderTime,
+                                    medicationName = medicationName
+                                )
 
-                            CoroutineScope(Dispatchers.IO).launch {
-                                val dao = WearAppDatabase.getDatabase(applicationContext).reminderDao()
-                                dao.insertOrUpdate(reminder)
-                                Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val dao = WearAppDatabase.getDatabase(applicationContext)
+                                        .reminderDao()
+                                    dao.insertOrUpdate(reminder)
+                                    Log.i(TAG, "Successfully updated reminder $reminderId in Room.")
+                                }
                             }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error processing data item for /reminder/", e)
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error processing data item for /reminder/", e)
                     }
-                }
                 }
             }
         }
