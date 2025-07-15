@@ -14,14 +14,35 @@ data class MedicationScheduleDetailSyncItem(
     val dailyRepetitionDays: List<String>? // e.g., ["MONDAY", "TUESDAY"]
 )
 
+data class MedicationInfoSyncItem(
+    val medicationId: Int,
+    val notes: String?,
+    val instructions: String?
+)
+
+data class MedicationTypeSyncItem(
+    val id: Int,
+    val name: String,
+    val iconUrl: String?
+)
+
+data class MedicationReminderSyncItem(
+    val id: Long,
+    val medicationId: Int,
+    val reminderTime: String,
+    val isTaken: Boolean,
+    val takenAt: String?
+)
+
 data class MedicationFullSyncItem(
     val medicationId: Int,
     val name: String,
     val dosage: String?,
     val color: String?,
-    val typeName: String?,
-    val typeIconUrl: String?,
+    val type: MedicationTypeSyncItem?,
+    val info: MedicationInfoSyncItem?,
     val schedules: List<MedicationScheduleDetailSyncItem>,
+    val reminders: List<MedicationReminderSyncItem>,
     val startDate: String?, // "dd/MM/yyyy"
     val endDate: String? // "dd/MM/yyyy"
 )

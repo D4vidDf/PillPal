@@ -7,8 +7,16 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [MedicationSyncEntity::class, ScheduleDetailSyncEntity::class, ReminderStateEntity::class, Reminder::class],
-    version = 3,
+    entities = [
+        MedicationSyncEntity::class,
+        ScheduleDetailSyncEntity::class,
+        ReminderStateEntity::class,
+        Reminder::class,
+        MedicationInfoSyncEntity::class,
+        MedicationTypeSyncEntity::class,
+        MedicationReminderSyncEntity::class
+    ],
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
