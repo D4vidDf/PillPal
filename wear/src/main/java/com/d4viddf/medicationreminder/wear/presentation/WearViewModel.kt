@@ -410,11 +410,12 @@ class WearViewModel @Inject constructor(
         if (reminder == null) return
         viewModelScope.launch {
             try {
-                remoteActivityHelper.startRemoteActivity(
-                    android.content.Intent(android.content.Intent.ACTION_VIEW)
-                        .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
-                        .setData(android.net.Uri.parse(MEDICATION_DETAIL_APP_URI.replace("{medicationId}", reminder.medicationId.toString())))
-                ).await()
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+                    .addCategory(android.content.Intent.CATEGORY_DEFAULT)
+                    .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
+                    .setData(android.net.Uri.parse(MEDICATION_DETAIL_APP_URI.replace("{medicationId}", reminder.medicationId.toString())))
+                    .setPackage("com.d4viddf.medicationreminder")
+                remoteActivityHelper.startRemoteActivity(intent).await()
                 Log.i(TAG, "Attempted to open medication details on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open medication details on phone", e)
