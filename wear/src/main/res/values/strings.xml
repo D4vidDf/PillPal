@@ -22,6 +22,8 @@
     <string name="already_taken">Taken</string>
     <string name="phone_app_not_installed_android">Phone app needed. Tap to install from Play Store.</string>
     <string name="phone_app_not_installed_ios">Phone app needed. Please install it on your iPhone.</string>
+    <string name="phone_app_not_installed_title">Phone App Not Installed</string>
+    <string name="phone_app_not_installed_body">To use this app, you need to install the companion app on your phone.</string>
     <string name="open_play_store">Open Store</string>
     <string name="retry_sync">Retry Sync</string>
     <string name="permission_denied_alarm">Alarm permission is needed for reminders.</string>
@@ -33,4 +35,10 @@
     <string name="sync_with_phone">Sync with phone</string>
     <string name="open_app_on_phone">Open app on phone</string>
     <string name="settings">Settings</string>
+    <string name="next_dose">Next dose at %1$s</string>
+    <string name="dose_quantity">Dose</string>
+    <string name="last_dose_taken">Last taken</string>
+    <string name="remaining_doses">Remaining</string>
+    <string name="open_on_phone">Open on phone</string>
+    <string name="connection_lost">Connection Lost</string>
 </resources>

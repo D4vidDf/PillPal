@@ -61,6 +61,14 @@ class WearViewModel @Inject constructor(
         private const val MARK_AS_TAKEN_PATH = "/mark_as_taken"
         private const val ADHOC_TAKEN_PATH = "/mark_adhoc_taken_on_watch"
         private const val PLAY_STORE_APP_URI = "market://details?id=com.d4viddf.medicationreminder"
+        private const val MEDICATION_DETAIL_APP_URI = "medicationreminder://medication/{medicationId}"
+    }
+
+    private val _selectedReminder = MutableStateFlow<WearReminder?>(null)
+    val selectedReminder: StateFlow<WearReminder?> = _selectedReminder.asStateFlow()
+
+    fun selectReminder(reminder: WearReminder) {
+        _selectedReminder.value = reminder
     }
 
     init {
@@ -382,6 +390,22 @@ class WearViewModel @Inject constructor(
                 Log.i(TAG, "Attempted to open Play Store on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open Play Store on phone", e)
+            }
+        }
+    }
+
+    fun openMedicationDetailsOnPhone(remoteActivityHelper: RemoteActivityHelper, reminder: WearReminder?) {
+        if (reminder == null) return
+        viewModelScope.launch {
+            try {
+                remoteActivityHelper.startRemoteActivity(
+                    android.content.Intent(android.content.Intent.ACTION_VIEW)
+                        .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
+                        .setData(android.net.Uri.parse(MEDICATION_DETAIL_APP_URI.replace("{medicationId}", reminder.medicationId.toString())))
+                ).await()
+                Log.i(TAG, "Attempted to open medication details on phone.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open medication details on phone", e)
             }
         }
     }
