@@ -291,38 +291,27 @@ class DataLayerListenerService : WearableListenerService() {
 
     private suspend fun sendTodayReminders() {
         val today = LocalDate.now()
-        val allMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
-        val allSchedules = scheduleRepository.getAllSchedules().firstOrNull() ?: emptyList()
-        val reminders = mutableListOf<TodayScheduleItem>()
-
-        for (medication in allMedications) {
-            val schedules = allSchedules.filter { it.medicationId == medication.id }
-            for (schedule in schedules) {
-                val reminderTimes = ReminderCalculator.generateRemindersForPeriod(medication, schedule, today, today)
-                reminderTimes[today]?.forEach { time ->
-                    val reminderDateTime = LocalDateTime.of(today, time)
-                    reminders.add(
-                        TodayScheduleItem(
-                            id = System.currentTimeMillis().toString(),
-                            medicationName = medication.name,
-                            time = time,
-                            isTaken = false, // This will be updated by the watch
-                            underlyingReminderId = 0L, // Not applicable here
-                            medicationScheduleId = schedule.id,
-                            takenAt = null,
-                            isPast = reminderDateTime.isBefore(LocalDateTime.now())
-                        )
-                    )
-                }
-            }
+        val allReminders = medicationReminderRepository.getRemindersForDate(today).firstOrNull() ?: emptyList()
+        val todayScheduleItems = allReminders.map { reminder ->
+            val medication = medicationRepository.getMedicationById(reminder.medicationId)
+            TodayScheduleItem(
+                id = reminder.id.toString(),
+                medicationName = medication?.name ?: "Unknown",
+                time = reminder.reminderTime,
+                isTaken = reminder.isTaken,
+                underlyingReminderId = reminder.id,
+                medicationScheduleId = 0L, // This is not available in the reminder table
+                takenAt = reminder.takenAt,
+                isPast = reminder.reminderTime.atDate(today).isBefore(LocalDateTime.now())
+            )
         }
 
-        val json = gson.toJson(reminders)
+        val json = gson.toJson(todayScheduleItems)
         val putDataMapReq = PutDataMapRequest.create("/today_schedule")
         putDataMapReq.dataMap.putString("schedule_json", json)
         putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
         val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
         dataClient.putDataItem(putDataReq).await()
-        Log.i(TAG, "Sent ${reminders.size} today reminders to Wear OS.")
+        Log.i(TAG, "Sent ${todayScheduleItems.size} today reminders to Wear OS.")
     }
 }
