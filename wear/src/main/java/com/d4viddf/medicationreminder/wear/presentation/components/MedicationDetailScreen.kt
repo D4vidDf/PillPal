@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.material3.ArcProgressIndicator
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
@@ -46,7 +47,15 @@ fun MedicationDetailScreen(
 
     ScreenScaffold(
         scrollState = listState,
-        timeText = { TimeText() }
+        timeText = { TimeText() },
+        edgeButton = {
+            EdgeButton(
+                onClick = onOpenOnPhone,
+                buttonSize = EdgeButtonSize.Medium
+            ) {
+                Text(stringResource(R.string.open_on_phone), textAlign = TextAlign.Center)
+            }
+        }
     ) { contentPadding ->
         TransformingLazyColumn(
             state = listState,
@@ -58,8 +67,22 @@ fun MedicationDetailScreen(
                 item { CircularProgressIndicator() }
             } else {
                 item {
+                    ArcProgressIndicator(
+                        progress = 0.5f,
+                        modifier = Modifier.fillMaxSize(),
+                        content = {
+                            Text(
+                                text = stringResource(R.string.app_name).split(" ")[0],
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+                    )
+                }
+                item {
                     ListHeader(
-                        modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .transformedHeight(this, transformationSpec),
                         transformation = SurfaceTransformation(transformationSpec)
                     ) {
                         Text(
@@ -78,50 +101,42 @@ fun MedicationDetailScreen(
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = medicationWithSchedules!!.medication.dosage ?: "-",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = stringResource(R.string.dose_quantity),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "N/A", // This needs to be calculated based on reminder states
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = stringResource(R.string.last_dose_taken),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "N/A", // This needs to be calculated
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = stringResource(R.string.remaining_doses),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
+                    Text(
+                        text = medicationWithSchedules!!.medication.dosage ?: "-",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
                 }
-                item { Spacer(modifier = Modifier.weight(1f)) }
                 item {
-                    EdgeButton(
-                        onClick = onOpenOnPhone,
-                        buttonSize = EdgeButtonSize.Medium
-                    ) {
-                        Text(stringResource(R.string.open_on_phone), textAlign = TextAlign.Center)
-                    }
+                    Text(
+                        text = stringResource(R.string.dose_quantity),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+                item {
+                    Text(
+                        text = "N/A", // This needs to be calculated based on reminder states
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                }
+                item {
+                    Text(
+                        text = stringResource(R.string.last_dose_taken),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+                item {
+                    Text(
+                        text = "N/A", // This needs to be calculated
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                }
+                item {
+                    Text(
+                        text = stringResource(R.string.remaining_doses),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }
