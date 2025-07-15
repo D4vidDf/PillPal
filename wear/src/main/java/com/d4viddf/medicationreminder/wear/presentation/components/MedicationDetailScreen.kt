@@ -1,107 +1,151 @@
 package com.d4viddf.medicationreminder.wear.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.EdgeButton
-import androidx.compose.material3.EdgeButtonSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ScreenScaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TimeText
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.material3.lazy.rememberTransformationSpec
+import androidx.compose.material3.lazy.transformedHeight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import com.d4viddf.medicationreminder.wear.R
-import com.d4viddf.medicationreminder.wear.data.WearReminder
+import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
+import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun MedicationDetailScreen(
-    reminder: WearReminder?,
+    medicationId: Int?,
+    viewModel: WearViewModel,
     onOpenOnPhone: () -> Unit
 ) {
-    val listState = rememberScalingLazyListState()
+    val medicationWithSchedules by viewModel.selectedMedication.collectAsStateWithLifecycle()
+    var nextDoseTime by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(medicationWithSchedules) {
+        medicationWithSchedules?.let {
+            nextDoseTime = calculateNextDoseTime(it)
+        }
+    }
+
+    val listState = rememberTransformingLazyColumnState()
+    val transformationSpec = rememberTransformationSpec()
 
     ScreenScaffold(
         scrollState = listState,
         timeText = { TimeText() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+    ) { contentPadding ->
+        TransformingLazyColumn(
+            state = listState,
+            contentPadding = contentPadding,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (reminder == null) {
-                CircularProgressIndicator()
+            if (medicationWithSchedules == null) {
+                item { CircularProgressIndicator() }
             } else {
-                Text(
-                    text = reminder.medicationName,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.next_dose, reminder.time),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                // TODO: Add progress indicator for daily reminders
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                item {
+                    ListHeader(
+                        modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                        transformation = SurfaceTransformation(transformationSpec)
+                    ) {
                         Text(
-                            text = reminder.dosage ?: "-",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(R.string.dose_quantity),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = reminder.takenAt ?: "-",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(R.string.last_dose_taken),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "0", // TODO: Calculate remaining doses
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(R.string.remaining_doses),
-                            style = MaterialTheme.typography.bodySmall
+                            text = medicationWithSchedules!!.medication.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                EdgeButton(
-                    onClick = onOpenOnPhone,
-                    buttonSize = EdgeButtonSize.Medium
-                ) {
-                    Text(stringResource(R.string.open_on_phone), textAlign = TextAlign.Center)
+                item {
+                    Text(
+                        text = nextDoseTime?.let { stringResource(R.string.next_dose, it) } ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = medicationWithSchedules!!.medication.dosage ?: "-",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = stringResource(R.string.dose_quantity),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "N/A", // This needs to be calculated based on reminder states
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = stringResource(R.string.last_dose_taken),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "N/A", // This needs to be calculated
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = stringResource(R.string.remaining_doses),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+                item { Spacer(modifier = Modifier.weight(1f)) }
+                item {
+                    EdgeButton(
+                        onClick = onOpenOnPhone,
+                        buttonSize = EdgeButtonSize.Medium
+                    ) {
+                        Text(stringResource(R.string.open_on_phone), textAlign = TextAlign.Center)
+                    }
                 }
             }
         }
     }
+}
+
+private fun calculateNextDoseTime(medicationWithSchedules: MedicationWithSchedulesPojo): String? {
+    val now = LocalTime.now()
+    var nextDose: LocalTime? = null
+
+    medicationWithSchedules.schedules.forEach { schedule ->
+        val specificTimes: List<LocalTime>? = schedule.specificTimesJson?.let { json ->
+            val typeToken = object : TypeToken<List<String>>() {}.type
+            Gson().fromJson<List<String>>(json, typeToken).mapNotNull { LocalTime.parse(it, DateTimeFormatter.ofPattern("HH:mm")) }
+        }
+
+        specificTimes?.forEach { time ->
+            if (time.isAfter(now)) {
+                if (nextDose == null || time.isBefore(nextDose)) {
+                    nextDose = time
+                }
+            }
+        }
+    }
+
+    return nextDose?.format(DateTimeFormatter.ofPattern("HH:mm"))
 }

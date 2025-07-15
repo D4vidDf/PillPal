@@ -67,8 +67,18 @@ class WearViewModel @Inject constructor(
     private val _selectedReminder = MutableStateFlow<WearReminder?>(null)
     val selectedReminder: StateFlow<WearReminder?> = _selectedReminder.asStateFlow()
 
+    private val _selectedMedication = MutableStateFlow<MedicationWithSchedulesPojo?>(null)
+    val selectedMedication: StateFlow<MedicationWithSchedulesPojo?> = _selectedMedication.asStateFlow()
+
     fun selectReminder(reminder: WearReminder) {
         _selectedReminder.value = reminder
+        loadMedicationById(reminder.medicationId)
+    }
+
+    private fun loadMedicationById(medicationId: Int) {
+        viewModelScope.launch {
+            _selectedMedication.value = medicationSyncDao.getMedicationWithSchedulesById(medicationId)
+        }
     }
 
     init {

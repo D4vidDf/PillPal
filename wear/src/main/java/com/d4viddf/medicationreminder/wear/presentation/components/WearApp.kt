@@ -101,7 +101,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                                         onMoreClick = { navController.navigate("more") },
                                         onReminderClick = { reminder ->
                                             wearViewModel.selectReminder(reminder)
-                                            navController.navigate("medicationDetail")
+                                            navController.navigate("medicationDetail/${reminder.medicationId}")
                                         },
                                         phoneAppStatus = phoneAppStatus,
                                         onRetry = {
@@ -139,7 +139,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                                         onMoreClick = { navController.navigate("more") },
                                         onReminderClick = { reminder ->
                                             wearViewModel.selectReminder(reminder)
-                                            navController.navigate("medicationDetail")
+                                            navController.navigate("medicationDetail/${reminder.medicationId}")
                                         },
                                         phoneAppStatus = phoneAppStatus,
                                         onRetry = {
@@ -160,7 +160,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                                     onMoreClick = { navController.navigate("more") },
                                     onReminderClick = { reminder ->
                                         wearViewModel.selectReminder(reminder)
-                                        navController.navigate("medicationDetail")
+                                        navController.navigate("medicationDetail/${reminder.medicationId}")
                                     },
                                     phoneAppStatus = phoneAppStatus,
                                     onRetry = {
@@ -190,9 +190,11 @@ fun WearApp(wearViewModel: WearViewModel) {
                     onSettingsClick = { /* TODO */ }
                 )
             }
-            composable("medicationDetail") {
+            composable("medicationDetail/{medicationId}") { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getString("medicationId")?.toIntOrNull()
                 MedicationDetailScreen(
-                    reminder = selectedReminder,
+                    medicationId = medicationId,
+                    viewModel = wearViewModel,
                     onOpenOnPhone = {
                         wearViewModel.openMedicationDetailsOnPhone(
                             RemoteActivityHelper(context),
