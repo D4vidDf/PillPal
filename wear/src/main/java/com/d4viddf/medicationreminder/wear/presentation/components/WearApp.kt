@@ -54,15 +54,14 @@ fun WearApp(wearViewModel: WearViewModel) {
 
     MedicationReminderTheme {
         val navController = rememberSwipeDismissableNavController()
-        val listState = rememberScalingLazyListState()
         SwipeDismissableNavHost(
             navController = navController,
             startDestination = "reminders"
         ) {
             composable("reminders") {
+                val listState = rememberTransformingLazyColumnState()
                 ScreenScaffold(
-                    vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
-                    positionIndicator = { PositionIndicator(scalingLazyListState = listState) }
+                    scrollState = listState,
                 ) {
                     LaunchedEffect(Unit) {
                         wearViewModel.triggerPhoneAppCheckAndSync(

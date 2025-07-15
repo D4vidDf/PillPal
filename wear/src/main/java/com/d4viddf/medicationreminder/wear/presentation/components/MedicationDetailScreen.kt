@@ -53,7 +53,7 @@ fun MedicationDetailScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.next_dose, reminder.nextDoseTime),
+                    text = stringResource(R.string.next_dose, reminder.time),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
@@ -65,7 +65,7 @@ fun MedicationDetailScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = reminder.dose,
+                            text = reminder.dosage ?: "-",
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
@@ -75,7 +75,7 @@ fun MedicationDetailScreen(
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = reminder.lastDoseTakenAt ?: "-",
+                            text = reminder.takenAt ?: "-",
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
