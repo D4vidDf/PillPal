@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
-import androidx.wear.compose.material3.ArcProgressIndicator
+import androidx.wear.compose.material3.SegmentedCircularProgressIndicator
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
@@ -67,16 +67,18 @@ fun MedicationDetailScreen(
                 item { CircularProgressIndicator() }
             } else {
                 item {
-                    ArcProgressIndicator(
-                        progress = 0.5f,
-                        modifier = Modifier.fillMaxSize(),
-                        content = {
-                            Text(
-                                text = stringResource(R.string.app_name).split(" ")[0],
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
-                    )
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        SegmentedCircularProgressIndicator(
+                            segmentCount = 5,
+                            completedSegments = 2,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        Text(
+                            text = medicationWithSchedules!!.medication.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
                 item {
                     ListHeader(
