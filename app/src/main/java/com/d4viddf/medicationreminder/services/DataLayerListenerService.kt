@@ -58,7 +58,10 @@ class DataLayerListenerService : WearableListenerService() {
     private val gson by lazy { Gson() }
 
     private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e(TAG, "Coroutine exception: ${throwable.message}", throwable)
+    }
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob + exceptionHandler)
 
     // For opening Play Store on phone
     private lateinit var wearConnectivityHelper: WearConnectivityHelper // Initialize in onCreate
@@ -299,7 +302,7 @@ class DataLayerListenerService : WearableListenerService() {
             TodayScheduleItem(
                 id = reminder.id.toString(),
                 medicationName = medication?.name ?: "Unknown",
-                time = LocalTime.parse(reminder.reminderTime),
+                time = LocalDateTime.parse(reminder.reminderTime).toLocalTime(),
                 isTaken = reminder.isTaken,
                 underlyingReminderId = reminder.id.toLong(),
                 medicationScheduleId = 0L, // This is not available in the reminder table
