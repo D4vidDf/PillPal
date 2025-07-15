@@ -51,6 +51,8 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var scheduleRepository: MedicationScheduleRepository
     @Inject
     lateinit var medicationTypeRepository: MedicationTypeRepository
+    @Inject
+    lateinit var medicationInfoRepository: MedicationInfoRepository
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val gson by lazy { Gson() }
@@ -228,13 +230,13 @@ class DataLayerListenerService : WearableListenerService() {
                 continue
             }
 
-            var medicationTypeName: String? = null
-            var medicationIconUrl: String? = null
-            if (medication.typeId != null) {
-                val medType = medicationTypeRepository.getMedicationTypeById(medication.typeId)
-                medicationTypeName = medType?.name
-                medicationIconUrl = medType?.imageUrl
+            val medType = if (medication.typeId != null) {
+                medicationTypeRepository.getMedicationTypeById(medication.typeId)
+            } else {
+                null
             }
+            val medInfo = medicationInfoRepository.getMedicationInfoByMedicationId(medication.id).firstOrNull()
+            val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
 
             medicationFullSyncItems.add(
                 MedicationFullSyncItem(
@@ -242,9 +244,30 @@ class DataLayerListenerService : WearableListenerService() {
                     name = medication.name,
                     dosage = medication.dosage,
                     color = medication.color,
-                    typeName = medicationTypeName,
-                    typeIconUrl = medicationIconUrl,
+                    type = medType?.let {
+                        com.d4viddf.medicationreminder.data.MedicationTypeSyncItem(
+                            id = it.id,
+                            name = it.name,
+                            iconUrl = it.imageUrl
+                        )
+                    },
+                    info = medInfo?.let {
+                        com.d4viddf.medicationreminder.data.MedicationInfoSyncItem(
+                            medicationId = it.medicationId,
+                            notes = it.notes,
+                            instructions = it.instructions
+                        )
+                    },
                     schedules = scheduleDetailSyncItems,
+                    reminders = reminders.map {
+                        com.d4viddf.medicationreminder.data.MedicationReminderSyncItem(
+                            id = it.id,
+                            medicationId = it.medicationId,
+                            reminderTime = it.reminderTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                            isTaken = it.isTaken,
+                            takenAt = it.takenAt
+                        )
+                    },
                     startDate = medication.startDate,
                     endDate = medication.endDate
                 )
