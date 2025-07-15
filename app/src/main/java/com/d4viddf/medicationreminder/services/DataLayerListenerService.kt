@@ -291,18 +291,20 @@ class DataLayerListenerService : WearableListenerService() {
 
     private suspend fun sendTodayReminders() {
         val today = LocalDate.now()
-        val allReminders = medicationReminderRepository.getRemindersForDate(today).firstOrNull() ?: emptyList()
+        val startOfDay = today.atStartOfDay().toString()
+        val endOfDay = today.atTime(23, 59, 59).toString()
+        val allReminders = medicationReminderRepository.getRemindersForDay(startOfDay, endOfDay).firstOrNull() ?: emptyList()
         val todayScheduleItems = allReminders.map { reminder ->
             val medication = medicationRepository.getMedicationById(reminder.medicationId)
             TodayScheduleItem(
                 id = reminder.id.toString(),
                 medicationName = medication?.name ?: "Unknown",
-                time = reminder.reminderTime,
+                time = LocalTime.parse(reminder.reminderTime),
                 isTaken = reminder.isTaken,
-                underlyingReminderId = reminder.id,
+                underlyingReminderId = reminder.id.toLong(),
                 medicationScheduleId = 0L, // This is not available in the reminder table
                 takenAt = reminder.takenAt,
-                isPast = reminder.reminderTime.atDate(today).isBefore(LocalDateTime.now())
+                isPast = LocalTime.parse(reminder.reminderTime).atDate(today).isBefore(LocalDateTime.now())
             )
         }
 
