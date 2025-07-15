@@ -77,7 +77,9 @@ class WearViewModel @Inject constructor(
 
     private fun loadMedicationById(medicationId: Int) {
         viewModelScope.launch {
-            _selectedMedication.value = medicationSyncDao.getMedicationWithSchedulesById(medicationId)
+            medicationSyncDao.getMedicationWithSchedulesById(medicationId).collect {
+                _selectedMedication.value = it
+            }
         }
     }
 
