@@ -89,6 +89,7 @@ object DatabaseModule {
     fun provideMedicationReminderDao(database: MedicationDatabase): MedicationReminderDao = database.medicationReminderDao()
 
     @Provides
+    @Provides
     fun provideMedicationInfoDao(database: MedicationDatabase): MedicationInfoDao = database.medicationInfoDao()
 
     @Provides

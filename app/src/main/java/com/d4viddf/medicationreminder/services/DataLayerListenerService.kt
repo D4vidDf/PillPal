@@ -5,7 +5,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
 import com.d4viddf.medicationreminder.data.MedicationFullSyncItem
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem
 import com.d4viddf.medicationreminder.data.ScheduleType // Enum for schedule type
 import com.d4viddf.medicationreminder.data.TodayScheduleItem
@@ -235,7 +235,7 @@ class DataLayerListenerService : WearableListenerService() {
             } else {
                 null
             }
-            val medInfo = medicationInfoRepository.getMedicationInfoByMedicationId(medication.id).firstOrNull()
+            val medInfo = medicationInfoRepository.getMedicationInfoById(medication.id)
             val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
 
             medicationFullSyncItems.add(
@@ -263,7 +263,7 @@ class DataLayerListenerService : WearableListenerService() {
                         com.d4viddf.medicationreminder.data.MedicationReminderSyncItem(
                             id = it.id,
                             medicationId = it.medicationId,
-                            reminderTime = it.reminderTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                            reminderTime = it.reminderTime.toString(),
                             isTaken = it.isTaken,
                             takenAt = it.takenAt
                         )
