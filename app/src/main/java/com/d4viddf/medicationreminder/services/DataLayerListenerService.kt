@@ -254,8 +254,8 @@ class DataLayerListenerService : WearableListenerService() {
                     info = medInfo?.let {
                         com.d4viddf.medicationreminder.data.MedicationInfoSyncItem(
                             medicationId = it.medicationId,
-                            notes = it.notes,
-                            instructions = it.instructions
+                            notes = it.description,
+                            instructions = it.safetyNotes
                         )
                     },
                     schedules = scheduleDetailSyncItems,
