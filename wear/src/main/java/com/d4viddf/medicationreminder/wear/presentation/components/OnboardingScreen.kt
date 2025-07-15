@@ -12,77 +12,77 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn // Keep or change
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState // Or rememberTransformingLazyListState
 import com.d4viddf.medicationreminder.wear.R
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button // M3
 import androidx.wear.compose.material3.ButtonDefaults // M3
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.EdgeButtonSize
+import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme // M3
+import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text // M3
+import androidx.wear.compose.material3.TimeText
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
+import com.google.android.horologist.compose.layout.ColumnItemType
+import com.google.android.horologist.compose.layout.rememberResponsiveColumnPadding
 
 @Composable
 fun OnboardingScreen(onDismiss: () -> Unit, hasAlarmPermission: Boolean, onRequestPermission: () -> Unit) {
     // Using ScalingLazyColumn for onboarding as it's often a single screen of content.
     // TransformingLazyColumn could also be used if preferred.
-    ScalingLazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        state = rememberScalingLazyListState() // M3 compatible
-    ) {
-        item(key = "onboarding_title") {
-            Text(
-                text = stringResource(R.string.onboarding_message_title),
-                style = MaterialTheme.typography.titleMedium, // M3 Typography
-                color = MaterialTheme.colorScheme.onBackground, // M3 ColorScheme
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
-            )
-        }
-        item(key = "onboarding_body") {
-            Text(
-                text = stringResource(R.string.onboarding_message_body),
-                style = MaterialTheme.typography.bodyMedium, // M3 Typography
-                color = MaterialTheme.colorScheme.onBackground, // M3 ColorScheme
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-        if (!hasAlarmPermission) {
-            item(key = "onboarding_permission_button") {
-                Button( // M3 Button
-                    onClick = {
-                        Log.d("OnboardingScreen", "Enable Alarms button clicked.")
-                        onRequestPermission()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors( // M3 ButtonDefaults
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(stringResource(R.string.enable_alarms_permission))
-                }
-            }
-            item(key = "onboarding_spacer_after_permission") {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-        item(key = "onboarding_dismiss_button") {
-            Button( // M3 Button
+
+    val listState = rememberTransformingLazyColumnState()
+    val transformationSpec = rememberTransformationSpec()
+
+    ScreenScaffold(
+        scrollState = listState,
+        contentPadding = rememberResponsiveColumnPadding(
+            first = ColumnItemType.ListHeader,
+            last = ColumnItemType.IconButton
+        ),
+        edgeButton = {
+            EdgeButton(
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
-                 colors = ButtonDefaults.buttonColors( // M3 ButtonDefaults
+                buttonSize = EdgeButtonSize.Medium,
+                colors = ButtonDefaults.buttonColors( // M3 ButtonDefaults
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary
                 )
             ) {
-                Text(stringResource(R.string.got_it))
+                Text(stringResource(R.string.got_it), textAlign = TextAlign.Center)
             }
-        }
-        item(key = "onboarding_bottom_spacer") {
-            Spacer(modifier = Modifier.height(16.dp))
+        },
+        timeText = { TimeText() }
+    ) {
+            contentPadding ->
+        TransformingLazyColumn (
+            state = listState,
+            contentPadding = contentPadding,
+        ){
+            item(key = "onboarding_title") {
+                ListHeader(
+                    modifier =
+                        Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                    transformation = SurfaceTransformation(transformationSpec)
+                )  {
+                    Text(
+                        text = stringResource(R.string.onboarding_message_title)
+                    )
+                }
+            }
+            item(key = "onboarding_body") {
+                Text(
+                    text = stringResource(R.string.onboarding_message_body),
+                    style = MaterialTheme.typography.bodyMedium, // M3 Typography
+                    color = MaterialTheme.colorScheme.onBackground, // M3 ColorScheme
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

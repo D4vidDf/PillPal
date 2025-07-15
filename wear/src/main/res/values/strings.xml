@@ -9,7 +9,7 @@
     <string name="complication_label">Next Dose Complication</string>
 
     <string name="onboarding_message_title">Welcome to PillPal!</string>
-    <string name="onboarding_message_body">To get started, please connect to your phone and grant alarm permissions to ensure you receive medication reminders.</string>
+    <string name="onboarding_message_body">To get started, please connect to your phone to ensure you receive medication reminders.</string>
     <string name="enable_alarms_permission">Enable Alarms</string>
     <string name="got_it">Got It</string>
     <string name="device_not_connected">Device Not Connected</string>
@@ -29,4 +29,8 @@
     <string name="reminder_dosage_prefix">Dosage: %1$s</string>
     <string name="checking_for_updates">Checking for updates...</string>
     <string name="todays_reminders_header">Today\'s Reminders</string>
+    <string name="more_options">More</string>
+    <string name="sync_with_phone">Sync with phone</string>
+    <string name="open_app_on_phone">Open app on phone</string>
+    <string name="settings">Settings</string>
 </resources>

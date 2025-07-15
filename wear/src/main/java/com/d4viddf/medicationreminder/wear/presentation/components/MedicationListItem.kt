@@ -12,10 +12,14 @@ import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 
 @Composable
-fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
+fun MedicationListItem(
+    reminder: WearReminder,
+    onMarkAsTaken: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
-        onClick = { /* TODO: Decide if item click does something, e.g. details */ },
-        modifier = Modifier
+        onClick = { onMarkAsTaken() },
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
@@ -51,6 +55,8 @@ fun MedicationListItem(reminder: WearReminder, onMarkAsTaken: () -> Unit) {
             if (!reminder.isTaken) {
                 Button(
                     onClick = onMarkAsTaken,
+                    modifier = Modifier.size(32.dp).padding(0.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(

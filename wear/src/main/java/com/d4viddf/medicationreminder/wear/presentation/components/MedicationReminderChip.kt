@@ -65,7 +65,7 @@ fun MedicationReminderChip(
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = reminder.medicationName,
+                    text = reminder.medicationName.split(" ").first(),
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     style = MaterialTheme.typography.titleSmall // M3 Typography
