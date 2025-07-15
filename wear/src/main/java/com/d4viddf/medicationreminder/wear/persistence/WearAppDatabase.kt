@@ -36,7 +36,7 @@ abstract class WearAppDatabase : RoomDatabase() {
                     WearAppDatabase::class.java,
                     "wear_medication_sync_db"
                 )
-                .fallbackToDestructiveMigration() // Added for schema changes during development
+                .fallbackToDestructiveMigration(true) // Added for schema changes during development
                 .build()
                 INSTANCE = instance
                 instance

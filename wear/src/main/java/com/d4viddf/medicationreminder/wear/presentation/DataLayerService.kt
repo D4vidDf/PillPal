@@ -4,7 +4,10 @@ import android.content.ContentValues.TAG
 import android.content.Intent
 import android.util.Log
 import com.d4viddf.medicationreminder.wear.data.MedicationFullSyncItem
+import com.d4viddf.medicationreminder.wear.persistence.MedicationInfoSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.MedicationReminderSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.MedicationTypeSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.Reminder
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
@@ -83,8 +86,6 @@ class DataLayerService : WearableListenerService() {
                                         name = syncItem.name,
                                         dosage = syncItem.dosage,
                                         color = syncItem.color,
-                                        typeName = syncItem.typeName,
-                                        typeIconUrl = syncItem.typeIconUrl,
                                         startDate = syncItem.startDate,
                                         endDate = syncItem.endDate
                                     )
@@ -112,11 +113,46 @@ class DataLayerService : WearableListenerService() {
                                         )
                                     }
                                 }
+                                val medicationInfoEntities = receivedSyncItems.mapNotNull { syncItem ->
+                                    syncItem.info?.let {
+                                        MedicationInfoSyncEntity(
+                                            medicationId = syncItem.medicationId,
+                                            notes = it.notes,
+                                            instructions = it.instructions
+                                        )
+                                    }
+                                }
+                                val medicationTypeEntities = receivedSyncItems.mapNotNull { syncItem ->
+                                    syncItem.type?.let {
+                                        MedicationTypeSyncEntity(
+                                            id = it.id,
+                                            name = it.name,
+                                            iconUrl = it.iconUrl
+                                        )
+                                    }
+                                }
+                                val reminderEntities = receivedSyncItems.flatMap { syncItem ->
+                                    syncItem.reminders.map { reminder ->
+                                        MedicationReminderSyncEntity(
+                                            id = reminder.id,
+                                            medicationId = syncItem.medicationId,
+                                            reminderTime = reminder.reminderTime,
+                                            isTaken = reminder.isTaken,
+                                            takenAt = reminder.takenAt
+                                        )
+                                    }
+                                }
 
                                 CoroutineScope(Dispatchers.IO).launch {
                                     val db = WearAppDatabase.getDatabase(applicationContext)
-                                    db.medicationSyncDao().clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
-                                    Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room.")
+                                    db.medicationSyncDao().clearAndInsertFullSyncData(
+                                        medicationEntities,
+                                        scheduleEntities,
+                                        medicationInfoEntities,
+                                        medicationTypeEntities,
+                                        reminderEntities
+                                    )
+                                    Log.i(TAG, "Successfully stored data in Room.")
                                 }
                             } else {
                                 Log.w(TAG, "sync_data_json is null in DataItem.")
