@@ -59,7 +59,6 @@ fun WearApp(wearViewModel: WearViewModel) {
         ) {
             composable("reminders") {
                 ScreenScaffold(
-                    timeText = { TimeText() }
                 ) {
                     LaunchedEffect(Unit) {
                         wearViewModel.triggerPhoneAppCheckAndSync(
