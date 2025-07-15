@@ -58,7 +58,7 @@ class DataLayerListenerService : WearableListenerService() {
     private val gson by lazy { Gson() }
 
     private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
     // For opening Play Store on phone
     private lateinit var wearConnectivityHelper: WearConnectivityHelper // Initialize in onCreate
