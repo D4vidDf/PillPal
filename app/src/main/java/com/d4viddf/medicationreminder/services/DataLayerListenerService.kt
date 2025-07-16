@@ -302,7 +302,11 @@ class DataLayerListenerService : WearableListenerService() {
             TodayScheduleItem(
                 id = reminder.id.toString(),
                 medicationName = medication?.name ?: "Unknown",
-                time = LocalDateTime.parse(reminder.reminderTime).toLocalTime(),
+                time = try {
+                    LocalDateTime.parse(reminder.reminderTime).toLocalTime()
+                } catch (e: Exception) {
+                    LocalTime.now()
+                },
                 isTaken = reminder.isTaken,
                 underlyingReminderId = reminder.id.toLong(),
                 medicationScheduleId = 0L, // This is not available in the reminder table
