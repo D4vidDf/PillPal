@@ -30,6 +30,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import androidx.wear.remote.interactions.RemoteActivityHelper
+import kotlinx.coroutines.flow.first
+
 // No import for asListenableFuture needed; .await() is an extension from concurrent-futures-ktx
 
 @HiltViewModel
