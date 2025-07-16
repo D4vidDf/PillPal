@@ -5,8 +5,10 @@ import android.util.Log
 import androidx.concurrent.futures.await
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.wear.data.ProgressDetails
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.d4viddf.medicationreminder.wear.data.WearRepository
+import com.d4viddf.medicationreminder.wear.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
 import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity
@@ -70,6 +72,9 @@ class WearViewModel @Inject constructor(
     private val _selectedMedication = MutableStateFlow<MedicationWithSchedulesPojo?>(null)
     val selectedMedication: StateFlow<MedicationWithSchedulesPojo?> = _selectedMedication.asStateFlow()
 
+    private val _progressDetails = MutableStateFlow<ProgressDetails?>(null)
+    val progressDetails: StateFlow<ProgressDetails?> = _progressDetails.asStateFlow()
+
     fun selectReminder(reminder: WearReminder) {
         _selectedReminder.value = reminder
         loadMedicationById(reminder.medicationId)
@@ -79,7 +84,48 @@ class WearViewModel @Inject constructor(
         viewModelScope.launch {
             medicationSyncDao.getMedicationWithSchedulesById(medicationId).collect {
                 _selectedMedication.value = it
+                it?.let { calculateAndSetProgressDetails(it) }
             }
+        }
+    }
+
+    fun openAppOnPhone() {
+        viewModelScope.launch {
+            wearRepository.openAppOnPhone()
+        }
+    }
+
+    private fun calculateAndSetProgressDetails(medicationWithSchedules: MedicationWithSchedulesPojo) {
+        viewModelScope.launch {
+            val today = LocalDate.now()
+            val medication = medicationWithSchedules.medication
+            val remindersForToday = medicationWithSchedules.schedules.flatMap { schedule ->
+                ReminderCalculator.generateRemindersForPeriod(medication, schedule, today, today)[today] ?: emptyList()
+            }
+            val totalDoses = remindersForToday.size
+
+            val reminderStates = medicationSyncDao.getAllReminderStates().first()
+            val takenDoses = reminderStates.count { state ->
+                state.medicationId == medication.medicationId &&
+                        remindersForToday.any { it.format(DateTimeFormatter.ofPattern("HH:mm")) == state.reminderTimeKey } &&
+                        state.isTaken
+            }
+
+            val remainingDoses = totalDoses - takenDoses
+            val progressFraction = if (totalDoses > 0) takenDoses.toFloat() / totalDoses.toFloat() else 0f
+            val lastTaken = reminderStates
+                .filter { it.medicationId == medication.medicationId && it.isTaken && it.takenAt != null }
+                .maxByOrNull { LocalDateTime.parse(it.takenAt) }
+                ?.takenAt
+
+            _progressDetails.value = ProgressDetails(
+                taken = takenDoses,
+                remaining = remainingDoses,
+                total = totalDoses,
+                progressFraction = progressFraction,
+                displayText = "$takenDoses / $totalDoses",
+                lastTaken = lastTaken
+            )
         }
     }
 

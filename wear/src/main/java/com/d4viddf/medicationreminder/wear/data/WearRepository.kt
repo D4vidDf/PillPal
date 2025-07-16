@@ -30,4 +30,20 @@ class WearRepository @Inject constructor(
             Log.e("WearRepository", "Failed to send reminder taken message", e)
         }
     }
+
+    suspend fun openAppOnPhone() {
+        try {
+            val nodes = nodeClient.connectedNodes.await()
+            nodes.forEach { node ->
+                messageClient.sendMessage(
+                    node.id,
+                    "/open_app_on_phone",
+                    ByteArray(0)
+                ).await()
+                Log.i("WearRepository", "Sent open app on phone message to node ${node.id}")
+            }
+        } catch (e: Exception) {
+            Log.e("WearRepository", "Failed to send open app on phone message", e)
+        }
+    }
 }

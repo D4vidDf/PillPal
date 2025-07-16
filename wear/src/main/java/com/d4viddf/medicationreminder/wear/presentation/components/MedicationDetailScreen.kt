@@ -36,6 +36,7 @@ import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPo
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -46,6 +47,7 @@ fun MedicationDetailScreen(
     onOpenOnPhone: () -> Unit
 ) {
     val medicationWithSchedules by viewModel.selectedMedication.collectAsStateWithLifecycle()
+    val progressDetails by viewModel.progressDetails.collectAsStateWithLifecycle()
     var nextDoseTime by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(medicationWithSchedules) {
@@ -115,7 +117,9 @@ fun MedicationDetailScreen(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
                 item {
                     Text(
-                        text = "N/A", // This needs to be calculated based on reminder states
+                        text = progressDetails?.lastTaken?.let {
+                            LocalDateTime.parse(it).format(DateTimeFormatter.ofPattern("HH:mm"))
+                        } ?: "N/A",
                         style = MaterialTheme.typography.numeralSmall
                     )
                 }
@@ -128,7 +132,7 @@ fun MedicationDetailScreen(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
                 item {
                     Text(
-                        text = "N/A", // This needs to be calculated
+                        text = progressDetails?.remaining?.toString() ?: "N/A",
                         style = MaterialTheme.typography.numeralSmall
                     )
                 }
@@ -139,7 +143,6 @@ fun MedicationDetailScreen(
                     )
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
-
             }
         }
     }
