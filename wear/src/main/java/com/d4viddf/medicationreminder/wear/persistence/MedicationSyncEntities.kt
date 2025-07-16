@@ -14,10 +14,42 @@ data class MedicationSyncEntity(
     val name: String,
     val dosage: String?,
     val color: String?,
-    val typeName: String?,
-    val typeIconUrl: String?,
     val startDate: String?,
     val endDate: String?
+)
+
+@Entity(tableName = "medication_info_sync")
+data class MedicationInfoSyncEntity(
+    @PrimaryKey val medicationId: Int,
+    val notes: String?,
+    val instructions: String?
+)
+
+@Entity(tableName = "medication_types_sync")
+data class MedicationTypeSyncEntity(
+    @PrimaryKey val id: Int,
+    val name: String,
+    val iconUrl: String?
+)
+
+@Entity(
+    tableName = "medication_reminders_sync",
+    primaryKeys = ["id"],
+    foreignKeys = [
+        ForeignKey(
+            entity = MedicationSyncEntity::class,
+            parentColumns = ["medicationId"],
+            childColumns = ["medicationId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class MedicationReminderSyncEntity(
+    val id: Long,
+    val medicationId: Int,
+    val reminderTime: String,
+    val isTaken: Boolean,
+    val takenAt: String?
 )
 
 @Entity(
@@ -50,7 +82,17 @@ data class MedicationWithSchedulesPojo(
         parentColumn = "medicationId",
         entityColumn = "medicationId"
     )
-    val schedules: List<ScheduleDetailSyncEntity>
+    val schedules: List<ScheduleDetailSyncEntity>,
+    @Relation(
+        parentColumn = "medicationId",
+        entityColumn = "medicationId"
+    )
+    val info: MedicationInfoSyncEntity?,
+    @Relation(
+        parentColumn = "medicationId",
+        entityColumn = "medicationId"
+    )
+    val reminders: List<MedicationReminderSyncEntity>
 )
 
 @Entity(tableName = "reminder_states")

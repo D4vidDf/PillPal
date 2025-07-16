@@ -58,14 +58,47 @@ interface MedicationSyncDao {
     suspend fun clearAllReminderStates()
 
     // Update clearAndInsertSyncData to also clear reminder states
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMedicationInfoSyncEntity(medicationInfo: MedicationInfoSyncEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMedicationTypeSyncEntity(medicationType: MedicationTypeSyncEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMedicationReminderSyncEntities(reminders: List<MedicationReminderSyncEntity>)
+
+    @Query("DELETE FROM medication_info_sync")
+    suspend fun clearAllMedicationInfo()
+
+    @Query("DELETE FROM medication_types_sync")
+    suspend fun clearAllMedicationTypes()
+
+    @Query("DELETE FROM medication_reminders_sync")
+    suspend fun clearAllMedicationReminders()
+
     @Transaction
-    suspend fun clearAndInsertFullSyncData(medications: List<MedicationSyncEntity>, schedules: List<ScheduleDetailSyncEntity>) {
-        clearAllMedications() // This should also clear schedules due to CASCADE if set up, otherwise clear them explicitly
-        clearAllSchedules() // Explicitly clear schedules
-        clearAllReminderStates() // Clear reminder states as well
+    suspend fun clearAndInsertFullSyncData(
+        medications: List<MedicationSyncEntity>,
+        schedules: List<ScheduleDetailSyncEntity>,
+        medicationInfos: List<MedicationInfoSyncEntity>,
+        medicationTypes: List<MedicationTypeSyncEntity>,
+        reminders: List<MedicationReminderSyncEntity>
+    ) {
+        clearAllMedications()
+        clearAllSchedules()
+        clearAllReminderStates()
+        clearAllMedicationInfo()
+        clearAllMedicationTypes()
+        clearAllMedicationReminders()
+
         medications.forEach { insertMedicationSyncEntity(it) }
         if (schedules.isNotEmpty()) {
             insertScheduleDetailSyncEntities(schedules)
+        }
+        medicationInfos.forEach { insertMedicationInfoSyncEntity(it) }
+        medicationTypes.forEach { insertMedicationTypeSyncEntity(it) }
+        if (reminders.isNotEmpty()) {
+            insertMedicationReminderSyncEntities(reminders)
         }
     }
 }

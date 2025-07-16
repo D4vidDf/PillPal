@@ -5,8 +5,11 @@ import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.google.android.gms.wearable.DataEvent
 import com.d4viddf.medicationreminder.wear.data.MedicationFullSyncItem
 import com.d4viddf.medicationreminder.wear.data.MedicationScheduleDetailSyncItem
+import com.d4viddf.medicationreminder.wear.persistence.MedicationInfoSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.MedicationReminderSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.MedicationTypeSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
 import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity
@@ -136,8 +139,6 @@ class WearDataListenerService : WearableListenerService() {
                                         name = syncItem.name,
                                         dosage = syncItem.dosage,
                                         color = syncItem.color,
-                                        typeName = syncItem.typeName,
-                                        typeIconUrl = syncItem.typeIconUrl,
                                         startDate = syncItem.startDate,
                                         endDate = syncItem.endDate
                                     )
@@ -157,12 +158,46 @@ class WearDataListenerService : WearableListenerService() {
                                         )
                                     }
                                 }
+                                val medicationInfoEntities = receivedSyncItems.mapNotNull { syncItem ->
+                                    syncItem.info?.let {
+                                        MedicationInfoSyncEntity(
+                                            medicationId = syncItem.medicationId,
+                                            notes = it.notes,
+                                            instructions = it.instructions
+                                        )
+                                    }
+                                }
+                                val medicationTypeEntities = receivedSyncItems.mapNotNull { syncItem ->
+                                    syncItem.type?.let {
+                                        MedicationTypeSyncEntity(
+                                            id = it.id,
+                                            name = it.name,
+                                            iconUrl = it.iconUrl
+                                        )
+                                    }
+                                }
+                                val reminderEntities = receivedSyncItems.flatMap { syncItem ->
+                                    syncItem.reminders.map { reminder ->
+                                        MedicationReminderSyncEntity(
+                                            id = reminder.id,
+                                            medicationId = syncItem.medicationId,
+                                            reminderTime = reminder.reminderTime,
+                                            isTaken = reminder.isTaken,
+                                            takenAt = reminder.takenAt
+                                        )
+                                    }
+                                }
 
                                 serviceScope.launch {
                                     val dao = WearAppDatabase.getDatabase(applicationContext).medicationSyncDao()
-                                    // Use the renamed DAO method
-                                    dao.clearAndInsertFullSyncData(medicationEntities, scheduleEntities)
-                                    Log.i(TAG, "Successfully stored ${medicationEntities.size} medications and ${scheduleEntities.size} schedules in Room via $PATH_FULL_MED_DATA_SYNC.")
+                                    dao.clearAndInsertFullSyncData(
+                                        medicationEntities,
+                                        scheduleEntities,
+                                        medicationInfoEntities,
+                                        medicationTypeEntities,
+                                        reminderEntities
+                                    )
+                                    Log.i(TAG, "Successfully stored data in Room via $PATH_FULL_MED_DATA_SYNC.")
                                 }
                             } else {
                                 Log.w(TAG, "sync_data_json is null in DataItem for $PATH_FULL_MED_DATA_SYNC.")

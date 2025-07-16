@@ -5,7 +5,6 @@ import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
 import com.d4viddf.medicationreminder.data.MedicationFullSyncItem
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem
 import com.d4viddf.medicationreminder.data.ScheduleType // Enum for schedule type
 import com.d4viddf.medicationreminder.data.TodayScheduleItem
@@ -17,6 +16,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -39,6 +40,7 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper // Added import
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 @AndroidEntryPoint
 class DataLayerListenerService : WearableListenerService() {
@@ -51,12 +53,17 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var scheduleRepository: MedicationScheduleRepository
     @Inject
     lateinit var medicationTypeRepository: MedicationTypeRepository
+    @Inject
+    lateinit var medicationInfoRepository: MedicationInfoRepository
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val gson by lazy { Gson() }
 
     private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e(TAG, "Coroutine exception: ${throwable.message}", throwable)
+    }
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob + exceptionHandler)
 
     // For opening Play Store on phone
     private lateinit var wearConnectivityHelper: WearConnectivityHelper // Initialize in onCreate
@@ -228,13 +235,13 @@ class DataLayerListenerService : WearableListenerService() {
                 continue
             }
 
-            var medicationTypeName: String? = null
-            var medicationIconUrl: String? = null
-            if (medication.typeId != null) {
-                val medType = medicationTypeRepository.getMedicationTypeById(medication.typeId)
-                medicationTypeName = medType?.name
-                medicationIconUrl = medType?.imageUrl
+            val medType = if (medication.typeId != null) {
+                medicationTypeRepository.getMedicationTypeById(medication.typeId)
+            } else {
+                null
             }
+            val medInfo = medicationInfoRepository.getMedicationInfoById(medication.id)
+            val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
 
             medicationFullSyncItems.add(
                 MedicationFullSyncItem(
@@ -242,9 +249,30 @@ class DataLayerListenerService : WearableListenerService() {
                     name = medication.name,
                     dosage = medication.dosage,
                     color = medication.color,
-                    typeName = medicationTypeName,
-                    typeIconUrl = medicationIconUrl,
+                    type = medType?.let {
+                        com.d4viddf.medicationreminder.data.MedicationTypeSyncItem(
+                            id = it.id,
+                            name = it.name,
+                            iconUrl = it.imageUrl
+                        )
+                    },
+                    info = medInfo?.let {
+                        com.d4viddf.medicationreminder.data.MedicationInfoSyncItem(
+                            medicationId = it.medicationId,
+                            notes = it.description,
+                            instructions = it.safetyNotes
+                        )
+                    },
                     schedules = scheduleDetailSyncItems,
+                    reminders = reminders.map {
+                        com.d4viddf.medicationreminder.data.MedicationReminderSyncItem(
+                            id = it.id.toLong(),
+                            medicationId = it.medicationId,
+                            reminderTime = it.reminderTime.toString(),
+                            isTaken = it.isTaken,
+                            takenAt = it.takenAt
+                        )
+                    },
                     startDate = medication.startDate,
                     endDate = medication.endDate
                 )
@@ -268,38 +296,33 @@ class DataLayerListenerService : WearableListenerService() {
 
     private suspend fun sendTodayReminders() {
         val today = LocalDate.now()
-        val allMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
-        val allSchedules = scheduleRepository.getAllSchedules().firstOrNull() ?: emptyList()
-        val reminders = mutableListOf<TodayScheduleItem>()
-
-        for (medication in allMedications) {
-            val schedules = allSchedules.filter { it.medicationId == medication.id }
-            for (schedule in schedules) {
-                val reminderTimes = ReminderCalculator.generateRemindersForPeriod(medication, schedule, today, today)
-                reminderTimes[today]?.forEach { time ->
-                    val reminderDateTime = LocalDateTime.of(today, time)
-                    reminders.add(
-                        TodayScheduleItem(
-                            id = System.currentTimeMillis().toString(),
-                            medicationName = medication.name,
-                            time = time,
-                            isTaken = false, // This will be updated by the watch
-                            underlyingReminderId = 0L, // Not applicable here
-                            medicationScheduleId = schedule.id,
-                            takenAt = null,
-                            isPast = reminderDateTime.isBefore(LocalDateTime.now())
-                        )
-                    )
-                }
-            }
+        val startOfDay = today.atStartOfDay().toString()
+        val endOfDay = today.atTime(23, 59, 59).toString()
+        val allReminders = medicationReminderRepository.getRemindersForDay(startOfDay, endOfDay).firstOrNull() ?: emptyList()
+        val todayScheduleItems = allReminders.map { reminder ->
+            val medication = medicationRepository.getMedicationById(reminder.medicationId)
+            TodayScheduleItem(
+                id = reminder.id.toString(),
+                medicationName = medication?.name ?: "Unknown",
+                time = try {
+                    LocalDateTime.parse(reminder.reminderTime).toLocalTime()
+                } catch (e: Exception) {
+                    LocalTime.now()
+                },
+                isTaken = reminder.isTaken,
+                underlyingReminderId = reminder.id.toLong(),
+                medicationScheduleId = 0, // This is not available in the reminder table
+                takenAt = reminder.takenAt,
+                isPast = LocalTime.parse(reminder.reminderTime).atDate(today).isBefore(LocalDateTime.now())
+            )
         }
 
-        val json = gson.toJson(reminders)
+        val json = gson.toJson(todayScheduleItems)
         val putDataMapReq = PutDataMapRequest.create("/today_schedule")
         putDataMapReq.dataMap.putString("schedule_json", json)
         putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
         val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
         dataClient.putDataItem(putDataReq).await()
-        Log.i(TAG, "Sent ${reminders.size} today reminders to Wear OS.")
+        Log.i(TAG, "Sent ${todayScheduleItems.size} today reminders to Wear OS.")
     }
 }

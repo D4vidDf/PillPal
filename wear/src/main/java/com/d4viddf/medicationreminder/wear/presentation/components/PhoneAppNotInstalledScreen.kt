@@ -1,29 +1,29 @@
 package com.d4viddf.medicationreminder.wear.presentation.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.EdgeButtonSize
 import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import com.d4viddf.medicationreminder.wear.R
 import com.google.android.horologist.compose.layout.ColumnItemType
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnPadding
 
 @Composable
-fun MoreScreen(
-    onSyncClick: () -> Unit,
-    onOpenAppClick: () -> Unit,
-    onSettingsClick: () -> Unit
-) {
+fun PhoneAppNotInstalledScreen(onOpenPlayStore: () -> Unit, onRetry: () -> Unit) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
 
@@ -33,13 +33,21 @@ fun MoreScreen(
             first = ColumnItemType.ListHeader,
             last = ColumnItemType.IconButton
         ),
+        edgeButton = {
+            EdgeButton(
+                onClick = onRetry,
+                buttonSize = EdgeButtonSize.Medium
+            ) {
+                Text(stringResource(R.string.retry_sync), textAlign = TextAlign.Center)
+            }
+        },
         timeText = { TimeText() }
     ) { contentPadding ->
         TransformingLazyColumn(
             state = listState,
             contentPadding = contentPadding,
         ) {
-            item(key = "more_screen_title") {
+            item(key = "app_not_installed_title") {
                 ListHeader(
                     modifier =
                     Modifier
@@ -48,32 +56,24 @@ fun MoreScreen(
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
                     Text(
-                        text = stringResource(R.string.more_options)
+                        text = stringResource(R.string.phone_app_not_installed_title)
                     )
                 }
             }
-            item(key = "sync_button") {
-                Button(
-                    onClick = onSyncClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.sync_with_phone))
-                }
+            item(key = "app_not_installed_body") {
+                Text(
+                    text = stringResource(R.string.phone_app_not_installed_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
             }
-            item(key = "open_app_button") {
+            item(key = "open_play_store_button") {
                 Button(
-                    onClick = onOpenAppClick,
+                    onClick = onOpenPlayStore,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(R.string.open_app_on_phone))
-                }
-            }
-            item(key = "settings_button") {
-                Button(
-                    onClick = onSettingsClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.settings))
+                    Text(text = stringResource(R.string.open_play_store))
                 }
             }
         }

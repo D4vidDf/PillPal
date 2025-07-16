@@ -19,6 +19,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Vignette
+import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material3.*
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
@@ -41,6 +46,7 @@ fun WearApp(wearViewModel: WearViewModel) {
     val reminders by wearViewModel.reminders.collectAsStateWithLifecycle()
     val isLoading by wearViewModel.isLoading.collectAsStateWithLifecycle()
     val phoneAppStatus by wearViewModel.phoneAppStatus.collectAsStateWithLifecycle()
+    val selectedReminder by wearViewModel.selectedReminder.collectAsStateWithLifecycle()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -58,7 +64,9 @@ fun WearApp(wearViewModel: WearViewModel) {
             startDestination = "reminders"
         ) {
             composable("reminders") {
+                val listState = rememberTransformingLazyColumnState()
                 ScreenScaffold(
+                    scrollState = listState,
                 ) {
                     LaunchedEffect(Unit) {
                         wearViewModel.triggerPhoneAppCheckAndSync(
@@ -89,69 +97,84 @@ fun WearApp(wearViewModel: WearViewModel) {
                                 CircularProgressIndicator()
                             }
                             PhoneAppStatus.NOT_INSTALLED_ANDROID -> {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        text = stringResource(R.string.phone_app_not_installed_android),
-                                        textAlign = TextAlign.Center,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        modifier = Modifier.padding(bottom = 8.dp)
+                                if (reminders.isNotEmpty()) {
+                                    RemindersContent(
+                                        reminders = reminders,
+                                        onMarkAsTaken = { reminderToTake ->
+                                            wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
+                                        },
+                                        onMoreClick = { navController.navigate("more") },
+                                        onReminderClick = { reminder ->
+                                            wearViewModel.selectReminder(reminder)
+                                            navController.navigate("medicationDetail/${reminder.medicationId}")
+                                        },
+                                        phoneAppStatus = phoneAppStatus,
+                                        onRetry = {
+                                            wearViewModel.triggerPhoneAppCheckAndSync(
+                                                RemoteActivityHelper(context),
+                                                Wearable.getMessageClient(context)
+                                            )
+                                        }
                                     )
-                                    Button(onClick = {
-                                        wearViewModel.openPlayStoreOnPhone(RemoteActivityHelper(context))
-                                    }) {
-                                        Text(stringResource(R.string.open_play_store))
-                                    }
+                                } else {
+                                    PhoneAppNotInstalledScreen(
+                                        onOpenPlayStore = {
+                                            wearViewModel.openPlayStoreOnPhone(
+                                                RemoteActivityHelper(context)
+                                            )
+                                        },
+                                        onRetry = {
+                                            wearViewModel.triggerPhoneAppCheckAndSync(
+                                                RemoteActivityHelper(context),
+                                                Wearable.getMessageClient(context)
+                                            )
+                                        }
+                                    )
                                 }
                             }
                             PhoneAppStatus.INSTALLED_NO_DATA, PhoneAppStatus.INSTALLED_DATA_REQUESTED -> {
                                 if (isLoading && reminders.isEmpty()) {
                                     CircularProgressIndicator()
                                 } else {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.padding(16.dp)) {
-                                        Text(
-                                            text = if (reminders.isEmpty()) stringResource(R.string.no_reminders_today_syncing) else stringResource(R.string.checking_for_updates),
-                                            textAlign = TextAlign.Center,
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                            modifier = Modifier.padding(bottom = 8.dp)
-                                        )
-                                        Button(onClick = {
-                                            wearViewModel.triggerPhoneAppCheckAndSync(
-                                                RemoteActivityHelper(context),
-                                                Wearable.getMessageClient(context)
-                                            )
-                                        }) {
-                                            Text(stringResource(R.string.retry_sync))
-                                        }
-                                        if (reminders.isNotEmpty()) {
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            RemindersContent(
-                                                reminders = reminders,
-                                                onMarkAsTaken = { reminderToTake ->
-                                                    wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
-                                                },
-                                                onMoreClick = { navController.navigate("more") }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            PhoneAppStatus.INSTALLED_WITH_DATA -> {
-                                if (reminders.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.no_reminders_today),
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.padding(16.dp),
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    )
-                                } else {
                                     RemindersContent(
                                         reminders = reminders,
                                         onMarkAsTaken = { reminderToTake ->
                                             wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
                                         },
-                                        onMoreClick = { navController.navigate("more") }
+                                        onMoreClick = { navController.navigate("more") },
+                                        onReminderClick = { reminder ->
+                                            wearViewModel.selectReminder(reminder)
+                                            navController.navigate("medicationDetail/${reminder.medicationId}")
+                                        },
+                                        phoneAppStatus = phoneAppStatus,
+                                        onRetry = {
+                                            wearViewModel.triggerPhoneAppCheckAndSync(
+                                                RemoteActivityHelper(context),
+                                                Wearable.getMessageClient(context)
+                                            )
+                                        }
                                     )
                                 }
+                            }
+                            PhoneAppStatus.INSTALLED_WITH_DATA -> {
+                                RemindersContent(
+                                    reminders = reminders,
+                                    onMarkAsTaken = { reminderToTake ->
+                                        wearViewModel.markReminderAsTakenOnWatch(reminderToTake)
+                                    },
+                                    onMoreClick = { navController.navigate("more") },
+                                    onReminderClick = { reminder ->
+                                        wearViewModel.selectReminder(reminder)
+                                        navController.navigate("medicationDetail/${reminder.medicationId}")
+                                    },
+                                    phoneAppStatus = phoneAppStatus,
+                                    onRetry = {
+                                        wearViewModel.triggerPhoneAppCheckAndSync(
+                                            RemoteActivityHelper(context),
+                                            Wearable.getMessageClient(context)
+                                        )
+                                    }
+                                )
                             }
                         }
                     }
@@ -170,6 +193,19 @@ fun WearApp(wearViewModel: WearViewModel) {
                         wearViewModel.openPlayStoreOnPhone(RemoteActivityHelper(context))
                     },
                     onSettingsClick = { /* TODO */ }
+                )
+            }
+            composable("medicationDetail/{medicationId}") { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getString("medicationId")?.toIntOrNull()
+                MedicationDetailScreen(
+                    medicationId = medicationId,
+                    viewModel = wearViewModel,
+                    onOpenOnPhone = {
+                        wearViewModel.openMedicationDetailsOnPhone(
+                            RemoteActivityHelper(context),
+                            selectedReminder
+                        )
+                    }
                 )
             }
         }

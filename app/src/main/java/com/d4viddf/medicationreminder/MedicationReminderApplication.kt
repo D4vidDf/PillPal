@@ -39,39 +39,36 @@ class MedicationReminderApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        FileLogger.initialize(this)
 
         // Initialize FileLogger
-        FileLogger.initialize(this)
         FileLogger.log("MedicationReminderApp", "Application onCreate - File logging active.")
 
-        originalUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            Log.e("MedGlobalExceptionHandler", "FATAL UNCAUGHT EXCEPTION on thread ${thread.name}", throwable)
-            FileLogger.log("MedGlobalExceptionHandler", "FATAL UNCAUGHT EXCEPTION on thread ${thread.name}", throwable) // Also log to file
-            // Here you could add more detailed logging, like device info, app version, etc.
-            // It's crucial to call the original handler to ensure the system processes the crash.
-            originalUncaughtExceptionHandler?.uncaughtException(thread, throwable)
-        }
 
         Log.d("MedicationReminderApp", "Application onCreate called.")
         FileLogger.log("MedicationReminderApp", "Standard Log.d: Application onCreate called.")
 
 
-        // Hilt inyecta customWorkerFactory aquí
-        if (::customWorkerFactory.isInitialized) {
-            Log.d("MedicationReminderApp", "CustomWorkerFasctory is initialized in onCreate.")
-        FileLogger.log("MedicationReminderApp", "Standard Log.d: CustomWorkerFasctory is initialized in onCreate.")
-        } else {
-            Log.e("MedicationReminderApp", "CustomWorkerFasctory IS NOT initialized in onCreate!")
-            FileLogger.log("MedicationReminderAppError", "CustomWorkerFasctory IS NOT initialized in onCreate!")
-        }
+        try {
+            // Hilt inyecta customWorkerFactory aquí
+            if (::customWorkerFactory.isInitialized) {
+                Log.d("MedicationReminderApp", "CustomWorkerFasctory is initialized in onCreate.")
+                FileLogger.log("MedicationReminderApp", "Standard Log.d: CustomWorkerFasctory is initialized in onCreate.")
+            } else {
+                Log.e("MedicationReminderApp", "CustomWorkerFasctory IS NOT initialized in onCreate!")
+                FileLogger.log("MedicationReminderAppError", "CustomWorkerFasctory IS NOT initialized in onCreate!")
+            }
 
 
             NotificationHelper.createNotificationChannels(this)
             Log.d("MedicationReminderApp", "Notification channels created.")
             FileLogger.log("MedicationReminderApp", "Standard Log.d: Notification channels created.")
 
-        setupDailyReminderRefreshWorker()
+            setupDailyReminderRefreshWorker()
+        } catch (e: Exception) {
+            Log.e("MedicationReminderApp", "Error in onCreate: ${e.message}", e)
+            FileLogger.log("MedicationReminderAppError", "Error in onCreate: ${e.message}", e)
+        }
     }
 
     private fun setupDailyReminderRefreshWorker() {

@@ -13,15 +13,36 @@ data class MedicationScheduleDetailSyncItem(
     // Add any other relevant fields from MedicationSchedule.kt
 )
 
+data class MedicationInfoSyncItem(
+    val medicationId: Int,
+    val notes: String?,
+    val instructions: String?
+)
+
+data class MedicationTypeSyncItem(
+    val id: Int,
+    val name: String,
+    val iconUrl: String?
+)
+
+data class MedicationReminderSyncItem(
+    val id: Long,
+    val medicationId: Int,
+    val reminderTime: String,
+    val isTaken: Boolean,
+    val takenAt: String?
+)
+
 // Represents a medication with its full schedule details for syncing
 data class MedicationFullSyncItem(
     val medicationId: Int,
     val name: String,
     val dosage: String?,
-    val color: String?, // color name or hex
-    val typeName: String?, // e.g., "Pill", "Syrup" from MedicationType
-    val typeIconUrl: String?, // from MedicationType
+    val color: String?,
+    val type: MedicationTypeSyncItem?,
+    val info: MedicationInfoSyncItem?,
     val schedules: List<MedicationScheduleDetailSyncItem>,
+    val reminders: List<MedicationReminderSyncItem>,
     val startDate: String?, // "dd/MM/yyyy"
     val endDate: String? // "dd/MM/yyyy"
 )

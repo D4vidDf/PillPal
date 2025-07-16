@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.wear.presentation.components
 
 import android.app.Application
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,7 @@ import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.data.WearReminder
+import com.d4viddf.medicationreminder.wear.presentation.PhoneAppStatus
 import com.d4viddf.medicationreminder.wear.presentation.theme.MedicationReminderTheme
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnPadding
 // Import the newly created MedicationListItem
@@ -46,14 +48,17 @@ import com.google.android.horologist.compose.layout.ColumnItemType
 fun RemindersContent(
     reminders: List<WearReminder>,
     onMarkAsTaken: (WearReminder) -> Unit,
-    onMoreClick: () -> Unit
+    onMoreClick: () -> Unit,
+    onReminderClick: (WearReminder) -> Unit,
+    phoneAppStatus: PhoneAppStatus,
+    onRetry: () -> Unit
 ) {
 
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
     ScreenScaffold(
         scrollState = listState,
-        contentPadding =  rememberResponsiveColumnPadding(
+        contentPadding = rememberResponsiveColumnPadding(
             first = ColumnItemType.ListHeader,
             last = ColumnItemType.IconButton
         ),
@@ -67,14 +72,16 @@ fun RemindersContent(
         },
         timeText = { TimeText() }
     ) { contentPadding ->
-        TransformingLazyColumn (
+        TransformingLazyColumn(
             state = listState,
             contentPadding = contentPadding,
         ) {
             item {
                 ListHeader(
                     modifier =
-                        Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                    Modifier
+                        .fillMaxWidth()
+                        .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
                     Text(
@@ -82,22 +89,40 @@ fun RemindersContent(
                     )
                 }
             }
-            items(reminders.size) { index ->
-                val reminder = reminders[index]
-                MedicationReminderChip(
-                    reminder = reminder,
-                    onChipClick = { onMarkAsTaken(reminder) }
-                )
-            }
-            item{
-                if (reminders.isEmpty()) {
-
+            if (phoneAppStatus == PhoneAppStatus.NOT_INSTALLED_ANDROID && reminders.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.connection_lost),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        Button(onClick = onRetry) {
+                            Text(text = stringResource(R.string.retry_sync))
+                        }
+                    }
+                }
+            } else {
+                items(reminders.size) { index ->
+                    val reminder = reminders[index]
+                    MedicationReminderChip(
+                        reminder = reminder,
+                        onChipClick = { onReminderClick(reminder) }
+                    )
+                }
+                item {
+                    if (reminders.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_reminders_today),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
+                    }
                 }
             }
         }
@@ -108,14 +133,18 @@ fun RemindersContent(
 @Composable
 fun PreviewRemindersContentWithData() {
     val sampleReminders = listOf(
-        WearReminder("rem1",1, 1L, 101L, "Lisinopril", "08:00", false, "10mg", null),
-        WearReminder("rem2",2, 2L, 102L, "Metformin", "08:00", true, "500mg", "2023-01-01T08:00:00Z"),
-        WearReminder("rem3",3, 3L, 103L, "Aspirin", "12:00", false, "81mg", null)
+        WearReminder("rem1", 1, 1L, 101L, "Lisinopril", "08:00", false, "10mg", null),
+        WearReminder("rem2", 2, 2L, 102L, "Metformin", "08:00", true, "500mg", "2023-01-01T08:00:00Z"),
+        WearReminder("rem3", 3, 3L, 103L, "Aspirin", "12:00", false, "81mg", null)
     )
     MedicationReminderTheme {
         RemindersContent(
-            reminders = sampleReminders, onMarkAsTaken = {},
-            onMoreClick = {}
+            reminders = sampleReminders,
+            onMarkAsTaken = {},
+            onMoreClick = {},
+            onReminderClick = {},
+            phoneAppStatus = PhoneAppStatus.INSTALLED_WITH_DATA,
+            onRetry = {}
         )
     }
 }
@@ -125,8 +154,27 @@ fun PreviewRemindersContentWithData() {
 fun PreviewRemindersContentEmpty() {
     MedicationReminderTheme {
         RemindersContent(
-            reminders = emptyList(), onMarkAsTaken = {},
-            onMoreClick = {}
+            reminders = emptyList(),
+            onMarkAsTaken = {},
+            onMoreClick = {},
+            onReminderClick = {},
+            phoneAppStatus = PhoneAppStatus.INSTALLED_NO_DATA,
+            onRetry = {}
+        )
+    }
+}
+
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, name = "Reminders Content Connection Lost")
+@Composable
+fun PreviewRemindersContentConnectionLost() {
+    MedicationReminderTheme {
+        RemindersContent(
+            reminders = emptyList(),
+            onMarkAsTaken = {},
+            onMoreClick = {},
+            onReminderClick = {},
+            phoneAppStatus = PhoneAppStatus.NOT_INSTALLED_ANDROID,
+            onRetry = {}
         )
     }
 }
