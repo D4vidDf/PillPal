@@ -18,7 +18,6 @@ import android.content.IntentFilter
 import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
-import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -153,7 +152,7 @@ class DataLayerListenerService : WearableListenerService() {
             }
             PATH_OPEN_APP_ON_PHONE -> {
                 val intent = Intent(this, MainActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 }
                 startActivity(intent)
             }
