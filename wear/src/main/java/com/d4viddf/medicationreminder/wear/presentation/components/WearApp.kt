@@ -190,7 +190,7 @@ fun WearApp(wearViewModel: WearViewModel) {
                         navController.popBackStack()
                     },
                     onOpenAppClick = {
-                        wearViewModel.openAppOnPhone()
+                        wearViewModel.openAppOnPhone(RemoteActivityHelper(context))
                         navController.popBackStack()
                     },
                     onSettingsClick = { /* TODO */ }

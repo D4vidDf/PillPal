@@ -158,37 +158,10 @@ class DataLayerListenerService : WearableListenerService() {
                 }
             }
             PATH_OPEN_APP_ON_PHONE -> {
-                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                val channelId = "open_app_channel"
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val channel = NotificationChannel(
-                        channelId,
-                        "Open App",
-                        NotificationManager.IMPORTANCE_DEFAULT
-                    )
-                    notificationManager.createNotificationChannel(channel)
+                val intent = Intent(this, TrampolineActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-
-                val intent = Intent(this, MainActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                }
-                val pendingIntent = PendingIntent.getActivity(
-                    this,
-                    0,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-
-                val notification = NotificationCompat.Builder(this, channelId)
-                    .setContentTitle(getString(R.string.app_name))
-                    .setContentText(getString(R.string.open_app_notification_text))
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .setContentIntent(pendingIntent)
-                    .setAutoCancel(true)
-                    .build()
-
-                notificationManager.notify(1, notification)
+                startActivity(intent)
             }
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")

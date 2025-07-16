@@ -89,9 +89,17 @@ class WearViewModel @Inject constructor(
         }
     }
 
-    fun openAppOnPhone() {
+    fun openAppOnPhone(remoteActivityHelper: RemoteActivityHelper) {
         viewModelScope.launch {
-            wearRepository.openAppOnPhone()
+            try {
+                val intent = Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_LAUNCHER)
+                    .setPackage("com.d4viddf.medicationreminder")
+                remoteActivityHelper.startRemoteActivity(intent).await()
+                Log.i(TAG, "Attempted to open app on phone.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open app on phone", e)
+            }
         }
     }
 
