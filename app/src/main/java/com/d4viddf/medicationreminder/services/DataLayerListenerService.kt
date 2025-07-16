@@ -18,6 +18,13 @@ import android.content.IntentFilter
 import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import com.d4viddf.medicationreminder.MainActivity
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -151,10 +158,37 @@ class DataLayerListenerService : WearableListenerService() {
                 }
             }
             PATH_OPEN_APP_ON_PHONE -> {
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                val channelId = "open_app_channel"
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val channel = NotificationChannel(
+                        channelId,
+                        "Open App",
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    )
+                    notificationManager.createNotificationChannel(channel)
+                }
+
                 val intent = Intent(this, MainActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 }
-                startActivity(intent)
+                val pendingIntent = PendingIntent.getActivity(
+                    this,
+                    0,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val notification = NotificationCompat.Builder(this, channelId)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setContentText(getString(R.string.open_app_notification_text))
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
+                    .build()
+
+                notificationManager.notify(1, notification)
             }
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
