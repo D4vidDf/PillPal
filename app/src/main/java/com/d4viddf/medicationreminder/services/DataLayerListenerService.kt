@@ -159,7 +159,7 @@ class DataLayerListenerService : WearableListenerService() {
             }
             PATH_OPEN_APP_ON_PHONE -> {
                 val intent = Intent(this, TrampolineActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 }
                 startActivity(intent)
             }
