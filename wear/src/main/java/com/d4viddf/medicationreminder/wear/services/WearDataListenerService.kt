@@ -5,8 +5,11 @@ import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.google.android.gms.wearable.DataEvent
 import com.d4viddf.medicationreminder.wear.data.MedicationFullSyncItem
 import com.d4viddf.medicationreminder.wear.data.MedicationScheduleDetailSyncItem
+import com.d4viddf.medicationreminder.wear.persistence.MedicationInfoSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.MedicationReminderSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncEntity
+import com.d4viddf.medicationreminder.wear.persistence.MedicationTypeSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.ScheduleDetailSyncEntity
 import com.d4viddf.medicationreminder.wear.persistence.WearAppDatabase
 import com.d4viddf.medicationreminder.wear.persistence.ReminderStateEntity

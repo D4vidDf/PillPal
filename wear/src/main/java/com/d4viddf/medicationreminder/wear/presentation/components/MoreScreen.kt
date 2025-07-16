@@ -1,19 +1,19 @@
 package com.d4viddf.medicationreminder.wear.presentation.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.ListHeader
-import androidx.compose.material3.ScreenScaffold
-import androidx.compose.material3.SurfaceTransformation
-import androidx.compose.material3.Text
-import androidx.compose.material3.TimeText
-import androidx.compose.material3.lazy.rememberTransformationSpec
-import androidx.compose.material3.lazy.transformedHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.material3.Button
+import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.SurfaceTransformation
+import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.TimeText
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import com.d4viddf.medicationreminder.wear.R
 import com.google.android.horologist.compose.layout.ColumnItemType
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnPadding

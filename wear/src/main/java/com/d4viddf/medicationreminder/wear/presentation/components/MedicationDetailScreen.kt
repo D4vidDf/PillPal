@@ -1,9 +1,6 @@
 package com.d4viddf.medicationreminder.wear.presentation.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.material3.lazy.rememberTransformationSpec
-import androidx.compose.material3.lazy.transformedHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,7 +15,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.material.TimeSource
+import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material3.ArcProgressIndicator
+import androidx.wear.compose.material3.CircularProgressIndicator
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.EdgeButtonSize
+import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.SurfaceTransformation
+import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.material3.SegmentedCircularProgressIndicator
+import androidx.wear.compose.material3.TimeText
+import androidx.wear.compose.material3.timeTextCurvedText
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
@@ -47,11 +59,11 @@ fun MedicationDetailScreen(
 
     ScreenScaffold(
         scrollState = listState,
-        timeText = { TimeText() },
+        timeText = null,
         edgeButton = {
             EdgeButton(
                 onClick = onOpenOnPhone,
-                buttonSize = EdgeButtonSize.Medium
+                buttonSize = EdgeButtonSize.Small
             ) {
                 Text(stringResource(R.string.open_on_phone), textAlign = TextAlign.Center)
             }
@@ -67,20 +79,6 @@ fun MedicationDetailScreen(
                 item { CircularProgressIndicator() }
             } else {
                 item {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        SegmentedCircularProgressIndicator(
-                            segmentCount = 5,
-                            completedSegments = 2,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                        Text(
-                            text = medicationWithSchedules!!.medication.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-                item {
                     ListHeader(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -88,7 +86,7 @@ fun MedicationDetailScreen(
                         transformation = SurfaceTransformation(transformationSpec)
                     ) {
                         Text(
-                            text = medicationWithSchedules!!.medication.name,
+                            text = medicationWithSchedules!!.medication.name.split(" ").first(),
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center
                         )
@@ -105,7 +103,7 @@ fun MedicationDetailScreen(
                 item {
                     Text(
                         text = medicationWithSchedules!!.medication.dosage ?: "-",
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.numeralSmall
                     )
                 }
                 item {
@@ -118,7 +116,7 @@ fun MedicationDetailScreen(
                 item {
                     Text(
                         text = "N/A", // This needs to be calculated based on reminder states
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.numeralSmall
                     )
                 }
                 item {
@@ -131,7 +129,7 @@ fun MedicationDetailScreen(
                 item {
                     Text(
                         text = "N/A", // This needs to be calculated
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.numeralSmall
                     )
                 }
                 item {
@@ -140,6 +138,8 @@ fun MedicationDetailScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+
             }
         }
     }

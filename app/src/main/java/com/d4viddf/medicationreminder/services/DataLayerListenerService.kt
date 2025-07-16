@@ -5,7 +5,6 @@ import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
 import com.d4viddf.medicationreminder.data.MedicationFullSyncItem
-import com.d4viddf.medicationreminder.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem
 import com.d4viddf.medicationreminder.data.ScheduleType // Enum for schedule type
 import com.d4viddf.medicationreminder.data.TodayScheduleItem
@@ -17,6 +16,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -39,6 +40,7 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper // Added import
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 @AndroidEntryPoint
 class DataLayerListenerService : WearableListenerService() {
@@ -264,7 +266,7 @@ class DataLayerListenerService : WearableListenerService() {
                     schedules = scheduleDetailSyncItems,
                     reminders = reminders.map {
                         com.d4viddf.medicationreminder.data.MedicationReminderSyncItem(
-                            id = it.id,
+                            id = it.id.toLong(),
                             medicationId = it.medicationId,
                             reminderTime = it.reminderTime.toString(),
                             isTaken = it.isTaken,
@@ -309,7 +311,7 @@ class DataLayerListenerService : WearableListenerService() {
                 },
                 isTaken = reminder.isTaken,
                 underlyingReminderId = reminder.id.toLong(),
-                medicationScheduleId = 0L, // This is not available in the reminder table
+                medicationScheduleId = 0, // This is not available in the reminder table
                 takenAt = reminder.takenAt,
                 isPast = LocalTime.parse(reminder.reminderTime).atDate(today).isBefore(LocalDateTime.now())
             )

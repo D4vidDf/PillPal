@@ -14,7 +14,6 @@ private val WearAppColorScheme = ColorScheme(
     onSecondary = Color.Black,
     error = Color(0xFFF44336), // Red
     onError = Color.White,
-    background = Color(0xFF1C1B1F), // Standard M3 Dark Background
     onBackground = Color(0xFFE6E1E5),
     // Explicitly define surface, onSurface, surfaceVariant, onSurfaceVariant if they were the specific issue
     // If the error was "No parameter with name 'surface' found", then these should NOT be here.
