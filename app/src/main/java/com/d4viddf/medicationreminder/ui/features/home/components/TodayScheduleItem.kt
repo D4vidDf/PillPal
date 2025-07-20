@@ -126,11 +126,28 @@ fun TodayScheduleItem(
                     .padding(horizontal = 20.dp),
                 contentAlignment = alignment
             ) {
-                Icon(
-                    icon,
-                    contentDescription = "Localized description",
-                    modifier = Modifier.scale(scale)
-                )
+                Button(
+                    onClick = {
+                        if (dismissState.dismissDirection == androidx.compose.material.DismissDirection.StartToEnd) {
+                            onMarkAsTaken(item.reminder)
+                        } else if (dismissState.dismissDirection == androidx.compose.material.DismissDirection.EndToStart) {
+                            onSkip(item.reminder)
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = when (direction) {
+                            androidx.compose.material.DismissDirection.StartToEnd -> Color.Green
+                            androidx.compose.material.DismissDirection.EndToStart -> Color.Red
+                        }
+                    )
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = "Localized description",
+                        modifier = Modifier.scale(scale)
+                    )
+                }
             }
         }
     ) {
