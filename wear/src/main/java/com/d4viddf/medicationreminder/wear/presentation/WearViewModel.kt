@@ -2,9 +2,9 @@ package com.d4viddf.medicationreminder.wear.presentation
 
 import android.app.Application
 import android.util.Log
-import androidx.concurrent.futures.await
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.wear.remote.interactions.RemoteActivityHelper
 import com.d4viddf.medicationreminder.wear.data.WearReminder
 import com.d4viddf.medicationreminder.wear.data.WearRepository
 import com.d4viddf.medicationreminder.wear.persistence.MedicationSyncDao
@@ -18,25 +18,41 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await // For GMS Tasks
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import androidx.wear.remote.interactions.RemoteActivityHelper
-// No import for asListenableFuture needed; .await() is an extension from concurrent-futures-ktx
+
+data class ProgressDetails(
+    val remaining: Int? = null,
+    val lastTaken: String? = null
+)
+
+enum class PhoneAppStatus {
+    UNKNOWN,
+    CHECKING,
+    INSTALLED_WITH_DATA,
+    INSTALLED_DATA_REQUESTED,
+    INSTALLED_NO_DATA,
+    NOT_INSTALLED_ANDROID,
+}
 
 @HiltViewModel
 class WearViewModel @Inject constructor(
     application: Application,
     private val wearRepository: WearRepository
 ) : AndroidViewModel(application), CapabilityClient.OnCapabilityChangedListener {
+
+    private val medicationSyncDao: MedicationSyncDao by lazy {
+        WearAppDatabase.getDatabase(application).medicationSyncDao()
+    }
+    private val gson = Gson()
+    private val capabilityClient: CapabilityClient by lazy { Wearable.getCapabilityClient(getApplication<Application>()) }
 
     private val _reminders = MutableStateFlow<List<WearReminder>>(emptyList())
     val reminders: StateFlow<List<WearReminder>> = _reminders.asStateFlow()
@@ -47,11 +63,15 @@ class WearViewModel @Inject constructor(
     private val _phoneAppStatus = MutableStateFlow(PhoneAppStatus.UNKNOWN)
     val phoneAppStatus: StateFlow<PhoneAppStatus> = _phoneAppStatus.asStateFlow()
 
-    private val medicationSyncDao: MedicationSyncDao by lazy {
-        WearAppDatabase.getDatabase(application).medicationSyncDao()
-    }
-    private val gson = Gson()
-    private val capabilityClient: CapabilityClient by lazy { Wearable.getCapabilityClient(getApplication<Application>()) }
+    private val _selectedMedication = MutableStateFlow<MedicationWithSchedulesPojo?>(null)
+    val selectedMedication: StateFlow<MedicationWithSchedulesPojo?> = _selectedMedication.asStateFlow()
+
+    // **THIS IS THE FIX**: Re-added the selectedReminder StateFlow
+    private val _selectedReminder = MutableStateFlow<WearReminder?>(null)
+    val selectedReminder: StateFlow<WearReminder?> = _selectedReminder.asStateFlow()
+
+    private val _progressDetails = MutableStateFlow(ProgressDetails())
+    val progressDetails: StateFlow<ProgressDetails> = _progressDetails.asStateFlow()
 
     private val PHONE_APP_CAPABILITY_NAME = "medication_reminder_phone_app"
 
@@ -64,12 +84,13 @@ class WearViewModel @Inject constructor(
         private const val MEDICATION_DETAIL_APP_URI = "medicationreminder://medication/{medicationId}"
     }
 
-    private val _selectedReminder = MutableStateFlow<WearReminder?>(null)
-    val selectedReminder: StateFlow<WearReminder?> = _selectedReminder.asStateFlow()
+    init {
+        observeMedicationAndReminderStates()
+        registerCapabilityListener()
+        checkPhoneAppInstallationInternal()
+    }
 
-    private val _selectedMedication = MutableStateFlow<MedicationWithSchedulesPojo?>(null)
-    val selectedMedication: StateFlow<MedicationWithSchedulesPojo?> = _selectedMedication.asStateFlow()
-
+    // This function now correctly updates the re-added state
     fun selectReminder(reminder: WearReminder) {
         _selectedReminder.value = reminder
         loadMedicationById(reminder.medicationId)
@@ -81,12 +102,22 @@ class WearViewModel @Inject constructor(
                 _selectedMedication.value = it
             }
         }
-    }
+        viewModelScope.launch {
+            reminders.collect { allReminders ->
+                val remindersForThisMed = allReminders.filter { it.medicationId == medicationId }
+                val takenCount = remindersForThisMed.count { it.isTaken }
+                val remainingCount = remindersForThisMed.size - takenCount
 
-    init {
-        observeMedicationAndReminderStates()
-        registerCapabilityListener()
-        checkPhoneAppInstallationInternal()
+                val lastTakenReminder = remindersForThisMed
+                    .filter { it.isTaken && it.takenAt != null }
+                    .maxByOrNull { LocalDateTime.parse(it.takenAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
+
+                _progressDetails.value = ProgressDetails(
+                    remaining = remainingCount,
+                    lastTaken = lastTakenReminder?.takenAt
+                )
+            }
+        }
     }
 
     private fun registerCapabilityListener() {
@@ -97,31 +128,19 @@ class WearViewModel @Inject constructor(
     private fun observeMedicationAndReminderStates() {
         viewModelScope.launch {
             medicationSyncDao.getAllMedicationsWithSchedules()
-                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDaoLambda, statesFromDaoLambda ->
-                    Log.d(TAG, "Observed ${medsFromDaoLambda.size} meds & ${statesFromDaoLambda.size} states from Room.")
-                    calculateRemindersFromSyncData(medsFromDaoLambda, statesFromDaoLambda)
+                .combine(medicationSyncDao.getAllReminderStates()) { medsFromDao, statesFromDao ->
+                    Log.d(TAG, "Observed ${medsFromDao.size} meds & ${statesFromDao.size} states.")
+                    calculateRemindersFromSyncData(medsFromDao, statesFromDao)
                 }.collect { calculatedReminders ->
                     _reminders.value = calculatedReminders
                     val currentStatus = _phoneAppStatus.value
 
-                    // This logic needs to correctly reflect the source data.
-                    // The `combine` means we get the latest from both flows.
-                    // We need to check the `medsFromDaoLambda` that was used for the current `calculatedReminders`.
-                    // This is tricky because `collect` only sees the result.
-                    // A more robust way is to pass the source list size or emptiness along with calculatedReminders.
-                    // For now, we'll assume if INSTALLED_DATA_REQUESTED, the status updates based on calculatedReminders.
-
                     if (currentStatus == PhoneAppStatus.INSTALLED_DATA_REQUESTED || currentStatus == PhoneAppStatus.CHECKING) {
                         _isLoading.value = false
-                        // If we were waiting for data, and we got an empty list of *calculated* reminders,
-                        // it could be because there are no meds defined, or no meds for *today*.
-                        // To distinguish "no meds configured" from "no meds for today", we'd need the source list (medsFromDaoLambda).
-                        // For now, if calculated is empty, we'll show INSTALLED_NO_DATA.
                         _phoneAppStatus.value = if (calculatedReminders.isNotEmpty()) PhoneAppStatus.INSTALLED_WITH_DATA else PhoneAppStatus.INSTALLED_NO_DATA
                     } else if (currentStatus == PhoneAppStatus.INSTALLED_WITH_DATA && calculatedReminders.isEmpty()) {
-                         _phoneAppStatus.value = PhoneAppStatus.INSTALLED_NO_DATA
+                        _phoneAppStatus.value = PhoneAppStatus.INSTALLED_NO_DATA
                     }
-                    // Avoid changing status if it's already NOT_INSTALLED or UNKNOWN from just a data update
                     Log.d(TAG, "Updated ViewModel reminders: ${calculatedReminders.size} items. Status: ${_phoneAppStatus.value}")
                 }
         }
@@ -150,10 +169,10 @@ class WearViewModel @Inject constructor(
                     }.getOrNull()
                 }
                 val dailyRepetitionDays: List<String>? = scheduleEntity.dailyRepetitionDaysJson?.let { json ->
-                     runCatching {
+                    runCatching {
                         val typeToken = object : TypeToken<List<String>>() {}.type
                         gson.fromJson<List<String>>(json, typeToken)
-                     }.getOrNull()
+                    }.getOrNull()
                 }
                 val phoneGeneratedReminderIdForSchedule = scheduleEntity.scheduleId
 
@@ -217,7 +236,7 @@ class WearViewModel @Inject constructor(
         }
         return allCalculatedReminders.sortedWith(
             compareBy<WearReminder> { LocalTime.parse(it.time, DateTimeFormatter.ofPattern("HH:mm")) }
-            .thenBy { it.isTaken }
+                .thenBy { it.isTaken }
         )
     }
 
@@ -235,7 +254,6 @@ class WearViewModel @Inject constructor(
             medicationSyncDao.insertOrUpdateReminderState(newState)
             Log.i(TAG, "Marked reminder ${reminder.id} as taken locally on watch.")
 
-            // Extract the reminder ID from the composite key
             val reminderId = reminder.id.split("_").getOrNull(0)?.replace("med", "")?.toIntOrNull()
 
             if (reminderId != null) {
@@ -280,7 +298,7 @@ class WearViewModel @Inject constructor(
     }
 
     fun triggerPhoneAppCheckAndSync(remoteActivityHelper: RemoteActivityHelper, messageClient: MessageClient) {
-         checkPhoneAppInstallation(this.capabilityClient, remoteActivityHelper, messageClient)
+        checkPhoneAppInstallation(this.capabilityClient, remoteActivityHelper, messageClient)
     }
 
     private fun checkPhoneAppInstallation(
@@ -325,16 +343,10 @@ class WearViewModel @Inject constructor(
                 .addOnFailureListener { e ->
                     Log.e(TAG, "Failed to send initial sync request to node $nodeId", e)
                     if (_phoneAppStatus.value == PhoneAppStatus.INSTALLED_DATA_REQUESTED) {
-                       _phoneAppStatus.value = PhoneAppStatus.INSTALLED_NO_DATA
+                        _phoneAppStatus.value = PhoneAppStatus.INSTALLED_NO_DATA
                     }
                     _isLoading.value = false
                 }
-        }
-    }
-
-    private fun markReminderAsTakenOnPhone(phoneDbReminderId: String, specificMessageClient: MessageClient? = null) {
-        viewModelScope.launch {
-            sendMessageToPhone(MARK_AS_TAKEN_PATH, phoneDbReminderId.toByteArray(Charsets.UTF_8), specificMessageClient)
         }
     }
 
@@ -354,7 +366,8 @@ class WearViewModel @Inject constructor(
             } else {
                 Log.w(TAG, "Cannot send message $path: No connected phone node with capability.")
             }
-        } catch (e: Exception) {
+        } catch (e: Exception)
+        {
             Log.e(TAG, "Error sending message $path", e)
         }
         return null
@@ -375,7 +388,7 @@ class WearViewModel @Inject constructor(
                     _isLoading.value = true
                     requestInitialSyncData(Wearable.getMessageClient(getApplication()), phoneNode.id)
                 } else {
-                     Log.i(TAG, "Phone app capability present, current status is ${_phoneAppStatus.value}. No immediate sync action unless data was missing.")
+                    Log.i(TAG, "Phone app capability present, current status is ${_phoneAppStatus.value}. No immediate sync action.")
                 }
             } else {
                 Log.w(TAG, "Phone app capability lost or no reachable node.")
@@ -398,7 +411,7 @@ class WearViewModel @Inject constructor(
                     android.content.Intent(android.content.Intent.ACTION_VIEW)
                         .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
                         .setData(android.net.Uri.parse(PLAY_STORE_APP_URI))
-                ).await() // Corrected: direct await on ListenableFuture
+                ).await()
                 Log.i(TAG, "Attempted to open Play Store on phone.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open Play Store on phone", e)
@@ -422,13 +435,10 @@ class WearViewModel @Inject constructor(
             }
         }
     }
-}
 
-enum class PhoneAppStatus {
-    UNKNOWN,
-    CHECKING,
-    INSTALLED_WITH_DATA,
-    INSTALLED_DATA_REQUESTED,
-    INSTALLED_NO_DATA,
-    NOT_INSTALLED_ANDROID,
+    fun openAppOnPhone() {
+        viewModelScope.launch {
+            wearRepository.openAppOnPhone()
+        }
+    }
 }

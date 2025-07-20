@@ -18,6 +18,13 @@ import android.content.IntentFilter
 import com.d4viddf.medicationreminder.common.IntentActionConstants
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import com.d4viddf.medicationreminder.MainActivity
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -150,6 +157,12 @@ class DataLayerListenerService : WearableListenerService() {
                     }
                 }
             }
+            PATH_OPEN_APP_ON_PHONE -> {
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                }
+                startActivity(intent)
+            }
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
             }
@@ -185,6 +198,7 @@ class DataLayerListenerService : WearableListenerService() {
         // private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule" // Considered legacy, full sync preferred
         private const val PATH_OPEN_PLAY_STORE_ON_PHONE = "/open_play_store" // Path from Wear OS app
         private const val PATH_ADHOC_TAKEN_ON_WATCH = "/mark_adhoc_taken_on_watch" // Path from Wear OS for ad-hoc
+        private const val PATH_OPEN_APP_ON_PHONE = "/open_app_on_phone"
     }
 
     // Payload class for ad-hoc taken events from watch
@@ -313,7 +327,7 @@ class DataLayerListenerService : WearableListenerService() {
                 underlyingReminderId = reminder.id.toLong(),
                 medicationScheduleId = 0, // This is not available in the reminder table
                 takenAt = reminder.takenAt,
-                isPast = LocalTime.parse(reminder.reminderTime).atDate(today).isBefore(LocalDateTime.now())
+                isPast = LocalDateTime.parse(reminder.reminderTime).isBefore(LocalDateTime.now())
             )
         }
 

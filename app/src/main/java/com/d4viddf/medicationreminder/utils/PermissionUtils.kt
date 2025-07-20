@@ -151,4 +151,32 @@ object PermissionUtils {
             Log.d(TAG_PERMISSION_UTILS, "Full-screen intent permission check not applicable for API < 34 via NotificationManager.")
         }
     }
+    /**
+     * Checks if the app has permission to draw over other apps.
+     * On versions below Android M, this is granted by default.
+     */
+    fun canDrawOverlays(context: Context): Boolean {
+        // Returns true if SDK is below Marshmallow, otherwise checks the setting
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(context)
+        } else {
+            true
+        }
+    }
+
+    /**
+     * Creates an Intent to navigate the user to the system settings screen
+     * where they can grant the "draw over other apps" permission.
+     */
+    fun requestDrawOverlayPermission(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Create an intent that opens the "draw over other apps" settings screen
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:${context.packageName}")
+            )
+            // You need to start this intent from an Activity
+            context.startActivity(intent)
+        }
+    }
 }
