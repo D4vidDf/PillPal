@@ -327,7 +327,7 @@ class DataLayerListenerService : WearableListenerService() {
                 underlyingReminderId = reminder.id.toLong(),
                 medicationScheduleId = 0, // This is not available in the reminder table
                 takenAt = reminder.takenAt,
-                isPast = LocalTime.parse(reminder.reminderTime).atDate(today).isBefore(LocalDateTime.now())
+                isPast = LocalDateTime.parse(reminder.reminderTime).isBefore(LocalDateTime.now())
             )
         }
 

@@ -15,9 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
-import androidx.wear.compose.material.TimeSource
-import androidx.wear.compose.material.TimeText
-import androidx.wear.compose.material3.ArcProgressIndicator
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.EdgeButtonSize
@@ -28,9 +25,6 @@ import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
-import androidx.wear.compose.material3.SegmentedCircularProgressIndicator
-import androidx.wear.compose.material3.TimeText
-import androidx.wear.compose.material3.timeTextCurvedText
 import com.d4viddf.medicationreminder.wear.R
 import com.d4viddf.medicationreminder.wear.persistence.MedicationWithSchedulesPojo
 import com.d4viddf.medicationreminder.wear.presentation.WearViewModel
@@ -46,10 +40,12 @@ fun MedicationDetailScreen(
     viewModel: WearViewModel,
     onOpenOnPhone: () -> Unit
 ) {
+    // Collect state from the ViewModel
     val medicationWithSchedules by viewModel.selectedMedication.collectAsStateWithLifecycle()
     val progressDetails by viewModel.progressDetails.collectAsStateWithLifecycle()
     var nextDoseTime by remember { mutableStateOf<String?>(null) }
 
+    // Effect to calculate the next dose time when medication data changes
     LaunchedEffect(medicationWithSchedules) {
         medicationWithSchedules?.let {
             nextDoseTime = calculateNextDoseTime(it)
@@ -61,7 +57,7 @@ fun MedicationDetailScreen(
 
     ScreenScaffold(
         scrollState = listState,
-        timeText = null,
+        timeText = null, // You can add a TimeText here if needed
         edgeButton = {
             EdgeButton(
                 onClick = onOpenOnPhone,
@@ -78,6 +74,7 @@ fun MedicationDetailScreen(
             verticalArrangement = Arrangement.Center
         ) {
             if (medicationWithSchedules == null) {
+                // Show a loading indicator while data is being fetched
                 item { CircularProgressIndicator() }
             } else {
                 item {
@@ -116,8 +113,9 @@ fun MedicationDetailScreen(
                 }
                 item { Spacer(modifier = Modifier.height(8.dp)) }
                 item {
+                    // Use the lastTaken value from progressDetails
                     Text(
-                        text = progressDetails?.lastTaken?.let {
+                        text = progressDetails.lastTaken?.let {
                             LocalDateTime.parse(it).format(DateTimeFormatter.ofPattern("HH:mm"))
                         } ?: "N/A",
                         style = MaterialTheme.typography.numeralSmall
@@ -131,8 +129,9 @@ fun MedicationDetailScreen(
                 }
                 item { Spacer(modifier = Modifier.height(8.dp)) }
                 item {
+                    // Use the remaining value from progressDetails
                     Text(
-                        text = progressDetails?.remaining?.toString() ?: "N/A",
+                        text = progressDetails.remaining?.toString() ?: "N/A",
                         style = MaterialTheme.typography.numeralSmall
                     )
                 }
@@ -155,7 +154,13 @@ private fun calculateNextDoseTime(medicationWithSchedules: MedicationWithSchedul
     medicationWithSchedules.schedules.forEach { schedule ->
         val specificTimes: List<LocalTime>? = schedule.specificTimesJson?.let { json ->
             val typeToken = object : TypeToken<List<String>>() {}.type
-            Gson().fromJson<List<String>>(json, typeToken).mapNotNull { LocalTime.parse(it, DateTimeFormatter.ofPattern("HH:mm")) }
+            Gson().fromJson<List<String>>(json, typeToken).mapNotNull {
+                try {
+                    LocalTime.parse(it, DateTimeFormatter.ofPattern("HH:mm"))
+                } catch (e: Exception) {
+                    null
+                }
+            }
         }
 
         specificTimes?.forEach { time ->

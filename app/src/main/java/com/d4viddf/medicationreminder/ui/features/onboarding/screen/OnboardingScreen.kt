@@ -93,6 +93,7 @@ fun OnboardingScreen(
         if (currentContext is Activity) currentContext as ComponentActivity else ComponentActivity()
     }
 
+
     if (screenWidthDp >= 600) {
         OnboardingTabletLayout(
             pagerState = pagerState,
