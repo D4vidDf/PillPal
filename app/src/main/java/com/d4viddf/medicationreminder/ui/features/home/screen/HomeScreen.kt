@@ -94,7 +94,10 @@ fun HomeScreen(
     HomeScreenContent(
         uiState = uiState,
         onMarkAsTaken = viewModel::markAsTaken,
+        onSkip = viewModel::skipDose,
+        isFutureDose = viewModel::isFutureDose,
         onRefresh = viewModel::refreshData, // Pass refresh lambda
+        onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
         navController = navController
     )
 }
@@ -106,9 +109,21 @@ fun HomeScreen(
 internal fun HomeScreenContent(
     uiState: HomeViewModel.HomeState,
     onMarkAsTaken: (MedicationReminder) -> Unit,
+    onSkip: (MedicationReminder) -> Unit,
+    isFutureDose: (String) -> Boolean,
     onRefresh: () -> Unit, // Added onRefresh callback
+    onDismissConfirmationDialog: () -> Unit,
     navController: NavController
 ) {
+    if (uiState.showConfirmationDialog) {
+        com.d4viddf.medicationreminder.ui.common.components.ConfirmationDialog(
+            onDismissRequest = onDismissConfirmationDialog,
+            onConfirmation = uiState.confirmationAction,
+            dialogTitle = uiState.confirmationDialogTitle,
+            dialogText = uiState.confirmationDialogText
+        )
+    }
+
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
@@ -432,6 +447,8 @@ internal fun HomeScreenContent(
                                         TodayScheduleItem(
                                             item = scheduleItem, // Pass the TodayScheduleUiItem
                                             onMarkAsTaken = { reminder -> onMarkAsTaken(reminder) }, // ViewModel expects MedicationReminder
+                                            onSkip = { reminder -> onSkip(reminder) },
+                                            isFuture = isFutureDose(scheduleItem.reminder.reminderTime),
                                             onNavigateToDetails = { medicationId ->
                                                 navController.navigate(
                                                     com.d4viddf.medicationreminder.ui.navigation.Screen.MedicationDetails.createRoute(
@@ -508,7 +525,10 @@ fun HomeScreenNewPreview() {
         HomeScreenContent(
             uiState = previewState,
             onMarkAsTaken = {}, // No-op for preview
+            onSkip = {},
+            isFutureDose = { false },
             onRefresh = {}, // No-op for preview
+            onDismissConfirmationDialog = {},
             navController = rememberNavController() // Pass a dummy NavController
         )
     }

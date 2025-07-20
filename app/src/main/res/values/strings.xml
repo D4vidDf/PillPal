@@ -399,5 +399,6 @@
     <string name="action_collapse">Collapse</string>
     <string name="action_expand">Expand</string>
     <string name="home_section_header_cd">Home section header</string>
+    <string name="cancel">Cancel</string>
 
 </resources>
