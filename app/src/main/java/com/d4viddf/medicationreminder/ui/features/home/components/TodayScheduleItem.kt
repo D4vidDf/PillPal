@@ -78,46 +78,40 @@ fun TodayScheduleItem(
         item.formattedReminderTime
     )
 
-    val dismissState = rememberDismissState(
-        confirmStateChange = {
-            if (it == DismissValue.DismissedToEnd) {
-                onMarkAsTaken(item.reminder)
-            } else if (it == DismissValue.DismissedToStart) {
-                onSkip(item.reminder)
+    val contentAlpha = if (isFuture) ContentAlpha.disabled else LocalContentColor.current.alpha
+
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            when (it) {
+                SwipeToDismissBoxValue.EndToStart -> onSkip(item.reminder)
+                SwipeToDismissBoxValue.StartToEnd -> onMarkAsTaken(item.reminder)
+                SwipeToDismissBoxValue.Settled -> {}
             }
-            // Don't actually dismiss the item, just trigger the action
             false
         }
     )
 
-    val contentAlpha = if (isFuture) ContentAlpha.disabled else LocalContentColor.current.alpha
-
-    SwipeToDismiss(
+    SwipeToDismissBox(
         state = dismissState,
         modifier = modifier.padding(vertical = 4.dp),
-        directions = if (isFuture) setOf() else setOf(
-            androidx.compose.material.DismissDirection.EndToStart,
-            androidx.compose.material.DismissDirection.StartToEnd
-        ),
-        background = {
-            val direction = dismissState.dismissDirection ?: return@SwipeToDismiss
-            val color by animateColorAsState(
-                when (direction) {
-                    androidx.compose.material.DismissDirection.StartToEnd -> Color.Green.copy(alpha = 0.5f)
-                    androidx.compose.material.DismissDirection.EndToStart -> Color.Red.copy(alpha = 0.5f)
-                }
-            )
-            val alignment = when (direction) {
-                androidx.compose.material.DismissDirection.StartToEnd -> Alignment.CenterStart
-                androidx.compose.material.DismissDirection.EndToStart -> Alignment.CenterEnd
+        enableDismissFromStartToEnd = !isFuture,
+        enableDismissFromEndToStart = !isFuture,
+        backgroundContent = {
+            val color = when (dismissState.dismissDirection) {
+                SwipeToDismissBoxValue.StartToEnd -> Color.Green.copy(alpha = 0.5f)
+                SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(alpha = 0.5f)
+                SwipeToDismissBoxValue.Settled -> Color.Transparent
             }
-            val icon = when (direction) {
-                androidx.compose.material.DismissDirection.StartToEnd -> Icons.Default.Check
-                androidx.compose.material.DismissDirection.EndToStart -> Icons.Default.Close
+            val alignment = when (dismissState.dismissDirection) {
+                SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                else -> Alignment.Center
             }
-            val scale by animateFloatAsState(
-                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
-            )
+            val icon = when (dismissState.dismissDirection) {
+                SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Check
+                SwipeToDismissBoxValue.EndToStart -> Icons.Default.Close
+                else -> null
+            }
 
             Box(
                 Modifier
@@ -126,26 +120,10 @@ fun TodayScheduleItem(
                     .padding(horizontal = 20.dp),
                 contentAlignment = alignment
             ) {
-                Button(
-                    onClick = {
-                        if (dismissState.dismissDirection == androidx.compose.material.DismissDirection.StartToEnd) {
-                            onMarkAsTaken(item.reminder)
-                        } else if (dismissState.dismissDirection == androidx.compose.material.DismissDirection.EndToStart) {
-                            onSkip(item.reminder)
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = when (direction) {
-                            androidx.compose.material.DismissDirection.StartToEnd -> Color.Green
-                            androidx.compose.material.DismissDirection.EndToStart -> Color.Red
-                        }
-                    )
-                ) {
+                icon?.let {
                     Icon(
-                        icon,
+                        it,
                         contentDescription = "Localized description",
-                        modifier = Modifier.scale(scale)
                     )
                 }
             }
