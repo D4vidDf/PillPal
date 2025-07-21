@@ -45,7 +45,11 @@ open class HomeViewModel @Inject constructor(
         val hasUnreadAlerts: Boolean = false,
         val isLoading: Boolean = true,
         val currentGreeting: String = "", // Initialize with empty or default from strings
-        val isRefreshing: Boolean = false
+        val isRefreshing: Boolean = false,
+        val showConfirmationDialog: Boolean = false,
+        val confirmationDialogTitle: String = "",
+        val confirmationDialogText: String = "",
+        val confirmationAction: () -> Unit = {}
     )
 
     private val _uiState = MutableStateFlow(HomeState())
@@ -259,10 +263,44 @@ open class HomeViewModel @Inject constructor(
     }
 
     open fun markAsTaken(reminder: MedicationReminder) {
-        viewModelScope.launch {
-            val nowString = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter)
-            medicationReminderRepository.updateReminder(reminder.copy(isTaken = true, takenAt = nowString))
-            // No need to manually reload; the Flow from getRemindersForDay should automatically emit the new list.
+        _uiState.value = _uiState.value.copy(
+            showConfirmationDialog = true,
+            confirmationDialogTitle = "Mark as Taken",
+            confirmationDialogText = "Are you sure you want to mark this dose as taken?",
+            confirmationAction = {
+                viewModelScope.launch {
+                    val nowString = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter)
+                    medicationReminderRepository.updateReminder(reminder.copy(isTaken = true, takenAt = nowString))
+                    _uiState.value = _uiState.value.copy(showConfirmationDialog = false)
+                }
+            }
+        )
+    }
+
+    open fun skipDose(reminder: MedicationReminder) {
+        _uiState.value = _uiState.value.copy(
+            showConfirmationDialog = true,
+            confirmationDialogTitle = "Skip Dose",
+            confirmationDialogText = "Are you sure you want to skip this dose?",
+            confirmationAction = {
+                viewModelScope.launch {
+                    medicationReminderRepository.deleteReminder(reminder)
+                    _uiState.value = _uiState.value.copy(showConfirmationDialog = false)
+                }
+            }
+        )
+    }
+
+    fun dismissConfirmationDialog() {
+        _uiState.value = _uiState.value.copy(showConfirmationDialog = false)
+    }
+
+    fun isFutureDose(reminderTime: String): Boolean {
+        return try {
+            val reminderDateTime = LocalDateTime.parse(reminderTime, ReminderCalculator.storableDateTimeFormatter)
+            reminderDateTime.isAfter(LocalDateTime.now())
+        } catch (e: Exception) {
+            false
         }
     }
 }
