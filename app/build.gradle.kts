@@ -14,8 +14,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 26
         targetSdk = 36
-        versionCode = 25
-        versionName = "0.5.6"
+        versionCode = 28
+        versionName = "0.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -152,5 +152,4 @@ dependencies {
 
     // Coroutines support for Play Services Tasks (for .await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
-    wearApp(project(":wear"))
 }
