@@ -1,11 +1,13 @@
-package com.d4viddf.medicationreminder.data
+package com.d4viddf.medicationreminder.repository
 
+import com.d4viddf.medicationreminder.data.MedicationType
+import com.d4viddf.medicationreminder.data.MedicationTypeDao
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MedicationTypeRepository @Inject constructor(
+open class MedicationTypeRepository @Inject constructor(
     private val medicationTypeDao: MedicationTypeDao
 ) {
 
@@ -20,7 +22,7 @@ class MedicationTypeRepository @Inject constructor(
     suspend fun deleteMedicationType(medicationType: MedicationType) {
         medicationTypeDao.deleteMedicationType(medicationType)
     }
-    suspend fun getMedicationTypeById(id: Int): MedicationType? {
+    open suspend fun getMedicationTypeById(id: Int): MedicationType? {
         return medicationTypeDao.getMedicationTypeById(id)
     }
 }

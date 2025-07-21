@@ -323,7 +323,7 @@ fun MedicationDetailsScreen(
                     if (showTwoPanes) {
                         LazyColumn(modifier = actualContentModifier
                             .then(Modifier.padding(horizontal = 16.dp)) // Keep horizontal padding for two-pane
-                            .then(if (!isHostedInPane) Modifier.padding(top = innerPadding.calculateTopPadding()) else Modifier) // Add conditional top padding
+                            .then(if (!isHostedInPane) Modifier.padding(top = 0.dp) else Modifier) // Add conditional top padding
                         ) {
                             item {
                                 MedicationHeaderAndProgress(

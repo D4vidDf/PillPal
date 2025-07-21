@@ -1,7 +1,11 @@
 package com.d4viddf.medicationreminder.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,9 +40,11 @@ import com.d4viddf.medicationreminder.ui.features.medication_details.screen.Medi
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.AllSchedulesScreen
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationHistoryScreen
+import com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen
 import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
+import com.d4viddf.medicationreminder.ui.features.connecteddevices.screen.ConnectedDevicesScreen // Import the new screen
 
 // Define the routes for navigation
 
@@ -47,12 +53,14 @@ const val SHOW_TODAY_ARG = "showToday" // Argument for AllSchedulesScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
+    object MedicationVault : Screen("medicationVault") // Added MedicationVault
     object AddMedication : Screen("addMedication")
     object AddMedicationChoice : Screen("addMedicationChoice")
     object MedicationDetails : Screen("medicationDetails/{$MEDICATION_ID_ARG}?enableSharedTransition={enableSharedTransition}") {
         fun createRoute(id: Int, enableSharedTransition: Boolean = true) = "medicationDetails/$id?enableSharedTransition=$enableSharedTransition"
     }
-    object Settings : Screen("settings")
+    object Settings : Screen("settings") // Will be replaced by Analytics in UI, but route can remain for now if settings screen is complex
+    object Analysis : Screen("analysis") // Added Analysis screen
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
     data object Onboarding : Screen("onboarding_screen")
@@ -78,17 +86,20 @@ sealed class Screen(val route: String) {
     object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
     }
+    object ConnectedDevices : Screen("connected_devices_screen") // New screen route
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
-    modifier: Modifier = Modifier, // Add this line
+    navHostModifier: Modifier = Modifier, // Renamed from modifier
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     isMainScaffold: Boolean, // Added parameter
     userPreferencesRepository: UserPreferencesRepository, // Still needed for OnboardingScreen
-    startDestinationRoute: String // Add this new parameter
+    startDestinationRoute: String, // Add this new parameter
+    hostScaffoldPadding: PaddingValues = PaddingValues() // New parameter for host's scaffold padding
 ) {
     SharedTransitionLayout { // `this` is SharedTransitionScope
         val currentSharedTransitionScope = this // Capture SharedTransitionScope
@@ -99,7 +110,8 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = startDestinationRoute, // USE THE PARAMETER HERE
-            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier) // Apply incoming modifier and then conditional padding
+            // Apply incoming navHostModifier and then conditional fillMaxSize based on isMainScaffold
+            modifier = navHostModifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
                 OnboardingScreen(
@@ -111,14 +123,20 @@ fun AppNavigation(
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
                     navController = navController, // Added this line
-                    // Kept
-                    onMedicationClick = { medicationId -> // Kept
-                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = widthSizeClass == WindowWidthSizeClass.Compact))
-                    },
-                    // Removed onNavigateToSettings, onNavigateToCalendar, onNavigateToProfile
-                    widthSizeClass = widthSizeClass, // Kept
-                    sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
-                    animatedVisibilityScope = this // Pass scope
+                    // Parameters for the new HomeScreen which does not show all medications
+                    // onMedicationClick, widthSizeClass, sharedTransitionScope, animatedVisibilityScope are removed
+                    // as they were for the old list-detail view of all medications.
+                    // The new HomeScreen is simpler in terms of these params.
+                )
+            }
+            composable(Screen.MedicationVault.route) {
+                // Assuming MedicationVaultScreen has a similar structure to the old HomeScreen for list/detail
+                MedicationVaultScreen(
+                    navController = navController,
+                    widthSizeClass = widthSizeClass,
+                    sharedTransitionScope = currentSharedTransitionScope,
+                    animatedVisibilityScope = this,
+                    hostPaddingValues = hostScaffoldPadding // Pass down the host's scaffold padding
                 )
             }
             composable(Screen.AddMedicationChoice.route) { // New entry
@@ -244,6 +262,12 @@ fun AppNavigation(
                     // No animatedVisibilityScope passed
                 )
             }
+            composable(Screen.Analysis.route) {
+                // Placeholder for Analysis Screen
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Analysis Screen (Placeholder)")
+                }
+            }
 
             // Routes for the new screens
             composable(
@@ -338,6 +362,10 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
+            }
+
+            composable(Screen.ConnectedDevices.route) {
+                ConnectedDevicesScreen(navController = navController)
             }
         }
     }

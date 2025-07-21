@@ -1,384 +1,479 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3AdaptiveApi::class)
-
 package com.d4viddf.medicationreminder.ui.features.home.screen
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.Intent
-import android.speech.RecognizerIntent
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.ui.common.components.ConfirmationDialog
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.features.home.components.MedicationList
-import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationDetailsScreen
+import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
+import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus // Import WatchStatus
+import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
 import com.d4viddf.medicationreminder.ui.navigation.Screen
-import com.d4viddf.medicationreminder.utils.PermissionUtils
-import com.d4viddf.medicationreminder.viewmodel.MedicationViewModel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class) // Removed ExperimentalSharedTransitionApi from here
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier, // This modifier comes from NavHost, potentially with padding
-    navController: NavController, // Added this line
-    onMedicationClick: (Int) -> Unit,
-    widthSizeClass: WindowWidthSizeClass,
-    sharedTransitionScope: SharedTransitionScope?, // Add this
-    animatedVisibilityScope: AnimatedVisibilityScope?, // Make nullable
-    viewModel: MedicationViewModel = hiltViewModel()
+    navController: NavController,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val medications by viewModel.medications.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val currentSearchQuery by viewModel.searchQuery.collectAsState()
-    val searchResults by viewModel.searchResults.collectAsState()
-    // var selectedMedicationId by rememberSaveable { mutableStateOf<Int?>(null) } // Will be managed by scaffoldNavigator
+    val uiState by viewModel.uiState.collectAsState()
 
-    val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int?>() // Use Int? for nullable medication ID
-    val mainMedicationListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope() // For general coroutines, also for scaffold nav
-
-    // Local state for SearchBar active state
-    var searchActive by rememberSaveable { mutableStateOf(false) }
-
-    // val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO) // Removed
-    // val activity = LocalContext.current as Activity // Will be replaced by findActivity()
-
-    val speechRecognitionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val spokenText: ArrayList<String>? =
-                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            if (!spokenText.isNullOrEmpty()) {
-                viewModel.updateSearchQuery(spokenText[0])
-                searchActive = true // Optionally activate search bar if you want to see results immediately
-            }
+    // Collect navigation events
+    LaunchedEffect(key1 = Unit) { // Use Unit or a key that doesn't change often
+        viewModel.navigationEvents.collectLatest { route ->
+            navController.navigate(route)
         }
     }
 
-    val medicationListClickHandler: (Int) -> Unit = { medicationId ->
-        // When a medication is clicked, whether from main list or search results,
-        searchActive = false
-        viewModel.updateSearchQuery("")
-
-        if (widthSizeClass == WindowWidthSizeClass.Compact) {
-            onMedicationClick(medicationId) // Full screen navigation via NavController
-        } else {
-            // Show in detail pane using scaffoldNavigator
-            coroutineScope.launch {
-                scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, medicationId)
-            }
-        }
-    }
-
-    NavigableListDetailPaneScaffold(
-        modifier = modifier.fillMaxSize(),
-        navigator = scaffoldNavigator,
-        listPane = { // Changed from primaryPane
-            // `this` is ThreePaneScaffoldPaneScope
-            Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-                SearchBar(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = if (searchActive && widthSizeClass == WindowWidthSizeClass.Compact) 0.dp else 16.dp, vertical = 8.dp),
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = currentSearchQuery,
-                            onQueryChange = { viewModel.updateSearchQuery(it) },
-                            onSearch = {
-                                searchActive = false
-                            },
-                            expanded = searchActive,
-                            onExpandedChange = { isActive ->
-                                searchActive = isActive
-                                if (!isActive) {
-                                    viewModel.updateSearchQuery("")
-                                }
-                            },
-                            placeholder = { Text(stringResource(id = R.string.search_medications_placeholder)) },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_search),
-                                    contentDescription = stringResource(id = R.string.search_icon_content_description)
-                                )
-                            },
-                            trailingIcon = {
-                                if (currentSearchQuery.isNotBlank()) {
-                                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.rounded_close_24),
-                                            contentDescription = stringResource(id = R.string.clear_search_query_button_description)
-                                        )
-                                    }
-                                } else {
-                                    val localContext = LocalContext.current
-                                    IconButton(onClick = {
-                                        val activity = localContext.findActivity()
-                                        if (activity != null) {
-                                            PermissionUtils.requestRecordAudioPermission(
-                                                activity = activity,
-                                                onAlreadyGranted = {
-                                                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                                        putExtra(RecognizerIntent.EXTRA_PROMPT, localContext.getString(R.string.speech_prompt_text))
-                                                    }
-                                                    speechRecognitionLauncher.launch(intent)
-                                                },
-                                                onRationaleNeeded = {
-                                                    Log.i("HomeScreen", "RECORD_AUDIO permission rationale needed.")
-                                                }
-                                            )
-                                        } else {
-                                            Log.e("HomeScreen", "Could not find Activity context.")
-                                        }
-                                    }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.rounded_mic_24),
-                                            contentDescription = stringResource(id = R.string.microphone_icon_content_description)
-                                        )
-                                    }
-                                }
-                            },
-                        )
-                    },
-                    expanded = searchActive,
-                    onExpandedChange = { isActive ->
-                        searchActive = isActive
-                        if (!isActive) {
-                            viewModel.updateSearchQuery("")
-                        }
-                    }
-                    // SearchBar content lambda is part of its definition
-                    ) { // Search results content
-                        val searchResultsListState = rememberLazyListState()
-                        LazyColumn(
-                        state = searchResultsListState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        itemsIndexed(searchResults, key = { _, med -> med.id }) { index, medication ->
-                            Card(
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable {
-                                        coroutineScope.launch {
-                                            searchResultsListState.animateScrollToItem(index)
-                                            medicationListClickHandler(medication.id)
-                                        }
-                                    }
-                                    .then(
-                                        if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                            with(sharedTransitionScope) {
-                                                Modifier.sharedElement(
-                                                    rememberSharedContentState(key = "medication-background-${medication.id}"),
-                                                    animatedVisibilityScope
-                                                )
-                                            }
-                                        } else Modifier
-                                    )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                ) {
-                                    Text(
-                                        text = medication.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.then(
-                                            if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
-                                                with(sharedTransitionScope) {
-                                                    Modifier.sharedElement(
-                                                        rememberSharedContentState(key = "medication-name-${medication.id}"),
-                                                        animatedVisibilityScope
-                                                    )
-                                                }
-                                            } else Modifier
-                                        )
-                                    )
-                                    if (!medication.dosage.isNullOrBlank()) {
-                                        Text(
-                                            text = medication.dosage,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(top = 4.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } // End of SearchBar content lambda
-
-                if (!searchActive) {
-                    val topAppBarHeight = 84.dp // Approx height for SearchBar
-                    val listToShow = if (currentSearchQuery.isBlank()) medications else searchResults
-                    MedicationList(
-                        medications = listToShow,
-                        onItemClick = { medication, index ->
-                            // medicationListClickHandler already has the logic for Compact vs Large screen.
-                            // It also handles the coroutine for scaffoldNavigator.
-                            // For compact, we might want to scroll before full navigation.
-                            if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
-                                coroutineScope.launch {
-                                    mainMedicationListState.animateScrollToItem(index)
-                                    medicationListClickHandler(medication.id) // Will call onMedicationClick
-                                }
-                            } else {
-                                // Handles both scaffold navigation (with its own coroutine) and compact (direct call)
-                                medicationListClickHandler(medication.id)
-                            }
-                        },
-                        isLoading = isLoading,
-                        onRefresh = { viewModel.refreshMedications() },
-                        enableCardTransitions = (widthSizeClass == WindowWidthSizeClass.Compact),
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        modifier = Modifier.fillMaxSize(),
-                        bottomContentPadding = if (widthSizeClass == WindowWidthSizeClass.Compact) topAppBarHeight else 0.dp,
-                        listState = mainMedicationListState
-                    )
-                }
-            }
-        },
-        detailPane = { // Changed from secondaryPane
-            // `this` is ThreePaneScaffoldPaneScope
-            val selectedMedicationIdForDetail = scaffoldNavigator.currentDestination?.contentKey
-            if (selectedMedicationIdForDetail != null) {
-                MedicationDetailsScreen(
-                    medicationId = selectedMedicationIdForDetail,
-                    navController = navController, // Added this line
-                    onNavigateBack = {
-                        coroutineScope.launch {
-                            scaffoldNavigator.navigateBack()
-                        }
-                    },
-                    sharedTransitionScope = null, // Correct for detail pane
-                    // animatedVisibilityScope for MedicationDetailScreen is tricky here.
-                    // 'this' is ThreePaneScaffoldPaneScope.
-                    // If MedicationDetailScreen expects an AnimatedVisibilityScope for its own internal animations,
-                    // it would need to come from an AnimatedVisibility composable within this detailPane.
-                    // For shared elements (which are disabled: enableSharedTransition = false), it would need
-                    // the one from AppNavigation. Since shared elements are off, this is less critical.
-                    // Passing null if it's not used or if it expects the NavHost's scope which isn't appropriate here.
-                    animatedVisibilityScope = null, // Or a specific one if MedicationDetailScreen needs it for internal anims
-                    isHostedInPane = true, // Added parameter
-                    onNavigateToAllSchedules = { medId, colorName ->
-                        navController.navigate(Screen.AllSchedules.createRoute(medId, colorName, true))
-                    },
-                    onNavigateToMedicationHistory = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationGraph = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    onNavigateToMedicationInfo = { medId, colorName -> /* TODO: Implement if needed from detail pane */ },
-                    graphViewModel = hiltViewModel(), // Provide the graphViewModel
-                    widthSizeClass = widthSizeClass
-                )
-            } else {
-                // Placeholder when no medication is selected in detail pane (medium/expanded screens)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(id = R.string.select_medication_placeholder))
-                }
-            }
-        }
-        // We can also define a tertiary pane if needed, but not for this use case.
+    HomeScreenContent(
+        uiState = uiState,
+        onMarkAsTaken = viewModel::markAsTaken,
+        onSkip = viewModel::skipDose,
+        isFutureDose = viewModel::isFutureDose,
+        onRefresh = viewModel::refreshData,
+        onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
+        navController = navController,
+        onWatchIconClick = { viewModel.handleWatchIconClick() } // Pass the handler
     )
 }
-// Top-level extension function
-fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}
 
-@Preview(showBackground = true, name = "Compact HomeScreen")
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
-fun HomeScreenCompactPreview() {
-    AppTheme {
-        HomeScreen(
-            navController = rememberNavController(), // Added
-            onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Compact,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+internal fun HomeScreenContent(
+    uiState: HomeViewModel.HomeState,
+    onMarkAsTaken: (MedicationReminder) -> Unit,
+    onSkip: (MedicationReminder) -> Unit,
+    isFutureDose: (String) -> Boolean,
+    onRefresh: () -> Unit,
+    onDismissConfirmationDialog: () -> Unit,
+    navController: NavController,
+    onWatchIconClick: () -> Unit // Added callback for watch icon click
+) {
+    if (uiState.showConfirmationDialog) {
+        ConfirmationDialog(
+            onDismissRequest = onDismissConfirmationDialog,
+            onConfirmation = uiState.confirmationAction,
+            dialogTitle = uiState.confirmationDialogTitle,
+            dialogText = uiState.confirmationDialogText
         )
+    }
+
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+
+    var topBarTitle by remember(uiState.currentGreeting) { mutableStateOf(uiState.currentGreeting) }
+    val nextDosageTitle = stringResource(id = R.string.next_dosage_title)
+
+    LaunchedEffect(uiState.nextDoseGroup, uiState.currentGreeting) {
+        if (uiState.nextDoseGroup.isNotEmpty()) {
+            delay(3000L)
+            topBarTitle = nextDosageTitle
+        } else {
+            topBarTitle = uiState.currentGreeting
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    AnimatedContent(
+                        targetState = topBarTitle,
+                        transitionSpec = {
+                            slideInVertically { height -> height } togetherWith
+                                    slideOutVertically { height -> -height }
+                        }, label = "TopBarTitleAnimation"
+                    ) { title ->
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                },
+                actions = {
+                    val context = LocalContext.current
+
+                    // Watch Icon Button
+                    IconButton(onClick = onWatchIconClick) {
+                        val isWatchConnected = uiState.watchStatus == WatchStatus.CONNECTED_APP_INSTALLED ||
+                                uiState.watchStatus == WatchStatus.CONNECTED_APP_NOT_INSTALLED
+
+                        val iconTint = if (isWatchConnected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current.copy(alpha = LocalContentAlpha.current) // Muted if not connected
+                        }
+
+                        val contentDesc = if (isWatchConnected) {
+                            stringResource(R.string.home_button_cd_watch_connected_settings) // New string resource needed
+                        } else {
+                            stringResource(R.string.home_button_cd_watch_disconnected_settings) // New string resource needed
+                        }
+
+                        BadgedBox(
+                            badge = {
+                                if (isWatchConnected) {
+                                    Badge() // Shows a small dot
+                                }
+                            },
+                            modifier = Modifier.semantics { contentDescription = contentDesc }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Watch, // Static Watch Icon
+                                contentDescription = null, // Content description handled by BadgedBox
+                                tint = iconTint
+                            )
+                        }
+                    }
+
+                    // Notifications Icon Button
+                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
+                        val notificationsCd = if (uiState.hasUnreadAlerts) {
+                            context.getString(R.string.home_button_cd_notifications_unread)
+                        } else {
+                            context.getString(R.string.home_button_cd_notifications_read)
+                        }
+                        BadgedBox(
+                            badge = { if (uiState.hasUnreadAlerts) Badge() },
+                            modifier = Modifier.semantics { contentDescription = notificationsCd }
+                        ) {
+                            Icon(Icons.Filled.Notifications, contentDescription = null)
+                        }
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, onRefresh = onRefresh)
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pullRefresh(pullRefreshState)
+                .padding(paddingValues)
+        ) {
+            if (uiState.isLoading && !uiState.isRefreshing) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (uiState.nextDoseGroup.isNotEmpty()) {
+                        item {
+                            val carouselState = rememberCarouselState { uiState.nextDoseGroup.size }
+                            val largeItemWidth = if (screenWidthDp * 0.75f >=300.dp) 340.dp else screenWidthDp * 0.75f
+                            HorizontalMultiBrowseCarousel(
+                                state = carouselState,
+                                modifier = Modifier.fillMaxWidth().height(160.dp).padding(horizontal = 16.dp),
+                                preferredItemWidth = largeItemWidth,
+                                itemSpacing = 8.dp,
+                            ) { itemIndex ->
+                                val item = uiState.nextDoseGroup[itemIndex]
+                                NextDoseCard(
+                                    item = item,
+                                    modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge),
+                                    onNavigateToDetails = { medicationId ->
+                                        navController.navigate(
+                                            Screen.MedicationDetails.createRoute(medicationId)
+                                        )
+                                    }
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { /* TODO: Navigate */ }) {
+                                    Text(stringResource(id = R.string.show_all_button))
+                                }
+                            }
+                        }
+                    } else {
+                        item {
+                            Text(
+                                text = context.getString(R.string.no_upcoming_doses_at_all),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+                    // --- New Progress Section ---
+                    item {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = stringResource(id = R.string.progress_section_title),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            MissedRemindersCard()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            TodayProgressCard()
+                        }
+                    }
+
+                    item {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = stringResource(id = R.string.health_section_title),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            HeartRateCard()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            WeightCard()
+                        }
+                    }
+
+
+
+
+                    item { Spacer(modifier = Modifier.height(72.dp)) }
+                }
+
+                PullRefreshIndicator(
+                    refreshing = uiState.isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
+        }
     }
 }
 
-@Preview(showBackground = true, name = "Medium HomeScreen", widthDp = 700)
+// --- HEALTH MOCKUP SECTIONS ---
+
 @Composable
-fun HomeScreenMediumPreview() {
-    AppTheme {
-        HomeScreen(
-            navController = rememberNavController(), // Added
-            onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Medium,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
-        )
+fun HeartRateCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(id = R.string.heart_rate_title),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "46-97",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    text = stringResource(id = R.string.heart_rate_unit),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(id = R.string.today_label),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+            )
+        }
     }
 }
 
-@Preview(showBackground = true, name = "Expanded HomeScreen", widthDp = 1024)
 @Composable
-fun HomeScreenExpandedPreview() {
+fun WeightCard(modifier: Modifier = Modifier) {
+    val lastDate = LocalDate.now().minusDays(3).format(
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+    )
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(id = R.string.weight_title),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "80 kg",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${stringResource(id = R.string.last_registered_label)} $lastDate",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+// --- NEW PROGRESS MOCKUP SECTIONS ---
+
+@Composable
+fun MissedRemindersCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.missed_reminders_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "2", // Mock data for missed doses
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${stringResource(id = R.string.last_missed_label)} Ibuprofen", // Mock data
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                )
+            }
+            Icon(
+                imageVector = Icons.Filled.ArrowForwardIos,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun TodayProgressCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.today_progress_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "9/12", // Mock data for progress
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            // Using a standard CircularProgressIndicator as Wavy is experimental
+            CircularProgressIndicator(
+                progress = { 9f / 12f }, // Mock progress
+                modifier = Modifier.size(64.dp),
+                strokeWidth = 6.dp
+            )
+        }
+    }
+}
+
+
+@Preview(showBackground = true, name = "HomeScreen Preview")
+@Composable
+fun HomeScreenNewPreview() {
+    val sampleTime = LocalDateTime.now()
+    val morningRawTime = sampleTime.withHour(8).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+    val previewState = HomeViewModel.HomeState(
+        currentGreeting = "Good morning!",
+        nextDoseGroup = listOf(
+            NextDoseUiItem(1, 101, "Amoxicillin", "250mg", "LIGHT_BLUE", null, morningRawTime, "08:00"),
+        ),
+        todaysReminders = emptyMap(),
+        hasUnreadAlerts = true,
+        isLoading = false
+    )
+
     AppTheme {
-        HomeScreen(
-            navController = rememberNavController(), // Added
-            onMedicationClick = {},
-            widthSizeClass = WindowWidthSizeClass.Expanded,
-            sharedTransitionScope = null, // Pass null for preview
-            animatedVisibilityScope = null // Preview won't have a real scope
+        HomeScreenContent(
+            uiState = previewState,
+            onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
+            onRefresh = {}, onDismissConfirmationDialog = {},
+            navController = rememberNavController(),
+            onWatchIconClick = {}
         )
     }
 }
