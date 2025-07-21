@@ -1,26 +1,27 @@
 package com.d4viddf.medicationreminder.ui.features.home.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ContentAlpha
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,13 +34,14 @@ import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun TodayScheduleItem(
     item: TodayScheduleUiItem,
     onMarkAsTaken: (MedicationReminder) -> Unit,
-    onNavigateToDetails: (medicationId: Int) -> Unit, // Added navigation callback
+    onSkip: (MedicationReminder) -> Unit,
+    onNavigateToDetails: (medicationId: Int) -> Unit,
+    isFuture: Boolean,
     modifier: Modifier = Modifier
 ) {
     val medicationThemeColor = try {
@@ -49,9 +51,9 @@ fun TodayScheduleItem(
     }
 
     val firstWordMedicationName = item.medicationName.split(" ").firstOrNull() ?: item.medicationName
-    val context = LocalContext.current
+    var showMenu by remember { mutableStateOf(false) }
 
-    val cardCd = stringResource(
+    val itemContentDescription = stringResource(
         R.string.today_schedule_item_card_cd,
         item.medicationName,
         item.medicationDosage,
@@ -59,103 +61,63 @@ fun TodayScheduleItem(
         item.formattedReminderTime
     )
 
-    Card(
+    // The ListItem will handle the disabled state visually when enabled = false
+    ListItem(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp) // Add some vertical padding between items
-            .clickable { onNavigateToDetails(item.reminder.medicationId) }
-            .semantics { contentDescription = cardCd },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = medicationThemeColor.backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Medication Type Icon
+            .clickable(enabled = !isFuture) { onNavigateToDetails(item.reminder.medicationId) }
+            .semantics { contentDescription = itemContentDescription },
+        // Set background to transparent to blend with the parent surface
+        // The leading content is the medication icon with a colored background
+        leadingContent = {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(CircleShape) // Optional: make it circular if the icon itself is not
-                // .background(medicationThemeColor.textColor.copy(alpha = 0.1f)) // Optional subtle background for icon
+                    .clip(CircleShape)
+                    .background(medicationThemeColor.backgroundColor), // Color applied here!
+                contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(item.medicationIconUrl ?: R.drawable.medication_filled) // Fallback to a default pill icon
+                    model = ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data(item.medicationIconUrl ?: R.drawable.medication_filled)
                         .crossfade(true)
-                        .error(R.drawable.medication_filled) // Also use fallback on error
+                        .error(R.drawable.medication_filled)
                         .build(),
-                    placeholder = painterResource(R.drawable.medication_filled), // Placeholder while loading
+                    placeholder = painterResource(R.drawable.medication_filled),
                     contentDescription = item.medicationTypeName ?: item.medicationName,
-                    contentScale = ContentScale.Crop, // Or ContentScale.Fit
-                    modifier = Modifier.fillMaxSize(),
-                    colorFilter = if (item.medicationIconUrl == null) ColorFilter.tint(medicationThemeColor.textColor) else null // Tint if using fallback drawable
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(32.dp), // Icon is smaller than its background
+                    // Tint the icon if it's the default drawable
+                    colorFilter = if (item.medicationIconUrl == null) ColorFilter.tint(medicationThemeColor.textColor) else null
                 )
             }
-
-            Spacer(Modifier.width(12.dp))
-
-            // Medication Info: Name, Dosage, Time
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = firstWordMedicationName,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = medicationThemeColor.textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "${item.medicationDosage} - ${item.formattedReminderTime}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = medicationThemeColor.textColor.copy(alpha = 0.8f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            Spacer(Modifier.width(8.dp))
-
-            // Toggle to mark as taken
-            val switchCd = stringResource(
-                R.string.today_schedule_item_switch_cd,
-                item.medicationName,
-                item.medicationDosage,
-                item.formattedReminderTime
+        },
+        // Main text of the list item
+        headlineContent = {
+            Text(
+                text = firstWordMedicationName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            val switchStateDesc = if (item.reminder.isTaken) {
-                stringResource(R.string.switch_state_taken)
-            } else {
-                stringResource(R.string.switch_state_not_taken)
-            }
-
-            Switch(
-                checked = item.reminder.isTaken,
-                onCheckedChange = { isChecked ->
-                    if (isChecked) {
-                        onMarkAsTaken(item.reminder)
-                    }
-                },
-                enabled = !item.reminder.isTaken,
-                modifier = Modifier.semantics {
-                    contentDescription = switchCd
-                    stateDescription = switchStateDesc
-                    // Role.Switch is automatically applied by the Switch composable
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledCheckedThumbColor = MaterialTheme.colorScheme.primary.copy(alpha = ContentAlpha.disabled),
-                    disabledUncheckedThumbColor = MaterialTheme.colorScheme.outline.copy(alpha = ContentAlpha.disabled)
-                )
+        },
+        // Subtext below the main text
+        supportingContent = {
+            Text(
+                text = "${item.medicationDosage} - ${item.formattedReminderTime}",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
+        },
+        // The three-dots menu at the end of the item
+
+    )
 }
+
+// Previews are updated to show the new ListItem style
 
 @Preview(showBackground = true, name = "TodayScheduleItem Light")
 @Composable
@@ -166,33 +128,47 @@ fun TodayScheduleItemPreview() {
         medicationName = "Amoxicillin Long Name",
         medicationDosage = "250mg Capsule",
         medicationColorName = "LIGHT_BLUE",
-        medicationIconUrl = null, // Preview with fallback icon
+        medicationIconUrl = null,
         medicationTypeName = "Capsule",
         formattedReminderTime = "08:00"
     )
     MaterialTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            TodayScheduleItem(item = sampleItem, onMarkAsTaken = {}, onNavigateToDetails = {})
+        Surface(color = MaterialTheme.colorScheme.surface) {
+            TodayScheduleItem(
+                item = sampleItem,
+                onMarkAsTaken = {},
+                onSkip = {},
+                onNavigateToDetails = {},
+                isFuture = false,
+                modifier = Modifier.padding(8.dp)
+            )
         }
     }
 }
 
-@Preview(showBackground = true, name = "TodayScheduleItem Taken Light")
+@Preview(showBackground = true, name = "TodayScheduleItem Future")
 @Composable
-fun TodayScheduleItemTakenPreview() {
-    val sampleReminderTaken = MedicationReminder(2, 102, 2, LocalDateTime.now().minusHours(1).format(ReminderCalculator.storableDateTimeFormatter), true, LocalDateTime.now().minusHours(1).format(ReminderCalculator.storableDateTimeFormatter), null)
+fun TodayScheduleItemFuturePreview() {
+    val sampleReminderTaken = MedicationReminder(2, 102, 2, LocalDateTime.now().plusHours(2).format(ReminderCalculator.storableDateTimeFormatter), true, LocalDateTime.now().minusHours(1).format(ReminderCalculator.storableDateTimeFormatter), null)
     val sampleItemTaken = TodayScheduleUiItem(
         reminder = sampleReminderTaken,
         medicationName = "Ibuprofen",
         medicationDosage = "200mg Tablet",
         medicationColorName = "LIGHT_RED",
-        medicationIconUrl = "https://example.com/dummy_icon.png", // Preview with AsyncImage (will show placeholder/error in preview)
+        medicationIconUrl = "https://example.com/dummy_icon.png",
         medicationTypeName = "Tablet",
-        formattedReminderTime = "07:00"
+        formattedReminderTime = "14:00"
     )
     MaterialTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            TodayScheduleItem(item = sampleItemTaken, onMarkAsTaken = {}, onNavigateToDetails = {})
+        Surface(color = MaterialTheme.colorScheme.surface) {
+            TodayScheduleItem(
+                item = sampleItemTaken,
+                onMarkAsTaken = {},
+                onSkip = {},
+                onNavigateToDetails = {},
+                isFuture = true, // Item is for the future and will appear disabled
+                modifier = Modifier.padding(8.dp)
+            )
         }
     }
 }
