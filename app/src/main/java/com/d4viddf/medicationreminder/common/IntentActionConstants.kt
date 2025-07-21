@@ -9,4 +9,7 @@ object IntentActionConstants {
 
     // Actions for PreReminderForegroundService
     const val ACTION_STOP_PRE_REMINDER = "com.d4viddf.medicationreminder.ACTION_STOP_PRE_REMINDER"
+
+    // Action for data sync
+    const val ACTION_DATA_CHANGED = "com.d4viddf.medicationreminder.ACTION_DATA_CHANGED"
 }

@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Medication Reminder"
 include(":app")
+include(":wear")

@@ -66,8 +66,6 @@ class MainActivity : ComponentActivity() {
         Log.i(TAG_MAIN_ACTIVITY, "onCreate: Initializing other utilities (PermissionUtils, NotificationHelper, WorkManager)...") // 15.
         PermissionUtils.init(this) // 16.
         NotificationHelper.createNotificationChannels(this) // 17.
-        val testWorkRequest = OneTimeWorkRequestBuilder<TestSimpleWorker>().build() // 18.
-        WorkManager.getInstance(applicationContext).enqueue(testWorkRequest) // 19.
         Log.i(TAG_MAIN_ACTIVITY, "onCreate: Other utilities initialized.") // 20.
 
         Log.i(TAG_MAIN_ACTIVITY, "onCreate: Setting up onboarding status observer...") // 21.

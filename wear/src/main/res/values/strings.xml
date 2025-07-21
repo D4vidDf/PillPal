@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">PillPal</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">From the Square world,\nHello, %1$s!</string>
+    <string name="tile_label">Next Dose</string>
+    <string name="complication_label">Next Dose Complication</string>
+
+    <string name="onboarding_message_title">Welcome to PillPal!</string>
+    <string name="onboarding_message_body">To get started, please connect to your phone to ensure you receive medication reminders.</string>
+    <string name="enable_alarms_permission">Enable Alarms</string>
+    <string name="got_it">Got It</string>
+    <string name="device_not_connected">Device Not Connected</string>
+    <string name="try_connection">Try Connection</string>
+    <string name="retry_connection">Retry Connection</string>
+
+    <string name="no_reminders_today">No reminders for today.</string>
+    <string name="no_reminders_today_syncing">No reminders yet. Syncing with phone...</string>
+    <string name="mark_as_taken">Mark as Taken</string>
+    <string name="already_taken">Taken</string>
+    <string name="phone_app_not_installed_android">Phone app needed. Tap to install from Play Store.</string>
+    <string name="phone_app_not_installed_ios">Phone app needed. Please install it on your iPhone.</string>
+    <string name="phone_app_not_installed_title">Phone App Not Installed</string>
+    <string name="phone_app_not_installed_body">To use this app, you need to install the companion app on your phone.</string>
+    <string name="open_play_store">Open Store</string>
+    <string name="retry_sync">Retry Sync</string>
+    <string name="permission_denied_alarm">Alarm permission is needed for reminders.</string>
+    <string name="reminder_time_prefix">Time: %1$s</string>
+    <string name="reminder_dosage_prefix">Dosage: %1$s</string>
+    <string name="checking_for_updates">Checking for updates...</string>
+    <string name="todays_reminders_header">Today\'s Reminders</string>
+    <string name="more_options">More</string>
+    <string name="sync_with_phone">Sync with phone</string>
+    <string name="open_app_on_phone">Open app on phone</string>
+    <string name="settings">Settings</string>
+    <string name="next_dose">Next dose at %1$s</string>
+    <string name="dose_quantity">Dose</string>
+    <string name="last_dose_taken">Last taken</string>
+    <string name="remaining_doses">Remaining</string>
+    <string name="open_on_phone">Open on phone</string>
+    <string name="connection_lost">Connection Lost</string>
+</resources>

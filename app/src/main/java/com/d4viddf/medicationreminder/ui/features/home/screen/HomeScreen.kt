@@ -8,17 +8,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.*
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,6 +26,8 @@ import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus // Import WatchStatus
 import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -49,6 +42,14 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Collect navigation events
+    LaunchedEffect(key1 = Unit) { // Use Unit or a key that doesn't change often
+        viewModel.navigationEvents.collectLatest { route ->
+            navController.navigate(route)
+        }
+    }
+
     HomeScreenContent(
         uiState = uiState,
         onMarkAsTaken = viewModel::markAsTaken,
@@ -57,6 +58,7 @@ fun HomeScreen(
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
         navController = navController
+        onWatchIconClick = { viewModel.handleWatchIconClick() } // Pass the handler
     )
 }
 
@@ -73,6 +75,7 @@ internal fun HomeScreenContent(
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController
+    onWatchIconClick: () -> Unit // Added callback for watch icon click
 ) {
     if (uiState.showConfirmationDialog) {
         com.d4viddf.medicationreminder.ui.common.components.ConfirmationDialog(
@@ -117,11 +120,48 @@ internal fun HomeScreenContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Filled.Watch, contentDescription = context.getString(R.string.home_button_cd_connect_wear_os))
+                    val context = LocalContext.current
+
+                    // Watch Icon Button
+                    IconButton(onClick = onWatchIconClick) {
+                        val isWatchConnected = uiState.watchStatus == WatchStatus.CONNECTED_APP_INSTALLED ||
+                                uiState.watchStatus == WatchStatus.CONNECTED_APP_NOT_INSTALLED
+
+                        val iconTint = if (isWatchConnected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current.copy(alpha = LocalContentAlpha.current) // Muted if not connected
+                        }
+
+                        val contentDesc = if (isWatchConnected) {
+                            stringResource(R.string.home_button_cd_watch_connected_settings) // New string resource needed
+                        } else {
+                            stringResource(R.string.home_button_cd_watch_disconnected_settings) // New string resource needed
+                        }
+
+                        BadgedBox(
+                            badge = {
+                                if (isWatchConnected) {
+                                    Badge() // Shows a small dot
+                                }
+                            },
+                            modifier = Modifier.semantics { contentDescription = contentDesc }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Watch, // Static Watch Icon
+                                contentDescription = null, // Content description handled by BadgedBox
+                                tint = iconTint
+                            )
+                        }
                     }
-                    IconButton(onClick = { /* TODO */ }) {
-                        val notificationsCd = if (uiState.hasUnreadAlerts) context.getString(R.string.home_button_cd_notifications_unread) else context.getString(R.string.home_button_cd_notifications_read)
+
+                    // Notifications Icon Button
+                    IconButton(onClick = { /* TODO: navController.navigate(...) */ }) {
+                        val notificationsCd = if (uiState.hasUnreadAlerts) {
+                            context.getString(R.string.home_button_cd_notifications_unread)
+                        } else {
+                            context.getString(R.string.home_button_cd_notifications_read)
+                        }
                         BadgedBox(
                             badge = { if (uiState.hasUnreadAlerts) Badge() },
                             modifier = Modifier.semantics { contentDescription = notificationsCd }

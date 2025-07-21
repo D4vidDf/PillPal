@@ -93,6 +93,10 @@ dependencies {
     implementation(libs.androidx.adaptive)
     implementation(libs.adaptive.layout)
     implementation(libs.androidx.adaptive.navigation)
+    implementation(libs.androidx.wear.remote.interactions)
+    implementation(libs.google.guava)
+    implementation(libs.concurrent.futures)
+    implementation(libs.kotlinx.coroutines.guava)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
@@ -139,4 +143,14 @@ dependencies {
     implementation(libs.hilt.work) // Or latest stable version
 
     implementation(libs.charty)
+
+    // Wear OS
+    implementation(libs.play.services.wearable)
+
+    // Explicitly add Gson for JSON serialization
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Coroutines support for Play Services Tasks (for .await())
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
+    wearApp(project(":wear"))
 }
