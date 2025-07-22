@@ -231,7 +231,7 @@ internal fun HomeScreenContent(
                     if (uiState.nextDoseGroup.isNotEmpty()) {
                         item {
                             val carouselState = rememberCarouselState { uiState.nextDoseGroup.size }
-                            val largeItemWidth = if (screenWidthDp * 0.75f >=300.dp) 340.dp else screenWidthDp * 0.75f
+                            val largeItemWidth = if (screenWidthDp<440.dp) 400.dp else screenWidthDp * 0.4f
                             HorizontalMultiBrowseCarousel(
                                 state = carouselState,
                                 modifier = Modifier.fillMaxWidth().height(160.dp).padding(horizontal = 16.dp),
@@ -256,6 +256,8 @@ internal fun HomeScreenContent(
                                 TextButton(onClick = { /* TODO: Navigate */ }) {
                                     Text(stringResource(id = R.string.show_all_button))
                                 }
+
+                                Text(screenWidthDp.toString())
                             }
                         }
                     } else {
