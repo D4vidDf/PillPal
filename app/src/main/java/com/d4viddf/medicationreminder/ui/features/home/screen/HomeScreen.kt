@@ -256,8 +256,6 @@ internal fun HomeScreenContent(
                                 TextButton(onClick = { /* TODO: Navigate */ }) {
                                     Text(stringResource(id = R.string.show_all_button))
                                 }
-
-                                Text(screenWidthDp.toString())
                             }
                         }
                     } else {
