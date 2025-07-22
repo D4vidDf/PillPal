@@ -93,7 +93,7 @@ sealed class Screen(val route: String) {
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
-    navHostModifier: Modifier = Modifier, // Renamed from modifier
+    modifier: Modifier = Modifier, // Renamed from modifier
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     isMainScaffold: Boolean, // Added parameter
@@ -111,7 +111,7 @@ fun AppNavigation(
             navController = navController,
             startDestination = startDestinationRoute, // USE THE PARAMETER HERE
             // Apply incoming navHostModifier and then conditional fillMaxSize based on isMainScaffold
-            modifier = navHostModifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
+            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
                 OnboardingScreen(

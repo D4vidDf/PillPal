@@ -41,11 +41,11 @@ import com.d4viddf.medicationreminder.viewmodel.MedicationTypeViewModel
 
 @Composable
 fun MedicationTypeSelector(
+    modifier: Modifier = Modifier, // This modifier comes from AddMedicationScreen (e.g., .fillMaxWidth().height(400.dp))
     selectedTypeId: Int,
     onTypeSelected: (Int) -> Unit,
     viewModel: MedicationTypeViewModel = hiltViewModel(),
     selectedColor: MedicationColor,
-    modifier: Modifier = Modifier // This modifier comes from AddMedicationScreen (e.g., .fillMaxWidth().height(400.dp))
 ) {
     val medicationTypes by viewModel.medicationTypes.collectAsState(initial = emptyList())
 

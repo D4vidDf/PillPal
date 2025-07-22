@@ -37,6 +37,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -113,9 +115,9 @@ fun AddMedicationScreen(
         ) // Use new icon
     )
 
-    var currentStep by rememberSaveable { mutableStateOf(0) }
-    var progress by rememberSaveable { mutableStateOf(0f) }
-    var selectedTypeId by rememberSaveable { mutableStateOf(1) }
+    var currentStep by rememberSaveable { mutableIntStateOf(0) }
+    var progress by rememberSaveable { mutableFloatStateOf(0f) }
+    var selectedTypeId by rememberSaveable { mutableIntStateOf(1) }
     var selectedColor by rememberSaveable { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
     var startDate by rememberSaveable { mutableStateOf("") }
     var endDate by rememberSaveable { mutableStateOf("") }
@@ -135,8 +137,8 @@ fun AddMedicationScreen(
     var selectedTimes by rememberSaveable { mutableStateOf<List<LocalTime>>(emptyList()) }
 
     // "Interval" specific states
-    var intervalHours by rememberSaveable { mutableStateOf(1) } // Default to 1 hour
-    var intervalMinutes by rememberSaveable { mutableStateOf(0) }
+    var intervalHours by rememberSaveable { mutableIntStateOf(1) } // Default to 1 hour
+    var intervalMinutes by rememberSaveable { mutableIntStateOf(0) }
     var intervalStartTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
     var intervalEndTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
 

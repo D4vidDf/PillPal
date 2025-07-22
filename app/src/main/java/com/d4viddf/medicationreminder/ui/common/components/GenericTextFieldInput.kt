@@ -20,12 +20,12 @@ import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenericTextFieldInput(
+    modifier: Modifier = Modifier,
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     description: String? = null,
     isError: Boolean = false,
-    modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {

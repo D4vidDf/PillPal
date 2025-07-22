@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -77,8 +78,7 @@ fun OnboardingScreen(
     navController: NavHostController,
     userPreferencesRepository: UserPreferencesRepository // Add this
 ) {
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
+    val screenWidthDp = LocalWindowInfo.current.containerSize.width
 
     val onboardingSteps = listOf(
         OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc),

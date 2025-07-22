@@ -206,7 +206,6 @@ private fun calculateAnimatedAlpha(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, name = "WheelTimePicker Preview")
 @Composable
 fun WheelTimePickerPreview() {

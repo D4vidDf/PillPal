@@ -50,10 +50,10 @@ object SettingsDestinations {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResponsiveSettingsScaffold(
+    modifier: Modifier = Modifier,
     widthSizeClass: WindowWidthSizeClass,
     navController: NavController,
     settingsViewModel: SettingsViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier,
     updateTopBarActions: (titleResId: Int, backAction: () -> Unit) -> Unit, // New parameter
     contentPadding: PaddingValues = PaddingValues(0.dp) // New parameter
 ) {
