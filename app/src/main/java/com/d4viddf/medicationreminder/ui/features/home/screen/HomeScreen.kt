@@ -10,6 +10,39 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -23,13 +56,16 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.ui.common.components.ConfirmationDialog
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus // Import WatchStatus
 import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -57,14 +93,15 @@ fun HomeScreen(
         isFutureDose = viewModel::isFutureDose,
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
-        navController = navController
+        navController = navController,
         onWatchIconClick = { viewModel.handleWatchIconClick() } // Pass the handler
     )
 }
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalMaterial3Api::class
 )
 @Composable
 internal fun HomeScreenContent(
@@ -74,11 +111,11 @@ internal fun HomeScreenContent(
     isFutureDose: (String) -> Boolean,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
-    navController: NavController
+    navController: NavController,
     onWatchIconClick: () -> Unit // Added callback for watch icon click
 ) {
     if (uiState.showConfirmationDialog) {
-        com.d4viddf.medicationreminder.ui.common.components.ConfirmationDialog(
+        ConfirmationDialog(
             onDismissRequest = onDismissConfirmationDialog,
             onConfirmation = uiState.confirmationAction,
             dialogTitle = uiState.confirmationDialogTitle,
@@ -194,7 +231,7 @@ internal fun HomeScreenContent(
                     if (uiState.nextDoseGroup.isNotEmpty()) {
                         item {
                             val carouselState = rememberCarouselState { uiState.nextDoseGroup.size }
-                            val largeItemWidth = if (screenWidthDp * 0.75f >=300.dp) 340.dp else screenWidthDp * 0.75f
+                            val largeItemWidth = if (screenWidthDp<440.dp) 400.dp else screenWidthDp * 0.4f
                             HorizontalMultiBrowseCarousel(
                                 state = carouselState,
                                 modifier = Modifier.fillMaxWidth().height(160.dp).padding(horizontal = 16.dp),
@@ -207,7 +244,7 @@ internal fun HomeScreenContent(
                                     modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge),
                                     onNavigateToDetails = { medicationId ->
                                         navController.navigate(
-                                            com.d4viddf.medicationreminder.ui.navigation.Screen.MedicationDetails.createRoute(medicationId)
+                                            Screen.MedicationDetails.createRoute(medicationId)
                                         )
                                     }
                                 )
@@ -219,6 +256,8 @@ internal fun HomeScreenContent(
                                 TextButton(onClick = { /* TODO: Navigate */ }) {
                                     Text(stringResource(id = R.string.show_all_button))
                                 }
+
+                                Text(screenWidthDp.toString())
                             }
                         }
                     } else {
@@ -435,7 +474,8 @@ fun HomeScreenNewPreview() {
             uiState = previewState,
             onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
             onRefresh = {}, onDismissConfirmationDialog = {},
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            onWatchIconClick = {}
         )
     }
 }

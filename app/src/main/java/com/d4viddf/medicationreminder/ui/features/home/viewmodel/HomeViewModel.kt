@@ -57,7 +57,7 @@ open class HomeViewModel @Inject constructor(
         val showConfirmationDialog: Boolean = false,
         val confirmationDialogTitle: String = "",
         val confirmationDialogText: String = "",
-        val confirmationAction: () -> Unit = {}
+        val confirmationAction: () -> Unit = {},
         val watchStatus: WatchStatus = WatchStatus.UNKNOWN // Added watch status
     )
 

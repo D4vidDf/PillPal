@@ -19,7 +19,7 @@ import com.d4viddf.medicationreminder.services.PreReminderForegroundService
 import com.d4viddf.medicationreminder.utils.FileLogger
 // import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
 import com.d4viddf.medicationreminder.data.MedicationReminder // Import MedicationReminder
-import com.google.android.gms.wearable.Wearable
+import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -120,7 +120,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 scope.launch {
                     var notificationSoundUri: String? = null
-                    var reminder: com.d4viddf.medicationreminder.data.MedicationReminder? = null // Changed type here
+                    var reminder: MedicationReminder? = null // Changed type here
                     var medicationColorHex: String? = null
                     var medicationTypeName: String? = null
                     try {
@@ -152,28 +152,24 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                         val callingNotificationLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Calling NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, notificationSoundUri=$notificationSoundUri, medicationColorHex=$medicationColorHex, medicationTypeName=$medicationTypeName"
                         Log.d(TAG, callingNotificationLog)
                         FileLogger.log(TAG, callingNotificationLog)
-                        val capabilityClient = Wearable.getCapabilityClient(context)
                         NotificationHelper.showReminderNotification(
                             context, reminderId, medicationName, medicationDosage,
                             isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
                             notificationSoundUri,
                             medicationColorHex,
-                            medicationTypeName,
-                            capabilityClient // Pass capabilityClient
+                            medicationTypeName
                         )
                     } catch (e: Exception) {
                         val errorCoroutineLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Error in coroutine for ReminderId: $reminderId"
                         Log.e(TAG, errorCoroutineLog, e)
                         FileLogger.log(TAG, errorCoroutineLog, e)
-                        val fallbackLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Fallback NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, null, null, null, capabilityClient"
+                        val fallbackLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Fallback NotificationHelper.showReminderNotification with: context, reminderId=$reminderId, medicationName='$medicationName', medicationDosage='$medicationDosage', isIntervalType=$isIntervalType, nextDoseTimeForHelper=${formatMillisToDateTimeString(nextDoseTimeForHelper)}, actualReminderTimeMillis=${formatMillisToDateTimeString(actualReminderTimeMillis)}, null, null, null"
                         Log.d(TAG, fallbackLog)
                         FileLogger.log(TAG, fallbackLog)
-                        val capabilityClient = Wearable.getCapabilityClient(context) // Get client for fallback too
                         NotificationHelper.showReminderNotification(
                             context, reminderId, medicationName, medicationDosage,
                             isIntervalType, nextDoseTimeForHelper, actualReminderTimeMillis,
-                            null, null, null,
-                            capabilityClient // Pass capabilityClient
+                            null, null, null
                         )
                     } finally {
                         pendingResult.finish()
@@ -271,7 +267,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                                     .putInt(WorkerConstants.KEY_MEDICATION_ID, medId)
                                     .putBoolean(WorkerConstants.KEY_IS_DAILY_REFRESH, false)
                                     .build()
-                                val scheduleNextWorkRequest = OneTimeWorkRequestBuilder<com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker>() // Corrected: ReminderSchedulingWorker to its FQDN
+                                val scheduleNextWorkRequest = OneTimeWorkRequestBuilder<ReminderSchedulingWorker>() // Corrected: ReminderSchedulingWorker to its FQDN
                                     .setInputData(data)
                                     .addTag("${WorkerConstants.WORK_NAME_PREFIX}Next_${medId}")
                                     .build()

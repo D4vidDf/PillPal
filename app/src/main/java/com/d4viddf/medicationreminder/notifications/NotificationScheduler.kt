@@ -175,8 +175,8 @@ open class NotificationScheduler @Inject constructor() {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
                 setMethodUsed = "setExactAndAllowWhileIdle"
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
-                 setMethodUsed = "setExactAndAllowWhileIdle (fallback for S+ no permission or pre-S)"
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
+                setMethodUsed = "setExactAndAllowWhileIdle (fallback for S+ no permission or pre-S)"
             } else {
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, preReminderTimeMillis, pendingIntent)
             }
@@ -226,21 +226,21 @@ open class NotificationScheduler @Inject constructor() {
                 FileLogger.log(TAG, errorCancelLog, e)
             }
         } else {
-        val noPiLog = "No MAIN PendingIntent found to cancel for reminder ID: $reminderId (request_code: $reminderId). Intent used for lookup: action=${intent.action}, extras=[${IntentExtraConstants.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
+            val noPiLog = "No MAIN PendingIntent found to cancel for reminder ID: $reminderId (request_code: $reminderId). Intent used for lookup: action=${intent.action}, extras=[${IntentExtraConstants.EXTRA_REMINDER_ID}=${reminderId}]. Alarm might have already fired or was not set."
             Log.w(TAG, noPiLog)
             FileLogger.log(TAG, noPiLog)
         }
     }
 
     private fun cancelPreReminderServiceAlarm(context: Context, reminderId: Int) {
-    val preReminderRequestCode = reminderId + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
+        val preReminderRequestCode = reminderId + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
         val cancelPreLog = "cancelPreReminderServiceAlarm called for original reminderId: $reminderId (preReminderRequestCode: $preReminderRequestCode)"
         Log.d(TAG, cancelPreLog)
         FileLogger.log(TAG, cancelPreLog)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-        action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
-        putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
+            action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
+            putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
         }
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
