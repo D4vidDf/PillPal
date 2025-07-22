@@ -23,8 +23,6 @@ import com.d4viddf.medicationreminder.common.IntentExtraConstants
 import com.d4viddf.medicationreminder.common.NotificationConstants
 import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver // Ensure this import is present
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Now using IntentExtraConstants
-import com.google.android.gms.wearable.CapabilityClient
-import com.google.android.gms.wearable.Wearable
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
 
@@ -101,7 +99,6 @@ object NotificationHelper {
         notificationSoundUriString: String?,
         medicationColorHex: String?, // New parameter
         medicationTypeName: String?,  // New parameter
-        capabilityClient: CapabilityClient // Added capabilityClient
     ) {
         Log.i(
             TAG,
@@ -185,19 +182,6 @@ object NotificationHelper {
             .addAction(R.drawable.ic_check, context.getString(R.string.notification_action_mark_as_taken), markAsTakenPendingIntent)
             .addAction(R.drawable.ic_snooze, context.getString(R.string.notification_action_snooze), snoozePendingIntent) // Added Snooze Action
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .extend(NotificationCompat.WearableExtender()
-                .addAction(NotificationCompat.Action.Builder(
-                    R.drawable.ic_check, // Use the same icon as the phone action
-                    context.getString(R.string.notification_action_mark_as_taken),
-                    markAsTakenPendingIntent
-                ).build())
-                // Add snooze action for Wear OS if it's available
-                .addAction(NotificationCompat.Action.Builder(
-                    R.drawable.ic_snooze, // Use the same icon as the phone action
-                    context.getString(R.string.notification_action_snooze),
-                    snoozePendingIntent
-                ).build())
-            )
         // Sound will be set below based on notificationSoundUriString
 
         if (!notificationSoundUriString.isNullOrEmpty()) {
@@ -245,6 +229,9 @@ object NotificationHelper {
         notificationCompatBuilder.setContentText(notificationText)
         notificationCompatBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(notificationText))
 
+        val notification = notificationCompatBuilder.build()
+        notification.flags = notification.flags or Notification.FLAG_INSISTENT
+        showNotificationInternal(context, reminderDbId, notification)
     }
 
     private fun showNotificationInternal(context: Context, id: Int, notification: Notification) {
