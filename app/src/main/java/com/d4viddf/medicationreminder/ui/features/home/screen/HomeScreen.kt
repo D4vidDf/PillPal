@@ -261,7 +261,9 @@ internal fun HomeScreenContent(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.End
                             ) {
-                                TextButton(onClick = { /* TODO: Navigate */ }) {
+                                TextButton(onClick = {
+                                    navController.navigate(Screen.TodaySchedules.route)
+                                }) {
                                     Text(stringResource(id = R.string.show_all_button))
                                 }
                             }

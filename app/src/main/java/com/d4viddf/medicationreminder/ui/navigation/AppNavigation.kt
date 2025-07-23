@@ -45,6 +45,7 @@ import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingSc
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
 import com.d4viddf.medicationreminder.ui.features.connecteddevices.screen.ConnectedDevicesScreen // Import the new screen
+import com.d4viddf.medicationreminder.ui.features.today_schedules.TodaySchedulesScreen
 
 // Define the routes for navigation
 
@@ -87,6 +88,8 @@ sealed class Screen(val route: String) {
         fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
     }
     object ConnectedDevices : Screen("connected_devices_screen") // New screen route
+
+    object TodaySchedules : Screen("today_schedules")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -366,6 +369,11 @@ fun AppNavigation(
 
             composable(Screen.ConnectedDevices.route) {
                 ConnectedDevicesScreen(navController = navController)
+            }
+            composable(Screen.TodaySchedules.route) {
+                TodaySchedulesScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
     }

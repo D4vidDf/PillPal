@@ -435,5 +435,7 @@
     <!-- New strings for BadgedBox content description -->
     <string name="home_button_cd_watch_connected_settings">Wear OS device connected. Open connection settings.</string>
     <string name="home_button_cd_watch_disconnected_settings">Wear OS device not connected. Open connection settings.</string>
+    <string name="today_schedules_title">Today\'s Schedules</string>
+    <string name="navigate_back">Navigate back</string>
 
 </resources>
