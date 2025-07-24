@@ -36,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -55,6 +56,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.integerResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -165,7 +168,7 @@ internal fun HomeScreenContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onWatchIconClick) {
+                    IconButton(onClick = onWatchIconClick, shapes = IconButtonDefaults.shapes()) {
                         val isWatchConnected = uiState.watchStatus == WatchStatus.CONNECTED_APP_INSTALLED
                         val iconTint = if (isWatchConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current
                         val contentDesc = if (isWatchConnected) stringResource(R.string.home_button_cd_watch_connected_settings) else stringResource(R.string.home_button_cd_watch_disconnected_settings)
@@ -174,16 +177,17 @@ internal fun HomeScreenContent(
                             badge = { if (isWatchConnected) Badge() },
                             modifier = Modifier.semantics { contentDescription = contentDesc }
                         ) {
-                            Icon(Icons.Filled.Watch, contentDescription = null, tint = iconTint)
+                            Icon(painterResource(R.drawable.ic_rounded_devices_wearables_24), contentDescription = null, tint = iconTint)
                         }
                     }
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { /* TODO */ }, shapes = IconButtonDefaults.shapes(),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors()) {
                         val notificationsCd = if (uiState.hasUnreadAlerts) context.getString(R.string.home_button_cd_notifications_unread) else context.getString(R.string.home_button_cd_notifications_read)
                         BadgedBox(
                             badge = { if (uiState.hasUnreadAlerts) Badge() },
                             modifier = Modifier.semantics { contentDescription = notificationsCd }
                         ) {
-                            Icon(Icons.Filled.Notifications, contentDescription = null)
+                            Icon(painterResource(R.drawable.rounded_notifications_24), contentDescription = null)
                         }
                     }
                 }
