@@ -63,9 +63,11 @@ fun TodayScheduleItem(
     ListItem(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(enabled = !isFuture) { onNavigateToDetails(item.reminder.medicationId) }
+            // Make the item clickable to navigate to details only for past/current items
+            .clickable { onNavigateToDetails(item.reminder.medicationId) }
             .semantics { contentDescription = itemContentDescription },
-        // Set background to transparent to blend with the parent surface
+        // Set background to transparent to blend with the parent card's color
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         // The leading content is the medication icon with a colored background
         leadingContent = {
             Box(
@@ -75,7 +77,9 @@ fun TodayScheduleItem(
                     .background(medicationThemeColor.backgroundColor), // Color applied here!
                 contentAlignment = Alignment.Center
             ) {
-                /*AsyncImage(
+                /*
+                // TODO: Uncomment when AsyncImage is ready
+                AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.medicationIconUrl ?: R.drawable.medication_filled)
                         .crossfade(true)
@@ -87,9 +91,10 @@ fun TodayScheduleItem(
                     modifier = Modifier.size(32.dp), // Icon is smaller than its background
                     // Tint the icon if it's the default drawable
                     colorFilter = if (item.medicationIconUrl == null) ColorFilter.tint(medicationThemeColor.textColor) else null
-                )*/
+                )
+                */
                 Icon(
-                    painter=painterResource(R.drawable.medication_filled),
+                    painter = painterResource(R.drawable.medication_filled),
                     contentDescription = item.medicationTypeName ?: item.medicationName,
                     modifier = Modifier.size(32.dp),
                     tint = medicationThemeColor.textColor
@@ -115,9 +120,9 @@ fun TodayScheduleItem(
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        },
-        // The three-dots menu at the end of the item
 
+
+        }
     )
 }
 

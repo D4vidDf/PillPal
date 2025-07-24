@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.features.today_schedules
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -16,9 +17,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,18 +41,26 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun TodaySchedulesScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDetails: (medicationId: Int) -> Unit, // Added parameter for navigation
     viewModel: TodaySchedulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
+    val sortedTimes = uiState.scheduleItems.keys.sorted()
+    val nextTimeIndex =
+        sortedTimes.indexOfFirst { it >= LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) }
+
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = { Text(stringResource(id = R.string.today_schedules_title)) },
@@ -53,31 +68,21 @@ fun TodaySchedulesScreen(
                     IconButton(
                         onClick = onNavigateBack,
                         shapes = IconButtonDefaults.shapes(),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(),
-                        modifier = Modifier
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.rounded_arrow_back_ios_new_24),
                             contentDescription = stringResource(R.string.navigate_back),
                         )
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 coroutineScope.launch {
-                    val currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
-                    val sortedTimes = uiState.scheduleItems.keys.sorted()
-                    val groupIndex = sortedTimes.indexOfFirst { it >= currentTime }
-
-                    if (groupIndex != -1) {
-                        var itemIndex = 0
-                        for (i in 0 until groupIndex) {
-                            itemIndex += 1 // For the header
-                            itemIndex += uiState.scheduleItems[sortedTimes[i]]?.size ?: 0
-                        }
-                        listState.animateScrollToItem(itemIndex)
+                    if (nextTimeIndex != -1) {
+                        listState.animateScrollToItem(nextTimeIndex)
                     }
                 }
             }) {
@@ -101,38 +106,36 @@ fun TodaySchedulesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (uiState.isLoading) {
-                    ContainedLoadingIndicator(
-                        modifier = Modifier.size(128.dp)
-                    )
+                    CircularProgressIndicator(modifier = Modifier.size(128.dp))
                 } else if (uiState.scheduleItems.isEmpty()) {
                     EmptyState()
                 } else {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 80.dp), // Padding for FAB
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        uiState.scheduleItems.forEach { (time, itemsForTime) ->
-                            stickyHeader {
-                                TimeHeader(time = time)
-                            }
-                            items(itemsForTime, key = { it.reminder.id }) { item ->
-                                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                    TodayScheduleItem(
-                                        item = item,
-                                        onMarkAsTaken = { /* TODO */ },
-                                        onSkip = { /* TODO */ },
-                                        onNavigateToDetails = { /* TODO */ },
-                                        isFuture = try {
-                                            LocalDateTime.parse(item.reminder.reminderTime)
-                                                .isAfter(LocalDateTime.now())
-                                        } catch (e: Exception) {
-                                            false
-                                        }
-                                    )
-                                }
-                            }
+                        items(
+                            count = sortedTimes.size,
+                            key = { index -> sortedTimes[index] }
+                        ) { index ->
+                            val time = sortedTimes[index]
+                            val itemsForTime = uiState.scheduleItems[time].orEmpty()
+                            val isNextCard = index == nextTimeIndex
+
+                            // --- CHANGE: Pass the navigation and ViewModel functions ---
+                            TimeGroupCard(
+                                time = time,
+                                itemsForTime = itemsForTime,
+                                isHighlighted = isNextCard,
+                                onNavigateToDetails = onNavigateToDetails,
+                                onMarkAsTaken = {},
+                                onSkip = { }
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
@@ -140,6 +143,54 @@ fun TodaySchedulesScreen(
         }
     }
 }
+
+@Composable
+private fun TimeGroupCard(
+    time: String,
+    itemsForTime: List<TodayScheduleUiItem>,
+    isHighlighted: Boolean,
+    onMarkAsTaken: (MedicationReminder) -> Unit,
+    onSkip: (MedicationReminder) -> Unit,
+    onNavigateToDetails: (medicationId: Int) -> Unit,
+) {
+    val cardColors = if (isHighlighted) {
+        CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    } else {
+        CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = cardColors
+    ) {
+        Column {
+            TimeHeader(time = time)
+            itemsForTime.forEach { item ->
+                TodayScheduleItem(
+                    item = item,
+                    onMarkAsTaken = onMarkAsTaken,
+                    onSkip = onSkip,
+                    onNavigateToDetails = onNavigateToDetails,
+                    isFuture = try {
+                        LocalDateTime.parse(item.reminder.reminderTime)
+                            .isAfter(LocalDateTime.now())
+                    } catch (e: Exception) {
+                        false
+                    }
+                )
+                if (itemsForTime.last() != item) {
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                }
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -216,7 +267,8 @@ private fun FilterControls(
                         Text(
                             uiState.selectedColorName?.replace("_", " ")?.lowercase()
                                 ?.replaceFirstChar { it.titlecase() }
-                                ?: stringResource(id = R.string.filter_by_color))
+                                ?: stringResource(id = R.string.filter_by_color)
+                        )
                     },
                     leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
                 )
@@ -269,7 +321,7 @@ private fun FilterControls(
             } else {
                 stringResource(id = R.string.filter_by_time_range)
             }
-            InputChip(
+            FilterChip(
                 selected = uiState.selectedTimeRange != null,
                 onClick = { showTimeRangeDialog = true },
                 label = { Text(label) },
@@ -303,10 +355,12 @@ private fun TimeRangePickerDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (selectingStart) "Select Start Time" else "Select End Time") },
         text = {
-            if (selectingStart) {
-                TimePicker(state = startTimeState)
-            } else {
-                TimePicker(state = endTimeState)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (selectingStart) {
+                    TimePicker(state = startTimeState)
+                } else {
+                    TimePicker(state = endTimeState)
+                }
             }
         },
         confirmButton = {
@@ -332,16 +386,11 @@ private fun TimeRangePickerDialog(
 
 @Composable
 private fun TimeHeader(time: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Text(
-            text = time,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-    }
+    Text(
+        text = time,
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+    )
 }
 
 @Composable
@@ -367,9 +416,10 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 }
 
 
+
 // --- PREVIEW ---
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Today's Schedules Preview")
 @Composable
 fun TodaySchedulesScreenPreview() {
@@ -379,7 +429,7 @@ fun TodaySchedulesScreenPreview() {
             mockTodayScheduleUiItem(2, "Vitamin C", "LIGHT_YELLOW")
         ),
         "14:00" to listOf(
-            mockTodayScheduleUiItem(3, "Ibuprofen", "LIGHT_RED")
+            mockTodayScheduleUiItem(3, "Ibuprofen Long Name", "LIGHT_RED")
         ),
         "22:00" to listOf(
             mockTodayScheduleUiItem(4, "Metformin", "LIGHT_BLUE")
@@ -391,54 +441,36 @@ fun TodaySchedulesScreenPreview() {
         isLoading = false,
         allMedications = listOf(
             Medication(
-                id = 1, name = "Amoxicillin",
-                typeId = 2,
-                color = "Orange",
-                dosage = "1",
-                packageSize = 12,
-                remainingDoses = 2,
-                startDate = null,
-                endDate = null,
-                reminderTime = null,
-                registrationDate = null,
-                nregistro = null
+                id = 1, name = "Amoxicillin", typeId = 2, color = "Orange", dosage = "1",
+                packageSize = 12, remainingDoses = 2, startDate = null, endDate = null,
+                reminderTime = null, registrationDate = null, nregistro = null
             ),
             Medication(
-                id = 2, name = "Ibuprofen",
-                typeId = 1,
-                color = "Orange",
-                dosage = "1",
-                packageSize = 12,
-                remainingDoses = 2,
-                startDate = null,
-                endDate = null,
-                reminderTime = null,
-                registrationDate = null,
-                nregistro = null
+                id = 2, name = "Ibuprofen", typeId = 1, color = "Orange", dosage = "1",
+                packageSize = 12, remainingDoses = 2, startDate = null, endDate = null,
+                reminderTime = null, registrationDate = null, nregistro = null
             )
         )
     )
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val sortedTimes = previewState.scheduleItems.keys.sorted()
+    val nextTimeIndex = 1
 
     AppTheme {
-        // Re-implementing a simplified version of the screen for preview purposes
-        // to avoid needing a full ViewModel instance.
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 LargeTopAppBar(
                     title = { Text(stringResource(id = R.string.today_schedules_title)) },
                     navigationIcon = {
-                        IconButton(
-                            onClick = {},
-                            shapes = IconButtonDefaults.shapes(),
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(),
-                            modifier = Modifier
-                        ) {
+                        IconButton(onClick = {}) {
                             Icon(
                                 painter = painterResource(R.drawable.rounded_arrow_back_ios_new_24),
                                 contentDescription = stringResource(R.string.navigate_back),
                             )
                         }
-                    }
+                    },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
@@ -448,33 +480,31 @@ fun TodaySchedulesScreenPreview() {
             }
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
-                // In a real app, you would pass a real state object here
-                // For preview, we can pass a dummy state.
                 FilterControls(
                     uiState = previewState,
                     onMedicationFilterChanged = {},
                     onColorFilterChanged = {},
                     onTimeRangeFilterChanged = { _, _ -> }
                 )
-
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    previewState.scheduleItems.forEach { (time, itemsForTime) ->
-                        stickyHeader { TimeHeader(time = time) }
-                        items(itemsForTime) { item ->
-                            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                // You'll need a mock or a simplified version of TodayScheduleItem
-                                // if it has complex dependencies.
-                                // For now, we'll use a simple Text as a placeholder.
-                                Text(
-                                    text = "${item.medicationName} - ${item.medicationDosage}",
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                            }
-                        }
+                    items(
+                        count = sortedTimes.size,
+                        key = { index -> sortedTimes[index] }
+                    ) { index ->
+                        val time = sortedTimes[index]
+                        val itemsForTime = previewState.scheduleItems[time].orEmpty()
+                        TimeGroupCard(
+                            time = time,
+                            itemsForTime = itemsForTime,
+                            isHighlighted = index == nextTimeIndex,
+                            onMarkAsTaken = {},
+                            onSkip = {},
+                            onNavigateToDetails = {}
+                        )
                     }
                 }
             }
@@ -495,6 +525,6 @@ private fun mockTodayScheduleUiItem(
         medicationColorName = color,
         medicationIconUrl = null,
         medicationTypeName = "Tablet",
-        formattedReminderTime = "08:00" // This would vary in real data
+        formattedReminderTime = "08:00"
     )
 }

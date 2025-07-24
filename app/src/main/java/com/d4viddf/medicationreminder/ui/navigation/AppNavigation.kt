@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,6 +47,8 @@ import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
 import com.d4viddf.medicationreminder.ui.features.connecteddevices.screen.ConnectedDevicesScreen // Import the new screen
 import com.d4viddf.medicationreminder.ui.features.today_schedules.TodaySchedulesScreen
+import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
+import java.time.format.DateTimeFormatter
 
 // Define the routes for navigation
 
@@ -267,7 +270,7 @@ fun AppNavigation(
             }
             composable(Screen.Analysis.route) {
                 // Placeholder for Analysis Screen
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Analysis Screen (Placeholder)")
                 }
             }
@@ -323,7 +326,7 @@ fun AppNavigation(
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
                 val colorName = backStackEntry.arguments?.getString("colorName")
-                val medicationGraphViewModel: com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel = hiltViewModel()
+                val medicationGraphViewModel: MedicationGraphViewModel = hiltViewModel()
                 MedicationGraphScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
@@ -335,7 +338,7 @@ fun AppNavigation(
                             Screen.MedicationHistory.createRoute(
                                 medicationId = medId,
                                 colorName = colorStr,
-                                selectedDate = date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                                selectedDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
                             )
                         )
                     },
@@ -372,7 +375,15 @@ fun AppNavigation(
             }
             composable(Screen.TodaySchedules.route) {
                 TodaySchedulesScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToDetails = { medicationId ->
+                        navController.navigate(
+                            Screen.MedicationDetails.createRoute(
+                                medicationId,
+                                enableSharedTransition = true
+                            )
+                        )
+                    }
                 )
             }
         }
