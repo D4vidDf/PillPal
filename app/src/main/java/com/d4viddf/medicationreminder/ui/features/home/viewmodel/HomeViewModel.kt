@@ -11,7 +11,7 @@ import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
-import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.features.today_schedules.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper
 import dagger.hilt.android.lifecycle.HiltViewModel

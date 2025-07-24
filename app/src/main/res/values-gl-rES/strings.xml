@@ -414,4 +414,11 @@
     <string name="no_schedule_today_body">You have no medications scheduled for today. Check back tomorrow!</string>
     <string name="no_more_schedules_today_title">All Doses Complete for Today!</string>
     <string name="no_more_schedules_today_body">You have taken all your scheduled doses for today. Great job!</string>
+    <string name="no_schedules_for_today">No schedules for today</string>
+    <string name="scroll_to_current_time">Scroll to current time</string>
+    <string name="filter_by_medication">Medication</string>
+    <string name="all_medications">All</string>
+    <string name="filter_by_color">Color</string>
+    <string name="all_colors">All Colors</string>
+    <string name="filter_by_time_range">Time Range</string>
 </resources>

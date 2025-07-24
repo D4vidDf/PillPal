@@ -1,12 +1,9 @@
-package com.d4viddf.medicationreminder.ui.features.home.components
+package com.d4viddf.medicationreminder.ui.features.today_schedules
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,8 +13,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -32,7 +31,6 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminder
 import com.d4viddf.medicationreminder.logic.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
-import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
 import java.time.LocalDateTime
 
 @Composable
@@ -77,8 +75,8 @@ fun TodayScheduleItem(
                     .background(medicationThemeColor.backgroundColor), // Color applied here!
                 contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                /*AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
                         .data(item.medicationIconUrl ?: R.drawable.medication_filled)
                         .crossfade(true)
                         .error(R.drawable.medication_filled)
@@ -89,6 +87,12 @@ fun TodayScheduleItem(
                     modifier = Modifier.size(32.dp), // Icon is smaller than its background
                     // Tint the icon if it's the default drawable
                     colorFilter = if (item.medicationIconUrl == null) ColorFilter.tint(medicationThemeColor.textColor) else null
+                )*/
+                Icon(
+                    painter=painterResource(R.drawable.medication_filled),
+                    contentDescription = item.medicationTypeName ?: item.medicationName,
+                    modifier = Modifier.size(32.dp),
+                    tint = medicationThemeColor.textColor
                 )
             }
         },

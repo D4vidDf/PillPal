@@ -74,7 +74,7 @@ import com.d4viddf.medicationreminder.ui.common.components.ConfirmationDialog
 import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
-import com.d4viddf.medicationreminder.ui.features.home.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.features.today_schedules.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
 import com.d4viddf.medicationreminder.ui.features.home.viewmodel.HomeViewModel
 import com.d4viddf.medicationreminder.ui.navigation.Screen

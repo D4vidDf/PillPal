@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.ui.features.home.model
+package com.d4viddf.medicationreminder.ui.features.today_schedules
 
 import com.d4viddf.medicationreminder.data.MedicationReminder
 
