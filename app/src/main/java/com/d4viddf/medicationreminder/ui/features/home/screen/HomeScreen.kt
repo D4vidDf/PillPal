@@ -596,7 +596,7 @@ fun HomeScreenNoMoreDosesPreview() {
 @Composable
 fun HomeScreenOneDosePreview() {
     val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Good morning!",
+        currentGreeting = "Next Dosage",
         hasRegisteredMedications = true,
         nextDoseGroup = listOf(mockNextDoseUiItem(1, "Amoxicillin")),
         todaysReminders = mapOf("Morning" to listOf(mockTodayScheduleUiItem())),
@@ -617,7 +617,7 @@ fun HomeScreenOneDosePreview() {
 @Composable
 fun HomeScreenTwoDosesPreview() {
     val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Good morning!",
+        currentGreeting = "Next Dosage",
         hasRegisteredMedications = true,
         nextDoseGroup = listOf(
             mockNextDoseUiItem(1, "Amoxicillin"),
