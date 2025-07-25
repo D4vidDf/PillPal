@@ -122,7 +122,6 @@ fun AppNavigation(
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
                 OnboardingScreen(
                     navController = navController,
-                    userPreferencesRepository = userPreferencesRepository // Pass it here
                 )
             }
             composable(Screen.Home.route) {

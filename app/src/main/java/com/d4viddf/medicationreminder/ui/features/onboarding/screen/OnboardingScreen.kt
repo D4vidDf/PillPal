@@ -12,11 +12,13 @@ import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -51,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -58,6 +61,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.ui.features.onboarding.viewmodel.OnboardingUiState
+import com.d4viddf.medicationreminder.ui.features.onboarding.viewmodel.OnboardingViewModel
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
@@ -69,7 +74,7 @@ enum class PermissionType { NOTIFICATION, EXACT_ALARM, FULL_SCREEN_INTENT }
 data class OnboardingStepContent(
     val titleResId: Int,
     val descriptionResId: Int,
-    val imageResId: Int,
+    @DrawableRes val iconResId: Int,
     val permissionType: PermissionType? = null
 )
 
@@ -86,35 +91,49 @@ private fun Context.findActivity(): Activity? = when (this) {
 @Composable
 fun OnboardingScreen(
     navController: NavHostController,
-    userPreferencesRepository: UserPreferencesRepository
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    val onboardingSteps = listOf(
-        OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc, R.mipmap.ic_launcher_foreground),
-        OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, R.mipmap.ic_launcher_foreground, PermissionType.NOTIFICATION),
-        OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc, R.mipmap.ic_launcher_foreground, PermissionType.EXACT_ALARM),
-        OnboardingStepContent(R.string.onboarding_step_fullscreen_title, R.string.onboarding_step_fullscreen_desc, R.mipmap.ic_launcher_foreground, PermissionType.FULL_SCREEN_INTENT),
-        OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc, R.mipmap.ic_launcher_foreground)
-    )
-    val pagerState = rememberPagerState { onboardingSteps.size }
+    val uiState by viewModel.uiState.collectAsState()
+    val pagerState = rememberPagerState { uiState.steps.size }
     val activity = LocalContext.current.findActivity() as? ComponentActivity
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.checkPermissionForCurrentStep(pagerState.currentPage)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        viewModel.checkPermissionForCurrentStep(pagerState.currentPage)
+    }
 
     val isTablet = LocalConfiguration.current.screenWidthDp >= 600
 
     if (isTablet) {
         OnboardingTabletLayout(
             pagerState = pagerState,
-            steps = onboardingSteps,
-            navController = navController,
+            uiState = uiState,
             activity = activity ?: ComponentActivity(),
-            userPreferencesRepository = userPreferencesRepository
+            onFinish = {
+                viewModel.finishOnboarding()
+                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+            }
         )
     } else {
         OnboardingPhoneLayout(
             pagerState = pagerState,
-            steps = onboardingSteps,
-            navController = navController,
+            uiState = uiState,
             activity = activity ?: ComponentActivity(),
-            userPreferencesRepository = userPreferencesRepository
+            onPermissionRequested = { viewModel.checkPermissionForCurrentStep(pagerState.currentPage) },
+            onFinish = {
+                viewModel.finishOnboarding()
+                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+            }
         )
     }
 }
@@ -124,10 +143,10 @@ fun OnboardingScreen(
 @Composable
 fun OnboardingPhoneLayout(
     pagerState: PagerState,
-    steps: List<OnboardingStepContent>,
-    navController: NavHostController,
+    uiState: OnboardingUiState,
     activity: ComponentActivity,
-    userPreferencesRepository: UserPreferencesRepository
+    onPermissionRequested: () -> Unit,
+    onFinish: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var showWelcomeScreen by rememberSaveable { mutableStateOf(true) }
@@ -139,22 +158,20 @@ fun OnboardingPhoneLayout(
             bottomBar = {
                 OnboardingNavigation(
                     pagerState = pagerState,
-                    steps = steps,
+                    steps = uiState.steps,
+                    isNextEnabled = uiState.isCurrentStepPermissionGranted,
                     onNext = {
-                        coroutineScope.launch {
-                            if (pagerState.currentPage < steps.size - 1) {
+                        if (pagerState.currentPage < uiState.steps.size - 1) {
+                            coroutineScope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            } else {
-                                userPreferencesRepository.updateOnboardingCompleted(true)
-                                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
                             }
+                        } else {
+                            onFinish()
                         }
                     },
                     onPrevious = {
                         coroutineScope.launch {
-                            if (pagerState.currentPage > 0) {
-                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                            }
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
                     }
                 )
@@ -163,31 +180,22 @@ fun OnboardingPhoneLayout(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Fixed height Box to keep the image position consistent
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp), // Adjust height as needed
-                    contentAlignment = Alignment.Center
-                ) {
-                    Crossfade(targetState = pagerState.currentPage, label = "onboarding_image_crossfade") { page ->
-                        Image(
-                            painter = painterResource(id = steps[page].imageResId),
-                            contentDescription = null,
-                            modifier = Modifier.size(180.dp)
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.height(64.dp))
+                MorphingIcon(pagerState = pagerState, steps = uiState.steps)
+                Spacer(modifier = Modifier.height(48.dp))
 
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    userScrollEnabled = uiState.isCurrentStepPermissionGranted
                 ) { pageIndex ->
                     OnboardingStepPage(
-                        step = steps[pageIndex],
-                        activity = activity
+                        step = uiState.steps[pageIndex],
+                        activity = activity,
+                        onPermissionResult = onPermissionRequested
                     )
                 }
             }
@@ -205,17 +213,15 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.weight(1f))
-
-        // Animated Logo Box - now larger on phones
         AnimatedLogo(
             modifier = Modifier.size(250.dp),
             shapes = listOf(
                 MaterialShapes.Cookie6Sided,
+                MaterialShapes.Sunny,
                 MaterialShapes.Cookie9Sided,
-                MaterialShapes.Cookie12Sided,
+                MaterialShapes.Flower
             )
         )
-
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(id = R.string.onboarding_welcome_title),
@@ -234,7 +240,7 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shapes= ButtonDefaults.shapes()
+            shape = ButtonDefaults.shape
         ) {
             Text(text = stringResource(R.string.start_onboarding_button_text))
         }
@@ -250,9 +256,9 @@ fun AnimatedLogo(
 
     val infiniteTransition = rememberInfiniteTransition(label = "logo_animation")
     val animationDuration = 4000
-    val totalDuration = animationDuration
+    val pauseDuration = 200
+    val totalDuration = animationDuration + pauseDuration
 
-    // Animate through the list of shapes
     val morphProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = (shapes.size - 1).toFloat(),
@@ -260,8 +266,8 @@ fun AnimatedLogo(
             animation = keyframes {
                 durationMillis = totalDuration * (shapes.size - 1)
                 for (i in 0 until shapes.size - 1) {
-                    i.toFloat() at (totalDuration * i) with FastOutSlowInEasing
-                    (i + 1).toFloat() at (totalDuration * (i + 1)) with FastOutSlowInEasing
+                    i.toFloat() at (totalDuration * i) using FastOutSlowInEasing
+                    (i + 1).toFloat() at (totalDuration * (i + 1) - pauseDuration) using FastOutSlowInEasing
                 }
             },
             repeatMode = RepeatMode.Reverse
@@ -269,15 +275,14 @@ fun AnimatedLogo(
         label = "morph_progress"
     )
 
-    // Animate rotation based on the same total duration to keep them in sync
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = totalDuration
-                0f at 0 with FastOutSlowInEasing
-                360f at animationDuration with FastOutSlowInEasing
+                0f at 0 using FastOutSlowInEasing
+                360f at animationDuration using FastOutSlowInEasing
                 360f at totalDuration
             },
             repeatMode = RepeatMode.Restart
@@ -302,7 +307,7 @@ fun AnimatedLogo(
 
                 val matrix = Matrix()
                 matrix.scale(size.width / 2f, size.height / 2f)
-                matrix.translate(0.5f, 0.5f)
+                matrix.translate(0.5f, 0.5f) // Corrected translation
                 path.transform(matrix)
                 return Outline.Generic(path)
             }
@@ -310,24 +315,22 @@ fun AnimatedLogo(
     }
 
     Box(
-        modifier = modifier,
+        modifier = modifier.size(300.dp),
         contentAlignment = Alignment.Center
     ) {
-        // The background box rotates and morphs
         Box(
-            modifier = Modifier.size(600.dp)
+            modifier = Modifier
+                .size(300.dp)
                 .graphicsLayer { rotationZ = rotation }
                 .background(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     shape = morphShape
                 )
         )
-
-        // The image itself does not rotate
         Image(
             painter = painterResource(id = R.mipmap.ic_launcher_foreground),
             contentDescription = stringResource(R.string.onboarding_welcome_title),
-            modifier = Modifier.size(180.dp) // Make it smaller than the background
+            modifier = Modifier.size(180.dp)
         )
     }
 }
@@ -338,10 +341,9 @@ fun AnimatedLogo(
 @Composable
 fun OnboardingTabletLayout(
     pagerState: PagerState,
-    steps: List<OnboardingStepContent>,
-    navController: NavHostController,
+    uiState: OnboardingUiState,
     activity: ComponentActivity,
-    userPreferencesRepository: UserPreferencesRepository
+    onFinish: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -355,15 +357,15 @@ fun OnboardingTabletLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Use the same animated logo on the tablet layout
             AnimatedLogo(
                 modifier = Modifier.size(250.dp),
-                shapes = listOf(MaterialShapes.Cookie6Sided,
+                shapes = listOf(
+                    MaterialShapes.Cookie6Sided,
+                    MaterialShapes.Sunny,
                     MaterialShapes.Cookie9Sided,
-                    MaterialShapes.Cookie12Sided,
+                    MaterialShapes.Flower
                 )
             )
-
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.onboarding_welcome_title),
@@ -376,14 +378,14 @@ fun OnboardingTabletLayout(
             bottomBar = {
                 OnboardingNavigation(
                     pagerState = pagerState,
-                    steps = steps,
+                    steps = uiState.steps,
+                    isNextEnabled = uiState.isCurrentStepPermissionGranted,
                     onNext = {
                         coroutineScope.launch {
-                            if (pagerState.currentPage < steps.size - 1) {
+                            if (pagerState.currentPage < uiState.steps.size - 1) {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             } else {
-                                userPreferencesRepository.updateOnboardingCompleted(true)
-                                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                                onFinish()
                             }
                         }
                     },
@@ -397,13 +399,27 @@ fun OnboardingTabletLayout(
                 )
             }
         ) { padding ->
-            HorizontalPager(
-                state = pagerState,
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-            ) { pageIndex ->
-                OnboardingStepPage(step = steps[pageIndex], activity = activity)
+                    .padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(64.dp))
+                MorphingIcon(pagerState = pagerState, steps = uiState.steps)
+                Spacer(modifier = Modifier.height(48.dp))
+
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) { pageIndex ->
+                    OnboardingStepPage(
+                        step = uiState.steps[pageIndex],
+                        activity = activity,
+                        onPermissionResult = {})
+                }
             }
         }
     }
@@ -413,57 +429,21 @@ fun OnboardingTabletLayout(
 @Composable
 fun OnboardingStepPage(
     step: OnboardingStepContent,
-    activity: ComponentActivity
+    activity: ComponentActivity,
+    onPermissionResult: () -> Unit
 ) {
-    val context = LocalContext.current
-    var isPermissionGranted by remember { mutableStateOf(false) }
-
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        isPermissionGranted = granted
+    ) {
+        onPermissionResult()
     }
 
-    fun checkPermission() {
-        isPermissionGranted = when (step.permissionType) {
-            PermissionType.NOTIFICATION ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                } else true
-            PermissionType.EXACT_ALARM ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                    alarmManager.canScheduleExactAlarms()
-                } else true
-            PermissionType.FULL_SCREEN_INTENT -> true
-            null -> true
-        }
-    }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, step.permissionType) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                checkPermission()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-    LaunchedEffect(step.permissionType) {
-        checkPermission()
-    }
-
-    // The main Column now only contains the text and the button.
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp), // Only horizontal padding
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center // Align content to the top
+        verticalArrangement = Arrangement.Top
     ) {
         Text(
             text = stringResource(id = step.titleResId),
@@ -491,16 +471,10 @@ fun OnboardingStepPage(
                             PermissionUtils.checkAndRequestFullScreenIntentPermission(activity)
                     }
                 },
-                enabled = !isPermissionGranted,
                 modifier = Modifier.fillMaxWidth(0.8f),
-                shapes= ButtonDefaults.shapes()
+                shape = ButtonDefaults.shape
             ) {
-                Text(
-                    text = stringResource(
-                        if (isPermissionGranted) R.string.onboarding_permission_granted_button
-                        else R.string.onboarding_grant_permission_button
-                    )
-                )
+                Text(text = stringResource(id = R.string.onboarding_grant_permission_button))
             }
         }
     }
@@ -511,30 +485,10 @@ fun OnboardingStepPage(
 private fun OnboardingNavigation(
     pagerState: PagerState,
     steps: List<OnboardingStepContent>,
+    isNextEnabled: Boolean,
     onNext: () -> Unit,
     onPrevious: () -> Unit
 ) {
-    val context = LocalContext.current
-    var isNextEnabled by remember { mutableStateOf(true) }
-
-    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-        if (!pagerState.isScrollInProgress) {
-            val currentStep = steps.getOrNull(pagerState.currentPage)
-            isNextEnabled = when (currentStep?.permissionType) {
-                PermissionType.NOTIFICATION ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                    } else true
-                PermissionType.EXACT_ALARM ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
-                    } else true
-                else -> true
-            }
-        }
-    }
-
-    // Use a Box to perfectly center the indicators
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -569,13 +523,92 @@ private fun OnboardingNavigation(
             onClick = onNext,
             enabled = isNextEnabled,
             modifier = Modifier.align(Alignment.CenterEnd),
-            shapes= ButtonDefaults.shapes()
+            shape = ButtonDefaults.shape
         ) {
             Text(
                 text = stringResource(
                     if (pagerState.currentPage < steps.size - 1) R.string.next_button_text
                     else R.string.done_button_text
                 )
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MorphingIcon(
+    pagerState: PagerState,
+    steps: List<OnboardingStepContent>
+) {
+    val morphProgress = pagerState.currentPage + pagerState.currentPageOffsetFraction
+
+    val morphShape = remember(morphProgress) {
+        object : Shape {
+            override fun createOutline(
+                size: Size,
+                layoutDirection: LayoutDirection,
+                density: Density
+            ): Outline {
+                val fromIndex = floor(morphProgress).toInt().coerceIn(0, steps.size - 2)
+                val toIndex = (fromIndex + 1).coerceAtMost(steps.size - 1)
+                val progress = morphProgress - fromIndex
+
+                val shapes = listOf(
+                    MaterialShapes.Pill,
+                    MaterialShapes.Sunny,
+                    MaterialShapes.Cookie9Sided,
+                    MaterialShapes.Pentagon,
+                    MaterialShapes.Cookie12Sided
+                )
+
+                val morph = Morph(shapes[fromIndex], shapes[toIndex])
+                val path = Path()
+                morph.toPath(progress, path)
+
+                val matrix = Matrix()
+                matrix.scale(size.width / 2f, size.height / 2f)
+                matrix.translate(0.5f, 0.5f)
+                path.transform(matrix)
+                return Outline.Generic(path)
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .size(240.dp)
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = morphShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        val iconAlpha by animateFloatAsState(
+            targetValue = 1f - (pagerState.currentPageOffsetFraction * 2).coerceIn(0f, 1f),
+            label = "icon_alpha_fade_out"
+        )
+        val nextIconAlpha by animateFloatAsState(
+            targetValue = (pagerState.currentPageOffsetFraction * 2 - 1).coerceIn(0f, 1f),
+            label = "icon_alpha_fade_in"
+        )
+
+        Icon(
+            painter = painterResource(id = steps[pagerState.currentPage].iconResId),
+            contentDescription = null,
+            modifier = Modifier
+                .size(48.dp)
+                .graphicsLayer { alpha = iconAlpha },
+            tint = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        if (pagerState.currentPage < steps.size - 1) {
+            Icon(
+                painter = painterResource(id = steps[pagerState.currentPage + 1].iconResId),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .graphicsLayer { alpha = nextIconAlpha },
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }
@@ -598,7 +631,8 @@ fun OnboardingStep1Preview() {
     MaterialTheme {
         OnboardingStepPage(
             step = OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc, R.mipmap.ic_launcher_foreground),
-            activity = ComponentActivity()
+            activity = ComponentActivity(),
+            onPermissionResult = {}
         )
     }
 }
@@ -610,7 +644,8 @@ fun OnboardingStep2NotificationsPreview() {
     MaterialTheme {
         OnboardingStepPage(
             step = OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, R.mipmap.ic_launcher_foreground, PermissionType.NOTIFICATION),
-            activity = ComponentActivity()
+            activity = ComponentActivity(),
+            onPermissionResult = {}
         )
     }
 }
@@ -622,7 +657,8 @@ fun OnboardingStep3AlarmsPreview() {
     MaterialTheme {
         OnboardingStepPage(
             step = OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc, R.mipmap.ic_launcher_foreground, PermissionType.EXACT_ALARM),
-            activity = ComponentActivity()
+            activity = ComponentActivity(),
+            onPermissionResult = {}
         )
     }
 }
@@ -634,7 +670,8 @@ fun OnboardingStep4FullscreenPreview() {
     MaterialTheme {
         OnboardingStepPage(
             step = OnboardingStepContent(R.string.onboarding_step_fullscreen_title, R.string.onboarding_step_fullscreen_desc, R.mipmap.ic_launcher_foreground, PermissionType.FULL_SCREEN_INTENT),
-            activity = ComponentActivity()
+            activity = ComponentActivity(),
+            onPermissionResult = {}
         )
     }
 }
@@ -646,7 +683,8 @@ fun OnboardingStep5FinishPreview() {
     MaterialTheme {
         OnboardingStepPage(
             step = OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc, R.mipmap.ic_launcher_foreground),
-            activity = ComponentActivity()
+            activity = ComponentActivity(),
+            onPermissionResult = {}
         )
     }
 }
@@ -660,13 +698,14 @@ fun OnboardingTabletLayoutPreview() {
     MaterialTheme {
         OnboardingTabletLayout(
             pagerState = rememberPagerState { 5 },
-            steps = listOf(
-                OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc, R.mipmap.ic_launcher_foreground),
-                OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, R.mipmap.ic_launcher_foreground, PermissionType.NOTIFICATION)
+            uiState = OnboardingUiState(
+                steps = listOf(
+                    OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc, R.mipmap.ic_launcher_foreground),
+                    OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, R.mipmap.ic_launcher_foreground, PermissionType.NOTIFICATION)
+                )
             ),
-            navController = rememberNavController(),
             activity = ComponentActivity(),
-            userPreferencesRepository = UserPreferencesRepository(context)
+            onFinish = {}
         )
     }
 }
