@@ -155,7 +155,7 @@ private fun TimeGroupCard(
 ) {
     val cardColors = if (isHighlighted) {
         CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     } else {
         CardDefaults.cardColors(
@@ -456,7 +456,9 @@ fun TodaySchedulesScreenPreview() {
     val sortedTimes = previewState.scheduleItems.keys.sorted()
     val nextTimeIndex = 1
 
-    AppTheme {
+    AppTheme(
+        dynamicColor = true
+    ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {

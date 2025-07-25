@@ -44,8 +44,8 @@ class OnboardingViewModel @Inject constructor(
         return listOf(
             OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc, R.drawable.rounded_thumb_up_24),
             OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, R.drawable.rounded_notifications_24, PermissionType.NOTIFICATION),
-            OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc, R.drawable.rounded_watch_24, PermissionType.EXACT_ALARM),
-            OnboardingStepContent(R.string.onboarding_step_fullscreen_title, R.string.onboarding_step_fullscreen_desc, R.drawable.rounded_medication_24, PermissionType.FULL_SCREEN_INTENT),
+            OnboardingStepContent(R.string.onboarding_step3_exact_alarm_title, R.string.onboarding_step3_exact_alarm_desc, R.drawable.rounded_alarm_24, PermissionType.EXACT_ALARM),
+            OnboardingStepContent(R.string.onboarding_step_fullscreen_title, R.string.onboarding_step_fullscreen_desc, R.drawable.rounded_notification_sound_24, PermissionType.FULL_SCREEN_INTENT),
             OnboardingStepContent(R.string.onboarding_step4_finish_title, R.string.onboarding_step4_finish_desc, R.drawable.ic_check)
         )
     }
