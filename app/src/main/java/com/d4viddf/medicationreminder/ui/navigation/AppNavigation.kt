@@ -2,8 +2,10 @@ package com.d4viddf.medicationreminder.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,6 +35,10 @@ import androidx.navigation.navArgument
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
+import com.d4viddf.medicationreminder.ui.common.theme.enterTransition
+import com.d4viddf.medicationreminder.ui.common.theme.exitTransition
+import com.d4viddf.medicationreminder.ui.common.theme.popEnterTransition
+import com.d4viddf.medicationreminder.ui.common.theme.popExitTransition
 import com.d4viddf.medicationreminder.ui.features.add_medication.screen.AddMedicationChoiceScreen
 import com.d4viddf.medicationreminder.ui.features.add_medication.screen.AddMedicationScreen
 import com.d4viddf.medicationreminder.ui.features.calendar.screen.CalendarScreen
@@ -117,7 +124,11 @@ fun AppNavigation(
             navController = navController,
             startDestination = startDestinationRoute, // USE THE PARAMETER HERE
             // Apply incoming navHostModifier and then conditional fillMaxSize based on isMainScaffold
-            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
+            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier),
+            /*popExitTransition ={scaleOut(
+                targetScale = 0.9f,
+                transformOrigin = TransformOrigin.Center,
+            )},*/
         ) {
             composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
                 OnboardingScreen(

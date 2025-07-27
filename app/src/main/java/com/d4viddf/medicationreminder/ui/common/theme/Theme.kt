@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
@@ -157,7 +158,8 @@ fun AppTheme(
             colorScheme = colorScheme,
             typography = AppTypography, // Assuming AppTypography is defined elsewhere
             content = content,
-            shapes = Shapes()
+            shapes = Shapes(),
+            motionScheme = MotionScheme.expressive()
         )
     }
 }
