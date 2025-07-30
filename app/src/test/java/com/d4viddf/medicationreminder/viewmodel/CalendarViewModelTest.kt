@@ -1,11 +1,12 @@
 package com.d4viddf.medicationreminder.viewmodel
 
 import app.cash.turbine.test
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.ScheduleType
-import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.ui.features.calendar.CalendarViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -21,8 +22,6 @@ import org.mockito.junit.MockitoJUnitRunner
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @ExperimentalCoroutinesApi
 @RunWith(MockitoJUnitRunner::class)

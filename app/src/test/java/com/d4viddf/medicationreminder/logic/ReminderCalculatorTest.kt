@@ -1,8 +1,9 @@
 package com.d4viddf.medicationreminder.logic
 
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.ScheduleType
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDate

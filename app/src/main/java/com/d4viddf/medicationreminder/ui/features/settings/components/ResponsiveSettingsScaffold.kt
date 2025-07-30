@@ -33,11 +33,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.features.settings.screen.DeveloperSettingsScreen
-import com.d4viddf.medicationreminder.ui.features.settings.screen.GeneralSettingsScreen
-import com.d4viddf.medicationreminder.ui.features.settings.screen.SettingsListScreen
-import com.d4viddf.medicationreminder.ui.features.settings.screen.SoundSettingsScreen
-import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
+import com.d4viddf.medicationreminder.ui.features.settings.developer.DeveloperSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.general.GeneralSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.SettingsListScreen
+import com.d4viddf.medicationreminder.ui.features.settings.sound.SoundSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.SettingsViewModel
 
 // Define routes for sub-settings screens
 object SettingsDestinations {

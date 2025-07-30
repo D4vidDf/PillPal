@@ -5,7 +5,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration // Import Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.d4viddf.medicationreminder.data.*
+import com.d4viddf.medicationreminder.data.model.MedicationType
+import com.d4viddf.medicationreminder.data.source.local.FirebaseSyncDao
+import com.d4viddf.medicationreminder.data.source.local.MedicationDao
+import com.d4viddf.medicationreminder.data.source.local.MedicationDatabase
+import com.d4viddf.medicationreminder.data.source.local.MedicationInfoDao
+import com.d4viddf.medicationreminder.data.source.local.MedicationReminderDao
+import com.d4viddf.medicationreminder.data.source.local.MedicationScheduleDao
+import com.d4viddf.medicationreminder.data.source.local.MedicationTypeDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -52,15 +59,42 @@ object DatabaseModule {
                     super.onCreate(db)
                     // Llamar a un método que inserte los tipos de medicamentos predeterminados
                     val defaultTypes = listOf(
-                        MedicationType(name = "Tablet", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Pill", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Powder", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Syringe", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Creme", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Spray", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Liquid", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Suppositoriun", imageUrl = "https://placehold.co/600x400.png"),
-                        MedicationType(name = "Patch", imageUrl = "https://placehold.co/600x400.png"),
+                        MedicationType(
+                            name = "Tablet",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Pill",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Powder",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Syringe",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Creme",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Spray",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Liquid",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Suppositoriun",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
+                        MedicationType(
+                            name = "Patch",
+                            imageUrl = "https://placehold.co/600x400.png"
+                        ),
                     )
                     // Iniciar una coroutine para insertar los datos predeterminados'
                     CoroutineScope(Dispatchers.IO).launch {

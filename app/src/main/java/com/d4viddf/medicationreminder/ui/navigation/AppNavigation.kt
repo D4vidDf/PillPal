@@ -2,10 +2,8 @@ package com.d4viddf.medicationreminder.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,28 +30,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
-import com.d4viddf.medicationreminder.ui.common.theme.enterTransition
-import com.d4viddf.medicationreminder.ui.common.theme.exitTransition
-import com.d4viddf.medicationreminder.ui.common.theme.popEnterTransition
-import com.d4viddf.medicationreminder.ui.common.theme.popExitTransition
-import com.d4viddf.medicationreminder.ui.features.add_medication.screen.AddMedicationChoiceScreen
-import com.d4viddf.medicationreminder.ui.features.add_medication.screen.AddMedicationScreen
-import com.d4viddf.medicationreminder.ui.features.calendar.screen.CalendarScreen
-import com.d4viddf.medicationreminder.ui.features.home.screen.HomeScreen
-import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationDetailsScreen
-import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationInfoScreen
-import com.d4viddf.medicationreminder.ui.features.medication_history.screen.AllSchedulesScreen
-import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationGraphScreen
-import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationHistoryScreen
-import com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen
-import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingScreen
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
+import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationChoiceScreen
+import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationScreen
+import com.d4viddf.medicationreminder.ui.features.calendar.CalendarScreen
+import com.d4viddf.medicationreminder.ui.features.home.HomeScreen
+import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
+import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
+import com.d4viddf.medicationreminder.ui.features.medication.schedules.AllSchedulesScreen
+import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphScreen
+import com.d4viddf.medicationreminder.ui.features.medication.history.MedicationHistoryScreen
+import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationVaultScreen
+import com.d4viddf.medicationreminder.ui.features.onboarding.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
-import com.d4viddf.medicationreminder.ui.features.connecteddevices.screen.ConnectedDevicesScreen // Import the new screen
-import com.d4viddf.medicationreminder.ui.features.today_schedules.TodaySchedulesScreen
-import com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel
+import com.d4viddf.medicationreminder.ui.features.synceddevices.screen.ConnectedDevicesScreen // Import the new screen
+import com.d4viddf.medicationreminder.ui.features.todayschedules.TodaySchedulesScreen
+import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphViewModel
 import java.time.format.DateTimeFormatter
 
 // Define the routes for navigation

@@ -4,28 +4,24 @@ import android.annotation.SuppressLint
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
-import com.d4viddf.medicationreminder.data.MedicationFullSyncItem
-import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem
-import com.d4viddf.medicationreminder.data.ScheduleType // Enum for schedule type
-import com.d4viddf.medicationreminder.data.TodayScheduleItem
-import com.d4viddf.medicationreminder.logic.ReminderCalculator
-import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.data.model.MedicationFullSyncItem
+import com.d4viddf.medicationreminder.data.model.MedicationScheduleDetailSyncItem
+import com.d4viddf.medicationreminder.data.model.ScheduleType // Enum for schedule type
+import com.d4viddf.medicationreminder.data.model.TodayScheduleItem
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.d4viddf.medicationreminder.common.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.os.Build
-import androidx.core.app.NotificationCompat
+import com.d4viddf.medicationreminder.data.repository.MedicationInfoRepository
 import com.d4viddf.medicationreminder.MainActivity
-import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
+import com.d4viddf.medicationreminder.data.model.MedicationInfoSyncItem
+import com.d4viddf.medicationreminder.data.model.MedicationReminderSyncItem
+import com.d4viddf.medicationreminder.data.model.MedicationTypeSyncItem
+import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
@@ -42,7 +38,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -264,14 +259,14 @@ class DataLayerListenerService : WearableListenerService() {
                     dosage = medication.dosage,
                     color = medication.color,
                     type = medType?.let {
-                        com.d4viddf.medicationreminder.data.MedicationTypeSyncItem(
+                        MedicationTypeSyncItem(
                             id = it.id,
                             name = it.name,
                             iconUrl = it.imageUrl
                         )
                     },
                     info = medInfo?.let {
-                        com.d4viddf.medicationreminder.data.MedicationInfoSyncItem(
+                        MedicationInfoSyncItem(
                             medicationId = it.medicationId,
                             notes = it.description,
                             instructions = it.safetyNotes
@@ -279,7 +274,7 @@ class DataLayerListenerService : WearableListenerService() {
                     },
                     schedules = scheduleDetailSyncItems,
                     reminders = reminders.map {
-                        com.d4viddf.medicationreminder.data.MedicationReminderSyncItem(
+                        MedicationReminderSyncItem(
                             id = it.id.toLong(),
                             medicationId = it.medicationId,
                             reminderTime = it.reminderTime.toString(),

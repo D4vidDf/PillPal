@@ -4,13 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
-import com.d4viddf.medicationreminder.data.MedicationReminder // Assuming this is the correct data class
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
 import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint // Using existing entry point
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.notifications.NotificationScheduler
-import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.utils.FileLogger
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
@@ -22,7 +19,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Calendar
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SnoozeBroadcastReceiver : BroadcastReceiver() {

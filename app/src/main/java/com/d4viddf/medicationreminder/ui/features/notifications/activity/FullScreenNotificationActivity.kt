@@ -63,12 +63,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
 import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
-import com.d4viddf.medicationreminder.ui.common.components.AnimatedShape
-import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
+import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver
+import com.d4viddf.medicationreminder.ui.common.component.AnimatedShape
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
+import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -86,11 +88,11 @@ class FullScreenNotificationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val reminderId = intent.getIntExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_REMINDER_ID, -1)
-        val medicationName = intent.getStringExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_MEDICATION_NAME) ?: getString(R.string.medication_name_placeholder)
-        val medicationDosage = intent.getStringExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_MEDICATION_DOSAGE) ?: getString(R.string.not_set)
-        val medicationColorNameString = intent.getStringExtra(com.d4viddf.medicationreminder.common.NotificationConstants.EXTRA_MED_COLOR_HEX)
-        val medicationTypeName = intent.getStringExtra(com.d4viddf.medicationreminder.common.NotificationConstants.EXTRA_MED_TYPE_NAME)
+        val reminderId = intent.getIntExtra(IntentExtraConstants.EXTRA_REMINDER_ID, -1)
+        val medicationName = intent.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME) ?: getString(R.string.medication_name_placeholder)
+        val medicationDosage = intent.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE) ?: getString(R.string.not_set)
+        val medicationColorNameString = intent.getStringExtra(NotificationConstants.EXTRA_MED_COLOR_HEX)
+        val medicationTypeName = intent.getStringExtra(NotificationConstants.EXTRA_MED_TYPE_NAME)
 
         Log.d(TAG, "Activity created for Reminder ID: $reminderId, Name: $medicationName, Dosage: $medicationDosage, ColorNameString: $medicationColorNameString, Type: $medicationTypeName")
 
@@ -149,7 +151,7 @@ class FullScreenNotificationActivity : ComponentActivity() {
                     },
                     onSnooze = {
                         Log.i(TAG, "Snooze clicked for Reminder ID: $reminderId")
-                        val snoozeIntent = Intent(applicationContext, com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver::class.java).apply {
+                        val snoozeIntent = Intent(applicationContext, SnoozeBroadcastReceiver::class.java).apply {
                             action = IntentActionConstants.ACTION_SNOOZE_REMINDER
                             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
                         }

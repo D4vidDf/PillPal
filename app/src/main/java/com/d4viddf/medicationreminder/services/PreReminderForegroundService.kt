@@ -6,7 +6,6 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
@@ -24,10 +23,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
-import com.d4viddf.medicationreminder.common.NotificationConstants
-import com.d4viddf.medicationreminder.common.WorkerConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
+import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
 // import com.d4viddf.medicationreminder.notifications.NotificationHelper // Direct refs replaced
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Direct refs replaced
 // import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants

@@ -1,10 +1,10 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationHistoryEntry
-import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.repository.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.ui.features.medication.history.MedicationHistoryViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -15,12 +15,10 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 @ExperimentalCoroutinesApi
 @RunWith(MockitoJUnitRunner::class)

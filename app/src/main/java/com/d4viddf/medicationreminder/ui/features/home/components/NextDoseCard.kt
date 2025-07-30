@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -35,7 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
