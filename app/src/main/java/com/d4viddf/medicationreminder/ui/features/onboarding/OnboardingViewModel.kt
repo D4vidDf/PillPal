@@ -62,6 +62,9 @@ class OnboardingViewModel @Inject constructor(
         _uiState.update { it.copy(permissionStatus = newStatus) }
     }
 
+    fun checkAllPermissionsAndUpdateState(){
+        checkAllPermissions()
+    }
     fun updatePermissionStatus(type: PermissionType, isGranted: Boolean) {
         val newStatus = _uiState.value.permissionStatus.toMutableMap()
         newStatus[type] = isGranted

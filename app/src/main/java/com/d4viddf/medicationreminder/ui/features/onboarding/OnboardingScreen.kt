@@ -119,6 +119,7 @@ fun OnboardingScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.checkAllPermissionsAndUpdateState()
                 viewModel.updateNextButtonState(pagerState.currentPage)
             }
         }
