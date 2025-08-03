@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 
 package com.d4viddf.medicationreminder.ui.features.onboarding
 
@@ -12,24 +12,48 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.toPath
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -48,16 +72,15 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
-import androidx.graphics.shapes.RoundedPolygon
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.features.onboarding.viewmodel.OnboardingUiState
-import com.d4viddf.medicationreminder.ui.features.onboarding.viewmodel.OnboardingViewModel
+import com.d4viddf.medicationreminder.ui.common.component.ShapesAnimation
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.utils.PermissionUtils
 import kotlinx.coroutines.launch
 import kotlin.math.floor
@@ -91,43 +114,50 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState { uiState.steps.size }
     val activity = LocalContext.current.findActivity() as? ComponentActivity
 
+    // When the screen resumes (e.g., returning from settings), re-check permissions.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.checkPermissionForCurrentStep(pagerState.currentPage)
+                viewModel.updateNextButtonState(pagerState.currentPage)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    // When the page changes, update the enabled state of the 'Next' button.
     LaunchedEffect(pagerState.currentPage) {
-        viewModel.checkPermissionForCurrentStep(pagerState.currentPage)
+        viewModel.updateNextButtonState(pagerState.currentPage)
     }
 
     val isTablet = LocalConfiguration.current.screenWidthDp >= 600
+
+    val onPermissionResult: (PermissionType, Boolean) -> Unit = { type, isGranted ->
+        viewModel.updatePermissionStatus(type, isGranted)
+        viewModel.updateNextButtonState(pagerState.currentPage)
+    }
+
+    val onFinish = {
+        viewModel.finishOnboarding()
+        navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+    }
 
     if (isTablet) {
         OnboardingTabletLayout(
             pagerState = pagerState,
             uiState = uiState,
             activity = activity ?: ComponentActivity(),
-            onFinish = {
-                viewModel.finishOnboarding()
-                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
-            }
+            onPermissionResult = onPermissionResult,
+            onFinish = onFinish
         )
     } else {
         OnboardingPhoneLayout(
             pagerState = pagerState,
             uiState = uiState,
             activity = activity ?: ComponentActivity(),
-            onPermissionRequested = { viewModel.checkPermissionForCurrentStep(pagerState.currentPage) },
-            onFinish = {
-                viewModel.finishOnboarding()
-                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
-            }
+            onPermissionResult = onPermissionResult,
+            onFinish = onFinish
         )
     }
 }
@@ -139,7 +169,7 @@ fun OnboardingPhoneLayout(
     pagerState: PagerState,
     uiState: OnboardingUiState,
     activity: ComponentActivity,
-    onPermissionRequested: () -> Unit,
+    onPermissionResult: (PermissionType, Boolean) -> Unit,
     onFinish: () -> Unit
 ) {
     var showWelcomeScreen by rememberSaveable { mutableStateOf(true) }
@@ -151,7 +181,7 @@ fun OnboardingPhoneLayout(
             pagerState = pagerState,
             uiState = uiState,
             activity = activity,
-            onPermissionRequested = onPermissionRequested,
+            onPermissionResult = onPermissionResult,
             onFinish = onFinish
         )
     }
@@ -164,18 +194,17 @@ private fun OnboardingPhoneContent(
     pagerState: PagerState,
     uiState: OnboardingUiState,
     activity: ComponentActivity,
-    onPermissionRequested: () -> Unit,
+    onPermissionResult: (PermissionType, Boolean) -> Unit,
     onFinish: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val isPermissionGranted by remember { derivedStateOf { uiState.isCurrentStepPermissionGranted } }
 
     Scaffold(
         bottomBar = {
             OnboardingNavigation(
                 pagerState = pagerState,
                 steps = uiState.steps,
-                isNextEnabled = isPermissionGranted,
+                isNextEnabled = uiState.isNextEnabled,
                 onNext = {
                     if (pagerState.currentPage < uiState.steps.size - 1) {
                         coroutineScope.launch {
@@ -206,14 +235,17 @@ private fun OnboardingPhoneContent(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f),
-                userScrollEnabled = isPermissionGranted,
+                userScrollEnabled = uiState.isNextEnabled,
             ) { pageIndex ->
-                key(uiState.steps[pageIndex].titleResId) {
+                val step = uiState.steps[pageIndex]
+                key(step.titleResId) {
                     OnboardingStepPage(
-                        step = uiState.steps[pageIndex],
+                        step = step,
                         activity = activity,
-                        onPermissionResult = onPermissionRequested,
-                        isPermissionGranted = isPermissionGranted
+                        onPermissionResult = { isGranted ->
+                            step.permissionType?.let { onPermissionResult(it, isGranted) }
+                        },
+                        isPermissionGranted = uiState.permissionStatus[step.permissionType] ?: false
                     )
                 }
             }
@@ -232,15 +264,24 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        AnimatedLogo(
-            modifier = Modifier.size(250.dp),
+        ShapesAnimation(
+            modifier = Modifier.size(300.dp),
+            shapeModifier = Modifier.size(300.dp),
+            contentPadding = PaddingValues(12.dp),
             shapes = listOf(
                 MaterialShapes.Cookie6Sided,
                 MaterialShapes.Sunny,
                 MaterialShapes.Cookie9Sided,
-                MaterialShapes.Flower
+                MaterialShapes.Cookie12Sided
+            ),
+            pauseDuration = 0
+        ) {
+            Image(
+                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                contentDescription = stringResource(R.string.onboarding_welcome_title),
+                modifier = Modifier.size(180.dp)
             )
-        )
+        }
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(id = R.string.onboarding_welcome_title),
@@ -266,94 +307,6 @@ fun WelcomePageContent(onStartClick: () -> Unit) {
     }
 }
 
-@Composable
-fun AnimatedLogo(
-    modifier: Modifier = Modifier,
-    shapes: List<RoundedPolygon>
-) {
-    require(shapes.size >= 2) { "Must provide at least two shapes to morph between." }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "logo_animation")
-    val animationDuration = 4000
-    val pauseDuration = 200
-    val totalDuration = animationDuration + pauseDuration
-
-    val morphProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = (shapes.size - 1).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = totalDuration * (shapes.size - 1)
-                for (i in 0 until shapes.size - 1) {
-                    i.toFloat() at (totalDuration * i) using FastOutSlowInEasing
-                    (i + 1).toFloat() at (totalDuration * (i + 1) - pauseDuration) using FastOutSlowInEasing
-                }
-            },
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "morph_progress"
-    )
-
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = totalDuration
-                0f at 0 using FastOutSlowInEasing
-                360f at animationDuration using FastOutSlowInEasing
-                360f at totalDuration
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
-
-    val morphShape = remember(morphProgress) {
-        object : Shape {
-            override fun createOutline(
-                size: Size,
-                layoutDirection: LayoutDirection,
-                density: Density
-            ): Outline {
-                val fromIndex = floor(morphProgress).toInt().coerceIn(0, shapes.size - 2)
-                val toIndex = (fromIndex + 1).coerceAtMost(shapes.size - 1)
-                val progress = morphProgress - fromIndex
-
-                val morph = Morph(shapes[fromIndex], shapes[toIndex])
-                val path = Path()
-                morph.toPath(progress, path)
-
-                val matrix = Matrix()
-                matrix.scale(size.width / 2f, size.height / 2f)
-                matrix.translate(0.5f, 0.5f) // Corrected translation
-                path.transform(matrix)
-                return Outline.Generic(path)
-            }
-        }
-    }
-
-    Box(
-        modifier = modifier.size(300.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(300.dp)
-                .graphicsLayer { rotationZ = rotation }
-                .background(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = morphShape
-                )
-        )
-        Image(
-            painter = painterResource(id = R.mipmap.ic_launcher_foreground),
-            contentDescription = stringResource(R.string.onboarding_welcome_title),
-            modifier = Modifier.size(180.dp)
-        )
-    }
-}
-
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalFoundationApi::class)
@@ -362,10 +315,10 @@ fun OnboardingTabletLayout(
     pagerState: PagerState,
     uiState: OnboardingUiState,
     activity: ComponentActivity,
+    onPermissionResult: (PermissionType, Boolean) -> Unit,
     onFinish: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val isPermissionGranted by remember { derivedStateOf { uiState.isCurrentStepPermissionGranted } }
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -377,15 +330,24 @@ fun OnboardingTabletLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            AnimatedLogo(
-                modifier = Modifier.size(250.dp),
+            ShapesAnimation(
+                modifier = Modifier.size(300.dp),
+                shapeModifier = Modifier.size(300.dp),
+                contentPadding = PaddingValues(12.dp),
                 shapes = listOf(
                     MaterialShapes.Cookie6Sided,
                     MaterialShapes.Sunny,
                     MaterialShapes.Cookie9Sided,
-                    MaterialShapes.Flower
+                    MaterialShapes.Cookie12Sided
+                ),
+                pauseDuration = 0
+            ) {
+                Image(
+                    painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                    contentDescription = stringResource(R.string.onboarding_welcome_title),
+                    modifier = Modifier.size(180.dp)
                 )
-            )
+            }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.onboarding_welcome_title),
@@ -399,7 +361,7 @@ fun OnboardingTabletLayout(
                 OnboardingNavigation(
                     pagerState = pagerState,
                     steps = uiState.steps,
-                    isNextEnabled = isPermissionGranted,
+                    isNextEnabled = uiState.isNextEnabled,
                     onNext = {
                         coroutineScope.launch {
                             if (pagerState.currentPage < uiState.steps.size - 1) {
@@ -434,14 +396,17 @@ fun OnboardingTabletLayout(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    userScrollEnabled = isPermissionGranted
+                    userScrollEnabled = uiState.isNextEnabled
                 ) { pageIndex ->
-                    key(uiState.steps[pageIndex].titleResId) {
+                    val step = uiState.steps[pageIndex]
+                    key(step.titleResId) {
                         OnboardingStepPage(
-                            step = uiState.steps[pageIndex],
+                            step = step,
                             activity = activity,
-                            onPermissionResult = {},
-                            isPermissionGranted = isPermissionGranted
+                            onPermissionResult = { isGranted ->
+                                step.permissionType?.let { onPermissionResult(it, isGranted) }
+                            },
+                            isPermissionGranted = uiState.permissionStatus[step.permissionType] ?: false
                         )
                     }
                 }
@@ -455,14 +420,13 @@ fun OnboardingTabletLayout(
 fun OnboardingStepPage(
     step: OnboardingStepContent,
     activity: ComponentActivity,
-    onPermissionResult: () -> Unit,
+    onPermissionResult: (Boolean) -> Unit,
     isPermissionGranted: Boolean
 ) {
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) {
-        onPermissionResult()
-    }
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = onPermissionResult
+    )
 
     Column(
         modifier = Modifier
@@ -491,16 +455,18 @@ fun OnboardingStepPage(
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             }
+
                         PermissionType.EXACT_ALARM ->
                             PermissionUtils.checkAndRequestExactAlarmPermission(activity)
+
                         PermissionType.FULL_SCREEN_INTENT ->
                             PermissionUtils.checkAndRequestFullScreenIntentPermission(activity)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(0.8f),
-                shape = ButtonDefaults.shape,
-                enabled = !isPermissionGranted
-            ) {
+                enabled = !isPermissionGranted,
+                shapes = ButtonDefaults.shapes(),
+                ) {
                 val buttonTextRes = if (isPermissionGranted) {
                     R.string.onboarding_permission_granted_button
                 } else {
@@ -612,6 +578,7 @@ fun MorphingIcon(
         }
     }
 
+
     Box(
         modifier = Modifier
             .size(240.dp)
@@ -651,9 +618,9 @@ fun MorphingIcon(
     }
 }
 
+
 // --- PREVIEWS ---
 
-// Helper list for previews. Replace R.mipmap.ic_launcher_foreground with your actual icons.
 private val previewSteps = listOf(
     OnboardingStepContent(R.string.onboarding_step1_pager_title, R.string.onboarding_step1_pager_desc, R.mipmap.ic_launcher_foreground),
     OnboardingStepContent(R.string.onboarding_step2_notifications_title, R.string.onboarding_step2_notifications_desc, R.mipmap.ic_launcher_foreground, PermissionType.NOTIFICATION),
@@ -667,27 +634,31 @@ private val previewSteps = listOf(
 @Composable
 private fun OnboardingPhonePreview(
     initialPage: Int,
-    isPermissionGranted: Boolean
+    isNextEnabled: Boolean,
+    permissionStatus: Map<PermissionType, Boolean>
 ) {
     val pagerState = rememberPagerState(initialPage = initialPage) { previewSteps.size }
     val uiState = OnboardingUiState(
         steps = previewSteps,
-        isCurrentStepPermissionGranted = isPermissionGranted
+        isNextEnabled = isNextEnabled,
+        permissionStatus = permissionStatus
     )
 
-    OnboardingPhoneContent(
-        pagerState = pagerState,
-        uiState = uiState,
-        activity = ComponentActivity(),
-        onPermissionRequested = {},
-        onFinish = {}
-    )
+    AppTheme{
+       OnboardingPhoneContent(
+           pagerState = pagerState,
+           uiState = uiState,
+           activity = LocalContext.current.findActivity() as ComponentActivity,
+           onPermissionResult = { _,_ -> },
+           onFinish = {}
+       )
+   }
 }
 
 @Preview(showBackground = true, name = "Welcome Screen", device = "spec:width=360dp,height=640dp,dpi=480")
 @Composable
 fun WelcomePageContentPreview() {
-    MaterialTheme {
+    AppTheme {
         WelcomePageContent(onStartClick = {})
     }
 }
@@ -696,54 +667,28 @@ fun WelcomePageContentPreview() {
 @Preview(showBackground = true, name = "Step 1: Welcome", device = "spec:width=360dp,height=640dp,dpi=480")
 @Composable
 fun OnboardingStep1Preview() {
-    MaterialTheme {
-        OnboardingPhonePreview(initialPage = 0, isPermissionGranted = true)
-    }
+    OnboardingPhonePreview(initialPage = 0, isNextEnabled = true, permissionStatus = emptyMap())
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
-@Preview(showBackground = true, name = "Step 2: Notifications", device = "spec:width=360dp,height=640dp,dpi=480")
+@Preview(showBackground = true, name = "Step 2: Notifications (Not Granted)", device = "spec:width=360dp,height=640dp,dpi=480")
 @Composable
 fun OnboardingStep2NotificationsPreview() {
-    MaterialTheme {
-        OnboardingPhonePreview(initialPage = 1, isPermissionGranted = false)
-    }
+    OnboardingPhonePreview(initialPage = 1, isNextEnabled = false, permissionStatus = mapOf(PermissionType.NOTIFICATION to false))
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true, name = "Step 2: Notifications (Granted)", device = "spec:width=360dp,height=640dp,dpi=480")
 @Composable
 fun OnboardingStep2NotificationsGrantedPreview() {
-    MaterialTheme {
-        OnboardingPhonePreview(initialPage = 1, isPermissionGranted = true)
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.Q)
-@Preview(showBackground = true, name = "Step 3: Exact Alarms", device = "spec:width=360dp,height=640dp,dpi=480")
-@Composable
-fun OnboardingStep3AlarmsPreview() {
-    MaterialTheme {
-        OnboardingPhonePreview(initialPage = 2, isPermissionGranted = false)
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.Q)
-@Preview(showBackground = true, name = "Step 4: Full-Screen Intent", device = "spec:width=360dp,height=640dp,dpi=480")
-@Composable
-fun OnboardingStep4FullscreenPreview() {
-    MaterialTheme {
-        OnboardingPhonePreview(initialPage = 3, isPermissionGranted = false)
-    }
+    OnboardingPhonePreview(initialPage = 1, isNextEnabled = true, permissionStatus = mapOf(PermissionType.NOTIFICATION to true))
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true, name = "Step 5: Finish", device = "spec:width=360dp,height=640dp,dpi=480")
 @Composable
 fun OnboardingStep5FinishPreview() {
-    MaterialTheme {
-        OnboardingPhonePreview(initialPage = 4, isPermissionGranted = true)
-    }
+    OnboardingPhonePreview(initialPage = 4, isNextEnabled = true, permissionStatus = mapOf())
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -751,14 +696,15 @@ fun OnboardingStep5FinishPreview() {
 @Preview(showBackground = true, name = "Tablet Layout", device = "spec:width=1280dp,height=800dp,dpi=240")
 @Composable
 fun OnboardingTabletLayoutPreview() {
-    MaterialTheme {
+    AppTheme {
         OnboardingTabletLayout(
             pagerState = rememberPagerState { previewSteps.size },
             uiState = OnboardingUiState(
                 steps = previewSteps,
-                isCurrentStepPermissionGranted = true
+                isNextEnabled = true
             ),
-            activity = ComponentActivity(),
+            activity = LocalContext.current.findActivity() as ComponentActivity,
+            onPermissionResult = {_,_ ->},
             onFinish = {}
         )
     }

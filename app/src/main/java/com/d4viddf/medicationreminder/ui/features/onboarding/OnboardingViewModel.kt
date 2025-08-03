@@ -1,7 +1,8 @@
-package com.d4viddf.medicationreminder.ui.features.onboarding.viewmodel
+package com.d4viddf.medicationreminder.ui.features.onboarding
 
 import android.Manifest
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,8 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
-import com.d4viddf.medicationreminder.ui.features.onboarding.OnboardingStepContent
-import com.d4viddf.medicationreminder.ui.features.onboarding.PermissionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +22,8 @@ import javax.inject.Inject
 
 data class OnboardingUiState(
     val steps: List<OnboardingStepContent> = emptyList(),
-    val isCurrentStepPermissionGranted: Boolean = true
+    val permissionStatus: Map<PermissionType, Boolean> = emptyMap(),
+    val isNextEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -36,8 +36,10 @@ class OnboardingViewModel @Inject constructor(
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
     init {
-        _uiState.value = OnboardingUiState(steps = getOnboardingSteps())
-        checkPermissionForCurrentStep(0) // Check for the initial step
+        val steps = getOnboardingSteps()
+        _uiState.value = OnboardingUiState(steps = steps)
+        checkAllPermissions()
+        updateNextButtonState(0) // Initial check for the first page
     }
 
     private fun getOnboardingSteps(): List<OnboardingStepContent> {
@@ -50,9 +52,36 @@ class OnboardingViewModel @Inject constructor(
         )
     }
 
-    fun checkPermissionForCurrentStep(pageIndex: Int) {
-        val currentStep = uiState.value.steps.getOrNull(pageIndex)
-        val isGranted = when (currentStep?.permissionType) {
+    private fun checkAllPermissions() {
+        val newStatus = mutableMapOf<PermissionType, Boolean>()
+        _uiState.value.steps.forEach { step ->
+            step.permissionType?.let {
+                newStatus[it] = isPermissionGranted(it)
+            }
+        }
+        _uiState.update { it.copy(permissionStatus = newStatus) }
+    }
+
+    fun updatePermissionStatus(type: PermissionType, isGranted: Boolean) {
+        val newStatus = _uiState.value.permissionStatus.toMutableMap()
+        newStatus[type] = isGranted
+        _uiState.update { it.copy(permissionStatus = newStatus) }
+    }
+
+
+    fun updateNextButtonState(currentPageIndex: Int) {
+        val currentStep = _uiState.value.steps.getOrNull(currentPageIndex)
+        val permissionType = currentStep?.permissionType
+        val isEnabled = if (permissionType != null) {
+            _uiState.value.permissionStatus[permissionType] ?: false
+        } else {
+            true // No permission required for this step
+        }
+        _uiState.update { it.copy(isNextEnabled = isEnabled) }
+    }
+
+    private fun isPermissionGranted(permissionType: PermissionType): Boolean {
+        return when (permissionType) {
             PermissionType.NOTIFICATION ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
@@ -61,11 +90,14 @@ class OnboardingViewModel @Inject constructor(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
                 } else true
-            PermissionType.FULL_SCREEN_INTENT -> true // Assumed granted
-            null -> true
+            PermissionType.FULL_SCREEN_INTENT ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    notificationManager.canUseFullScreenIntent()
+                } else true
         }
-        _uiState.update { it.copy(isCurrentStepPermissionGranted = isGranted) }
     }
+
 
     fun finishOnboarding() {
         viewModelScope.launch {
