@@ -74,7 +74,7 @@ open class MedicationReminderRepository @Inject constructor(
         // syncDeletionToWatch(reminder.id, "MedicationReminder")
     }
 
-    suspend fun markReminderAsTaken(reminderId: Int, takenAt: String): Boolean { // Return Boolean for success
+    suspend fun markReminderAsTaken(reminderId: Int, takenAt: String?): Boolean { // Return Boolean for success
         val reminder = medicationReminderDao.getReminderById(reminderId)
         var success = false
         reminder?.let {

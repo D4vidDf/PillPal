@@ -110,6 +110,7 @@ fun Medication?.isPastEndDate(): Boolean {
     }
 }
 
+
 // ScheduleItem Composable - Adapted
 @Composable
 fun ScheduleItem(

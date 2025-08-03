@@ -6,10 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +28,7 @@ import java.time.LocalDateTime
 @Composable
 fun TodayScheduleItem(
     item: TodayScheduleUiItem,
-    onMarkAsTaken: (MedicationReminder) -> Unit,
+    onMarkAsTaken: (reminder: MedicationReminder, isTaken: Boolean) -> Unit,
     onSkip: (MedicationReminder) -> Unit,
     onNavigateToDetails: (medicationId: Int) -> Unit,
     isFuture: Boolean,
@@ -45,7 +41,6 @@ fun TodayScheduleItem(
     }
 
     val firstWordMedicationName = item.medicationName.split(" ").firstOrNull() ?: item.medicationName
-    var showMenu by remember { mutableStateOf(false) }
 
     val itemContentDescription = stringResource(
         R.string.today_schedule_item_card_cd,
@@ -55,40 +50,20 @@ fun TodayScheduleItem(
         item.formattedReminderTime
     )
 
-    // The ListItem will handle the disabled state visually when enabled = false
     ListItem(
         modifier = modifier
             .fillMaxWidth()
-            // Make the item clickable to navigate to details only for past/current items
             .clickable { onNavigateToDetails(item.reminder.medicationId) }
             .semantics { contentDescription = itemContentDescription },
-        // Set background to transparent to blend with the parent card's color
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        // The leading content is the medication icon with a colored background
         leadingContent = {
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(medicationThemeColor.backgroundColor), // Color applied here!
+                    .background(medicationThemeColor.backgroundColor),
                 contentAlignment = Alignment.Center
             ) {
-                /*
-                // TODO: Uncomment when AsyncImage is ready
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(item.medicationIconUrl ?: R.drawable.medication_filled)
-                        .crossfade(true)
-                        .error(R.drawable.medication_filled)
-                        .build(),
-                    placeholder = painterResource(R.drawable.medication_filled),
-                    contentDescription = item.medicationTypeName ?: item.medicationName,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(32.dp), // Icon is smaller than its background
-                    // Tint the icon if it's the default drawable
-                    colorFilter = if (item.medicationIconUrl == null) ColorFilter.tint(medicationThemeColor.textColor) else null
-                )
-                */
                 Icon(
                     painter = painterResource(R.drawable.medication_filled),
                     contentDescription = item.medicationTypeName ?: item.medicationName,
@@ -97,7 +72,6 @@ fun TodayScheduleItem(
                 )
             }
         },
-        // Main text of the list item
         headlineContent = {
             Text(
                 text = firstWordMedicationName,
@@ -107,8 +81,8 @@ fun TodayScheduleItem(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        // Subtext below the main text
         supportingContent = {
+            // The text style is now simpler and won't change when taken.
             Text(
                 text = "${item.medicationDosage} - ${item.formattedReminderTime}",
                 style = MaterialTheme.typography.bodyMedium,
@@ -116,8 +90,15 @@ fun TodayScheduleItem(
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-
+        },
+        trailingContent = {
+            Switch(
+                checked = item.reminder.isTaken,
+                onCheckedChange = { newCheckedState ->
+                    onMarkAsTaken(item.reminder, newCheckedState)
+                },
+                enabled = !isFuture
+            )
         }
     )
 }
@@ -141,7 +122,7 @@ fun TodayScheduleItemPreview() {
         Surface(color = MaterialTheme.colorScheme.surface) {
             TodayScheduleItem(
                 item = sampleItem,
-                onMarkAsTaken = {},
+                onMarkAsTaken = {} as (MedicationReminder, Boolean) -> Unit,
                 onSkip = {},
                 onNavigateToDetails = {},
                 isFuture = false,
@@ -168,7 +149,7 @@ fun TodayScheduleItemFuturePreview() {
         Surface(color = MaterialTheme.colorScheme.surface) {
             TodayScheduleItem(
                 item = sampleItemTaken,
-                onMarkAsTaken = {},
+                onMarkAsTaken = {} as (MedicationReminder, Boolean) -> Unit,
                 onSkip = {},
                 onNavigateToDetails = {},
                 isFuture = true, // Item is for the future and will appear disabled

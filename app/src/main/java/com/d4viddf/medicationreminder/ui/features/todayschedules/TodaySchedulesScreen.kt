@@ -8,7 +8,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,18 +43,18 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TodaySchedulesScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToDetails: (medicationId: Int) -> Unit, // Added parameter for navigation
+    onNavigateToDetails: (medicationId: Int) -> Unit,
     viewModel: TodaySchedulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
     val sortedTimes = uiState.scheduleItems.keys.sorted()
     val nextTimeIndex =
         sortedTimes.indexOfFirst { it >= LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) }
 
+    // Dialog state has been removed.
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -118,13 +121,15 @@ fun TodaySchedulesScreen(
                             val itemsForTime = uiState.scheduleItems[time].orEmpty()
                             val isNextCard = index == nextTimeIndex
 
-                            // --- CHANGE: Pass the navigation and ViewModel functions ---
                             TimeGroupCard(
                                 time = time,
                                 itemsForTime = itemsForTime,
                                 isHighlighted = isNextCard,
                                 onNavigateToDetails = onNavigateToDetails,
-                                onMarkAsTaken = {},
+                                onMarkAsTaken = { reminder, isTaken ->
+                                    // The call is now simpler, the ViewModel handles the logic.
+                                    viewModel.updateReminderStatus(reminder, isTaken)
+                                },
                                 onSkip = { }
                             )
                         }
@@ -143,7 +148,7 @@ private fun TimeGroupCard(
     time: String,
     itemsForTime: List<TodayScheduleUiItem>,
     isHighlighted: Boolean,
-    onMarkAsTaken: (MedicationReminder) -> Unit,
+    onMarkAsTaken: (MedicationReminder, Boolean) -> Unit,
     onSkip: (MedicationReminder) -> Unit,
     onNavigateToDetails: (medicationId: Int) -> Unit,
 ) {
@@ -497,7 +502,7 @@ fun TodaySchedulesScreenPreview() {
                             time = time,
                             itemsForTime = itemsForTime,
                             isHighlighted = index == nextTimeIndex,
-                            onMarkAsTaken = {},
+                            onMarkAsTaken = {} as (MedicationReminder, Boolean) -> Unit,
                             onSkip = {},
                             onNavigateToDetails = {}
                         )

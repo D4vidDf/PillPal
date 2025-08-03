@@ -451,5 +451,9 @@
     <string name="filter_by_color">Color</string>
     <string name="all_colors">All Colors</string>
     <string name="filter_by_time_range">Time Range</string>
+    <string name="mark_as_taken_dialog_title">Confirm Action</string>
+    <string name="mark_as_taken_dialog_message">How would you like to mark this medication as taken?</string>
+    <string name="mark_as_taken_dialog_now">At the current time</string>
+    <string name="mark_as_taken_dialog_scheduled_time">At the scheduled time</string>
 
 </resources>

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
@@ -138,5 +139,17 @@ class TodaySchedulesViewModel @Inject constructor(
     fun onTimeRangeFilterChanged(startTime: LocalTime?, endTime: LocalTime?) {
         val range = if (startTime != null && endTime != null) startTime..endTime else null
         _uiState.value = _uiState.value.copy(selectedTimeRange = range)
+    }
+
+    fun updateReminderStatus(reminder: MedicationReminder, isTaken: Boolean) {
+        viewModelScope.launch {
+            val updatedReminder = reminder.copy(
+                isTaken = isTaken,
+                takenAt = if (isTaken) LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter) else null
+            )
+            if (reminder.isTaken != isTaken) {
+                medicationReminderRepository.updateReminder(updatedReminder)
+            }
+        }
     }
 }
