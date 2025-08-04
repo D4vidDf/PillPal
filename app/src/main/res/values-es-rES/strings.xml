@@ -425,4 +425,11 @@
     <string name="mark_as_taken_dialog_message">How would you like to mark this medication as taken?</string>
     <string name="mark_as_taken_dialog_now">At the current time</string>
     <string name="mark_as_taken_dialog_scheduled_time">At the scheduled time</string>
+    <string name="bottom_sheet_add_reminders_title">Create reminders</string>
+    <string name="bottom_sheet_add_medication">Medication</string>
+    <string name="bottom_sheet_add_water_reminder">Water</string>
+    <string name="bottom_sheet_register_manually_title">Register manually</string>
+    <string name="bottom_sheet_log_medication">Medication dosage</string>
+    <string name="bottom_sheet_log_water">Water</string>
+    <string name="bottom_sheet_log_weight">Weight</string>
 </resources>

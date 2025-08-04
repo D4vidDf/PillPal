@@ -198,8 +198,7 @@ fun AddMedicationScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        // This should take us back to the screen before AddMedicationChoiceScreen
-                         navController.popBackStack(Screen.AddMedicationChoice.route, inclusive = true)
+                         navController.popBackStack()
                     }) {
                         Icon(painterResource(id = R.drawable.rounded_close_24), contentDescription = stringResource(id = R.string.close))
                     }
@@ -272,7 +271,7 @@ fun AddMedicationScreen(
                             // New navigation logic:
                             // Pop AddMedicationScreen AND AddMedicationChoiceScreen from the back stack.
                             // This effectively returns to the screen that was active before AddMedicationChoiceScreen.
-                            navController.popBackStack(Screen.AddMedicationChoice.route, inclusive = true)
+                            navController.popBackStack()
                         }
                     }
                 },
