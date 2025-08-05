@@ -39,7 +39,7 @@ fun AnimatedShape( // Renamed to match your newer naming
     rotationAnimationDurationMillis: Int = 10000,
     shapeDisplayDurationMillis: Long = 3000L,
     // Add shapeColor parameter
-    shapeColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    shapeColor: Color = MaterialTheme.colorScheme.primaryContainer
 ) {
     val shapeTypes = remember { ShapeType.entries.toTypedArray() }
     var currentShapeIndex by remember { mutableStateOf(0) }
