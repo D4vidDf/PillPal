@@ -5,53 +5,19 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -69,20 +35,21 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
-import com.d4viddf.medicationreminder.ui.common.component.bottomsheet.getBottomSheetData
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
+import com.d4viddf.medicationreminder.ui.features.home.components.cards.*
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
-import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
+import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeItem
+import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
+import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,12 +58,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    val homeLayout by viewModel.homeLayout.collectAsState()
 
-    // Get the dynamic data configuration for the bottom sheet
-    val bottomSheetData = getBottomSheetData(navController)
     LaunchedEffect(key1 = Unit) {
         viewModel.navigationEvents.collectLatest { route ->
             navController.navigate(route)
@@ -105,9 +68,8 @@ fun HomeScreen(
 
     HomeScreenContent(
         uiState = uiState,
-        onMarkAsTaken = viewModel::markAsTaken,
-        onSkip = viewModel::skipDose,
-        isFutureDose = viewModel::isFutureDose,
+        homeLayout = homeLayout,
+        viewModel = viewModel,
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
         navController = navController,
@@ -122,9 +84,8 @@ fun HomeScreen(
 @Composable
 internal fun HomeScreenContent(
     uiState: HomeViewModel.HomeState,
-    onMarkAsTaken: (MedicationReminder) -> Unit,
-    onSkip: (MedicationReminder) -> Unit,
-    isFutureDose: (String) -> Boolean,
+    homeLayout: List<HomeSection>,
+    viewModel: HomeViewModel,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController,
@@ -199,6 +160,7 @@ internal fun HomeScreenContent(
         }
     ) { paddingValues ->
         val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, onRefresh = onRefresh)
+        val hasVisibleItems = homeLayout.any { section -> section.items.any { it.isVisible } }
 
         Box(
             modifier = Modifier
@@ -208,14 +170,15 @@ internal fun HomeScreenContent(
         ) {
             if (uiState.isLoading && !uiState.isRefreshing) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 16.dp),
+                    contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Item 1: Carousel / No Meds / No Schedule
                     item {
                         when {
                             !uiState.hasRegisteredMedications -> NoMedicationsCard(
@@ -225,15 +188,10 @@ internal fun HomeScreenContent(
                             uiState.nextDoseGroup.isEmpty() -> NoMoreSchedulesTodayCard()
                             else -> {
                                 val carouselState = rememberCarouselState { uiState.nextDoseGroup.size }
-                                val largeItemWidth = if (screenWidthDp<440.dp) 400.dp else screenWidthDp * 0.4f
-
                                 HorizontalMultiBrowseCarousel(
                                     state = carouselState,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp)
-                                        .padding(horizontal = 16.dp),
-                                    preferredItemWidth = largeItemWidth,
+                                    modifier = Modifier.fillMaxWidth().height(180.dp),
+                                    preferredItemWidth = if (screenWidthDp < 440.dp) 400.dp else screenWidthDp * 0.4f,
                                     itemSpacing = 8.dp,
                                 ) { itemIndex ->
                                     val item = uiState.nextDoseGroup[itemIndex]
@@ -249,12 +207,11 @@ internal fun HomeScreenContent(
                         }
                     }
 
+                    // Item 2: "Show All" button (only if meds exist)
                     if (uiState.hasRegisteredMedications) {
                         item {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 TextButton(onClick = { navController.navigate(Screen.TodaySchedules.route) }) {
@@ -262,36 +219,55 @@ internal fun HomeScreenContent(
                                 }
                             }
                         }
+                    }
 
+                    // Items 3+: Dynamic Sections
+                    if (homeLayout.isEmpty() && uiState.hasRegisteredMedications) {
                         item {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                Text(
-                                    text = stringResource(id = R.string.progress_section_title),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                MissedRemindersCard()
-                                Spacer(modifier = Modifier.height(16.dp))
-                                TodayProgressCard()
-                            }
+                            EmptyHomeState(
+                                onNavigateToPersonalize = { navController.navigate(Screen.PersonalizeHome.route) }
+                            )
                         }
-
+                    } else if (!hasVisibleItems && homeLayout.isNotEmpty()) {
                         item {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                Text(
-                                    text = stringResource(id = R.string.health_section_title),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                HeartRateCard()
-                                Spacer(modifier = Modifier.height(16.dp))
-                                WeightCard()
+                            EmptyHomeState(
+                                onNavigateToPersonalize = { navController.navigate(Screen.PersonalizeHome.route) }
+                            )
+                        }
+                    }
+                    else {
+                        homeLayout.forEach { section ->
+                            val visibleItems = section.items.filter { it.isVisible }
+                            if (visibleItems.isNotEmpty()) {
+                                item {
+                                    SectionHeader(
+                                        title = section.name,
+                                        onEditClick = { navController.navigate(Screen.PersonalizeHome.route) }
+                                    )
+                                }
+                                items(visibleItems, key = { it.id }) { item ->
+                                    when (item.id) {
+                                        "today_progress" -> TodayProgressCard(
+                                            taken = viewModel.todayProgressTaken,
+                                            total = viewModel.todayProgressTotal
+                                        )
+                                        "next_dose" -> viewModel.nextDoseTimeInSeconds?.let {
+                                            NextDoseTimeCard(
+                                                timeToNextDoseInSeconds = it,
+                                                displayUnit = item.displayUnit ?: "minutes"
+                                            )
+                                        }
+                                        "heart_rate" -> HeartRateCard(heartRate = viewModel.heartRate)
+                                        "weight" -> WeightCard(weight = viewModel.weight)
+                                        "missed_reminders" -> MissedRemindersCard(
+                                            missedDoses = viewModel.missedDoses,
+                                            lastMissedMedication = viewModel.lastMissedMedication
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
-
                     item { Spacer(modifier = Modifier.height(72.dp)) }
                 }
                 PullRefreshIndicator(
@@ -304,20 +280,42 @@ internal fun HomeScreenContent(
     }
 }
 
-// --- INFORMATIONAL & MOCKUP SECTIONS ---
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun EmptyHomeState(modifier: Modifier = Modifier, onNavigateToPersonalize: () -> Unit) {
+    Box(
+        modifier = modifier.fillMaxSize().padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "Your Home Screen is Empty!",
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "You can add and arrange cards to personalize your view.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onNavigateToPersonalize,
+                shapes = ButtonDefaults.shapes()) {
+                Text("Personalize Home")
+            }
+        }
+    }
+}
 
 @Composable
 fun NoMedicationsCard(onAddMedication: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(24.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -350,10 +348,7 @@ fun NoMedicationsCard(onAddMedication: () -> Unit) {
 @Composable
 fun NoScheduleTodayCard() {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp) // Updated Height
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().height(180.dp).padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
@@ -379,10 +374,7 @@ fun NoScheduleTodayCard() {
 @Composable
 fun NoMoreSchedulesTodayCard() {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp) // Updated Height
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().height(180.dp).padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
     ) {
         Column(
@@ -403,264 +395,4 @@ fun NoMoreSchedulesTodayCard() {
             )
         }
     }
-}
-
-@Composable
-fun HeartRateCard(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(id = R.string.heart_rate_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "46-97",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Text(
-                    text = stringResource(id = R.string.heart_rate_unit),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(id = R.string.today_label),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-            )
-        }
-    }
-}
-
-@Composable
-fun WeightCard(modifier: Modifier = Modifier) {
-    val lastDate = LocalDate.now().minusDays(3).format(
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-    )
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(id = R.string.weight_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "80 kg",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${stringResource(id = R.string.last_registered_label)} $lastDate",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-            )
-        }
-    }
-}
-
-@Composable
-fun MissedRemindersCard(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(id = R.string.missed_reminders_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "2",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "${stringResource(id = R.string.last_missed_label)} Ibuprofen",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                )
-            }
-            Icon(
-                imageVector = Icons.Filled.ArrowForwardIos,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun TodayProgressCard(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(id = R.string.today_progress_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "9/12",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            CircularProgressIndicator(
-                progress = { 9f / 12f },
-                modifier = Modifier.size(64.dp),
-                strokeWidth = 6.dp
-            )
-        }
-    }
-}
-
-// --- PREVIEWS ---
-
-@Preview(showBackground = true, name = "No Registered Medications")
-@Composable
-fun HomeScreenNoMedsPreview() {
-    val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Good morning!",
-        hasRegisteredMedications = false,
-        isLoading = false
-    )
-    AppTheme {
-        HomeScreenContent(
-            uiState = previewState,
-            onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
-            onRefresh = {}, onDismissConfirmationDialog = {},
-            navController = rememberNavController(),
-            onWatchIconClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "No Schedule Today")
-@Composable
-fun HomeScreenNoSchedulePreview() {
-    val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Good afternoon!",
-        hasRegisteredMedications = true,
-        todaysReminders = emptyMap(),
-        isLoading = false
-    )
-    AppTheme {
-        HomeScreenContent(
-            uiState = previewState,
-            onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
-            onRefresh = {}, onDismissConfirmationDialog = {},
-            navController = rememberNavController(),
-            onWatchIconClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "No More Doses Today")
-@Composable
-fun HomeScreenNoMoreDosesPreview() {
-    val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Good evening!",
-        hasRegisteredMedications = true,
-        todaysReminders = mapOf("Morning" to listOf(mockTodayScheduleUiItem())),
-        nextDoseGroup = emptyList(),
-        isLoading = false
-    )
-    AppTheme {
-        HomeScreenContent(
-            uiState = previewState,
-            onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
-            onRefresh = {}, onDismissConfirmationDialog = {},
-            navController = rememberNavController(),
-            onWatchIconClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "One Dose in Carousel")
-@Composable
-fun HomeScreenOneDosePreview() {
-    val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Next Dosage",
-        hasRegisteredMedications = true,
-        nextDoseGroup = listOf(mockNextDoseUiItem(1, "Amoxicillin")),
-        todaysReminders = mapOf("Morning" to listOf(mockTodayScheduleUiItem())),
-        isLoading = false
-    )
-    AppTheme {
-        HomeScreenContent(
-            uiState = previewState,
-            onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
-            onRefresh = {}, onDismissConfirmationDialog = {},
-            navController = rememberNavController(),
-            onWatchIconClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Two Doses in Carousel")
-@Composable
-fun HomeScreenTwoDosesPreview() {
-    val previewState = HomeViewModel.HomeState(
-        currentGreeting = "Next Dosage",
-        hasRegisteredMedications = true,
-        nextDoseGroup = listOf(
-            mockNextDoseUiItem(1, "Amoxicillin"),
-            mockNextDoseUiItem(2, "Ibuprofen", "LIGHT_RED")
-        ),
-        todaysReminders = mapOf("Morning" to listOf(mockTodayScheduleUiItem())),
-        isLoading = false
-    )
-    AppTheme {
-        HomeScreenContent(
-            uiState = previewState,
-            onMarkAsTaken = {}, onSkip = {}, isFutureDose = { false },
-            onRefresh = {}, onDismissConfirmationDialog = {},
-            navController = rememberNavController(),
-            onWatchIconClick = {}
-        )
-    }
-}
-
-
-// --- Helper functions for Previews ---
-private fun mockNextDoseUiItem(id: Int, name: String, color: String = "LIGHT_BLUE"): NextDoseUiItem {
-    val time = LocalDateTime.now().withHour(8).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-    return NextDoseUiItem(id, 100 + id, name, "250mg", color, null, time, "08:00")
-}
-
-private fun mockTodayScheduleUiItem(): TodayScheduleUiItem {
-    val time = LocalDateTime.now().withHour(15).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-    return TodayScheduleUiItem(
-        MedicationReminder(1, 101, 1, time, false, null, null),
-        medicationName = "Ibuprofeno",
-        medicationDosage = "200mg",
-        medicationColorName = "LIGHT_BLUE",
-        medicationIconUrl = null,
-        medicationTypeName = "Pill",
-        formattedReminderTime = "15:00"
-    )
 }

@@ -9,9 +9,11 @@ import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
+import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
 import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper
@@ -20,10 +22,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDate
@@ -40,7 +44,8 @@ open class HomeViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
-    private val wearConnectivityHelper: WearConnectivityHelper
+    private val wearConnectivityHelper: WearConnectivityHelper,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     data class HomeState(
@@ -71,6 +76,22 @@ open class HomeViewModel @Inject constructor(
         updateGreeting()
         updateWatchStatus()
     }
+
+    val homeLayout: StateFlow<List<HomeSection>> = userPreferencesRepository.homeLayoutFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val todayProgressTaken: Int = 9
+    val todayProgressTotal: Int = 12
+    val nextDoseTimeInSeconds: Long? = 930L
+    val heartRate: String? = "46-97"
+    val weight: String? = "80 kg"
+    val missedDoses: Int = 2
+    val lastMissedMedication: String? = "Ibuprofen"
+
 
     fun handleWatchIconClick() {
         viewModelScope.launch {

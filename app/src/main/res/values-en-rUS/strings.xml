@@ -462,4 +462,8 @@
     <string name="bottom_sheet_log_medication">Medication dosage</string>
     <string name="bottom_sheet_log_water">Water</string>
     <string name="bottom_sheet_log_weight">Weight</string>
+    <string name="personalize_home_title">Personalize Home</string>
+    <string name="no_weight_data">No weight registered</string>
+    <string name="no_heart_rate_data">No heart rate data registered</string>
+    <string name="edit_section">Edit section</string>
 </resources>

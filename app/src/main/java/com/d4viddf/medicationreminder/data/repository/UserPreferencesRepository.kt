@@ -5,6 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.d4viddf.medicationreminder.data.model.ThemeKeys
+import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -21,50 +24,40 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class UserPreferencesRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private val gson = Gson()
 
     private companion object {
-        // val SELECTED_LANGUAGE_KEY = stringPreferencesKey("selected_language_tag") // Remove this line
-        val SELECTED_THEME_KEY = stringPreferencesKey("selected_theme_key")
         val SELECTED_NOTIFICATION_SOUND_URI_KEY = stringPreferencesKey("selected_notification_sound_uri")
-        val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
     }
 
-    // val languageTagFlow: Flow<String> = context.dataStore.data // Remove this entire block
-    //     .catch { exception ->
-    //         if (exception is IOException) {
-    //             emit(emptyPreferences())
-    //         } else {
-    //             throw exception
-    //         }
-    //     }
-    //     .map { preferences ->
-    //         preferences[SELECTED_LANGUAGE_KEY] ?: getDefaultLanguageTag()
-    //     }
-
-    // suspend fun setLanguageTag(tag: String) { // Remove this entire block
-    //     context.dataStore.edit { preferences ->
-    //         preferences[SELECTED_LANGUAGE_KEY] = tag
-    //     }
-    // }
+    private object PreferencesKeys {
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
+        // --- NEW KEY FOR HOME LAYOUT ---
+        val HOME_LAYOUT_CONFIG = stringPreferencesKey("home_layout_config")
+    }
 
     val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
         .map { preferences ->
-            preferences[ONBOARDING_COMPLETED_KEY] ?: false // Default to false if not set
+            preferences[PreferencesKeys.ONBOARDING_COMPLETED] ?: false
         }
 
-    suspend fun updateOnboardingCompleted(completed: Boolean) {
+    suspend fun setOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[ONBOARDING_COMPLETED_KEY] = completed
+            preferences[PreferencesKeys.ONBOARDING_COMPLETED] = completed
         }
     }
 
+    val themePreferenceFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.THEME_PREFERENCE] ?: "System"
+        }
+
+    suspend fun setThemePreference(theme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.THEME_PREFERENCE] = theme
+        }
+    }
     val notificationSoundUriFlow: Flow<String?> = context.dataStore.data
         .catch { exception ->
             if (exception is IOException) {
@@ -87,25 +80,34 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    val themeFlow: Flow<String> = context.dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
-        .map { preferences ->
-            preferences[SELECTED_THEME_KEY] ?: ThemeKeys.SYSTEM
-        }
-
-    suspend fun setTheme(themeKey: String) {
-        context.dataStore.edit { preferences ->
-            preferences[SELECTED_THEME_KEY] = themeKey
-        }
-    }
 
     // private fun getDefaultLanguageTag(): String { // Remove this entire block
     //     return Locale.getDefault().toLanguageTag()
     // }
+
+    /**
+     * Flow to observe changes to the home screen layout configuration.
+     */
+    val homeLayoutFlow: Flow<List<HomeSection>> = context.dataStore.data
+        .map { preferences ->
+            val jsonString = preferences[PreferencesKeys.HOME_LAYOUT_CONFIG]
+            if (jsonString.isNullOrEmpty()) {
+                emptyList() // Return empty list if no config is saved
+            } else {
+                // Deserialize the JSON string back into a list of HomeSection objects
+                val type = object : TypeToken<List<HomeSection>>() {}.type
+                gson.fromJson(jsonString, type)
+            }
+        }
+
+    /**
+     * Saves the user's custom home screen layout configuration.
+     * @param sections The list of sections to save.
+     */
+    suspend fun saveHomeLayout(sections: List<HomeSection>) {
+        val jsonString = gson.toJson(sections)
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HOME_LAYOUT_CONFIG] = jsonString
+        }
+    }
 }

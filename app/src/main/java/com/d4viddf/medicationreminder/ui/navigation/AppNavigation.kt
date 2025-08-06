@@ -48,6 +48,7 @@ import com.d4viddf.medicationreminder.ui.features.settings.components.Responsive
 import com.d4viddf.medicationreminder.ui.features.synceddevices.screen.ConnectedDevicesScreen // Import the new screen
 import com.d4viddf.medicationreminder.ui.features.todayschedules.TodaySchedulesScreen
 import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphViewModel
+import com.d4viddf.medicationreminder.ui.features.personalizehome.PersonalizeHomeScreen
 import java.time.format.DateTimeFormatter
 
 // Define the routes for navigation
@@ -93,6 +94,8 @@ sealed class Screen(val route: String) {
     object ConnectedDevices : Screen("connected_devices_screen") // New screen route
 
     object TodaySchedules : Screen("today_schedules")
+    object PersonalizeHome : Screen("personalizeHome")
+
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -387,6 +390,11 @@ fun AppNavigation(
                             )
                         )
                     }
+                )
+            }
+            composable(Screen.PersonalizeHome.route) {
+                PersonalizeHomeScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

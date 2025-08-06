@@ -14,8 +14,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 26
         targetSdk = 36
-        versionCode = 36
-        versionName = "0.6.7"
+        versionCode = 37
+        versionName = "0.6.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

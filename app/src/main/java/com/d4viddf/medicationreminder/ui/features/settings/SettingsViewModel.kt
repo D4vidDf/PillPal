@@ -111,7 +111,7 @@ class SettingsViewModel @Inject constructor(
     // } // Remove this entire block
 
     // Theme Preference
-    val currentTheme: StateFlow<String> = userPreferencesRepository.themeFlow
+    val currentTheme: StateFlow<String> = userPreferencesRepository.themePreferenceFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Companion.WhileSubscribed(5000),
@@ -120,7 +120,7 @@ class SettingsViewModel @Inject constructor(
 
     fun updateTheme(themeKey: String) {
         viewModelScope.launch {
-            userPreferencesRepository.setTheme(themeKey)
+            userPreferencesRepository.setThemePreference(themeKey)
         }
     }
 

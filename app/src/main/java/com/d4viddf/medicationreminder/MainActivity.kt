@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
 
             if (loadedOnboardingCompletedStatus != null) {
                 val windowSizeClass = calculateWindowSizeClass(this)
-                val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
+                val themePreference by userPreferencesRepository.themePreferenceFlow.collectAsState(initial = ThemeKeys.SYSTEM)
                 // val userPreferenceTagFromFlow by userPreferencesRepository.languageTagFlow
                 //     .distinctUntilChanged()
                 //     .collectAsState(initial = storedLocaleTag) // Ensure storedLocaleTag is available here
