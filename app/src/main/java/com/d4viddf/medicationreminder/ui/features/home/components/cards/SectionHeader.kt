@@ -2,12 +2,11 @@ package com.d4viddf.medicationreminder.ui.features.home.components.cards
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 
@@ -21,7 +20,7 @@ fun SectionHeader(
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = onEditClick) {
             Icon(
-                imageVector = Icons.Default.Edit,
+                painterResource(R.drawable.rounded_edit_24),
                 contentDescription = stringResource(R.string.edit_section)
             )
         }

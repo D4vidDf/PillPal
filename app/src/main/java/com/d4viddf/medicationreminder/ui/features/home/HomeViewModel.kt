@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
+import com.d4viddf.medicationreminder.data.model.healthdata.Weight
+import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
@@ -45,7 +48,8 @@ open class HomeViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository,
+    healthDataRepository: HealthDataRepository
 ) : ViewModel() {
 
     data class HomeState(
@@ -92,6 +96,17 @@ open class HomeViewModel @Inject constructor(
     val missedDoses: Int = 2
     val lastMissedMedication: String? = "Ibuprofen"
 
+    // --- NEW: Load live health data from the database ---
+    val latestWeight: StateFlow<Weight?> = healthDataRepository.getLatestWeight()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val latestTemperature: StateFlow<BodyTemperature?> = healthDataRepository.getLatestBodyTemperature()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Example: Getting total water intake for the last 24 hours
+    val waterIntakeToday: StateFlow<Double?> = healthDataRepository.getTotalWaterIntakeSince(
+        System.currentTimeMillis() - 24 * 60 * 60 * 1000
+    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     fun handleWatchIconClick() {
         viewModelScope.launch {

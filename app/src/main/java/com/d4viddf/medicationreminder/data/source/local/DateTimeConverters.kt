@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.data.source.local
 import androidx.room.TypeConverter
 import java.time.DateTimeException
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalTime
 import java.time.format.DateTimeParseException
 
@@ -39,5 +40,14 @@ class DateTimeConverters {
                 null // Handle parsing errors
             }
         }?.distinct() // Ensure no duplicate times
+    }
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Instant? {
+        return value?.let { Instant.ofEpochMilli(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(instant: Instant?): Long? {
+        return instant?.toEpochMilli()
     }
 }

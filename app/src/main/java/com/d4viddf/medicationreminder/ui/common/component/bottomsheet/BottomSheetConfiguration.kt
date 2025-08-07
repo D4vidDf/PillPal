@@ -6,6 +6,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 /**
  * Represents a single clickable item in the bottom sheet.
@@ -40,7 +41,7 @@ fun getBottomSheetData(navController: NavController): List<BottomSheetGroup> {
                     id = "add_medication",
                     icon = painterResource(R.drawable.prescriptions),
                     text = stringResource(R.string.bottom_sheet_add_medication),
-                    action = { navController.navigate("addMedication") }
+                    action = { navController.navigate(Screen.AddMedicationChoice.route) }
                 ),
                 BottomSheetItem(
                     id = "add_water_reminder",
@@ -63,13 +64,19 @@ fun getBottomSheetData(navController: NavController): List<BottomSheetGroup> {
                     id = "log_water",
                     icon = painterResource(R.drawable.water_full),
                     text = stringResource(R.string.bottom_sheet_log_water),
-                    action = { /* TODO: Implement navigation */ }
+                    action = { navController.navigate(Screen.LogWater.route) }
                 ),
                 BottomSheetItem(
                     id = "log_weight",
                     icon = painterResource(R.drawable.monitor_weight),
                     text = stringResource(R.string.bottom_sheet_log_weight),
-                    action = { /* TODO: Implement navigation */ }
+                    action = { navController.navigate(Screen.LogWeight.route)}
+                ),
+                BottomSheetItem(
+                    id = "log_temperature",
+                    icon = painterResource(R.drawable.thermometer), // Assuming you have an icon
+                    text = "Temperature",
+                    action = { navController.navigate(Screen.LogTemperature.route) }
                 )
             )
         )

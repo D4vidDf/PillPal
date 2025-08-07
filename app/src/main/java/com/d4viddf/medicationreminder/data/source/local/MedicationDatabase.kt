@@ -11,16 +11,55 @@ import com.d4viddf.medicationreminder.data.model.MedicationInfo
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationType
+import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
+import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 
 @Database(
-    entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class],
-    version = 6, // Incremented version to 6
+    entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
+        WaterIntake::class],
+    version = 7, // Incremented version to 6
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Create BodyTemperature table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `body_temperature_records` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `time` INTEGER NOT NULL, 
+                        `temperatureCelsius` REAL NOT NULL, 
+                        `measurementLocation` INTEGER, 
+                        `sourceApp` TEXT, 
+                        `device` TEXT
+                    )
+                """)
+                // Create Weight table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `weight_records` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                        `time` INTEGER NOT NULL, 
+                        `weightKilograms` REAL NOT NULL, 
+                        `sourceApp` TEXT, 
+                        `device` TEXT
+                    )
+                """)
+                // Create WaterIntake table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `water_intake_records` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                        `time` INTEGER NOT NULL, 
+                        `volumeMilliliters` REAL NOT NULL, 
+                        `sourceApp` TEXT, 
+                        `device` TEXT
+                    )
+                """)
+            }
+        }
         // Add a new migration for version 5 to 6.
         // Since the changes (String to List with TypeConverter) alter how data is stored
         // but the underlying column type (TEXT) likely remains the same, an empty migration
@@ -85,5 +124,6 @@ abstract class MedicationDatabase : RoomDatabase() {
     abstract fun medicationReminderDao(): MedicationReminderDao
     abstract fun medicationInfoDao(): MedicationInfoDao
     abstract fun firebaseSyncDao(): FirebaseSyncDao
+    abstract fun healthDataDao(): HealthDataDao
 }
 

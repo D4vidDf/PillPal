@@ -35,6 +35,9 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationChoiceScreen
 import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationScreen
 import com.d4viddf.medicationreminder.ui.features.calendar.CalendarScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.LogTemperatureScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.LogWaterScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.LogWeightScreen
 import com.d4viddf.medicationreminder.ui.features.home.HomeScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
@@ -95,6 +98,9 @@ sealed class Screen(val route: String) {
 
     object TodaySchedules : Screen("today_schedules")
     object PersonalizeHome : Screen("personalizeHome")
+    object LogWater : Screen("logWater")
+    object LogWeight : Screen("logWeight")
+    object LogTemperature : Screen("logTemperature")
 
 }
 
@@ -134,7 +140,8 @@ fun AppNavigation(
             composable(Screen.Home.route) {
                 // `this` is an AnimatedVisibilityScope
                 HomeScreen(
-                    navController = navController, // Added this line
+                    navController = navController,
+                    widthSizeClass = widthSizeClass,
                     // Parameters for the new HomeScreen which does not show all medications
                     // onMedicationClick, widthSizeClass, sharedTransitionScope, animatedVisibilityScope are removed
                     // as they were for the old list-detail view of all medications.
@@ -396,6 +403,15 @@ fun AppNavigation(
                 PersonalizeHomeScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
+            }
+            composable(Screen.LogWater.route) {
+                LogWaterScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable(Screen.LogWeight.route) {
+                LogWeightScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable(Screen.LogTemperature.route) {
+                LogTemperatureScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
     }

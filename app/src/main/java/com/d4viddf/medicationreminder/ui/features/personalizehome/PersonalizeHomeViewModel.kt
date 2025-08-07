@@ -1,7 +1,5 @@
 package com.d4viddf.medicationreminder.ui.features.personalizehome
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
@@ -101,11 +99,20 @@ class PersonalizeHomeViewModel @Inject constructor(
                 )
             ),
             HomeSection(
+                id = "nutrition",
+                name = "Nutrition",
+                items = listOf(
+                    HomeItem("water", "Water Intake",  isVisible = true)
+                )
+            ),
+            HomeSection(
                 id = "health",
                 name = "Health",
                 items = listOf(
                     HomeItem("heart_rate", "Heart Rate",  isVisible = true),
-                    HomeItem("weight", "Weight",  isVisible = true)
+                    HomeItem("weight", "Weight",  isVisible = true),
+                    HomeItem("temperature", "Temperature", isVisible = true)
+
                 )
             )
         )

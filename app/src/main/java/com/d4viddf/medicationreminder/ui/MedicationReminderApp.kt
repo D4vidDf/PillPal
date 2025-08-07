@@ -55,7 +55,7 @@ fun MedicationReminderApp(
         val hideAllMainChrome = currentRoute in listOf(
             Screen.Onboarding.route
         ) || currentRoute.orEmpty().startsWith(Screen.AddMedication.route) ||
-                currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{"))
+                currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{")) || currentRoute.orEmpty().startsWith(Screen.LogWater.route) || currentRoute.orEmpty().startsWith(Screen.LogWeight.route) || currentRoute.orEmpty().startsWith(Screen.LogTemperature.route)
 
         Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome, startRoute: $startRoute")
 
