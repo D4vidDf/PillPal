@@ -132,26 +132,6 @@ private fun HomeItemCard(
         }
     }
 }
-fun getDefaultSections(): List<HomeSection> {
-    return listOf(
-        HomeSection(
-            id = "progress",
-            name = "Progress",
-            items = listOf(
-                HomeItem("today_progress", "Today Progress"),
-                HomeItem("next_dose", "Next Dose", displayUnit = "minutes")
-            )
-        ),
-        HomeSection(
-            id = "health",
-            name = "Health",
-            items = listOf(
-                HomeItem("heart_rate", "Heart Rate"),
-                HomeItem("weight", "Weight")
-            )
-        )
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
