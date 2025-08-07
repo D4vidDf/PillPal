@@ -27,17 +27,51 @@ class PersonalizeHomeViewModel @Inject constructor(
     private fun loadSections() {
         viewModelScope.launch {
             val savedLayout = userPreferencesRepository.homeLayoutFlow.first()
+            val defaultLayout = getDefaultSections()
+
             // If no layout has ever been saved, create the default one and save it immediately.
             if (savedLayout.isEmpty()) {
-                val defaultLayout = getDefaultSections()
                 _sections.value = defaultLayout
                 saveSections() // Save the default layout so it's no longer empty
             } else {
-                _sections.value = savedLayout
+                // --- NEW: Reconcile saved layout with the default layout ---
+                val reconciledLayout = reconcileLayouts(savedLayout, defaultLayout)
+                _sections.value = reconciledLayout
+                // If changes were made, save the updated layout back to the repository.
+                if (reconciledLayout != savedLayout) {
+                    saveSections()
+                }
             }
         }
     }
+    private fun reconcileLayouts(saved: List<HomeSection>, default: List<HomeSection>): List<HomeSection> {
+        val defaultSectionsMap = default.associateBy { it.id }
+        val savedSectionsMap = saved.associateBy { it.id }
 
+        // Start with the user's saved order
+        val reconciled = saved.toMutableList()
+
+        // Add new sections from default that are missing in saved
+        default.forEach { defaultSection ->
+            if (!savedSectionsMap.containsKey(defaultSection.id)) {
+                reconciled.add(defaultSection)
+            }
+        }
+
+        // For each section, add new items that are missing
+        return reconciled.map { section ->
+            val defaultItemsMap = defaultSectionsMap[section.id]?.items?.associateBy { it.id } ?: emptyMap()
+            val savedItemsMap = section.items.associateBy { it.id }
+            val reconciledItems = section.items.toMutableList()
+
+            defaultItemsMap.values.forEach { defaultItem ->
+                if (!savedItemsMap.containsKey(defaultItem.id)) {
+                    reconciledItems.add(defaultItem)
+                }
+            }
+            section.copy(items = reconciledItems)
+        }
+    }
     fun onMoveSectionUp(sectionId: String) {
         val currentList = _sections.value.toMutableList()
         val index = currentList.indexOfFirst { it.id == sectionId }

@@ -88,6 +88,9 @@ open class MedicationRepository @Inject constructor(
     open suspend fun getMedicationById(medicationId: Int): Medication? {
         return medicationDao.getMedicationById(medicationId)
     }
+    fun getMedicationByIdFlow(medicationId: Int): Flow<Medication?> {
+        return medicationDao.getMedicationByIdFlow(medicationId)
+    }
 
     private fun sendDataChangedBroadcast() {
         val intent = Intent(IntentActionConstants.ACTION_DATA_CHANGED)

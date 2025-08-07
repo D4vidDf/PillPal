@@ -98,6 +98,10 @@ fun HomeScreen(
     val latestWeight by viewModel.latestWeight.collectAsState()
     val latestTemperature by viewModel.latestTemperature.collectAsState()
     val waterIntakeToday by viewModel.waterIntakeToday.collectAsState()
+    val todayProgress by viewModel.todayProgress.collectAsState()
+    val missedReminders by viewModel.missedReminders.collectAsState()
+    val lastMissedMedicationName by viewModel.lastMissedMedicationName.collectAsState()
+    val nextDoseTimeInSeconds by viewModel.nextDoseTimeInSeconds.collectAsState() // Safely collect the state here
 
     LaunchedEffect(key1 = Unit) {
         viewModel.navigationEvents.collectLatest { route ->
@@ -112,6 +116,10 @@ fun HomeScreen(
         latestWeight = latestWeight,
         latestTemperature = latestTemperature,
         waterIntakeToday = waterIntakeToday,
+        todayProgress = todayProgress,
+        missedRemindersCount = missedReminders.size,
+        lastMissedMedicationName = lastMissedMedicationName,
+        nextDoseTimeInSeconds = nextDoseTimeInSeconds,
         viewModel = viewModel,
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
@@ -132,6 +140,10 @@ internal fun HomeScreenContent(
     latestWeight: Weight?,
     latestTemperature: BodyTemperature?,
     waterIntakeToday: Double?,
+    todayProgress: Pair<Int, Int>,
+    missedRemindersCount: Int,
+    lastMissedMedicationName: String?,
+    nextDoseTimeInSeconds: Long?,
     viewModel: HomeViewModel,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
@@ -298,21 +310,24 @@ internal fun HomeScreenContent(
                                 items(visibleItems, key = { it.id }) { item ->
                                     when (item.id) {
                                         "today_progress" -> TodayProgressCard(
-                                            taken = viewModel.todayProgressTaken,
-                                            total = viewModel.todayProgressTotal
+                                            taken = todayProgress.first,
+                                            total = todayProgress.second
                                         )
-                                        "next_dose" -> viewModel.nextDoseTimeInSeconds?.let {
-                                            NextDoseTimeCard(
-                                                timeToNextDoseInSeconds = it,
-                                                displayUnit = item.displayUnit ?: "minutes"
-                                            )
+                                        "missed_reminders" -> MissedRemindersCard(
+                                            missedDoses = missedRemindersCount,
+                                            lastMissedMedication = lastMissedMedicationName
+                                        )
+                                        "next_dose" -> {
+                                            // *** FIX: Check if the value is not null before showing the card ***
+                                            if (nextDoseTimeInSeconds != null) {
+                                                NextDoseTimeCard(
+                                                    timeToNextDoseInSeconds = nextDoseTimeInSeconds,
+                                                    displayUnit = item.displayUnit ?: "minutes"
+                                                )
+                                            }
                                         }
                                         "heart_rate" -> HeartRateCard(heartRate = viewModel.heartRate)
                                         "weight" -> WeightCard(weight = latestWeight?.weightKilograms?.toString())
-                                        "missed_reminders" -> MissedRemindersCard(
-                                            missedDoses = viewModel.missedDoses,
-                                            lastMissedMedication = viewModel.lastMissedMedication
-                                        )
                                         "water" -> WaterCard(totalIntakeMl = waterIntakeToday)
                                         "temperature" -> TemperatureCard(temperatureRecord = latestTemperature)
 

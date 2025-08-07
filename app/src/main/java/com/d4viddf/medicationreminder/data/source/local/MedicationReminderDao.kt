@@ -49,4 +49,9 @@ interface MedicationReminderDao {
         ORDER BY reminderTime ASC
     """)
     fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>>
+    @Query("SELECT * FROM medication_reminder WHERE reminderTime < :currentTime AND isTaken = 0 ORDER BY reminderTime DESC")
+    fun getPastUntakenReminders(currentTime: String): Flow<List<MedicationReminder>>
+
+    @Query("SELECT * FROM medication_reminder WHERE reminderTime >= :currentTime AND isTaken = 0 ORDER BY reminderTime ASC LIMIT 1")
+    fun getNextUpcomingReminder(currentTime: String): Flow<MedicationReminder?>
 }

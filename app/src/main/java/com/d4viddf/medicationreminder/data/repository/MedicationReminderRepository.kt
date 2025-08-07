@@ -143,8 +143,25 @@ open class MedicationReminderRepository @Inject constructor(
         return medicationReminderDao.getMostRecentTakenReminder(medicationId)
     }
 
+    /**
+     * Gets all reminders scheduled for a given day.
+     * @param startOfDayString The ISO-8601 string for the beginning of the day (e.g., "2025-08-07T00:00:00").
+     * @param endOfDayString The ISO-8601 string for the end of the day (e.g., "2025-08-07T23:59:59.999").
+     */
     open fun getRemindersForDay(startOfDayString: String, endOfDayString: String): Flow<List<MedicationReminder>> {
         return medicationReminderDao.getRemindersForDay(startOfDayString, endOfDayString)
+    }
+
+    /**
+     * Gets all reminders from before the current time that have not been marked as taken.
+     * @param currentTimeIsoString The ISO-8601 string for the current time.
+     */
+    fun getMissedReminders(currentTimeIsoString: String): Flow<List<MedicationReminder>> {
+        return medicationReminderDao.getPastUntakenReminders(currentTimeIsoString)
+    }
+
+    fun getNextUpcomingReminder(currentTime: String): Flow<MedicationReminder?> {
+        return medicationReminderDao.getNextUpcomingReminder(currentTime)
     }
 
     companion object {

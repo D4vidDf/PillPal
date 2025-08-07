@@ -24,14 +24,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -80,6 +86,7 @@ open class HomeViewModel @Inject constructor(
         updateGreeting()
         updateWatchStatus()
     }
+    val heartRate: String? = "46-97"
 
     val homeLayout: StateFlow<List<HomeSection>> = userPreferencesRepository.homeLayoutFlow
         .stateIn(
@@ -87,14 +94,33 @@ open class HomeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+    private val nextReminderFlow: StateFlow<MedicationReminder?> =
+        medicationReminderRepository.getNextUpcomingReminder(
+            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val todayProgressTaken: Int = 9
-    val todayProgressTotal: Int = 12
-    val nextDoseTimeInSeconds: Long? = 930L
-    val heartRate: String? = "46-97"
-    val weight: String? = "80 kg"
-    val missedDoses: Int = 2
-    val lastMissedMedication: String? = "Ibuprofen"
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val nextDoseTimeInSeconds: StateFlow<Long?> = nextReminderFlow.flatMapLatest { reminder ->
+        if (reminder == null) {
+            flowOf(0L)
+        } else {
+            flow {
+                val reminderTime = LocalDateTime.parse(reminder.reminderTime)
+                while (true) {
+                    val now = LocalDateTime.now()
+                    val duration = Duration.between(now, reminderTime).seconds
+                    if (duration > 0) {
+                        emit(duration) // Cast to nullable to match flow type
+                        delay(1000)
+                    } else {
+                        emit(0L) // Cast to nullable
+                        break
+                    }
+                }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
 
     // --- NEW: Load live health data from the database ---
     val latestWeight: StateFlow<Weight?> = healthDataRepository.getLatestWeight()
@@ -107,6 +133,28 @@ open class HomeViewModel @Inject constructor(
     val waterIntakeToday: StateFlow<Double?> = healthDataRepository.getTotalWaterIntakeSince(
         System.currentTimeMillis() - 24 * 60 * 60 * 1000
     ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val todayProgress: StateFlow<Pair<Int, Int>> = medicationReminderRepository.getRemindersForDay(
+        LocalDate.now().atStartOfDay().toString(),
+        LocalDate.now().atTime(LocalTime.MAX).toString()
+    ).map { reminders ->
+        val taken = reminders.count { it.isTaken }
+        val total = reminders.size
+        Pair(taken, total)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair(0, 0))
+
+    // Flow for Missed Reminders
+    val missedReminders: StateFlow<List<MedicationReminder>> = medicationReminderRepository.getMissedReminders(
+        LocalDateTime.now().toString()
+    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Flow to get the name of the last missed medication
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val lastMissedMedicationName: StateFlow<String?> = missedReminders.flatMapLatest { missedList ->
+        missedList.firstOrNull()?.medicationId?.let { medId ->
+            medicationRepository.getMedicationByIdFlow(medId).map { it?.name }
+        } ?: flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun handleWatchIconClick() {
         viewModelScope.launch {

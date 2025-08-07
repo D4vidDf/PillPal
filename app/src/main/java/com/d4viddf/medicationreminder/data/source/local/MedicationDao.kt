@@ -20,4 +20,6 @@ interface MedicationDao {
 
     @Query("SELECT * FROM medications WHERE id = :medicationId")
     suspend fun getMedicationById(medicationId: Int): Medication?
+    @Query("SELECT * FROM medications WHERE id = :medicationId")
+    fun getMedicationByIdFlow(medicationId: Int): Flow<Medication?>
 }
