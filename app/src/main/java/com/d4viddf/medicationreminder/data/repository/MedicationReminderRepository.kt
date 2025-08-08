@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.data
+package com.d4viddf.medicationreminder.data.repository
 
 import android.content.Context
 import android.util.Log

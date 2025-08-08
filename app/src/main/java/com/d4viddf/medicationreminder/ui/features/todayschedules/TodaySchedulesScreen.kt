@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodayScheduleItem
 import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
@@ -36,36 +37,38 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-@OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodaySchedulesScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDetails: (medicationId: Int) -> Unit,
     viewModel: TodaySchedulesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    // Collect all necessary states from the ViewModel
+    val scheduleItems by viewModel.scheduleItems.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val screenTitle by viewModel.screenTitle.collectAsState()
+    val showMissed by viewModel.showMissed.collectAsState()
+
+    // States for the filter controls
+    val allMedications by viewModel.allMedications.collectAsState()
+    val selectedMedicationId by viewModel.selectedMedicationId.collectAsState()
+    val selectedColorName by viewModel.selectedColorName.collectAsState()
+    val selectedTimeRange by viewModel.selectedTimeRange.collectAsState()
+
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    val sortedTimes = uiState.scheduleItems.keys.sorted()
-    val nextTimeIndex =
-        sortedTimes.indexOfFirst { it >= LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) }
-
-    // Dialog state has been removed.
+    val sortedTimes = scheduleItems.keys.toList()
+    val nextTimeIndex = sortedTimes.indexOfFirst { it >= LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(id = R.string.today_schedules_title)) },
+                title = { Text(screenTitle) },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateBack,
-                        shapes = IconButtonDefaults.shapes(),
-                    ) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             painter = painterResource(R.drawable.rounded_arrow_back_ios_new_24),
                             contentDescription = stringResource(R.string.navigate_back),
@@ -76,36 +79,44 @@ fun TodaySchedulesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                coroutineScope.launch {
-                    if (nextTimeIndex != -1) {
-                        listState.animateScrollToItem(nextTimeIndex)
+            if (!showMissed) {
+                FloatingActionButton(onClick = {
+                    coroutineScope.launch {
+                        if (nextTimeIndex != -1) {
+                            listState.animateScrollToItem(nextTimeIndex)
+                        }
                     }
+                }) {
+                    Icon(
+                        Icons.Default.AccessTime,
+                        contentDescription = stringResource(id = R.string.scroll_to_current_time)
+                    )
                 }
-            }) {
-                Icon(
-                    Icons.Default.AccessTime,
-                    contentDescription = stringResource(id = R.string.scroll_to_current_time)
-                )
             }
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            FilterControls(
-                uiState = uiState,
-                onMedicationFilterChanged = viewModel::onMedicationFilterChanged,
-                onColorFilterChanged = viewModel::onColorFilterChanged,
-                onTimeRangeFilterChanged = viewModel::onTimeRangeFilterChanged
-            )
+            // ** RESTORED: Filters are only shown for the normal daily schedule **
+            if (!showMissed) {
+                FilterControls(
+                    allMedications = allMedications,
+                    selectedMedicationId = selectedMedicationId,
+                    selectedColorName = selectedColorName,
+                    selectedTimeRange = selectedTimeRange,
+                    onMedicationFilterChanged = viewModel::onMedicationFilterChanged,
+                    onColorFilterChanged = viewModel::onColorFilterChanged,
+                    onTimeRangeFilterChanged = viewModel::onTimeRangeFilterChanged
+                )
+            }
 
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                if (uiState.isLoading) {
+                if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(128.dp))
-                } else if (uiState.scheduleItems.isEmpty()) {
-                    EmptyState()
+                } else if (scheduleItems.isEmpty()) {
+                    EmptyState(isMissedMode = showMissed)
                 } else {
                     LazyColumn(
                         state = listState,
@@ -118,19 +129,16 @@ fun TodaySchedulesScreen(
                             key = { index -> sortedTimes[index] }
                         ) { index ->
                             val time = sortedTimes[index]
-                            val itemsForTime = uiState.scheduleItems[time].orEmpty()
-                            val isNextCard = index == nextTimeIndex
+                            val itemsForTime = scheduleItems[time].orEmpty()
+                            val isNextCard = index == nextTimeIndex && !showMissed
 
                             TimeGroupCard(
                                 time = time,
                                 itemsForTime = itemsForTime,
                                 isHighlighted = isNextCard,
                                 onNavigateToDetails = onNavigateToDetails,
-                                onMarkAsTaken = { reminder, isTaken ->
-                                    // The call is now simpler, the ViewModel handles the logic.
-                                    viewModel.updateReminderStatus(reminder, isTaken)
-                                },
-                                onSkip = { }
+                                onMarkAsTaken = viewModel::updateReminderStatus,
+                                onSkip = { /* Implement skip logic if needed */ }
                             )
                         }
                         item {
@@ -153,13 +161,9 @@ private fun TimeGroupCard(
     onNavigateToDetails: (medicationId: Int) -> Unit,
 ) {
     val cardColors = if (isHighlighted) {
-        CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     } else {
-        CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
+        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     }
 
     Card(
@@ -176,7 +180,7 @@ private fun TimeGroupCard(
                     onSkip = onSkip,
                     onNavigateToDetails = onNavigateToDetails,
                     isFuture = try {
-                        LocalDateTime.parse(item.reminder.reminderTime)
+                        LocalDateTime.parse(item.reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
                             .isAfter(LocalDateTime.now())
                     } catch (e: Exception) {
                         false
@@ -194,7 +198,10 @@ private fun TimeGroupCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterControls(
-    uiState: TodaySchedulesViewModel.TodaySchedulesState,
+    allMedications: List<Medication>,
+    selectedMedicationId: Int?,
+    selectedColorName: String?,
+    selectedTimeRange: ClosedRange<LocalTime>?,
     onMedicationFilterChanged: (Int?) -> Unit,
     onColorFilterChanged: (String?) -> Unit,
     onTimeRangeFilterChanged: (LocalTime?, LocalTime?) -> Unit,
@@ -217,17 +224,15 @@ private fun FilterControls(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Medication Filter
         item {
             Box {
                 FilterChip(
-                    selected = uiState.selectedMedicationId != null,
+                    selected = selectedMedicationId != null,
                     onClick = { medicationMenuExpanded = true },
                     label = {
                         Text(
-                            uiState.allMedications.find { it.id == uiState.selectedMedicationId }?.name?.split(
-                                " "
-                            )?.first() ?: stringResource(id = R.string.filter_by_medication)
+                            allMedications.find { it.id == selectedMedicationId }?.name?.split(" ")?.first()
+                                ?: stringResource(id = R.string.filter_by_medication)
                         )
                     },
                     leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
@@ -243,7 +248,7 @@ private fun FilterControls(
                             medicationMenuExpanded = false
                         }
                     )
-                    uiState.allMedications.forEach { medication ->
+                    allMedications.forEach { medication ->
                         DropdownMenuItem(
                             text = { Text(medication.name.split(" ").first()) },
                             onClick = {
@@ -256,15 +261,14 @@ private fun FilterControls(
             }
         }
 
-        // Color Filter
         item {
             Box {
                 FilterChip(
-                    selected = uiState.selectedColorName != null,
+                    selected = selectedColorName != null,
                     onClick = { colorMenuExpanded = true },
                     label = {
                         Text(
-                            uiState.selectedColorName?.replace("_", " ")?.lowercase()
+                            selectedColorName?.replace("_", " ")?.lowercase()
                                 ?.replaceFirstChar { it.titlecase() }
                                 ?: stringResource(id = R.string.filter_by_color)
                         )
@@ -308,30 +312,22 @@ private fun FilterControls(
             }
         }
 
-        // Time Range Filter
         item {
             val formatter = DateTimeFormatter.ofPattern("HH:mm")
-            val label = if (uiState.selectedTimeRange != null) {
-                "${uiState.selectedTimeRange.start.format(formatter)} - ${
-                    uiState.selectedTimeRange.endInclusive.format(
-                        formatter
-                    )
-                }"
+            val label = if (selectedTimeRange != null) {
+                "${selectedTimeRange.start.format(formatter)} - ${selectedTimeRange.endInclusive.format(formatter)}"
             } else {
                 stringResource(id = R.string.filter_by_time_range)
             }
             FilterChip(
-                selected = uiState.selectedTimeRange != null,
+                selected = selectedTimeRange != null,
                 onClick = { showTimeRangeDialog = true },
                 label = { Text(label) },
                 leadingIcon = { Icon(Icons.Default.AccessTime, contentDescription = null) },
                 trailingIcon = {
-                    if (uiState.selectedTimeRange != null) {
+                    if (selectedTimeRange != null) {
                         IconButton(onClick = { onTimeRangeFilterChanged(null, null) }) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Clear time range filter"
-                            )
+                            Icon(Icons.Default.Close, contentDescription = "Clear time range filter")
                         }
                     }
                 }
@@ -393,139 +389,26 @@ private fun TimeHeader(time: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
+private fun EmptyState(modifier: Modifier = Modifier, isMissedMode: Boolean) {
+    val message = if (isMissedMode) stringResource(R.string.no_missed_schedules) else stringResource(R.string.no_schedules_for_today)
+    val icon = if(isMissedMode) R.drawable.task_alt else R.drawable.medication_filled
+
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(16.dp).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Medication,
+            painter = painterResource(icon),
             contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(id = R.string.no_schedules_for_today),
+            text = message,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
     }
-}
-
-
-
-// --- PREVIEW ---
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, name = "Today's Schedules Preview")
-@Composable
-fun TodaySchedulesScreenPreview() {
-    val mockItems = mapOf(
-        "08:00" to listOf(
-            mockTodayScheduleUiItem(1, "Amoxicillin"),
-            mockTodayScheduleUiItem(2, "Vitamin C", "LIGHT_YELLOW")
-        ),
-        "14:00" to listOf(
-            mockTodayScheduleUiItem(3, "Ibuprofen Long Name", "LIGHT_RED")
-        ),
-        "22:00" to listOf(
-            mockTodayScheduleUiItem(4, "Metformin", "LIGHT_BLUE")
-        )
-    )
-
-    val previewState = TodaySchedulesViewModel.TodaySchedulesState(
-        scheduleItems = mockItems,
-        isLoading = false,
-        allMedications = listOf(
-            Medication(
-                id = 1, name = "Amoxicillin", typeId = 2, color = "Orange", dosage = "1",
-                packageSize = 12, remainingDoses = 2, startDate = null, endDate = null,
-                reminderTime = null, registrationDate = null, nregistro = null
-            ),
-            Medication(
-                id = 2, name = "Ibuprofen", typeId = 1, color = "Orange", dosage = "1",
-                packageSize = 12, remainingDoses = 2, startDate = null, endDate = null,
-                reminderTime = null, registrationDate = null, nregistro = null
-            )
-        )
-    )
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    val sortedTimes = previewState.scheduleItems.keys.sorted()
-    val nextTimeIndex = 1
-
-    AppTheme(
-        dynamicColor = true
-    ) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                LargeTopAppBar(
-                    title = { Text(stringResource(id = R.string.today_schedules_title)) },
-                    navigationIcon = {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                painter = painterResource(R.drawable.rounded_arrow_back_ios_new_24),
-                                contentDescription = stringResource(R.string.navigate_back),
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(onClick = {}) {
-                    Icon(Icons.Default.AccessTime, contentDescription = null)
-                }
-            }
-        ) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
-                FilterControls(
-                    uiState = previewState,
-                    onMedicationFilterChanged = {},
-                    onColorFilterChanged = {},
-                    onTimeRangeFilterChanged = { _, _ -> }
-                )
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        count = sortedTimes.size,
-                        key = { index -> sortedTimes[index] }
-                    ) { index ->
-                        val time = sortedTimes[index]
-                        val itemsForTime = previewState.scheduleItems[time].orEmpty()
-                        TimeGroupCard(
-                            time = time,
-                            itemsForTime = itemsForTime,
-                            isHighlighted = index == nextTimeIndex,
-                            onMarkAsTaken = {} as (MedicationReminder, Boolean) -> Unit,
-                            onSkip = {},
-                            onNavigateToDetails = {}
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun mockTodayScheduleUiItem(
-    id: Int,
-    name: String,
-    color: String = "LIGHT_GREEN",
-): TodayScheduleUiItem {
-    val time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-    return TodayScheduleUiItem(
-        reminder = MedicationReminder(id, 100 + id, id, time, false, null, null),
-        medicationName = name,
-        medicationDosage = "1 tablet",
-        medicationColorName = color,
-        medicationIconUrl = null,
-        medicationTypeName = "Tablet",
-        formattedReminderTime = "08:00"
-    )
 }

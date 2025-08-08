@@ -1,6 +1,6 @@
 package com.d4viddf.medicationreminder.di // Or your chosen package
 
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository

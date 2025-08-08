@@ -5,11 +5,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
@@ -21,99 +21,96 @@ import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodaySche
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.delay
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
-open class HomeViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
     private val application: Application,
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
     userPreferencesRepository: UserPreferencesRepository,
-    healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository
 ) : ViewModel() {
 
-    data class HomeState(
-        val nextDoseGroup: List<NextDoseUiItem> = emptyList(),
-        val todaysReminders: Map<String, List<TodayScheduleUiItem>> = emptyMap(),
-        val hasRegisteredMedications: Boolean = false, // Default to false
-        val nextDoseTimeRemaining: String? = null,
-        val nextDoseAtTime: String? = null,
-        val hasUnreadAlerts: Boolean = false,
-        val isLoading: Boolean = true,
-        val currentGreeting: String = "",
-        val isRefreshing: Boolean = false,
-        val showConfirmationDialog: Boolean = false,
-        val confirmationDialogTitle: String = "",
-        val confirmationDialogText: String = "",
-        val confirmationAction: () -> Unit = {},
-        val watchStatus: WatchStatus = WatchStatus.UNKNOWN
-    )
+    // --- UI State & Events ---
 
-    private val _uiState = MutableStateFlow(HomeState())
-    open val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
+    // For showing confirmation dialogs (e.g., mark as taken, skip)
+    data class DialogState(val title: String, val text: String, val onConfirm: () -> Unit)
+    private val _dialogState = MutableStateFlow<DialogState?>(null)
+    val dialogState: StateFlow<DialogState?> = _dialogState.asStateFlow()
 
+    // For pull-to-refresh state
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    // For navigation events
     private val _navigationChannel = Channel<String>()
-    val navigationEvents = _navigationChannel.receiveAsFlow()
+    val navigationEvents: Flow<String> = _navigationChannel.receiveAsFlow()
 
-    init {
-        loadTodaysSchedule()
-        updateGreeting()
-        updateWatchStatus()
-    }
-    val heartRate: String? = "46-97"
+    // --- Reactive Data Flows ---
 
-    val homeLayout: StateFlow<List<HomeSection>> = userPreferencesRepository.homeLayoutFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+    // Greeting message based on time of day
+    val greeting: StateFlow<String> = MutableStateFlow(getGreeting()).asStateFlow()
+
+    // Watch connection status
+    val watchStatus: StateFlow<WatchStatus> = flow {
+        emit(getWatchStatus())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WatchStatus.UNKNOWN)
+
+    // Determines if any medications are registered in the app
+    val hasRegisteredMedications: StateFlow<Boolean> = medicationRepository.getAllMedications()
+        .map { it.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // Single source of truth for today's reminders from the database
+    private val todaysRemindersFromDb: Flow<List<MedicationReminder>> =
+        medicationReminderRepository.getRemindersForDay(
+            LocalDate.now().atStartOfDay().toString(),
+            LocalDate.now().atTime(LocalTime.MAX).toString()
         )
-    private val nextReminderFlow: StateFlow<MedicationReminder?> =
-        medicationReminderRepository.getNextUpcomingReminder(
-            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // The carousel of next medications to be taken
+    val nextDoseGroup: StateFlow<List<NextDoseUiItem>> = todaysRemindersFromDb
+        .map { reminders -> findNextDoseGroup(reminders) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // The countdown timer to the next dose
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val nextDoseTimeInSeconds: StateFlow<Long?> = nextReminderFlow.flatMapLatest { reminder ->
-        if (reminder == null) {
-            flowOf(0L)
+    val nextDoseTimeInSeconds: StateFlow<Long?> = nextDoseGroup.flatMapLatest { nextGroup ->
+        if (nextGroup.isEmpty()) {
+            flow { emit(null) }
         } else {
             flow {
-                val reminderTime = LocalDateTime.parse(reminder.reminderTime)
+                val reminderTime = LocalDateTime.parse(nextGroup.first().rawReminderTime, ReminderCalculator.storableDateTimeFormatter)
                 while (true) {
-                    val now = LocalDateTime.now()
-                    val duration = Duration.between(now, reminderTime).seconds
+                    val duration = Duration.between(LocalDateTime.now(), reminderTime).seconds
                     if (duration > 0) {
-                        emit(duration) // Cast to nullable to match flow type
-                        delay(1000)
+                        emit(duration)
+                        kotlinx.coroutines.delay(1000)
                     } else {
-                        emit(0L) // Cast to nullable
+                        emit(0L)
                         break
                     }
                 }
@@ -121,287 +118,171 @@ open class HomeViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // Today's progress (e.g., 5 of 8 doses taken)
+    val todayProgress: StateFlow<Pair<Int, Int>> = todaysRemindersFromDb
+        .map { reminders -> reminders.count { it.isTaken } to reminders.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
 
-    // --- NEW: Load live health data from the database ---
+    // Fully mapped schedule for the "Today's Schedule" section (if you use it on home)
+    val todaySchedules: StateFlow<Map<String, List<TodayScheduleUiItem>>> = todaysRemindersFromDb
+        .map { reminders -> groupAndMapReminders(reminders) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // --- Missed Reminders Functionality ---
+    val missedReminders: StateFlow<List<TodayScheduleUiItem>> =
+        medicationReminderRepository.getMissedReminders(LocalDateTime.now().toString())
+            .map { reminders -> mapToTodayScheduleUiItem(reminders) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // --- Health Data & Layout ---
+    val homeLayout: StateFlow<List<HomeSection>> = userPreferencesRepository.homeLayoutFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val latestWeight: StateFlow<Weight?> = healthDataRepository.getLatestWeight()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val latestTemperature: StateFlow<BodyTemperature?> = healthDataRepository.getLatestBodyTemperature()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // Example: Getting total water intake for the last 24 hours
     val waterIntakeToday: StateFlow<Double?> = healthDataRepository.getTotalWaterIntakeSince(
         System.currentTimeMillis() - 24 * 60 * 60 * 1000
     ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val todayProgress: StateFlow<Pair<Int, Int>> = medicationReminderRepository.getRemindersForDay(
-        LocalDate.now().atStartOfDay().toString(),
-        LocalDate.now().atTime(LocalTime.MAX).toString()
-    ).map { reminders ->
-        val taken = reminders.count { it.isTaken }
-        val total = reminders.size
-        Pair(taken, total)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair(0, 0))
+    val heartRate: StateFlow<String?> = MutableStateFlow("46-97").asStateFlow() // Example placeholder
 
-    // Flow for Missed Reminders
-    val missedReminders: StateFlow<List<MedicationReminder>> = medicationReminderRepository.getMissedReminders(
-        LocalDateTime.now().toString()
-    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    // --- User Actions ---
 
-    // Flow to get the name of the last missed medication
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val lastMissedMedicationName: StateFlow<String?> = missedReminders.flatMapLatest { missedList ->
-        missedList.firstOrNull()?.medicationId?.let { medId ->
-            medicationRepository.getMedicationByIdFlow(medId).map { it?.name }
-        } ?: flowOf(null)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    fun handleWatchIconClick() {
-        viewModelScope.launch {
-            Log.i("HomeViewModel", "Watch icon clicked. Navigating to Connected Devices screen.")
-            _navigationChannel.send(Screen.ConnectedDevices.route)
-        }
+    fun refreshData() = viewModelScope.launch {
+        _isRefreshing.value = true
+        // Data flows will refresh automatically. We just need to hide the indicator.
+        delay(1000) // Simulate network/db delay
+        _isRefreshing.value = false
     }
 
-    fun refreshData() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isRefreshing = true)
-            updateGreeting()
-            loadTodaysSchedule()
-            updateWatchStatus()
-        }
+    fun handleWatchIconClick() = viewModelScope.launch {
+        _navigationChannel.send(Screen.ConnectedDevices.route)
     }
 
-    private fun updateWatchStatus() {
-        viewModelScope.launch {
-            val isConnected = wearConnectivityHelper.isWatchConnected()
-            if (!isConnected) {
-                _uiState.value = _uiState.value.copy(watchStatus = WatchStatus.NOT_CONNECTED)
-                return@launch
-            }
-            val isAppInstalled = wearConnectivityHelper.isWatchAppInstalled()
-            _uiState.value = _uiState.value.copy(
-                watchStatus = if (isAppInstalled) WatchStatus.CONNECTED_APP_INSTALLED else WatchStatus.CONNECTED_APP_NOT_INSTALLED
-            )
-        }
-    }
-
-    private fun updateGreeting() {
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val greetingResId = when (hour) {
-            in 0..11 -> R.string.greeting_morning
-            in 12..17 -> R.string.greeting_afternoon
-            else -> R.string.greeting_evening
-        }
-        _uiState.value = _uiState.value.copy(currentGreeting = application.getString(greetingResId))
-    }
-
-    private fun loadTodaysSchedule() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-
-            // **1. Check if there are any medications in the database.**
-            val allMedications = medicationRepository.getAllMedications().first()
-            val hasMeds = allMedications.isNotEmpty()
-
-            val today = LocalDate.now()
-            val startOfDayString = today.atStartOfDay().format(ReminderCalculator.storableDateTimeFormatter)
-            val endOfDayString = today.atTime(LocalTime.MAX).format(ReminderCalculator.storableDateTimeFormatter)
-
-            medicationReminderRepository.getRemindersForDay(startOfDayString, endOfDayString)
-                .collect { remindersList ->
-                    val currentTimeMillis = System.currentTimeMillis()
-
-                    val upcomingReminders = remindersList.filter { reminder ->
-                        try {
-                            val reminderTime = LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
-                            reminderTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() > currentTimeMillis && !reminder.isTaken
-                        } catch (e: Exception) {
-                            false
-                        }
-                    }
-
-                    val nextGroupTimeMillis = upcomingReminders.minOfOrNull { reminder ->
-                        try {
-                            LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
-                                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                        } catch (e: Exception) {
-                            Long.MAX_VALUE
-                        }
-                    }
-
-                    val nextDoseReminders = if (nextGroupTimeMillis != null && nextGroupTimeMillis != Long.MAX_VALUE) {
-                        upcomingReminders.filter { reminder ->
-                            try {
-                                LocalDateTime.parse(reminder.reminderTime, ReminderCalculator.storableDateTimeFormatter)
-                                    .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() == nextGroupTimeMillis
-                            } catch (e: Exception) {
-                                false
-                            }
-                        }
-                    } else {
-                        emptyList()
-                    }
-
-                    val nextDoseUiItemsDeferred = nextDoseReminders.map { reminder ->
-                        async {
-                            val medication = medicationRepository.getMedicationById(reminder.medicationId)
-                            val medicationTypeDetails = medication?.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
-
-                            NextDoseUiItem(
-                                reminderId = reminder.id,
-                                medicationId = reminder.medicationId,
-                                medicationName = medication?.name ?: "Unknown",
-                                medicationDosage = medication?.dosage ?: "N/A",
-                                medicationColorName = medication?.color ?: "LIGHT_ORANGE",
-                                medicationImageUrl = medicationTypeDetails?.imageUrl,
-                                rawReminderTime = reminder.reminderTime,
-                                formattedReminderTime = try {
-                                    LocalDateTime.parse(
-                                        reminder.reminderTime,
-                                        ReminderCalculator.storableDateTimeFormatter
-                                    )
-                                        .format(DateTimeFormatter.ofPattern("HH:mm"))
-                                } catch (e: Exception) {
-                                    "N/A"
-                                }
-                            )
-                        }
-                    }
-                    val nextDoseUiItems = nextDoseUiItemsDeferred.awaitAll().sortedBy { it.rawReminderTime }
-
-                    val processedTodaysRemindersMapAsync = remindersList
-                        .groupBy { getPartOfDay(it.reminderTime) }
-                        .mapValues { (_, remindersInPart) ->
-                            remindersInPart.map { reminder ->
-                                async {
-                                    val medication = medicationRepository.getMedicationById(reminder.medicationId)
-                                    val typeDetails = medication?.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
-                                    TodayScheduleUiItem(
-                                        reminder = reminder,
-                                        medicationName = medication?.name ?: "Unknown",
-                                        medicationDosage = medication?.dosage ?: "N/A",
-                                        medicationColorName = medication?.color ?: "LIGHT_ORANGE",
-                                        medicationIconUrl = typeDetails?.imageUrl,
-                                        medicationTypeName = typeDetails?.name,
-                                        formattedReminderTime = try {
-                                            LocalDateTime.parse(
-                                                reminder.reminderTime,
-                                                ReminderCalculator.storableDateTimeFormatter
-                                            )
-                                                .format(DateTimeFormatter.ofPattern("HH:mm"))
-                                        } catch (e: Exception) {
-                                            "N/A"
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                    val allPartsOfDay = listOf("Morning", "Afternoon", "Evening", "Night")
-                    val finalTodaysReminders = mutableMapOf<String, List<TodayScheduleUiItem>>()
-                    allPartsOfDay.forEach { part ->
-                        finalTodaysReminders[part] = processedTodaysRemindersMapAsync[part]?.awaitAll()?.sortedBy { it.reminder.reminderTime } ?: emptyList()
-                    }
-
-                    val (timeRemainingString, nextDoseAtTimeString) = if (nextDoseUiItems.isNotEmpty()) {
-                        val nextDoseItem = nextDoseUiItems.first()
-                        try {
-                            val reminderDateTime = LocalDateTime.parse(nextDoseItem.rawReminderTime, ReminderCalculator.storableDateTimeFormatter)
-                            val now = LocalDateTime.now()
-                            if (reminderDateTime.isAfter(now)) {
-                                val duration = Duration.between(now, reminderDateTime)
-                                formatDuration(duration) to nextDoseItem.formattedReminderTime
-                            } else {
-                                null to nextDoseItem.formattedReminderTime
-                            }
-                        } catch (e: Exception) {
-                            null to nextDoseItem.formattedReminderTime
-                        }
-                    } else {
-                        null to null
-                    }
-
-                    _uiState.value = _uiState.value.copy(
-                        nextDoseGroup = nextDoseUiItems,
-                        todaysReminders = finalTodaysReminders,
-                        nextDoseTimeRemaining = timeRemainingString,
-                        nextDoseAtTime = nextDoseAtTimeString,
-                        hasRegisteredMedications = hasMeds, // **2. Update the state here**
-                        isLoading = false,
-                        isRefreshing = false
-                    )
-                }
-        }
-    }
-
-    private fun formatDuration(duration: Duration): String {
-        val days = duration.toDays()
-        val hours = duration.toHours() % 24
-        val minutes = duration.toMinutes() % 60
-
-        return when {
-            days > 0 -> application.getString(R.string.time_remaining_days_hours, days, hours)
-            hours > 0 -> application.getString(R.string.time_remaining_hours_minutes, hours, minutes)
-            minutes > 0 -> application.getString(R.string.time_remaining_minutes, minutes)
-            else -> application.getString(R.string.time_remaining_less_than_minute)
-        }
-    }
-
-    private fun getPartOfDay(isoTimestamp: String): String {
-        return try {
-            val dateTime = LocalDateTime.parse(isoTimestamp, ReminderCalculator.storableDateTimeFormatter)
-            when (dateTime.hour) {
-                in 0..11 -> "Morning"
-                in 12..16 -> "Afternoon"
-                in 17..20 -> "Evening"
-                else -> "Night"
-            }
-        } catch (e: Exception) {
-            "Unknown"
-        }
-    }
-
-    open fun markAsTaken(reminder: MedicationReminder) {
-        _uiState.value = _uiState.value.copy(
-            showConfirmationDialog = true,
-            confirmationDialogTitle = "Mark as Taken",
-            confirmationDialogText = "Are you sure you want to mark this dose as taken?",
-            confirmationAction = {
+    fun markAsTaken(reminder: MedicationReminder) {
+        _dialogState.value = DialogState(
+            title = "Mark as Taken",
+            text = "Are you sure you want to mark this dose as taken?",
+            onConfirm = {
                 viewModelScope.launch {
                     val nowString = LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter)
                     medicationReminderRepository.updateReminder(reminder.copy(isTaken = true, takenAt = nowString))
-                    _uiState.value = _uiState.value.copy(showConfirmationDialog = false)
+                    dismissConfirmationDialog() // Close dialog
                 }
             }
         )
     }
 
-    open fun skipDose(reminder: MedicationReminder) {
-        _uiState.value = _uiState.value.copy(
-            showConfirmationDialog = true,
-            confirmationDialogTitle = "Skip Dose",
-            confirmationDialogText = "Are you sure you want to skip this dose?",
-            confirmationAction = {
+    fun skipDose(reminder: MedicationReminder) {
+        _dialogState.value = DialogState(
+            title = "Skip Dose",
+            text = "Are you sure you want to skip this dose?",
+            onConfirm = {
                 viewModelScope.launch {
+                    // Here you might want to set a 'skipped' flag instead of deleting
                     medicationReminderRepository.deleteReminder(reminder)
-                    _uiState.value = _uiState.value.copy(showConfirmationDialog = false)
+                    dismissConfirmationDialog()
                 }
             }
         )
     }
 
     fun dismissConfirmationDialog() {
-        _uiState.value = _uiState.value.copy(showConfirmationDialog = false)
+        _dialogState.value = null
     }
 
-    fun isFutureDose(reminderTime: String): Boolean {
+    // --- Private Helper Functions ---
+
+    private suspend fun findNextDoseGroup(reminders: List<MedicationReminder>): List<NextDoseUiItem> {
+        val upcoming = reminders.filter {
+            !it.isTaken &&
+                    try { LocalDateTime.parse(it.reminderTime, ReminderCalculator.storableDateTimeFormatter).isAfter(LocalDateTime.now()) }
+                    catch (e: Exception) { false }
+        }
+        if (upcoming.isEmpty()) return emptyList()
+
+        val nextTime = upcoming.minOf { it.reminderTime }
+        return upcoming.filter { it.reminderTime == nextTime }.mapNotNull { mapToNextDoseUiItem(it) }
+    }
+
+    private suspend fun mapToNextDoseUiItem(reminder: MedicationReminder): NextDoseUiItem? {
+        return medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
+            val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
+            NextDoseUiItem(
+                reminderId = reminder.id,
+                medicationId = med.id,
+                medicationName = med.name,
+                medicationDosage = med.dosage!!,
+                medicationColorName = med.color,
+                medicationImageUrl = type?.imageUrl,
+                rawReminderTime = reminder.reminderTime,
+                formattedReminderTime = formatTime(reminder.reminderTime)
+            )
+        }
+    }
+
+    private suspend fun mapToTodayScheduleUiItem(reminders: List<MedicationReminder>): List<TodayScheduleUiItem> {
+        return reminders.mapNotNull { reminder ->
+            medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
+                val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
+                TodayScheduleUiItem(
+                    reminder = reminder,
+                    medicationName = med.name,
+                    medicationDosage = med.dosage!!,
+                    medicationColorName = med.color,
+                    medicationIconUrl = type?.imageUrl,
+                    medicationTypeName = type?.name,
+                    formattedReminderTime = formatTime(reminder.reminderTime)
+                )
+            }
+        }.sortedBy { it.reminder.reminderTime }
+    }
+
+    private suspend fun groupAndMapReminders(reminders: List<MedicationReminder>): Map<String, List<TodayScheduleUiItem>> {
+        val mappedItems = mapToTodayScheduleUiItem(reminders)
+        return mappedItems.groupBy { getPartOfDay(it.reminder.reminderTime) }
+    }
+
+    private fun getPartOfDay(isoTimestamp: String): String {
         return try {
-            val reminderDateTime = LocalDateTime.parse(reminderTime, ReminderCalculator.storableDateTimeFormatter)
-            reminderDateTime.isAfter(LocalDateTime.now())
-        } catch (e: Exception) {
-            false
+            val hour = LocalDateTime.parse(isoTimestamp, ReminderCalculator.storableDateTimeFormatter).hour
+            when (hour) {
+                in 0..11 -> "Morning"
+                in 12..16 -> "Afternoon"
+                in 17..20 -> "Evening"
+                else -> "Night"
+            }
+        } catch (e: Exception) { "Unknown" }
+    }
+
+    private fun formatTime(isoTimestamp: String): String {
+        return try {
+            LocalDateTime.parse(isoTimestamp, ReminderCalculator.storableDateTimeFormatter)
+                .format(DateTimeFormatter.ofPattern("HH:mm"))
+        } catch (e: Exception) { "N/A" }
+    }
+
+    private fun getGreeting(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val greetingResId = when (hour) {
+            in 0..11 -> R.string.greeting_morning
+            in 12..17 -> R.string.greeting_afternoon
+            else -> R.string.greeting_evening
+        }
+        return application.getString(greetingResId)
+    }
+
+    private suspend fun getWatchStatus(): WatchStatus {
+        return if (!wearConnectivityHelper.isWatchConnected()) {
+            WatchStatus.NOT_CONNECTED
+        } else if (wearConnectivityHelper.isWatchAppInstalled()) {
+            WatchStatus.CONNECTED_APP_INSTALLED
+        } else {
+            WatchStatus.CONNECTED_APP_NOT_INSTALLED
         }
     }
 }

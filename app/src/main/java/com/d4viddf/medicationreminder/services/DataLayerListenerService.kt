@@ -15,12 +15,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationInfoRepository
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.data.model.MedicationInfoSyncItem
 import com.d4viddf.medicationreminder.data.model.MedicationReminderSyncItem
 import com.d4viddf.medicationreminder.data.model.MedicationTypeSyncItem
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest

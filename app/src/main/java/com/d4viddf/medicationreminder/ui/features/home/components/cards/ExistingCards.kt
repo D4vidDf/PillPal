@@ -151,7 +151,8 @@ fun TodayProgressCard(
 fun MissedRemindersCard(
     missedDoses: Int,
     lastMissedMedication: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     // This card will only show if there are missed doses
     if (missedDoses == 0) return
@@ -183,11 +184,11 @@ fun MissedRemindersCard(
                     )
                 }
             }
-            Icon(
+            IconButton(onClick = onClick) {Icon(
                 imageVector = Icons.Filled.ArrowForwardIos,
                 contentDescription = null, // Should be tied to a navigation action
                 modifier = Modifier.size(24.dp)
-            )
+            ) }
         }
     }
 }

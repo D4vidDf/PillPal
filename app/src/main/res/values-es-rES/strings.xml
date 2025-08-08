@@ -436,4 +436,5 @@
     <string name="no_weight_data">No weight registered</string>
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
+    <string name="no_missed_schedules">No missed doses! You\'re on track</string>
 </resources>

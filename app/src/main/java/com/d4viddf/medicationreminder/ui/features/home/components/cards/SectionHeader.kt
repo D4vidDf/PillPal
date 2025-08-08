@@ -10,6 +10,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SectionHeader(
     title: String,
@@ -18,7 +19,8 @@ fun SectionHeader(
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(text = title, style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = onEditClick) {
+        IconButton(onClick = onEditClick,
+            shapes = IconButtonDefaults.shapes(),) {
             Icon(
                 painterResource(R.drawable.rounded_edit_24),
                 contentDescription = stringResource(R.string.edit_section)

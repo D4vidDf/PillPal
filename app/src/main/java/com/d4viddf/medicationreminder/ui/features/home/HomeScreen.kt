@@ -32,12 +32,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -64,10 +64,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
@@ -80,11 +83,17 @@ import com.d4viddf.medicationreminder.ui.features.home.components.cards.Temperat
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.TodayProgressCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.WaterCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.WeightCard
+import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
+// ** ADDED IMPORTS FOR PREVIEW **
+import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeItem
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
+import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,15 +102,33 @@ fun HomeScreen(
     widthSizeClass: WindowWidthSizeClass,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    // --- Collect individual reactive states from the ViewModel ---
+    val dialogState by viewModel.dialogState.collectAsState()
+    val greeting by viewModel.greeting.collectAsState()
+    val watchStatus by viewModel.watchStatus.collectAsState()
+    val hasRegisteredMedications by viewModel.hasRegisteredMedications.collectAsState()
+    val nextDoseGroup by viewModel.nextDoseGroup.collectAsState()
+    val nextDoseTimeInSeconds by viewModel.nextDoseTimeInSeconds.collectAsState()
+    val todayProgress by viewModel.todayProgress.collectAsState()
+    val missedReminders by viewModel.missedReminders.collectAsState()
     val homeLayout by viewModel.homeLayout.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    // Health Data States
     val latestWeight by viewModel.latestWeight.collectAsState()
     val latestTemperature by viewModel.latestTemperature.collectAsState()
     val waterIntakeToday by viewModel.waterIntakeToday.collectAsState()
-    val todayProgress by viewModel.todayProgress.collectAsState()
-    val missedReminders by viewModel.missedReminders.collectAsState()
-    val lastMissedMedicationName by viewModel.lastMissedMedicationName.collectAsState()
-    val nextDoseTimeInSeconds by viewModel.nextDoseTimeInSeconds.collectAsState() // Safely collect the state here
+    val heartRate by viewModel.heartRate.collectAsState()
+
+
+    // A flag to indicate if there are unread alerts (you can wire this to a real data source)
+    val hasUnreadAlerts = false // TODO: Replace with a flow from the ViewModel
+
+    // The loading state is now simpler: it's true until the first list of data is loaded.
+    val isLoading by remember(hasRegisteredMedications, nextDoseGroup) {
+        // Show loading only if we expect meds but the dose group hasn't loaded yet.
+        mutableStateOf(hasRegisteredMedications && nextDoseGroup.isEmpty() && viewModel.todayProgress.value.second > 0)
+    }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.navigationEvents.collectLatest { route ->
@@ -110,21 +137,27 @@ fun HomeScreen(
     }
 
     HomeScreenContent(
-        uiState = uiState,
+        dialogState = dialogState,
+        greeting = greeting,
+        watchStatus = watchStatus,
+        hasRegisteredMedications = hasRegisteredMedications,
+        nextDoseGroup = nextDoseGroup,
+        nextDoseTimeInSeconds = nextDoseTimeInSeconds,
+        todayProgress = todayProgress,
+        missedReminders = missedReminders,
         homeLayout = homeLayout,
-        widthSizeClass= widthSizeClass,
+        widthSizeClass = widthSizeClass,
+        isLoading = isLoading,
+        isRefreshing = isRefreshing,
+        hasUnreadAlerts = hasUnreadAlerts,
         latestWeight = latestWeight,
         latestTemperature = latestTemperature,
         waterIntakeToday = waterIntakeToday,
-        todayProgress = todayProgress,
-        missedRemindersCount = missedReminders.size,
-        lastMissedMedicationName = lastMissedMedicationName,
-        nextDoseTimeInSeconds = nextDoseTimeInSeconds,
-        viewModel = viewModel,
+        heartRate = heartRate,
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
-        navController = navController,
-        onWatchIconClick = { viewModel.handleWatchIconClick() }
+        onWatchIconClick = viewModel::handleWatchIconClick,
+        navController = navController
     )
 }
 
@@ -134,43 +167,49 @@ fun HomeScreen(
 )
 @Composable
 internal fun HomeScreenContent(
-    uiState: HomeViewModel.HomeState,
+    dialogState: HomeViewModel.DialogState?,
+    greeting: String,
+    watchStatus: WatchStatus,
+    hasRegisteredMedications: Boolean,
+    nextDoseGroup: List<NextDoseUiItem>,
+    nextDoseTimeInSeconds: Long?,
+    todayProgress: Pair<Int, Int>,
+    missedReminders: List<TodayScheduleUiItem>,
     homeLayout: List<HomeSection>,
     widthSizeClass: WindowWidthSizeClass,
+    isLoading: Boolean,
+    isRefreshing: Boolean,
+    hasUnreadAlerts: Boolean,
     latestWeight: Weight?,
     latestTemperature: BodyTemperature?,
     waterIntakeToday: Double?,
-    todayProgress: Pair<Int, Int>,
-    missedRemindersCount: Int,
-    lastMissedMedicationName: String?,
-    nextDoseTimeInSeconds: Long?,
-    viewModel: HomeViewModel,
+    heartRate: String?,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController,
-    onWatchIconClick: () -> Unit
+    onWatchIconClick: () -> Unit,
 ) {
-    if (uiState.showConfirmationDialog) {
+    if (dialogState != null) {
         ConfirmationDialog(
             onDismissRequest = onDismissConfirmationDialog,
-            onConfirmation = uiState.confirmationAction,
-            dialogTitle = uiState.confirmationDialogTitle,
-            dialogText = uiState.confirmationDialogText
+            onConfirmation = dialogState.onConfirm,
+            dialogTitle = dialogState.title,
+            dialogText = dialogState.text
         )
     }
 
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
-    var topBarTitle by remember(uiState.currentGreeting) { mutableStateOf(uiState.currentGreeting) }
+    var topBarTitle by remember(greeting) { mutableStateOf(greeting) }
     val nextDosageTitle = stringResource(id = R.string.next_dosage_title)
 
-    LaunchedEffect(uiState.nextDoseGroup, uiState.currentGreeting) {
-        if (uiState.nextDoseGroup.isNotEmpty()) {
+    LaunchedEffect(nextDoseGroup, greeting) {
+        topBarTitle = if (nextDoseGroup.isNotEmpty()) {
             delay(3000L)
-            topBarTitle = nextDosageTitle
+            nextDosageTitle
         } else {
-            topBarTitle = uiState.currentGreeting
+            greeting
         }
     }
 
@@ -192,8 +231,9 @@ internal fun HomeScreenContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onWatchIconClick, shapes = IconButtonDefaults.shapes()) {
-                        val isWatchConnected = uiState.watchStatus == WatchStatus.CONNECTED_APP_INSTALLED
+                    IconButton(onClick = onWatchIconClick,
+                        shapes = IconButtonDefaults.shapes(),) {
+                        val isWatchConnected = watchStatus == WatchStatus.CONNECTED_APP_INSTALLED
                         val iconTint = if (isWatchConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current
                         val contentDesc = if (isWatchConnected) stringResource(R.string.home_button_cd_watch_connected_settings) else stringResource(R.string.home_button_cd_watch_disconnected_settings)
 
@@ -204,11 +244,12 @@ internal fun HomeScreenContent(
                             Icon(painterResource(R.drawable.ic_rounded_devices_wearables_24), contentDescription = null, tint = iconTint)
                         }
                     }
-                    IconButton(onClick = { /* TODO */ }, shapes = IconButtonDefaults.shapes(),
+                    IconButton(onClick = { /* TODO */ },
+                        shapes = IconButtonDefaults.shapes(),
                         colors = IconButtonDefaults.filledTonalIconButtonColors()) {
-                        val notificationsCd = if (uiState.hasUnreadAlerts) context.getString(R.string.home_button_cd_notifications_unread) else context.getString(R.string.home_button_cd_notifications_read)
+                        val notificationsCd = if (hasUnreadAlerts) context.getString(R.string.home_button_cd_notifications_unread) else context.getString(R.string.home_button_cd_notifications_read)
                         BadgedBox(
-                            badge = { if (uiState.hasUnreadAlerts) Badge() },
+                            badge = { if (hasUnreadAlerts) Badge() },
                             modifier = Modifier.semantics { contentDescription = notificationsCd }
                         ) {
                             Icon(painterResource(R.drawable.rounded_notifications_24), contentDescription = null)
@@ -218,7 +259,7 @@ internal fun HomeScreenContent(
             )
         }
     ) { paddingValues ->
-        val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, onRefresh = onRefresh)
+        val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh = onRefresh)
         val hasVisibleItems = homeLayout.any { section -> section.items.any { it.isVisible } }
 
         Box(
@@ -227,9 +268,9 @@ internal fun HomeScreenContent(
                 .pullRefresh(pullRefreshState)
                 .padding(paddingValues)
         ) {
-            if (uiState.isLoading && !uiState.isRefreshing) {
+            if (isLoading && !isRefreshing) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    LoadingIndicator()
+                    CircularProgressIndicator()
                 }
             } else {
                 val columns = if (widthSizeClass == WindowWidthSizeClass.Compact) 1 else 2
@@ -240,26 +281,27 @@ internal fun HomeScreenContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Item 1: Carousel / No Meds / No Schedule
-                    item (span = {  GridItemSpan(maxLineSpan) }){
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         when {
-                            !uiState.hasRegisteredMedications -> NoMedicationsCard(
-                                onAddMedication = { navController.navigate(Screen.AddMedication.route) }
+                            !hasRegisteredMedications -> NoMedicationsCard(
+                                onAddMedication = { navController.navigate(Screen.AddMedicationChoice.route) }
                             )
-                            uiState.todaysReminders.values.all { it.isEmpty() } -> NoScheduleTodayCard()
-                            uiState.nextDoseGroup.isEmpty() -> NoMoreSchedulesTodayCard()
+                            // This logic is key: if we have meds but no upcoming doses, show the "all done" card.
+                            nextDoseGroup.isEmpty() && hasRegisteredMedications && todayProgress.second > 0 -> NoMoreSchedulesTodayCard()
+                            nextDoseGroup.isEmpty() && hasRegisteredMedications && todayProgress.second == 0 -> NoScheduleTodayCard()
                             else -> {
-                                val carouselState = rememberCarouselState { uiState.nextDoseGroup.size }
+                                val carouselState = rememberCarouselState { nextDoseGroup.size }
                                 HorizontalMultiBrowseCarousel(
                                     state = carouselState,
-                                    modifier = Modifier.fillMaxWidth().height(180.dp),
-                                    preferredItemWidth = if (screenWidthDp < 440.dp) 400.dp else screenWidthDp * 0.4f,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp),
+                                    preferredItemWidth = if (screenWidthDp < 550.dp) 400.dp else screenWidthDp * 0.5f,
                                     itemSpacing = 8.dp,
                                 ) { itemIndex ->
-                                    val item = uiState.nextDoseGroup[itemIndex]
+                                    val item = nextDoseGroup[itemIndex]
                                     NextDoseCard(
                                         item = item,
-                                        modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge),
                                         onNavigateToDetails = { medicationId ->
                                             navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
                                         }
@@ -269,39 +311,32 @@ internal fun HomeScreenContent(
                         }
                     }
 
-                    // Item 2: "Show All" button (only if meds exist)
-                    if (uiState.hasRegisteredMedications) {
-                        item(span = {  GridItemSpan(maxLineSpan) }) {
+                    if (hasRegisteredMedications) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
-                                TextButton(onClick = { navController.navigate(Screen.TodaySchedules.route) }) {
+                                TextButton(onClick = { navController.navigate(Screen.TodaySchedules.createRoute()) }, shapes= ButtonDefaults.shapes()) {
                                     Text(stringResource(id = R.string.show_all_button))
                                 }
                             }
                         }
                     }
 
-                    // Items 3+: Dynamic Sections
-                    if (homeLayout.isEmpty()) {
-                        item(span = {  GridItemSpan(maxLineSpan) }) {
-                            EmptyHomeState(
-                                onNavigateToPersonalize = { navController.navigate(Screen.PersonalizeHome.route) }
-                            )
+                    if (homeLayout.isEmpty() || !hasVisibleItems) {
+                        if(hasRegisteredMedications) { // Only show if they have meds but no layout
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                EmptyHomeState(
+                                    onNavigateToPersonalize = { navController.navigate(Screen.PersonalizeHome.route) }
+                                )
+                            }
                         }
-                    } else if (!hasVisibleItems) {
-                        item(span = {  GridItemSpan(maxLineSpan) }) {
-                            EmptyHomeState(
-                                onNavigateToPersonalize = { navController.navigate(Screen.PersonalizeHome.route) }
-                            )
-                        }
-                    }
-                    else {
+                    } else {
                         homeLayout.forEach { section ->
                             val visibleItems = section.items.filter { it.isVisible }
                             if (visibleItems.isNotEmpty()) {
-                                item (span = {  GridItemSpan(maxLineSpan) }){
+                                item(span = { GridItemSpan(maxLineSpan) }) {
                                     SectionHeader(
                                         title = section.name,
                                         onEditClick = { navController.navigate(Screen.PersonalizeHome.route) }
@@ -314,23 +349,22 @@ internal fun HomeScreenContent(
                                             total = todayProgress.second
                                         )
                                         "missed_reminders" -> MissedRemindersCard(
-                                            missedDoses = missedRemindersCount,
-                                            lastMissedMedication = lastMissedMedicationName
-                                        )
-                                        "next_dose" -> {
-                                            // *** FIX: Check if the value is not null before showing the card ***
-                                            if (nextDoseTimeInSeconds != null) {
-                                                NextDoseTimeCard(
-                                                    timeToNextDoseInSeconds = nextDoseTimeInSeconds,
-                                                    displayUnit = item.displayUnit ?: "minutes"
-                                                )
+                                            missedDoses = missedReminders.size,
+                                            lastMissedMedication = missedReminders.firstOrNull()?.medicationName,
+                                            onClick = {
+                                                navController.navigate(Screen.TodaySchedules.createRoute(showMissed = true))
                                             }
+                                        )
+                                        "next_dose" -> nextDoseTimeInSeconds?.let {
+                                            NextDoseTimeCard(
+                                                timeToNextDoseInSeconds = it,
+                                                displayUnit = item.displayUnit ?: "minutes"
+                                            )
                                         }
-                                        "heart_rate" -> HeartRateCard(heartRate = viewModel.heartRate)
+                                        "heart_rate" -> HeartRateCard(heartRate = heartRate)
                                         "weight" -> WeightCard(weight = latestWeight?.weightKilograms?.toString())
                                         "water" -> WaterCard(totalIntakeMl = waterIntakeToday)
                                         "temperature" -> TemperatureCard(temperatureRecord = latestTemperature)
-
                                     }
                                 }
                             }
@@ -339,7 +373,7 @@ internal fun HomeScreenContent(
                     item { Spacer(modifier = Modifier.height(72.dp)) }
                 }
                 PullRefreshIndicator(
-                    refreshing = uiState.isRefreshing,
+                    refreshing = isRefreshing,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
@@ -348,11 +382,15 @@ internal fun HomeScreenContent(
     }
 }
 
+// region Non-stateful Cards and Placeholders
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EmptyHomeState(modifier: Modifier = Modifier, onNavigateToPersonalize: () -> Unit) {
     Box(
-        modifier = modifier.fillMaxSize().padding(32.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(32.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -368,8 +406,7 @@ fun EmptyHomeState(modifier: Modifier = Modifier, onNavigateToPersonalize: () ->
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onNavigateToPersonalize,
-                shapes = ButtonDefaults.shapes()) {
+            Button(onClick = onNavigateToPersonalize, shapes = ButtonDefaults.shapes()) {
                 Text("Personalize Home")
             }
         }
@@ -379,11 +416,15 @@ fun EmptyHomeState(modifier: Modifier = Modifier, onNavigateToPersonalize: () ->
 @Composable
 fun NoMedicationsCard(onAddMedication: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -416,11 +457,16 @@ fun NoMedicationsCard(onAddMedication: () -> Unit) {
 @Composable
 fun NoScheduleTodayCard() {
     Card(
-        modifier = Modifier.fillMaxWidth().height(180.dp).padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -442,11 +488,16 @@ fun NoScheduleTodayCard() {
 @Composable
 fun NoMoreSchedulesTodayCard() {
     Card(
-        modifier = Modifier.fillMaxWidth().height(180.dp).padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -462,5 +513,157 @@ fun NoMoreSchedulesTodayCard() {
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+// endregion
+
+// region Preview Section
+private val mockHomeLayout = listOf(
+    HomeSection(
+        "insights", "Insights", true, items = listOf(
+            HomeItem("today_progress", "Today's Progress", true, "doses"),
+            HomeItem("missed_reminders", "Missed Reminders", true, null)
+        )
+    ),
+    HomeSection(
+        "vitals", "Vitals & Measurements", false, items = listOf(
+            HomeItem("next_dose", "Next Dose", true, "minutes"),
+            HomeItem("heart_rate", "Heart Rate", true, null),
+            HomeItem("weight", "Weight", true, null),
+            HomeItem("water", "Water Intake", true, null),
+            HomeItem("temperature", "Temperature", true, null)
+        )
+    )
+)
+
+private val mockNextDoseGroup = listOf(
+    NextDoseUiItem(1, 1, "Ibuprofen", "200mg", "LIGHT_RED", null, "22:00", "22:00"),
+    NextDoseUiItem(2, 2, "Lisinopril", "10mg", "LIGHT_BLUE", null, "22:00", "22:00")
+)
+
+private val mockMissedReminders = listOf(
+    TodayScheduleUiItem(
+        MedicationReminder(3, 3, 3, "08:00", isTaken = false, null, null),
+        "Metformin", "500mg", "LIGHT_ORANGE", null, null, "08:00"
+    )
+)
+
+@Preview(name = "Normal State", showBackground = true)
+@Composable
+private fun HomeScreenNormalPreview() {
+    AppTheme {
+        HomeScreenContent(
+            dialogState = null,
+            greeting = "Good Evening",
+            watchStatus = WatchStatus.CONNECTED_APP_INSTALLED,
+            hasRegisteredMedications = true,
+            nextDoseGroup = mockNextDoseGroup,
+            nextDoseTimeInSeconds = 1234,
+            todayProgress = Pair(5, 8),
+            missedReminders = mockMissedReminders,
+            homeLayout = mockHomeLayout,
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            isLoading = false,
+            isRefreshing = false,
+            hasUnreadAlerts = true,
+            latestWeight = Weight(1, Instant.now(), 85.5),
+            latestTemperature = BodyTemperature(1, Instant.now(), 36.8),
+            waterIntakeToday = 1250.0,
+            heartRate = "68 bpm",
+            onRefresh = {},
+            onDismissConfirmationDialog = {},
+            navController = rememberNavController(),
+            onWatchIconClick = {}
+        )
+    }
+}
+
+@Preview(name = "No Medications State", showBackground = true)
+@Composable
+private fun HomeScreenNoMedicationsPreview() {
+    AppTheme {
+        HomeScreenContent(
+            dialogState = null,
+            greeting = "Good Morning",
+            watchStatus = WatchStatus.NOT_CONNECTED,
+            hasRegisteredMedications = false,
+            nextDoseGroup = emptyList(),
+            nextDoseTimeInSeconds = null,
+            todayProgress = Pair(0, 0),
+            missedReminders = emptyList(),
+            homeLayout = emptyList(),
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            isLoading = false,
+            isRefreshing = false,
+            hasUnreadAlerts = false,
+            latestWeight = null,
+            latestTemperature = null,
+            waterIntakeToday = null,
+            heartRate = null,
+            onRefresh = {},
+            onDismissConfirmationDialog = {},
+            navController = rememberNavController(),
+            onWatchIconClick = {}
+        )
+    }
+}
+
+@Preview(name = "No More Doses Today State", showBackground = true)
+@Composable
+private fun HomeScreenNoMoreDosesPreview() {
+    AppTheme {
+        HomeScreenContent(
+            dialogState = null,
+            greeting = "Good Afternoon",
+            watchStatus = WatchStatus.CONNECTED_APP_NOT_INSTALLED,
+            hasRegisteredMedications = true,
+            nextDoseGroup = emptyList(), // The key for this state
+            nextDoseTimeInSeconds = null,
+            todayProgress = Pair(8, 8),
+            missedReminders = emptyList(),
+            homeLayout = mockHomeLayout,
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            isLoading = false,
+            isRefreshing = false,
+            hasUnreadAlerts = false,
+            latestWeight = Weight(1, Instant.now(), 85.5),
+            latestTemperature = null,
+            waterIntakeToday = 750.0,
+            heartRate = "72 bpm",
+            onRefresh = {},
+            onDismissConfirmationDialog = {},
+            navController = rememberNavController(),
+            onWatchIconClick = {}
+        )
+    }
+}
+
+@Preview(name = "Loading State", showBackground = true)
+@Composable
+private fun HomeScreenLoadingPreview() {
+    AppTheme {
+        HomeScreenContent(
+            dialogState = null,
+            greeting = "Good Morning",
+            watchStatus = WatchStatus.UNKNOWN,
+            hasRegisteredMedications = true,
+            nextDoseGroup = emptyList(),
+            nextDoseTimeInSeconds = null,
+            todayProgress = Pair(0, 0),
+            missedReminders = emptyList(),
+            homeLayout = emptyList(),
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            isLoading = true, // The key for this state
+            isRefreshing = false,
+            hasUnreadAlerts = false,
+            latestWeight = null,
+            latestTemperature = null,
+            waterIntakeToday = null,
+            heartRate = null,
+            onRefresh = {},
+            onDismissConfirmationDialog = {},
+            navController = rememberNavController(),
+            onWatchIconClick = {}
+        )
     }
 }

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
@@ -13,6 +12,7 @@ import com.d4viddf.medicationreminder.data.repository.MedicationScheduleReposito
 import com.d4viddf.medicationreminder.ui.features.medication.details.components.ProgressDetails
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import android.content.Context
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
