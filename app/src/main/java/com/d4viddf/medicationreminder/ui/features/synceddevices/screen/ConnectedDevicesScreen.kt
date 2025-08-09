@@ -60,47 +60,41 @@ fun ConnectedDevicesScreen(
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center
+                .verticalScroll(rememberScrollState())
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
+            // --- Main Status Section ---
+            if (uiState.isDeviceConnected) {
+                ConnectedDeviceStatus(
+                    deviceInfo = uiState.connectedDevice!!,
+                    lastSyncTimestamp = uiState.lastSyncTimestamp
+                )
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // --- Main Status Section ---
-                    if (uiState.isDeviceConnected) {
-                        ConnectedDeviceStatus(
-                            deviceInfo = uiState.connectedDevice!!,
-                            lastSyncTimestamp = uiState.lastSyncTimestamp
-                        )
-                    } else {
-                        NoDeviceConnectedStatus(onRefreshList = viewModel::refreshDeviceStatus)
-                    }
+                NoDeviceConnectedStatus(
+                    onRefreshList = viewModel::refreshDeviceStatus,
+                    isLoading = uiState.isLoading
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                    // --- Action Buttons Section ---
-                    // These buttons will only appear if a device is connected
-                    AnimatedVisibility(
-                        visible = uiState.isDeviceConnected,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        ActionButtons(
-                            onSyncData = viewModel::syncData,
-                            onRefreshList = viewModel::refreshDeviceStatus
-                        )
-                    }
-                }
+            // --- Action Buttons Section ---
+            // These buttons will only appear if a device is connected
+            AnimatedVisibility(
+                visible = uiState.isDeviceConnected,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                ActionButtons(
+                    onSyncData = viewModel::syncData,
+                    onRefreshList = viewModel::refreshDeviceStatus,
+                    isLoading = uiState.isLoading
+                )
             }
         }
     }
@@ -157,7 +151,7 @@ private fun ConnectedDeviceStatus(
 }
 
 @Composable
-private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit) {
+private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isLoading: Boolean) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -181,16 +175,20 @@ private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRefreshList) {
-            Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.refresh_device_list_button))
+        Button(onClick = onRefreshList, enabled = !isLoading) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
+            } else {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.refresh_device_list_button))
+            }
         }
     }
 }
 
 @Composable
-private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit) {
+private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit, isLoading: Boolean) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -198,7 +196,8 @@ private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit) {
     ) {
         Button(
             onClick = onSyncData,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
             Icon(imageVector = Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
             Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
@@ -206,11 +205,16 @@ private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit) {
         }
         OutlinedButton(
             onClick = onRefreshList,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.refresh_device_list_button))
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
+            } else {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.refresh_device_list_button))
+            }
         }
     }
 }
