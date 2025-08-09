@@ -59,13 +59,12 @@ class MedicationVaultViewModel @Inject constructor(
 
 
     init {
-        loadMedications()
+        initialLoadMedications()
         observeSearchQueryAndMedications()
     }
 
-    private fun loadMedications() {
+    private fun initialLoadMedications() {
         viewModelScope.launch {
-            _isRefreshing.value = true
             // Get the full list from the repository once.
             val allMedications = medicationRepository.getAllMedications().first()
 
@@ -78,18 +77,27 @@ class MedicationVaultViewModel @Inject constructor(
                 delay(75) // Staggered effect for each item.
                 _medicationsState.update { currentList ->
                     currentList.toMutableList().also { mutableList ->
-                        mutableList[index] = UiItemState.Success(medication)
+                        if (index < mutableList.size) {
+                            mutableList[index] = UiItemState.Success(medication)
+                        }
                     }
                 }
             }
             // Update the private list used for searching.
             _medications.value = allMedications
-            _isRefreshing.value = false
         }
     }
 
     fun refreshMedications() {
-        loadMedications()
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            // Get new data without touching the UI state until it's ready
+            val newMedications = medicationRepository.getAllMedications().first()
+            // Directly update with the new success state
+            _medicationsState.value = newMedications.map { UiItemState.Success(it) }
+            _medications.value = newMedications
+            _isRefreshing.value = false
+        }
     }
 
     private fun observeSearchQueryAndMedications() {
