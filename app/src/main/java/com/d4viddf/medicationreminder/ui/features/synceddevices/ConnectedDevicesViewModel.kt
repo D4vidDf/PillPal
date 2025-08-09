@@ -25,7 +25,8 @@ class ConnectedDevicesViewModel @Inject constructor(
 ) : ViewModel() {
 
     data class UiState(
-        val isLoading: Boolean = true,
+        val isRefreshing: Boolean = true,
+        val isSyncing: Boolean = false,
         val connectedDevices: List<DeviceInfo> = emptyList(),
         val lastSyncTimestamp: Instant? = null
     ) {
@@ -84,12 +85,11 @@ class ConnectedDevicesViewModel @Inject constructor(
 
     fun refreshDeviceStatus() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true) }
             delay(1000) // Artificial delay for UX
 
             val nodes = wearConnectivityHelper.getConnectedNodes()
 
-            // Request battery level for all nodes
             nodes.forEach { node ->
                 wearConnectivityHelper.requestBatteryLevel(node.id)
             }
@@ -100,14 +100,14 @@ class ConnectedDevicesViewModel @Inject constructor(
                         id = node.id,
                         name = node.displayName,
                         isAppInstalled = wearConnectivityHelper.isAppInstalledOnNode(node.id),
-                        batteryPercent = -1 // Default value, will be updated by the listener
+                        batteryPercent = -1
                     )
                 }
             }.awaitAll()
 
             _uiState.update {
                 it.copy(
-                    isLoading = false,
+                    isRefreshing = false,
                     connectedDevices = devices,
                     lastSyncTimestamp = if (devices.isNotEmpty() && it.lastSyncTimestamp == null) Instant.now() else it.lastSyncTimestamp
                 )
@@ -117,10 +117,10 @@ class ConnectedDevicesViewModel @Inject constructor(
 
     fun syncData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isSyncing = true) }
             delay(1000) // Artificial delay for UX
             // TODO: Implement your actual data sync logic here
-            _uiState.update { it.copy(lastSyncTimestamp = Instant.now(), isLoading = false) }
+            _uiState.update { it.copy(lastSyncTimestamp = Instant.now(), isSyncing = false) }
         }
     }
 }

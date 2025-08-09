@@ -108,7 +108,7 @@ fun ConnectedDevicesScreenContent(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            if (uiState.isLoading && uiState.connectedDevices.isEmpty()) {
+            if (uiState.isRefreshing && uiState.connectedDevices.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -122,7 +122,7 @@ fun ConnectedDevicesScreenContent(
                 ) {
                     NoDeviceConnectedStatus(
                         onRefreshList = onRefreshList,
-                        isLoading = uiState.isLoading
+                        isRefreshing = uiState.isRefreshing
                     )
                 }
             } else {
@@ -140,11 +140,14 @@ fun ConnectedDevicesScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ActionButtons(
-                onSyncData = onSyncData,
-                onRefreshList = onRefreshList,
-                isLoading = uiState.isLoading
-            )
+            if (uiState.isDeviceConnected) {
+                ActionButtons(
+                    onSyncData = onSyncData,
+                    onRefreshList = onRefreshList,
+                    isRefreshing = uiState.isRefreshing,
+                    isSyncing = uiState.isSyncing
+                )
+            }
         }
     }
 }
@@ -225,7 +228,7 @@ private fun DeviceItem(
 }
 
 @Composable
-private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isLoading: Boolean) {
+private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isRefreshing: Boolean) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -249,8 +252,8 @@ private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isLoading: Boolea
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRefreshList, enabled = !isLoading) {
-            if (isLoading) {
+        Button(onClick = onRefreshList, enabled = !isRefreshing) {
+            if (isRefreshing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
             } else {
                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
@@ -262,7 +265,13 @@ private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isLoading: Boolea
 }
 
 @Composable
-private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit, isLoading: Boolean) {
+private fun ActionButtons(
+    onSyncData: () -> Unit,
+    onRefreshList: () -> Unit,
+    isRefreshing: Boolean,
+    isSyncing: Boolean
+) {
+    val isAnyLoading = isRefreshing || isSyncing
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -271,18 +280,22 @@ private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit, isL
         Button(
             onClick = onSyncData,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
+            enabled = !isAnyLoading
         ) {
-            Icon(imageVector = Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.sync_data_button))
+            if (isSyncing) {
+                CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
+            } else {
+                Icon(imageVector = Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.sync_data_button))
+            }
         }
         OutlinedButton(
             onClick = onRefreshList,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
+            enabled = !isAnyLoading
         ) {
-            if (isLoading) {
+            if (isRefreshing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
             } else {
                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
