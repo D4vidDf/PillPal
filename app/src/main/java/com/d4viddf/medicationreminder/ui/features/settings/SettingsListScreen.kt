@@ -38,6 +38,7 @@ fun SettingsListScreen(
     onNavigateToGeneral: () -> Unit,
     onNavigateToSound: () -> Unit,
     onNavigateToDeveloper: () -> Unit,
+    onNavigateToConnectedDevices: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current // Used for string resources
@@ -54,6 +55,12 @@ fun SettingsListScreen(
             icon = painterResource(id = R.drawable.rounded_volume_up_24),
             onClick = onNavigateToSound,
             contentDescription = stringResource(id = R.string.settings_category_sound_cd) // Assume cd exists
+        ),
+        SettingsCategory(
+            title = stringResource(id = R.string.connected_devices_title),
+            icon = painterResource(id = R.drawable.ic_rounded_devices_wearables_24),
+            onClick = onNavigateToConnectedDevices,
+            contentDescription = stringResource(id = R.string.settings_category_connected_devices_cd)
         ),
         SettingsCategory(
             title = stringResource(id = R.string.settings_category_developer), // Assume R.string.settings_category_developer = "Developer Options"

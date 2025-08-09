@@ -1,32 +1,41 @@
 package com.d4viddf.medicationreminder.ui.features.synceddevices.screen
 
+import android.text.format.DateUtils
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.outlined.BatteryChargingFull
+import androidx.compose.material.icons.outlined.CloudSync
+import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.features.synceddevices.viewmodel.ConnectedDevicesScreenState
-import com.d4viddf.medicationreminder.ui.features.synceddevices.viewmodel.ConnectedDevicesViewModel
-import com.d4viddf.medicationreminder.ui.features.synceddevices.viewmodel.ConnectedDeviceUiItem
+import com.d4viddf.medicationreminder.ui.features.synceddevices.ConnectedDevicesViewModel
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,210 +44,213 @@ fun ConnectedDevicesScreen(
     viewModel: ConnectedDevicesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(key1 = uiState.showSyncSuccessMessage) {
-        if (uiState.showSyncSuccessMessage) {
-            snackbarHostState.showSnackbar(
-                message = "Sync request sent to watch.",
-                duration = SnackbarDuration.Short
-            )
-            viewModel.consumedSyncSuccessMessage()
-        }
-    }
-    LaunchedEffect(key1 = uiState.showSyncErrorMessage) {
-        if (uiState.showSyncErrorMessage) {
-            snackbarHostState.showSnackbar(
-                message = "Failed to send sync request.",
-                duration = SnackbarDuration.Short
-            )
-            viewModel.consumedSyncErrorMessage()
-        }
-    }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Connected Devices & Sync") },
+                title = { Text(stringResource(R.string.connected_devices_title)) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button_cd))
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.navigate_back)
+                        )
                     }
                 }
             )
         }
     ) { paddingValues ->
-        ConnectedDevicesScreenContent(
-            modifier = Modifier.padding(paddingValues),
-            uiState = uiState,
-            onRefreshDevices = { viewModel.fetchConnectedDevices() },
-            onSyncData = { viewModel.triggerSyncWithWatch() },
-            onPairDevice = { viewModel.openPairingFlow() },
-            onDownloadApp = { nodeId -> viewModel.openPlayStoreOnWatch(nodeId) } // Pass action to ViewModel
-        )
-    }
-}
-
-@Composable
-fun ConnectedDevicesScreenContent(
-    modifier: Modifier = Modifier,
-    uiState: ConnectedDevicesScreenState,
-    onRefreshDevices: () -> Unit,
-    onSyncData: () -> Unit,
-            onPairDevice: () -> Unit,
-            onDownloadApp: (String) -> Unit // Added callback for downloading app
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.padding(vertical = 20.dp))
-        } else {
-            if (uiState.connectedDevices.isEmpty()) {
-                NoDevicesConnectedView(onPairDevice = onPairDevice, onRefreshDevices = onRefreshDevices)
-            } else {
-                Text(
-                    text = "Connected Wear OS Devices:",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(uiState.connectedDevices, key = { it.id }) { device ->
-                        DeviceItem(device = device, onDownloadApp = { onDownloadApp(device.id) })
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = onSyncData,
-            enabled = uiState.connectedDevices.any { it.isNearby && it.isAppInstalled } && !uiState.isLoading // Sync enabled if app installed
-        ) {
-            Icon(Icons.Filled.Sync, contentDescription = "Sync Icon", modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text("Sync Data with Watch")
-        }
-
-        OutlinedButton(onClick = onRefreshDevices, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Refresh Device List")
-        }
-    }
-}
-
-@Composable
-fun DeviceItem(device: ConnectedDeviceUiItem, onDownloadApp: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Watch, contentDescription = "Watch device", modifier = Modifier.size(40.dp))
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(text = device.displayName, style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        text = if (device.isNearby) "Nearby" else "Not nearby",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    if (!device.isAppInstalled) {
-                        Text(
-                            text = "App not installed",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // --- Main Status Section ---
+                    if (uiState.isDeviceConnected) {
+                        ConnectedDeviceStatus(
+                            deviceInfo = uiState.connectedDevice!!,
+                            lastSyncTimestamp = uiState.lastSyncTimestamp
+                        )
+                    } else {
+                        NoDeviceConnectedStatus()
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // --- Action Buttons Section ---
+                    // These buttons will only appear if a device is connected
+                    AnimatedVisibility(
+                        visible = uiState.isDeviceConnected,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        ActionButtons(
+                            onSyncData = viewModel::syncData,
+                            onRefreshList = viewModel::refreshDeviceStatus
                         )
                     }
                 }
             }
-            if (!device.isAppInstalled && device.isNearby) {
-                Button(onClick = onDownloadApp) {
-                    Text("Download App")
-                }
-            }
         }
     }
 }
 
 @Composable
-fun NoDevicesConnectedView(onPairDevice: () -> Unit, onRefreshDevices: () -> Unit) {
+private fun ConnectedDeviceStatus(
+    deviceInfo: ConnectedDevicesViewModel.DeviceInfo,
+    lastSyncTimestamp: Instant?
+) {
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_rounded_devices_wearables_24), // A larger, more prominent watch icon
+            contentDescription = null,
+            modifier = Modifier.size(128.dp),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+        )
+        Text(
+            text = deviceInfo.name,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = stringResource(R.string.device_status_connected),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color(0xFF008000) // A nice green color for "Connected"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // --- Detailed Info List ---
+        InfoRow(
+            icon = Icons.Outlined.BatteryChargingFull,
+            label = stringResource(R.string.device_info_battery),
+            value = "${deviceInfo.batteryPercent}%"
+        )
+        InfoRow(
+            icon = if (deviceInfo.isAppInstalled) Icons.Default.CheckCircle else Icons.Default.Error,
+            iconTint = if (deviceInfo.isAppInstalled) Color(0xFF008000) else MaterialTheme.colorScheme.error,
+            label = stringResource(R.string.device_info_app_status),
+            value = if (deviceInfo.isAppInstalled) stringResource(R.string.app_status_installed) else stringResource(R.string.app_status_not_installed)
+        )
+        if (lastSyncTimestamp != null) {
+            InfoRow(
+                icon = Icons.Outlined.CloudSync,
+                label = stringResource(R.string.device_info_last_sync),
+                value = formatRelativeTime(lastSyncTimestamp.toEpochMilli())
+            )
+        }
+    }
+}
+
+@Composable
+private fun NoDeviceConnectedStatus() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(32.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_rounded_devices_wearables_24), // A dedicated icon for disconnected state
+            contentDescription = null,
+            modifier = Modifier.size(128.dp),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+        )
+        Text(
+            text = stringResource(R.string.no_device_found_title),
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = stringResource(R.string.no_device_found_subtitle),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { /* TODO: Trigger a new device search */ }) {
+            Text(stringResource(R.string.search_for_devices_button))
+        }
+    }
+}
+
+@Composable
+private fun ActionButtons(onSyncData: () -> Unit, onRefreshList: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Button(
+            onClick = onSyncData,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(imageVector = Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.sync_data_button))
+        }
+        OutlinedButton(
+            onClick = onRefreshList,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.refresh_device_list_button))
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    iconTint: Color = LocalContentColor.current
+) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Filled.CloudOff,
-            contentDescription = "No devices connected",
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        Icon(imageVector = icon, contentDescription = null, tint = iconTint)
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
         )
         Text(
-            text = "No Wear OS devices connected.",
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-        )
-        Text(
-            text = "Please ensure your watch is paired with your phone and Bluetooth is enabled.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-        Button(onClick = onPairDevice) {
-            Text("Pair a New Watch")
-        }
-         OutlinedButton(onClick = onRefreshDevices, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Refresh List")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ConnectedDevicesScreenContentPreview_NoDevices() {
-    MaterialTheme {
-        ConnectedDevicesScreenContent(
-            uiState = ConnectedDevicesScreenState(connectedDevices = emptyList(), isLoading = false),
-            onRefreshDevices = {},
-            onSyncData = {},
-            onPairDevice = {},
-            onDownloadApp = {} // Added
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
 
-@Preview(showBackground = true)
+/**
+ * A helper function to format timestamps into a relative string like "5 minutes ago".
+ */
 @Composable
-fun ConnectedDevicesScreenContentPreview_WithDevices() {
-    MaterialTheme {
-        ConnectedDevicesScreenContent(
-            uiState = ConnectedDevicesScreenState(
-                connectedDevices = listOf(
-                    ConnectedDeviceUiItem("node1", "Pixel Watch", true, isAppInstalled = true), // Added isAppInstalled
-                    ConnectedDeviceUiItem("node2", "Galaxy Watch", false, isAppInstalled = false) // Added isAppInstalled
-                ),
-                isLoading = false
-            ),
-            onRefreshDevices = {},
-            onSyncData = {},
-            onPairDevice = {},
-            onDownloadApp = {} // Added
-        )
-    }
+private fun formatRelativeTime(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    return DateUtils.getRelativeTimeSpanString(
+        timestamp,
+        now,
+        DateUtils.MINUTE_IN_MILLIS
+    ).toString()
 }
