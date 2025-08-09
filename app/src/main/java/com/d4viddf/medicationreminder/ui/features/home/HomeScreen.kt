@@ -1,6 +1,7 @@
 package com.d4viddf.medicationreminder.ui.features.home
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -294,52 +295,58 @@ internal fun HomeScreenContent(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    when (nextDoseGroupState) {
-                        is UiItemState.Loading -> {
-                            NextDoseCardSkeleton(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp)
-                            )
-                        }
-
-                        is UiItemState.Success -> {
-                            val nextDoseGroup = nextDoseGroupState.data
-                            when {
-                                !hasRegisteredMedications -> NoMedicationsCard(
-                                    onAddMedication = { navController.navigate(Screen.AddMedicationChoice.route) }
+                    Crossfade(
+                        targetState = nextDoseGroupState,
+                        label = "NextDoseCrossfade"
+                    ) { state ->
+                        when (state) {
+                            is UiItemState.Loading -> {
+                                NextDoseCardSkeleton(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp)
                                 )
-                                // This logic is key: if we have meds but no upcoming doses, show the "all done" card.
-                                nextDoseGroup.isEmpty() && hasRegisteredMedications && (todayProgressState as? UiItemState.Success)?.data?.second ?: 0 > 0 -> NoMoreSchedulesTodayCard()
-                                nextDoseGroup.isEmpty() && hasRegisteredMedications && (todayProgressState as? UiItemState.Success)?.data?.second ?: 0 == 0 -> NoScheduleTodayCard()
-                                else -> {
-                                    val carouselState = rememberCarouselState { nextDoseGroup.size }
-                                    HorizontalMultiBrowseCarousel(
-                                        state = carouselState,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(180.dp),
-                                        preferredItemWidth = if (screenWidthDp < 550.dp) 400.dp else screenWidthDp * 0.5f,
-                                        itemSpacing = 8.dp,
-                                    ) { itemIndex ->
-                                        val item = nextDoseGroup[itemIndex]
-                                        NextDoseCard(
-                                            item = item,
-                                            onNavigateToDetails = { medicationId ->
-                                                navController.navigate(
-                                                    Screen.MedicationDetails.createRoute(
-                                                        medicationId
+                            }
+
+                            is UiItemState.Success -> {
+                                val nextDoseGroup = state.data
+                                when {
+                                    !hasRegisteredMedications -> NoMedicationsCard(
+                                        onAddMedication = { navController.navigate(Screen.AddMedicationChoice.route) }
+                                    )
+                                    // This logic is key: if we have meds but no upcoming doses, show the "all done" card.
+                                    nextDoseGroup.isEmpty() && hasRegisteredMedications && (todayProgressState as? UiItemState.Success)?.data?.second ?: 0 > 0 -> NoMoreSchedulesTodayCard()
+                                    nextDoseGroup.isEmpty() && hasRegisteredMedications && (todayProgressState as? UiItemState.Success)?.data?.second ?: 0 == 0 -> NoScheduleTodayCard()
+                                    else -> {
+                                        val carouselState =
+                                            rememberCarouselState { nextDoseGroup.size }
+                                        HorizontalMultiBrowseCarousel(
+                                            state = carouselState,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(180.dp),
+                                            preferredItemWidth = if (screenWidthDp < 550.dp) 400.dp else screenWidthDp * 0.5f,
+                                            itemSpacing = 8.dp,
+                                        ) { itemIndex ->
+                                            val item = nextDoseGroup[itemIndex]
+                                            NextDoseCard(
+                                                item = item,
+                                                onNavigateToDetails = { medicationId ->
+                                                    navController.navigate(
+                                                        Screen.MedicationDetails.createRoute(
+                                                            medicationId
+                                                        )
                                                     )
-                                                )
-                                            }
-                                        )
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        is UiItemState.Error -> {
-                            // TODO: Show error state for the dose card
+                            is UiItemState.Error -> {
+                                // TODO: Show error state for the dose card
+                            }
                         }
                     }
                 }
@@ -392,70 +399,115 @@ internal fun HomeScreenContent(
                                     }
                                     items(visibleItems, key = { it.id }) { item ->
                                         when (item.id) {
-                                            "today_progress" -> when (todayProgressState) {
-                                                is UiItemState.Loading -> TodayProgressCardSkeleton()
-                                                is UiItemState.Success -> TodayProgressCard(
-                                                    taken = todayProgressState.data.first,
-                                                    total = todayProgressState.data.second
-                                                )
+                                            "today_progress" -> Crossfade(
+                                                targetState = todayProgressState,
+                                                label = "TodayProgressCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> TodayProgressCardSkeleton()
+                                                    is UiItemState.Success -> TodayProgressCard(
+                                                        taken = state.data.first,
+                                                        total = state.data.second
+                                                    )
 
-                                                is UiItemState.Error -> {} // Optional: show error
+                                                    is UiItemState.Error -> {} // Optional: show error
+                                                }
                                             }
 
-                                            "missed_reminders" -> when (missedRemindersState) {
-                                                is UiItemState.Loading -> MissedRemindersCardSkeleton()
-                                                is UiItemState.Success -> MissedRemindersCard(
-                                                    missedDoses = missedRemindersState.data.size,
-                                                    lastMissedMedication = missedRemindersState.data.firstOrNull()?.medicationName,
-                                                    onClick = {
-                                                        navController.navigate(
-                                                            Screen.TodaySchedules.createRoute(
-                                                                showMissed = true
+                                            "missed_reminders" -> Crossfade(
+                                                targetState = missedRemindersState,
+                                                label = "MissedRemindersCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> MissedRemindersCardSkeleton()
+                                                    is UiItemState.Success -> MissedRemindersCard(
+                                                        missedDoses = state.data.size,
+                                                        lastMissedMedication = state.data.firstOrNull()?.medicationName,
+                                                        onClick = {
+                                                            navController.navigate(
+                                                                Screen.TodaySchedules.createRoute(
+                                                                    showMissed = true
+                                                                )
                                                             )
+                                                        }
+                                                    )
+
+                                                    is UiItemState.Error -> {}
+                                                }
+                                            }
+
+                                            "next_dose" -> Crossfade(
+                                                targetState = nextDoseGroupState,
+                                                label = "NextDoseTimeCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> NextDoseTimeCardSkeleton()
+                                                    is UiItemState.Success -> nextDoseTimeInSeconds?.let {
+                                                        NextDoseTimeCard(
+                                                            timeToNextDoseInSeconds = it,
+                                                            displayUnit = item.displayUnit
+                                                                ?: "minutes"
                                                         )
                                                     }
-                                                )
 
-                                                is UiItemState.Error -> {}
-                                            }
-
-                                            "next_dose" -> when (nextDoseGroupState) {
-                                                is UiItemState.Loading -> NextDoseTimeCardSkeleton()
-                                                is UiItemState.Success -> nextDoseTimeInSeconds?.let {
-                                                    NextDoseTimeCard(
-                                                        timeToNextDoseInSeconds = it,
-                                                        displayUnit = item.displayUnit ?: "minutes"
-                                                    )
+                                                    is UiItemState.Error -> {}
                                                 }
-
-                                                is UiItemState.Error -> {}
                                             }
 
-                                            "heart_rate" -> when (heartRateState) {
-                                                is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                is UiItemState.Success -> HeartRateCard(heartRate = heartRateState.data)
-                                                is UiItemState.Error -> {}
+                                            "heart_rate" -> Crossfade(
+                                                targetState = heartRateState,
+                                                label = "HeartRateCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> HealthStatCardSkeleton()
+                                                    is UiItemState.Success -> HeartRateCard(
+                                                        heartRate = state.data
+                                                    )
+
+                                                    is UiItemState.Error -> {}
+                                                }
                                             }
 
-                                            "weight" -> when (latestWeightState) {
-                                                is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                is UiItemState.Success -> WeightCard(weight = latestWeightState.data?.weightKilograms?.toString())
-                                                is UiItemState.Error -> {}
+                                            "weight" -> Crossfade(
+                                                targetState = latestWeightState,
+                                                label = "WeightCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> HealthStatCardSkeleton()
+                                                    is UiItemState.Success -> WeightCard(
+                                                        weight = state.data?.weightKilograms?.toString()
+                                                    )
+
+                                                    is UiItemState.Error -> {}
+                                                }
                                             }
 
-                                            "water" -> when (waterIntakeTodayState) {
-                                                is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                is UiItemState.Success -> WaterCard(totalIntakeMl = waterIntakeTodayState.data)
-                                                is UiItemState.Error -> {}
+                                            "water" -> Crossfade(
+                                                targetState = waterIntakeTodayState,
+                                                label = "WaterCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> HealthStatCardSkeleton()
+                                                    is UiItemState.Success -> WaterCard(
+                                                        totalIntakeMl = state.data
+                                                    )
+
+                                                    is UiItemState.Error -> {}
+                                                }
                                             }
 
-                                            "temperature" -> when (latestTemperatureState) {
-                                                is UiItemState.Loading -> TemperatureCardSkeleton()
-                                                is UiItemState.Success -> TemperatureCard(
-                                                    temperatureRecord = latestTemperatureState.data
-                                                )
+                                            "temperature" -> Crossfade(
+                                                targetState = latestTemperatureState,
+                                                label = "TemperatureCrossfade"
+                                            ) { state ->
+                                                when (state) {
+                                                    is UiItemState.Loading -> TemperatureCardSkeleton()
+                                                    is UiItemState.Success -> TemperatureCard(
+                                                        temperatureRecord = state.data
+                                                    )
 
-                                                is UiItemState.Error -> {}
+                                                    is UiItemState.Error -> {}
+                                                }
                                             }
                                         }
                                     }

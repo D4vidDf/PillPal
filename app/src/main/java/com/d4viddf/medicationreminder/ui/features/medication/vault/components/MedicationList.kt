@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.features.medication.vault.components
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
@@ -67,59 +68,61 @@ fun MedicationList(
             )
         }
     ) {
-        when (medicationState) {
-            is UiItemState.Loading -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = bottomContentPadding),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(10) {
-                        MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp))
+        Crossfade(targetState = medicationState, label = "MedicationListCrossfade") { state ->
+            when (state) {
+                is UiItemState.Loading -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = bottomContentPadding),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(10) {
+                            MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp))
+                        }
                     }
                 }
-            }
 
-            is UiItemState.Success -> {
-                val medications = medicationState.data
-                if (medications.isEmpty()) {
+                is UiItemState.Success -> {
+                    val medications = state.data
+                    if (medications.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(stringResource(id = R.string.no_medications_yet))
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(bottom = bottomContentPadding)
+                        ) {
+                            itemsIndexed(
+                                medications,
+                                key = { _, medication -> medication.id }) { index, medication ->
+                                MedicationCard( // This will be imported from the same package
+                                    medication = medication,
+                                    onClick = { onItemClick(medication, index) },
+                                    enableTransition = enableCardTransitions,
+                                    sharedTransitionScope = sharedTransitionScope,
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                            }
+                            item {
+                                Spacer(modifier = Modifier.height(86.dp))
+                            }
+                        }
+                    }
+                }
+
+                is UiItemState.Error -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(stringResource(id = R.string.no_medications_yet))
+                        Text("Error loading medications.")
                     }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = bottomContentPadding)
-                    ) {
-                        itemsIndexed(
-                            medications,
-                            key = { _, medication -> medication.id }) { index, medication ->
-                            MedicationCard( // This will be imported from the same package
-                                medication = medication,
-                                onClick = { onItemClick(medication, index) },
-                                enableTransition = enableCardTransitions,
-                                sharedTransitionScope = sharedTransitionScope,
-                                animatedVisibilityScope = animatedVisibilityScope
-                            )
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(86.dp))
-                        }
-                    }
-                }
-            }
-
-            is UiItemState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Error loading medications.")
                 }
             }
         }
