@@ -35,9 +35,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.synceddevices.ConnectedDevicesViewModel
+import com.d4viddf.medicationreminder.ui.theme.MedicationTheme
 import java.time.Instant
+import androidx.compose.ui.tooling.preview.Preview
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedDevicesScreen(
     navController: NavController,
@@ -45,12 +46,28 @@ fun ConnectedDevicesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    ConnectedDevicesScreenContent(
+        uiState = uiState,
+        onSyncData = viewModel::syncData,
+        onRefreshList = viewModel::refreshDeviceStatus,
+        onNavigateBack = { navController.popBackStack() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConnectedDevicesScreenContent(
+    uiState: ConnectedDevicesViewModel.UiState,
+    onSyncData: () -> Unit,
+    onRefreshList: () -> Unit,
+    onNavigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.connected_devices_title)) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_back)
@@ -76,7 +93,7 @@ fun ConnectedDevicesScreen(
                 )
             } else {
                 NoDeviceConnectedStatus(
-                    onRefreshList = viewModel::refreshDeviceStatus,
+                    onRefreshList = onRefreshList,
                     isLoading = uiState.isLoading
                 )
             }
@@ -91,8 +108,8 @@ fun ConnectedDevicesScreen(
                 exit = fadeOut()
             ) {
                 ActionButtons(
-                    onSyncData = viewModel::syncData,
-                    onRefreshList = viewModel::refreshDeviceStatus,
+                    onSyncData = onSyncData,
+                    onRefreshList = onRefreshList,
                     isLoading = uiState.isLoading
                 )
             }
@@ -259,4 +276,61 @@ private fun formatRelativeTime(timestamp: Long): String {
         now,
         DateUtils.MINUTE_IN_MILLIS
     ).toString()
+}
+
+@Preview(name = "Connected State", showBackground = true)
+@Composable
+fun ConnectedDevicesScreenPreview_Connected() {
+    val deviceInfo = ConnectedDevicesViewModel.DeviceInfo(
+        name = "Galaxy Watch6",
+        batteryPercent = 78,
+        isAppInstalled = true
+    )
+    val uiState = ConnectedDevicesViewModel.UiState(
+        isLoading = false,
+        connectedDevice = deviceInfo,
+        lastSyncTimestamp = Instant.now().minusSeconds(300)
+    )
+    MedicationTheme {
+        ConnectedDevicesScreenContent(
+            uiState = uiState,
+            onSyncData = {},
+            onRefreshList = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(name = "Disconnected State", showBackground = true)
+@Composable
+fun ConnectedDevicesScreenPreview_Disconnected() {
+    val uiState = ConnectedDevicesViewModel.UiState(
+        isLoading = false,
+        connectedDevice = null
+    )
+    MedicationTheme {
+        ConnectedDevicesScreenContent(
+            uiState = uiState,
+            onSyncData = {},
+            onRefreshList = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(name = "Loading State", showBackground = true)
+@Composable
+fun ConnectedDevicesScreenPreview_Loading() {
+    val uiState = ConnectedDevicesViewModel.UiState(
+        isLoading = true,
+        connectedDevice = null
+    )
+    MedicationTheme {
+        ConnectedDevicesScreenContent(
+            uiState = uiState,
+            onSyncData = {},
+            onRefreshList = {},
+            onNavigateBack = {}
+        )
+    }
 }
