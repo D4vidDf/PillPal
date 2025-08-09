@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -308,7 +309,7 @@ private fun ActionButtons(
 
 @Composable
 private fun InfoRow(
-    icon: ImageVector,
+    icon: Any,
     label: String,
     value: String,
     iconTint: Color = LocalContentColor.current
@@ -319,7 +320,20 @@ private fun InfoRow(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = iconTint)
+        when (icon) {
+            is ImageVector -> Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(24.dp)
+            )
+            is Painter -> Icon(
+                painter = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(24.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = label,
