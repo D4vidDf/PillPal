@@ -17,19 +17,20 @@ class ConnectedDevicesViewModel @Inject constructor(
     private val wearConnectivityHelper: WearConnectivityHelper
 ) : ViewModel() {
 
-    // A single state object to hold all UI-related data
     data class UiState(
         val isLoading: Boolean = true,
-        val connectedDevice: DeviceInfo? = null,
+        val connectedDevices: List<DeviceInfo> = emptyList(),
         val lastSyncTimestamp: Instant? = null
     ) {
-        val isDeviceConnected: Boolean get() = connectedDevice != null
+        val isDeviceConnected: Boolean get() = connectedDevices.isNotEmpty()
     }
 
     data class DeviceInfo(
+        val id: String,
         val name: String,
         val batteryPercent: Int,
-        val isAppInstalled: Boolean
+        val isAppInstalled: Boolean,
+        val isExpanded: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -39,31 +40,43 @@ class ConnectedDevicesViewModel @Inject constructor(
         refreshDeviceStatus()
     }
 
+    fun onDeviceClicked(deviceId: String) {
+        _uiState.update { currentState ->
+            val updatedDevices = currentState.connectedDevices.map { device ->
+                if (device.id == deviceId) {
+                    device.copy(isExpanded = !device.isExpanded)
+                } else {
+                    device
+                }
+            }
+            currentState.copy(connectedDevices = updatedDevices)
+        }
+    }
+
     fun refreshDeviceStatus() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            // Simulate fetching device info
-            // In a real app, these would be your actual wearConnectivityHelper calls
             val isConnected = wearConnectivityHelper.isWatchConnected()
 
             if (isConnected) {
-                val deviceInfo = DeviceInfo(
-                    name = "Galaxy Watch6", // Replace with actual device name
-                    batteryPercent = 78, // Replace with actual battery level
+                // Simulate a list of devices. In a real app, you would get this from the connectivity helper.
+                val device = DeviceInfo(
+                    id = "galaxy_watch_6",
+                    name = "Galaxy Watch6",
+                    batteryPercent = 78,
                     isAppInstalled = wearConnectivityHelper.isWatchAppInstalled()
                 )
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        connectedDevice = deviceInfo,
-                        // Set the last sync time if it's the first time connecting in this session
+                        connectedDevices = listOf(device),
                         lastSyncTimestamp = it.lastSyncTimestamp ?: Instant.now()
                     )
                 }
             } else {
                 _uiState.update {
-                    it.copy(isLoading = false, connectedDevice = null)
+                    it.copy(isLoading = false, connectedDevices = emptyList())
                 }
             }
         }
@@ -72,7 +85,6 @@ class ConnectedDevicesViewModel @Inject constructor(
     fun syncData() {
         viewModelScope.launch {
             // TODO: Implement your actual data sync logic here
-            // On successful sync, update the timestamp
             _uiState.update { it.copy(lastSyncTimestamp = Instant.now()) }
         }
     }
