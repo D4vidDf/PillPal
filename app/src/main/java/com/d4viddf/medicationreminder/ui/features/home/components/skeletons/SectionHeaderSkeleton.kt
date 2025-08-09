@@ -13,11 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.d4viddf.medicationreminder.ui.common.util.shimmerLoadingAnimation
+import com.d4viddf.medicationreminder.ui.common.utill.shimmerLoadingAnimation
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun SectionHeaderSkeleton(modifier: Modifier = Modifier) {
@@ -33,7 +33,7 @@ fun SectionHeaderSkeleton(modifier: Modifier = Modifier) {
                 .height(24.dp)
                 .width(150.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.Gray.copy(alpha = 0.3f))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .shimmerLoadingAnimation()
         )
         Box(
@@ -41,7 +41,7 @@ fun SectionHeaderSkeleton(modifier: Modifier = Modifier) {
                 .height(20.dp)
                 .width(60.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(Color.Gray.copy(alpha = 0.3f))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .shimmerLoadingAnimation()
         )
     }
