@@ -1,15 +1,14 @@
 package com.d4viddf.medicationreminder.ui.features.home.components.skeletons
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,12 +20,13 @@ import com.d4viddf.medicationreminder.ui.common.util.shimmerLoadingAnimation
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
-fun SectionHeaderSkeleton() {
+fun SectionHeaderSkeleton(modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Box(
             modifier = Modifier
@@ -36,7 +36,6 @@ fun SectionHeaderSkeleton() {
                 .background(Color.Gray.copy(alpha = 0.3f))
                 .shimmerLoadingAnimation()
         )
-        Spacer(modifier = Modifier.weight(1f))
         Box(
             modifier = Modifier
                 .height(20.dp)

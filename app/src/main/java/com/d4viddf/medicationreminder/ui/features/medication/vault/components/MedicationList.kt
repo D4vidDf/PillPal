@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +44,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun MedicationList(
     medicationState: UiItemState<List<Medication>>,
+    isRefreshing: Boolean,
     onItemClick: (medication: Medication, index: Int) -> Unit,
     onRefresh: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
@@ -50,7 +54,19 @@ fun MedicationList(
     listState: LazyListState,
     enableCardTransitions: Boolean
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    val pullToRefreshState = rememberPullToRefreshState()
+    PullToRefreshBox(
+        state = pullToRefreshState,
+        onRefresh = onRefresh,
+        isRefreshing = isRefreshing,
+        contentAlignment = Alignment.TopCenter,
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+            )
+        }
+    ) {
         when (medicationState) {
             is UiItemState.Loading -> {
                 LazyColumn(
@@ -64,6 +80,7 @@ fun MedicationList(
                     }
                 }
             }
+
             is UiItemState.Success -> {
                 val medications = medicationState.data
                 if (medications.isEmpty()) {
@@ -79,7 +96,9 @@ fun MedicationList(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = bottomContentPadding)
                     ) {
-                        itemsIndexed(medications, key = { _, medication -> medication.id }) { index, medication ->
+                        itemsIndexed(
+                            medications,
+                            key = { _, medication -> medication.id }) { index, medication ->
                             MedicationCard( // This will be imported from the same package
                                 medication = medication,
                                 onClick = { onItemClick(medication, index) },
@@ -94,6 +113,7 @@ fun MedicationList(
                     }
                 }
             }
+
             is UiItemState.Error -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -132,6 +152,7 @@ fun MedicationListPreview() {
         )
         MedicationList(
             medicationState = UiItemState.Success(sampleMedications),
+            isRefreshing = false,
             onItemClick = { _, _ -> },
             onRefresh = {},
             sharedTransitionScope = null,

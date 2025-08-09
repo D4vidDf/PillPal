@@ -71,9 +71,20 @@ class MedicationVaultViewModel @Inject constructor(
     private val _medicationProgressDetails = MutableStateFlow<ProgressDetails?>(null)
     val medicationProgressDetails: StateFlow<ProgressDetails?> = _medicationProgressDetails.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
 
     init {
         observeSearchQueryAndMedications()
+    }
+
+    fun refreshMedications() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            delay(1000) // Simulate network/db delay
+            _isRefreshing.value = false
+        }
     }
 
     private fun observeSearchQueryAndMedications() {

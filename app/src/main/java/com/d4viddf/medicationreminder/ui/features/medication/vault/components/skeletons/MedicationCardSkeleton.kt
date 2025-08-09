@@ -1,20 +1,11 @@
 package com.d4viddf.medicationreminder.ui.features.medication.vault.components.skeletons
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -25,49 +16,20 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun MedicationCardSkeleton(modifier: Modifier = Modifier) {
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(100.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Color.Gray.copy(alpha = 0.3f))
-            .padding(16.dp)
-            .shimmerLoadingAnimation(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Box(
-                modifier = Modifier
-                    .height(28.dp)
-                    .width(180.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Gray.copy(alpha = 0.5f))
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(
-                modifier = Modifier
-                    .height(20.dp)
-                    .width(100.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color.Gray.copy(alpha = 0.5f))
-            )
-        }
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color.Gray.copy(alpha = 0.5f))
-        )
-    }
+            .shimmerLoadingAnimation()
+    )
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun MedicationCardSkeletonPreview() {
     AppTheme {
-        MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+        MedicationCardSkeleton()
     }
 }
