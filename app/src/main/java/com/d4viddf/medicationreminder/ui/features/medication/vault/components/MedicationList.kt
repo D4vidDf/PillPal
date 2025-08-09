@@ -7,18 +7,20 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,19 +30,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.ui.common.model.UiItemState
+import com.d4viddf.medicationreminder.ui.features.medication.vault.components.skeletons.MedicationCardSkeleton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 // Import MedicationCard from its new potential location
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalSharedTransitionApi::class
 )
 @Composable
 fun MedicationList(
-    medications: List<Medication>,
+    medicationState: UiItemState<List<Medication>>,
     onItemClick: (medication: Medication, index: Int) -> Unit,
-    isLoading: Boolean,
     onRefresh: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
@@ -49,44 +53,56 @@ fun MedicationList(
     listState: LazyListState,
     enableCardTransitions: Boolean
 ) {
-    val pullToRefreshState = rememberPullToRefreshState()
-
-    PullToRefreshBox(
-        state = pullToRefreshState,
-        onRefresh = onRefresh,
-        isRefreshing = isLoading,
-        contentAlignment = Alignment.TopCenter,
-        indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = pullToRefreshState,
-                isRefreshing = isLoading,
-            )
-        }
-    ) {
-        if (medications.isEmpty() && !isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(id = R.string.no_medications_yet))
-            }
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = bottomContentPadding)
-            ) {
-                itemsIndexed(medications, key = { _, medication -> medication.id }) { index, medication ->
-                    MedicationCard( // This will be imported from the same package
-                        medication = medication,
-                        onClick = { onItemClick(medication, index) },
-                        enableTransition = enableCardTransitions,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope
-                    )
+    Box(modifier = modifier.fillMaxSize()) {
+        when (medicationState) {
+            is UiItemState.Loading -> {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = bottomContentPadding),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(10) {
+                        MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp))
+                    }
                 }
-                item {
-                    Spacer(modifier = Modifier.height(86.dp))
+            }
+            is UiItemState.Success -> {
+                val medications = medicationState.data
+                if (medications.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(stringResource(id = R.string.no_medications_yet))
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = bottomContentPadding)
+                    ) {
+                        itemsIndexed(medications, key = { _, medication -> medication.id }) { index, medication ->
+                            MedicationCard( // This will be imported from the same package
+                                medication = medication,
+                                onClick = { onItemClick(medication, index) },
+                                enableTransition = enableCardTransitions,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(86.dp))
+                        }
+                    }
+                }
+            }
+            is UiItemState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Error loading medications.")
                 }
             }
         }
