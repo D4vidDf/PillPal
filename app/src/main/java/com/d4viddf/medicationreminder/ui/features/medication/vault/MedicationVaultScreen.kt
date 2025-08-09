@@ -82,8 +82,8 @@ fun MedicationVaultScreen(
     viewModel: MedicationVaultViewModel = hiltViewModel(),
     hostPaddingValues: PaddingValues = PaddingValues(0.dp) // New parameter for padding from hosting Scaffold
 ) {
-    val medications by viewModel.medications.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val medicationState by viewModel.medicationsState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val currentSearchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
@@ -248,7 +248,8 @@ fun MedicationVaultScreen(
 
                     if (!searchActive) {
                         MedicationList(
-                            medications = medications, // Show all medications when not searching
+                            medicationState = medicationState, // Show all medications when not searching
+                            isRefreshing = isRefreshing,
                             onItemClick = { medication, index ->
                                 if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
                                     coroutineScope.launch {
@@ -259,8 +260,7 @@ fun MedicationVaultScreen(
                                     onMedicationClick(medication.id)
                                 }
                             },
-                            isLoading = isLoading,
-                            onRefresh = { viewModel.refreshMedications() },
+                            onRefresh = viewModel::refreshMedications,
                             enableCardTransitions = (widthSizeClass == WindowWidthSizeClass.Compact),
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,

@@ -1,7 +1,13 @@
-package com.d4viddf.medicationreminder.ui.common.util
+package com.d4viddf.medicationreminder.ui.common.utill
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
@@ -19,11 +25,11 @@ fun Modifier.shimmerLoadingAnimation(
     }
     return composed {
         val shimmerColors = listOf(
-            Color.White.copy(alpha = 0.3f),
-            Color.White.copy(alpha = 0.5f),
-            Color.White.copy(alpha = 1.0f),
-            Color.White.copy(alpha = 0.5f),
-            Color.White.copy(alpha = 0.3f),
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.0f),
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.0f),
         )
         val transition = rememberInfiniteTransition(label = "shimmer_transition")
         val translateAnimation = transition.animateFloat(

@@ -1,16 +1,20 @@
-package com.d4viddf.medicationreminder.ui.features.medication.vault.components // Updated package
+package com.d4viddf.medicationreminder.ui.features.medication.vault.components
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,19 +32,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.ui.common.model.UiItemState
+import com.d4viddf.medicationreminder.ui.features.medication.vault.components.skeletons.MedicationCardSkeleton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
-// Import MedicationCard from its new potential location
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalSharedTransitionApi::class
 )
 @Composable
 fun MedicationList(
-    medications: List<Medication>,
+    medicationState: List<UiItemState<Medication>>,
+    isRefreshing: Boolean,
     onItemClick: (medication: Medication, index: Int) -> Unit,
-    isLoading: Boolean,
     onRefresh: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
@@ -50,20 +56,19 @@ fun MedicationList(
     enableCardTransitions: Boolean
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
-
     PullToRefreshBox(
         state = pullToRefreshState,
         onRefresh = onRefresh,
-        isRefreshing = isLoading,
+        isRefreshing = isRefreshing,
         contentAlignment = Alignment.TopCenter,
         indicator = {
             PullToRefreshDefaults.LoadingIndicator(
                 state = pullToRefreshState,
-                isRefreshing = isLoading,
+                isRefreshing = isRefreshing,
             )
         }
     ) {
-        if (medications.isEmpty() && !isLoading) {
+        if (medicationState.isEmpty() && !isRefreshing) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -76,14 +81,35 @@ fun MedicationList(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = bottomContentPadding)
             ) {
-                itemsIndexed(medications, key = { _, medication -> medication.id }) { index, medication ->
-                    MedicationCard( // This will be imported from the same package
-                        medication = medication,
-                        onClick = { onItemClick(medication, index) },
-                        enableTransition = enableCardTransitions,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope
-                    )
+                itemsIndexed(medicationState, key = { index, itemState ->
+                    when (itemState) {
+                        is UiItemState.Success -> itemState.data.id
+                        else -> index // Use index as key for skeletons/errors
+                    }
+                }) { index, itemState ->
+                    Crossfade(targetState = itemState, label = "MedicationItemCrossfade") { state ->
+                        when (state) {
+                            is UiItemState.Loading -> {
+                                MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
+                            is UiItemState.Success -> {
+                                MedicationCard(
+                                    medication = state.data,
+                                    onClick = { onItemClick(state.data, index) },
+                                    enableTransition = enableCardTransitions,
+                                    sharedTransitionScope = sharedTransitionScope,
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                            }
+                            is UiItemState.Error -> {
+                                // Optional: Show an error item
+                                Text(
+                                    "Error loading item.",
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
                 }
                 item {
                     Spacer(modifier = Modifier.height(86.dp))
@@ -101,26 +127,40 @@ fun MedicationListPreview() {
     AppTheme(dynamicColor = false) {
         val todayDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val sampleMedications = listOf(
-            Medication(
-                id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM",
-                typeId = 1,
-                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
+            UiItemState.Success(
+                Medication(
+                    id = 1,
+                    name = "Amoxicillin",
+                    dosage = "250mg",
+                    color = "LIGHT_BLUE",
+                    reminderTime = "10:00 AM",
+                    typeId = 1,
+                    packageSize = 30,
+                    remainingDoses = 20,
+                    startDate = todayDate,
+                    endDate = null
+                )
             ),
-            Medication(
-                id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM",
-                typeId = 1,
-                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
-            ),
-            Medication(
-                id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM",
-                typeId = 1,
-                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
+            UiItemState.Loading,
+            UiItemState.Success(
+                Medication(
+                    id = 3,
+                    name = "Vitamin C",
+                    dosage = "500mg",
+                    color = "LIGHT_ORANGE",
+                    reminderTime = "08:00 AM",
+                    typeId = 1,
+                    packageSize = 100,
+                    remainingDoses = 50,
+                    startDate = todayDate,
+                    endDate = null
+                )
             )
         )
         MedicationList(
-            medications = sampleMedications,
+            medicationState = sampleMedications,
+            isRefreshing = false,
             onItemClick = { _, _ -> },
-            isLoading = false,
             onRefresh = {},
             sharedTransitionScope = null,
             animatedVisibilityScope = null,

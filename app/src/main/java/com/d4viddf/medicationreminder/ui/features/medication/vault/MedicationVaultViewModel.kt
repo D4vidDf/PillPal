@@ -11,16 +11,19 @@ import com.d4viddf.medicationreminder.data.repository.MedicationReminderReposito
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.medication.details.components.ProgressDetails // This might be needed if vault items show progress
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -37,10 +40,8 @@ class MedicationVaultViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _medications = MutableStateFlow<List<Medication>>(emptyList())
-    val medications: StateFlow<List<Medication>> = _medications.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _medicationsState = MutableStateFlow<List<UiItemState<Medication>>>(emptyList())
+    val medicationsState: StateFlow<List<UiItemState<Medication>>> = _medicationsState
 
     // Search functionality
     private val _searchQuery = MutableStateFlow("")
@@ -53,27 +54,49 @@ class MedicationVaultViewModel @Inject constructor(
     private val _medicationProgressDetails = MutableStateFlow<ProgressDetails?>(null)
     val medicationProgressDetails: StateFlow<ProgressDetails?> = _medicationProgressDetails.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
 
     init {
-        // Set initial loading state. If medications list is already populated (e.g., from a
-        // retained ViewModel instance), isLoading might not need to be true initially.
-        if (_medications.value.isEmpty()) {
-            _isLoading.value = true
-        }
-        observeMedications()
+        initialLoadMedications()
         observeSearchQueryAndMedications()
     }
 
-    private fun observeMedications() {
+    private fun initialLoadMedications() {
         viewModelScope.launch {
-            // If _isLoading is false but list is empty (e.g. after initial check but before first emission)
-            // ensure it's true before potentially long collection.
-            // However, the init block should cover the very first load.
-            // This function's main job is to update medications and ensure isLoading becomes false.
-            medicationRepository.getAllMedications().collect { medicationsList ->
-                _medications.value = medicationsList
-                _isLoading.value = false // Data received, stop loading indicator
+            // Get the full list from the repository once.
+            val allMedications = medicationRepository.getAllMedications().first()
+
+            // Immediately emit a list of Loading states so skeletons appear.
+            _medicationsState.value = List(allMedications.size) { UiItemState.Loading }
+            delay(500) // A small delay to ensure skeletons are rendered before content starts loading.
+
+            // Sequentially update each item from Loading to Success.
+            allMedications.forEachIndexed { index, medication ->
+                delay(75) // Staggered effect for each item.
+                _medicationsState.update { currentList ->
+                    currentList.toMutableList().also { mutableList ->
+                        if (index < mutableList.size) {
+                            mutableList[index] = UiItemState.Success(medication)
+                        }
+                    }
+                }
             }
+            // Update the private list used for searching.
+            _medications.value = allMedications
+        }
+    }
+
+    fun refreshMedications() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            // Get new data without touching the UI state until it's ready
+            val newMedications = medicationRepository.getAllMedications().first()
+            // Directly update with the new success state
+            _medicationsState.value = newMedications.map { UiItemState.Success(it) }
+            _medications.value = newMedications
+            _isRefreshing.value = false
         }
     }
 
@@ -101,20 +124,6 @@ class MedicationVaultViewModel @Inject constructor(
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-    }
-
-    fun refreshMedications() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // This re-triggers collection in observeMedications if the underlying Flow emits anew
-                 medicationRepository.getAllMedications().firstOrNull()
-            } catch (e: Exception) {
-                Log.e("MedicationVaultVM", "Error refreshing medications", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
     }
 
     // Example function that might be used if navigating to a detail view that needs this.
