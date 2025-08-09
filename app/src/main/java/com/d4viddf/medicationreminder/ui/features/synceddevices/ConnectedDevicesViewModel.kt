@@ -2,13 +2,17 @@ package com.d4viddf.medicationreminder.ui.features.synceddevices
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.utils.BatteryStateHolder
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -16,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConnectedDevicesViewModel @Inject constructor(
-    private val wearConnectivityHelper: WearConnectivityHelper
+    private val wearConnectivityHelper: WearConnectivityHelper,
+    private val batteryStateHolder: BatteryStateHolder
 ) : ViewModel() {
 
     data class UiState(
@@ -39,7 +44,25 @@ class ConnectedDevicesViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        listenForBatteryUpdates()
         refreshDeviceStatus()
+    }
+
+    private fun listenForBatteryUpdates() {
+        batteryStateHolder.batteryLevels
+            .onEach { (nodeId, level) ->
+                _uiState.update { currentState ->
+                    val updatedDevices = currentState.connectedDevices.map { device ->
+                        if (device.id == nodeId) {
+                            device.copy(batteryPercent = level)
+                        } else {
+                            device
+                        }
+                    }
+                    currentState.copy(connectedDevices = updatedDevices)
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onDeviceClicked(deviceId: String) {
@@ -48,7 +71,6 @@ class ConnectedDevicesViewModel @Inject constructor(
                 if (device.id == deviceId) {
                     device.copy(isExpanded = !device.isExpanded)
                 } else {
-                    // Collapse other devices for an accordion-like effect
                     device.copy(isExpanded = false)
                 }
             }
@@ -59,15 +81,22 @@ class ConnectedDevicesViewModel @Inject constructor(
     fun refreshDeviceStatus() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            delay(1000) // Artificial delay for UX
 
             val nodes = wearConnectivityHelper.getConnectedNodes()
+
+            // Request battery level for all nodes
+            nodes.forEach { node ->
+                wearConnectivityHelper.requestBatteryLevel(node.id)
+            }
+
             val devices = nodes.map { node ->
                 async {
                     DeviceInfo(
                         id = node.id,
                         name = node.displayName,
                         isAppInstalled = wearConnectivityHelper.isAppInstalledOnNode(node.id),
-                        batteryPercent = (50..100).random() // Simulate battery as it's not available from the helper
+                        batteryPercent = -1 // Default value, will be updated by the listener
                     )
                 }
             }.awaitAll()
@@ -76,7 +105,6 @@ class ConnectedDevicesViewModel @Inject constructor(
                 it.copy(
                     isLoading = false,
                     connectedDevices = devices,
-                    // Set sync time only if it's the first time we see devices in this session
                     lastSyncTimestamp = if (devices.isNotEmpty() && it.lastSyncTimestamp == null) Instant.now() else it.lastSyncTimestamp
                 )
             }
@@ -85,8 +113,10 @@ class ConnectedDevicesViewModel @Inject constructor(
 
     fun syncData() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            delay(1000) // Artificial delay for UX
             // TODO: Implement your actual data sync logic here
-            _uiState.update { it.copy(lastSyncTimestamp = Instant.now()) }
+            _uiState.update { it.copy(lastSyncTimestamp = Instant.now(), isLoading = false) }
         }
     }
 }

@@ -27,11 +27,13 @@ class WearConnectivityHelper @Inject constructor(
 
     private val nodeClient: NodeClient = Wearable.getNodeClient(context)
     private val capabilityClient: CapabilityClient = Wearable.getCapabilityClient(context)
+    private val messageClient by lazy { Wearable.getMessageClient(context) }
     private val executor: Executor = Executors.newSingleThreadExecutor()
 
     companion object {
         private const val TAG = "WearConnectivityHelper"
         const val WATCH_APP_CAPABILITY = "medication_reminder_wear_app"
+        private const val PATH_REQUEST_BATTERY_LEVEL = "/request-battery-level"
     }
 
     suspend fun getConnectedNodes(): List<com.google.android.gms.wearable.Node> {
@@ -110,6 +112,12 @@ class WearConnectivityHelper @Inject constructor(
             }
             return false
         }
+    }
+
+    fun requestBatteryLevel(nodeId: String) {
+        messageClient.sendMessage(nodeId, PATH_REQUEST_BATTERY_LEVEL, null)
+            .addOnSuccessListener { Log.d(TAG, "Successfully sent battery request to $nodeId") }
+            .addOnFailureListener { e -> Log.e(TAG, "Failed to send battery request to $nodeId", e) }
     }
 
     suspend fun getConnectedWatchNodeId(): String? {

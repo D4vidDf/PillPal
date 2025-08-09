@@ -188,11 +188,13 @@ private fun DeviceItem(
             AnimatedVisibility(visible = device.isExpanded) {
                 Column(modifier = Modifier.padding(top = 16.dp)) {
                     Divider(modifier = Modifier.padding(bottom = 8.dp))
-                    InfoRow(
-                        icon = Icons.Outlined.BatteryChargingFull,
-                        label = stringResource(R.string.device_info_battery),
-                        value = "${device.batteryPercent}%"
-                    )
+                    if (device.batteryPercent != -1) {
+                        InfoRow(
+                            icon = Icons.Outlined.BatteryChargingFull,
+                            label = stringResource(R.string.device_info_battery),
+                            value = "${device.batteryPercent}%"
+                        )
+                    }
                     InfoRow(
                         icon = if (device.isAppInstalled) Icons.Default.CheckCircle else Icons.Default.Error,
                         iconTint = if (device.isAppInstalled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
