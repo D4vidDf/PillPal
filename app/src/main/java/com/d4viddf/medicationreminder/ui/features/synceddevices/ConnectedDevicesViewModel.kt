@@ -78,6 +78,10 @@ class ConnectedDevicesViewModel @Inject constructor(
         }
     }
 
+    fun onInstallAppOnWatch(nodeId: String) {
+        wearConnectivityHelper.openPlayStoreOnWatch(nodeId)
+    }
+
     fun refreshDeviceStatus() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

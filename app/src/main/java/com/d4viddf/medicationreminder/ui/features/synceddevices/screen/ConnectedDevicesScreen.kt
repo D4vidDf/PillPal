@@ -72,6 +72,7 @@ fun ConnectedDevicesScreen(
         onSyncData = viewModel::syncData,
         onRefreshList = viewModel::refreshDeviceStatus,
         onDeviceClicked = viewModel::onDeviceClicked,
+        onInstallAppOnWatch = viewModel::onInstallAppOnWatch,
         onNavigateBack = { navController.popBackStack() }
     )
 }
@@ -83,6 +84,7 @@ fun ConnectedDevicesScreenContent(
     onSyncData: () -> Unit,
     onRefreshList: () -> Unit,
     onDeviceClicked: (String) -> Unit,
+    onInstallAppOnWatch: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     Scaffold(
@@ -129,6 +131,7 @@ fun ConnectedDevicesScreenContent(
                         DeviceItem(
                             device = device,
                             onDeviceClicked = { onDeviceClicked(device.id) },
+                            onInstallApp = { onInstallAppOnWatch(device.id) },
                             lastSyncTimestamp = uiState.lastSyncTimestamp
                         )
                     }
@@ -151,6 +154,7 @@ fun ConnectedDevicesScreenContent(
 private fun DeviceItem(
     device: ConnectedDevicesViewModel.DeviceInfo,
     onDeviceClicked: () -> Unit,
+    onInstallApp: () -> Unit,
     lastSyncTimestamp: Instant?
 ) {
     Card(
@@ -207,6 +211,12 @@ private fun DeviceItem(
                             label = stringResource(R.string.device_info_last_sync),
                             value = formatRelativeTime(lastSyncTimestamp.toEpochMilli())
                         )
+                    }
+                    if (!device.isAppInstalled) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = onInstallApp, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(id = R.string.install_on_watch_button))
+                        }
                     }
                 }
             }
