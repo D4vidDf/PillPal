@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +48,8 @@ class ConnectedDevicesViewModel @Inject constructor(
                 if (device.id == deviceId) {
                     device.copy(isExpanded = !device.isExpanded)
                 } else {
-                    device
+                    // Collapse other devices for an accordion-like effect
+                    device.copy(isExpanded = false)
                 }
             }
             currentState.copy(connectedDevices = updatedDevices)
@@ -57,27 +60,25 @@ class ConnectedDevicesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val isConnected = wearConnectivityHelper.isWatchConnected()
-
-            if (isConnected) {
-                // Simulate a list of devices. In a real app, you would get this from the connectivity helper.
-                val device = DeviceInfo(
-                    id = "galaxy_watch_6",
-                    name = "Galaxy Watch6",
-                    batteryPercent = 78,
-                    isAppInstalled = wearConnectivityHelper.isWatchAppInstalled()
-                )
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        connectedDevices = listOf(device),
-                        lastSyncTimestamp = it.lastSyncTimestamp ?: Instant.now()
+            val nodes = wearConnectivityHelper.getConnectedNodes()
+            val devices = nodes.map { node ->
+                async {
+                    DeviceInfo(
+                        id = node.id,
+                        name = node.displayName,
+                        isAppInstalled = wearConnectivityHelper.isAppInstalledOnNode(node.id),
+                        batteryPercent = (50..100).random() // Simulate battery as it's not available from the helper
                     )
                 }
-            } else {
-                _uiState.update {
-                    it.copy(isLoading = false, connectedDevices = emptyList())
-                }
+            }.awaitAll()
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    connectedDevices = devices,
+                    // Set sync time only if it's the first time we see devices in this session
+                    lastSyncTimestamp = if (devices.isNotEmpty() && it.lastSyncTimestamp == null) Instant.now() else it.lastSyncTimestamp
+                )
             }
         }
     }

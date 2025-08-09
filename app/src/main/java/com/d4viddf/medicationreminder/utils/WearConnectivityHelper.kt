@@ -34,6 +34,15 @@ class WearConnectivityHelper @Inject constructor(
         const val WATCH_APP_CAPABILITY = "medication_reminder_wear_app"
     }
 
+    suspend fun getConnectedNodes(): List<com.google.android.gms.wearable.Node> {
+        return try {
+            nodeClient.connectedNodes.await()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting connected nodes", e)
+            emptyList()
+        }
+    }
+
     suspend fun isWatchConnected(): Boolean {
         return try {
             val nodes = nodeClient.connectedNodes.await()

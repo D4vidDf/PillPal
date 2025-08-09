@@ -176,7 +176,7 @@ private fun DeviceItem(
                     Text(
                         text = stringResource(R.string.device_status_connected),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF008000)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
                 Icon(
@@ -195,7 +195,7 @@ private fun DeviceItem(
                     )
                     InfoRow(
                         icon = if (device.isAppInstalled) Icons.Default.CheckCircle else Icons.Default.Error,
-                        iconTint = if (device.isAppInstalled) Color(0xFF008000) else MaterialTheme.colorScheme.error,
+                        iconTint = if (device.isAppInstalled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         label = stringResource(R.string.device_info_app_status),
                         value = if (device.isAppInstalled) stringResource(R.string.app_status_installed) else stringResource(R.string.app_status_not_installed)
                     )
