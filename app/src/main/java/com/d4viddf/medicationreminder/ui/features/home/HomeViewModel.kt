@@ -16,6 +16,7 @@ import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
+import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
 import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.navigation.Screen
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -58,6 +60,7 @@ class HomeViewModel @Inject constructor(
 
     // For showing confirmation dialogs (e.g., mark as taken, skip)
     data class DialogState(val title: String, val text: String, val onConfirm: () -> Unit)
+
     private val _dialogState = MutableStateFlow<DialogState?>(null)
     val dialogState: StateFlow<DialogState?> = _dialogState.asStateFlow()
 
@@ -92,36 +95,55 @@ class HomeViewModel @Inject constructor(
         )
 
     // The carousel of next medications to be taken
-    val nextDoseGroup: StateFlow<List<NextDoseUiItem>> = todaysRemindersFromDb
+    val nextDoseGroup: StateFlow<UiItemState<List<NextDoseUiItem>>> = todaysRemindersFromDb
         .map { reminders -> findNextDoseGroup(reminders) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .map { UiItemState.Success(it) as UiItemState<List<NextDoseUiItem>> }
+        .onStart { emit(UiItemState.Loading) }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            UiItemState.Loading
+        )
+
 
     // The countdown timer to the next dose
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val nextDoseTimeInSeconds: StateFlow<Long?> = nextDoseGroup.flatMapLatest { nextGroup ->
-        if (nextGroup.isEmpty()) {
-            flow { emit(null) }
-        } else {
-            flow {
-                val reminderTime = LocalDateTime.parse(nextGroup.first().rawReminderTime, ReminderCalculator.storableDateTimeFormatter)
-                while (true) {
-                    val duration = Duration.between(LocalDateTime.now(), reminderTime).seconds
-                    if (duration > 0) {
-                        emit(duration)
-                        kotlinx.coroutines.delay(1000)
-                    } else {
-                        emit(0L)
-                        break
+        when (nextGroup) {
+            is UiItemState.Success -> {
+                if (nextGroup.data.isEmpty()) {
+                    flow { emit(null) }
+                } else {
+                    flow {
+                        val reminderTime = LocalDateTime.parse(
+                            nextGroup.data.first().rawReminderTime,
+                            ReminderCalculator.storableDateTimeFormatter
+                        )
+                        while (true) {
+                            val duration = Duration.between(LocalDateTime.now(), reminderTime).seconds
+                            if (duration > 0) {
+                                emit(duration)
+                                kotlinx.coroutines.delay(1000)
+                            } else {
+                                emit(0L)
+                                break
+                            }
+                        }
                     }
                 }
             }
+
+            else -> flow { emit(null) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // Today's progress (e.g., 5 of 8 doses taken)
-    val todayProgress: StateFlow<Pair<Int, Int>> = todaysRemindersFromDb
-        .map { reminders -> reminders.count { it.isTaken } to reminders.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
+    val todayProgress: StateFlow<UiItemState<Pair<Int, Int>>> = todaysRemindersFromDb
+        .map { reminders ->
+            UiItemState.Success(reminders.count { it.isTaken } to reminders.size) as UiItemState<Pair<Int, Int>>
+        }
+        .onStart { emit(UiItemState.Loading) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
     // Fully mapped schedule for the "Today's Schedule" section (if you use it on home)
     val todaySchedules: StateFlow<Map<String, List<TodayScheduleUiItem>>> = todaysRemindersFromDb
@@ -129,26 +151,44 @@ class HomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // --- Missed Reminders Functionality ---
-    val missedReminders: StateFlow<List<TodayScheduleUiItem>> =
+    val missedReminders: StateFlow<UiItemState<List<TodayScheduleUiItem>>> =
         medicationReminderRepository.getMissedReminders(LocalDateTime.now().toString())
-            .map { reminders -> mapToTodayScheduleUiItem(reminders) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+            .map { reminders -> UiItemState.Success(mapToTodayScheduleUiItem(reminders)) as UiItemState<List<TodayScheduleUiItem>> }
+            .onStart { emit(UiItemState.Loading) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
+
 
     // --- Health Data & Layout ---
-    val homeLayout: StateFlow<List<HomeSection>> = userPreferencesRepository.homeLayoutFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val homeLayout: StateFlow<UiItemState<List<HomeSection>>> =
+        userPreferencesRepository.homeLayoutFlow
+            .map { UiItemState.Success(it) as UiItemState<List<HomeSection>> }
+            .onStart { emit(UiItemState.Loading) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val latestWeight: StateFlow<Weight?> = healthDataRepository.getLatestWeight()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val latestTemperature: StateFlow<BodyTemperature?> = healthDataRepository.getLatestBodyTemperature()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val latestWeight: StateFlow<UiItemState<Weight?>> = healthDataRepository.getLatestWeight()
+        .map { UiItemState.Success(it) as UiItemState<Weight?> }
+        .onStart { emit(UiItemState.Loading) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val waterIntakeToday: StateFlow<Double?> = healthDataRepository.getTotalWaterIntakeSince(
-        System.currentTimeMillis() - 24 * 60 * 60 * 1000
-    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    val latestTemperature: StateFlow<UiItemState<BodyTemperature?>> =
+        healthDataRepository.getLatestBodyTemperature()
+            .map { UiItemState.Success(it) as UiItemState<BodyTemperature?> }
+            .onStart { emit(UiItemState.Loading) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val heartRate: StateFlow<String?> = MutableStateFlow("46-97").asStateFlow() // Example placeholder
+    val waterIntakeToday: StateFlow<UiItemState<Double?>> =
+        healthDataRepository.getTotalWaterIntakeSince(
+            System.currentTimeMillis() - 24 * 60 * 60 * 1000
+        ).map { UiItemState.Success(it) as UiItemState<Double?> }
+            .onStart { emit(UiItemState.Loading) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
+
+    val heartRate: StateFlow<UiItemState<String?>> = flow {
+        delay(1500) // Simulate network delay
+        emit(UiItemState.Success("46-97") as UiItemState<String?>)
+    }.onStart { emit(UiItemState.Loading) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
     // --- User Actions ---
 
