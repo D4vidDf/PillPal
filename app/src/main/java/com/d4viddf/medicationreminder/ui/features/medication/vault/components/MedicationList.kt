@@ -44,7 +44,7 @@ import java.time.format.DateTimeFormatter
 )
 @Composable
 fun MedicationList(
-    medicationState: UiItemState<List<Medication>>,
+    medicationState: List<UiItemState<Medication>>,
     isRefreshing: Boolean,
     onItemClick: (medication: Medication, index: Int) -> Unit,
     onRefresh: () -> Unit,
@@ -68,61 +68,51 @@ fun MedicationList(
             )
         }
     ) {
-        Crossfade(targetState = medicationState, label = "MedicationListCrossfade") { state ->
-            when (state) {
-                is UiItemState.Loading -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = bottomContentPadding),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(10) {
-                            MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp))
-                        }
+        if (medicationState.isEmpty() && !isRefreshing) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(stringResource(id = R.string.no_medications_yet))
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = bottomContentPadding)
+            ) {
+                itemsIndexed(medicationState, key = { index, itemState ->
+                    when (itemState) {
+                        is UiItemState.Success -> itemState.data.id
+                        else -> index // Use index as key for skeletons/errors
                     }
-                }
-
-                is UiItemState.Success -> {
-                    val medications = state.data
-                    if (medications.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(stringResource(id = R.string.no_medications_yet))
-                        }
-                    } else {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = bottomContentPadding)
-                        ) {
-                            itemsIndexed(
-                                medications,
-                                key = { _, medication -> medication.id }) { index, medication ->
-                                MedicationCard( // This will be imported from the same package
-                                    medication = medication,
-                                    onClick = { onItemClick(medication, index) },
+                }) { index, itemState ->
+                    Crossfade(targetState = itemState, label = "MedicationItemCrossfade") { state ->
+                        when (state) {
+                            is UiItemState.Loading -> {
+                                MedicationCardSkeleton(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
+                            is UiItemState.Success -> {
+                                MedicationCard(
+                                    medication = state.data,
+                                    onClick = { onItemClick(state.data, index) },
                                     enableTransition = enableCardTransitions,
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope
                                 )
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(86.dp))
+                            is UiItemState.Error -> {
+                                // Optional: Show an error item
+                                Text(
+                                    "Error loading item.",
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
                             }
                         }
                     }
                 }
-
-                is UiItemState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Error loading medications.")
-                    }
+                item {
+                    Spacer(modifier = Modifier.height(86.dp))
                 }
             }
         }
@@ -137,24 +127,12 @@ fun MedicationListPreview() {
     AppTheme(dynamicColor = false) {
         val todayDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val sampleMedications = listOf(
-            Medication(
-                id = 1, name = "Amoxicillin", dosage = "250mg", color = "LIGHT_BLUE", reminderTime = "10:00 AM",
-                typeId = 1,
-                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
-            ),
-            Medication(
-                id = 2, name = "Ibuprofen", dosage = "200mg", color = "LIGHT_RED", reminderTime = "06:00 PM",
-                typeId = 1,
-                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
-            ),
-            Medication(
-                id = 3, name = "Vitamin C", dosage = "500mg", color = "LIGHT_ORANGE", reminderTime = "08:00 AM",
-                typeId = 1,
-                packageSize = 0, remainingDoses = 0, startDate = todayDate, endDate = todayDate
-            )
+            UiItemState.Success(Medication(1, "Amoxicillin", "250mg", "LIGHT_BLUE", "10:00 AM", 1, 0, 0, todayDate, todayDate)),
+            UiItemState.Loading,
+            UiItemState.Success(Medication(3, "Vitamin C", "500mg", "LIGHT_ORANGE", "08:00 AM", 1, 0, 0, todayDate, todayDate))
         )
         MedicationList(
-            medicationState = UiItemState.Success(sampleMedications),
+            medicationState = sampleMedications,
             isRefreshing = false,
             onItemClick = { _, _ -> },
             onRefresh = {},

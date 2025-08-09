@@ -19,14 +19,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -43,22 +40,8 @@ class MedicationVaultViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _medications = MutableStateFlow<List<Medication>>(emptyList())
-
-    val medicationsState: StateFlow<UiItemState<List<Medication>>> =
-        medicationRepository.getAllMedications()
-            .map { medications ->
-                _medications.value = medications
-                UiItemState.Success(medications) as UiItemState<List<Medication>>
-            }
-            .onStart {
-                delay(1000) // Simulate network delay
-                emit(UiItemState.Loading)
-            }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                UiItemState.Loading
-            )
+    private val _medicationsState = MutableStateFlow<List<UiItemState<Medication>>>(emptyList())
+    val medicationsState: StateFlow<List<UiItemState<Medication>>> = _medicationsState
 
     // Search functionality
     private val _searchQuery = MutableStateFlow("")
@@ -76,15 +59,37 @@ class MedicationVaultViewModel @Inject constructor(
 
 
     init {
+        loadMedications()
         observeSearchQueryAndMedications()
     }
 
-    fun refreshMedications() {
+    private fun loadMedications() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            delay(1000) // Simulate network/db delay
+            // Get the full list from the repository once.
+            val allMedications = medicationRepository.getAllMedications().first()
+
+            // Immediately emit a list of Loading states so skeletons appear.
+            _medicationsState.value = List(allMedications.size) { UiItemState.Loading }
+            delay(500) // A small delay to ensure skeletons are rendered before content starts loading.
+
+            // Sequentially update each item from Loading to Success.
+            allMedications.forEachIndexed { index, medication ->
+                delay(75) // Staggered effect for each item.
+                _medicationsState.update { currentList ->
+                    currentList.toMutableList().also { mutableList ->
+                        mutableList[index] = UiItemState.Success(medication)
+                    }
+                }
+            }
+            // Update the private list used for searching.
+            _medications.value = allMedications
             _isRefreshing.value = false
         }
+    }
+
+    fun refreshMedications() {
+        loadMedications()
     }
 
     private fun observeSearchQueryAndMedications() {
