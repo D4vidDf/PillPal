@@ -1,18 +1,16 @@
-package com.d4viddf.medicationreminder.ui.features.medication.vault.components // Updated package
+package com.d4viddf.medicationreminder.ui.features.medication.vault.components
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -33,7 +31,6 @@ import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.medication.vault.components.skeletons.MedicationCardSkeleton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
-// Import MedicationCard from its new potential location
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -134,9 +131,8 @@ fun MedicationListPreview() {
             )
         )
         MedicationList(
-            medications = sampleMedications,
+            medicationState = UiItemState.Success(sampleMedications),
             onItemClick = { _, _ -> },
-            isLoading = false,
             onRefresh = {},
             sharedTransitionScope = null,
             animatedVisibilityScope = null,

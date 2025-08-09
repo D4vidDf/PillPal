@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.d4viddf.medicationreminder.ui.common.utill.shimmerLoadingAnimation
+import com.d4viddf.medicationreminder.ui.common.util.shimmerLoadingAnimation
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
