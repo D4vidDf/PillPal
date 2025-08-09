@@ -127,9 +127,35 @@ fun MedicationListPreview() {
     AppTheme(dynamicColor = false) {
         val todayDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val sampleMedications = listOf(
-            UiItemState.Success(Medication(1, "Amoxicillin", "250mg", "LIGHT_BLUE", "10:00 AM", 1, 0, 0, todayDate, todayDate)),
+            UiItemState.Success(
+                Medication(
+                    id = 1,
+                    name = "Amoxicillin",
+                    dosage = "250mg",
+                    color = "LIGHT_BLUE",
+                    reminderTime = "10:00 AM",
+                    typeId = 1,
+                    packageSize = 30,
+                    remainingDoses = 20,
+                    startDate = todayDate,
+                    endDate = null
+                )
+            ),
             UiItemState.Loading,
-            UiItemState.Success(Medication(3, "Vitamin C", "500mg", "LIGHT_ORANGE", "08:00 AM", 1, 0, 0, todayDate, todayDate))
+            UiItemState.Success(
+                Medication(
+                    id = 3,
+                    name = "Vitamin C",
+                    dosage = "500mg",
+                    color = "LIGHT_ORANGE",
+                    reminderTime = "08:00 AM",
+                    typeId = 1,
+                    packageSize = 100,
+                    remainingDoses = 50,
+                    startDate = todayDate,
+                    endDate = null
+                )
+            )
         )
         MedicationList(
             medicationState = sampleMedications,
