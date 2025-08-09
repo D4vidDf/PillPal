@@ -83,7 +83,7 @@ fun ConnectedDevicesScreen(
                             lastSyncTimestamp = uiState.lastSyncTimestamp
                         )
                     } else {
-                        NoDeviceConnectedStatus()
+                        NoDeviceConnectedStatus(onRefreshList = viewModel::refreshDeviceStatus)
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -157,7 +157,7 @@ private fun ConnectedDeviceStatus(
 }
 
 @Composable
-private fun NoDeviceConnectedStatus() {
+private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -181,8 +181,10 @@ private fun NoDeviceConnectedStatus() {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /* TODO: Trigger a new device search */ }) {
-            Text(stringResource(R.string.search_for_devices_button))
+        Button(onClick = onRefreshList) {
+            Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.refresh_device_list_button))
         }
     }
 }
