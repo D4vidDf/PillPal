@@ -275,6 +275,7 @@
     <string name="settings_category_developer">Opciones de desarrollador</string>
     <string name="settings_category_developer_cd">Navegar a opciones de desarrollador</string>
     <string name="settings_developer_options_description">Estas opciones son para fines de depuración y desarrollo.</string>
+    <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
     <string name="settings_restart_daily_worker_button">Reiniciar Tarea Diaria</string>
     <string name="settings_share_app_logs_button">Compartir Registros de la Aplicación</string>
     <!-- AllSchedulesScreen -->
@@ -468,4 +469,17 @@
     <string name="edit_section">Edit section</string>
     <string name="no_missed_schedules">No missed doses! You\'re on track</string>
 
+    <string name="connected_devices_title">Connected Devices</string>
+    <string name="device_status_connected">Connected</string>
+    <string name="device_info_battery">Battery</string>
+    <string name="device_info_app_status">App Status</string>
+    <string name="app_status_installed">Installed</string>
+    <string name="app_status_not_installed">Not Installed</string>
+    <string name="device_info_last_sync">Last Sync</string>
+    <string name="no_device_found_title">No Device Found</string>
+    <string name="no_device_found_subtitle">Please make sure your watch is nearby and Bluetooth is enabled.</string>
+    <string name="sync_data_button">Sync Data Now</string>
+    <string name="refresh_device_list_button">Refresh Device List</string>
+    <string name="search_for_devices_button">Search for Devices</string>
+    <string name="install_on_watch_button">Install App on Watch</string>
 </resources>

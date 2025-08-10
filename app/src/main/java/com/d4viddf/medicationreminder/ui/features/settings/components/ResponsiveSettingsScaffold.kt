@@ -38,6 +38,7 @@ import com.d4viddf.medicationreminder.ui.features.settings.general.GeneralSettin
 import com.d4viddf.medicationreminder.ui.features.settings.SettingsListScreen
 import com.d4viddf.medicationreminder.ui.features.settings.sound.SoundSettingsScreen
 import com.d4viddf.medicationreminder.ui.features.settings.SettingsViewModel
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 // Define routes for sub-settings screens
 object SettingsDestinations {
@@ -86,6 +87,7 @@ fun ResponsiveSettingsScaffold(
                         onNavigateToGeneral = { selectedCategoryRoute = SettingsDestinations.GENERAL },
                         onNavigateToSound = { selectedCategoryRoute = SettingsDestinations.SOUND },
                         onNavigateToDeveloper = { selectedCategoryRoute = SettingsDestinations.DEVELOPER },
+                        onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -132,7 +134,8 @@ fun ResponsiveSettingsScaffold(
                 SettingsListScreen(
                     onNavigateToGeneral = { localSettingsNavController.navigate(SettingsDestinations.GENERAL) },
                     onNavigateToSound = { localSettingsNavController.navigate(SettingsDestinations.SOUND) },
-                    onNavigateToDeveloper = { localSettingsNavController.navigate(SettingsDestinations.DEVELOPER) }
+                    onNavigateToDeveloper = { localSettingsNavController.navigate(SettingsDestinations.DEVELOPER) },
+                    onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) }
                 )
             }
             composable(SettingsDestinations.GENERAL) {

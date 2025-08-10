@@ -17,6 +17,11 @@ import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.Wearable
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +32,7 @@ import kotlinx.coroutines.launch
 
 class WearDataListenerService : WearableListenerService() {
 
+    private val messageClient by lazy { Wearable.getMessageClient(this) }
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
     private val gson = Gson()
@@ -232,6 +238,32 @@ class WearDataListenerService : WearableListenerService() {
         }
     }
 
+    override fun onMessageReceived(messageEvent: MessageEvent) {
+        if (messageEvent.path == PATH_REQUEST_BATTERY_LEVEL) {
+            val nodeId = messageEvent.sourceNodeId
+            Log.d(TAG, "Received battery level request from node: $nodeId")
+
+            val batteryLevel = getBatteryLevel()
+            if (batteryLevel != null) {
+                val data = byteArrayOf(batteryLevel.toByte())
+                messageClient.sendMessage(nodeId, PATH_BATTERY_LEVEL_RESPONSE, data)
+                    .addOnSuccessListener { Log.d(TAG, "Sent battery level response to $nodeId") }
+                    .addOnFailureListener { e -> Log.e(TAG, "Failed to send battery level response", e) }
+            }
+        }
+    }
+
+    private fun getBatteryLevel(): Int? {
+        val batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        return if (level == -1 || scale == -1) {
+            null
+        } else {
+            (level.toFloat() / scale.toFloat() * 100.0f).toInt()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         serviceJob.cancel()
@@ -241,6 +273,8 @@ class WearDataListenerService : WearableListenerService() {
         private const val TAG = "WearDataListenerSvc"
         private const val TODAY_SCHEDULE_PATH = "/today_schedule"
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync" // New path
+        private const val PATH_REQUEST_BATTERY_LEVEL = "/request-battery-level"
+        private const val PATH_BATTERY_LEVEL_RESPONSE = "/battery-level-response"
     }
 }
 

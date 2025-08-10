@@ -41,6 +41,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import com.d4viddf.medicationreminder.utils.BatteryStateHolder
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper // Added import
 import kotlinx.coroutines.CoroutineExceptionHandler
 
@@ -57,6 +58,8 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var medicationTypeRepository: MedicationTypeRepository
     @Inject
     lateinit var medicationInfoRepository: MedicationInfoRepository
+    @Inject
+    lateinit var batteryStateHolder: BatteryStateHolder
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val gson by lazy { Gson() }
@@ -158,6 +161,14 @@ class DataLayerListenerService : WearableListenerService() {
                 }
                 startActivity(intent)
             }
+            PATH_BATTERY_LEVEL_RESPONSE -> {
+                val nodeId = messageEvent.sourceNodeId
+                val batteryLevel = messageEvent.data.first().toInt()
+                Log.d(TAG, "Received battery level from $nodeId: $batteryLevel%")
+                serviceScope.launch {
+                    batteryStateHolder.newBatteryLevel(nodeId, batteryLevel)
+                }
+            }
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
             }
@@ -190,6 +201,7 @@ class DataLayerListenerService : WearableListenerService() {
         private const val PATH_MARK_AS_TAKEN = "/mark_as_taken"
         private const val PATH_REQUEST_INITIAL_SYNC = "/request_initial_sync"
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync"
+        private const val PATH_BATTERY_LEVEL_RESPONSE = "/battery-level-response"
         // private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule" // Considered legacy, full sync preferred
         private const val PATH_OPEN_PLAY_STORE_ON_PHONE = "/open_play_store" // Path from Wear OS app
         private const val PATH_ADHOC_TAKEN_ON_WATCH = "/mark_adhoc_taken_on_watch" // Path from Wear OS for ad-hoc
