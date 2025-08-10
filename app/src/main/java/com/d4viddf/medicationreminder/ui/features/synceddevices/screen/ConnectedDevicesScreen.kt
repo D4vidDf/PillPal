@@ -32,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -58,7 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.synceddevices.ConnectedDevicesViewModel
-import com.d4viddf.medicationreminder.ui.theme.MedicationTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.Instant
 
 @Composable
@@ -95,7 +96,7 @@ fun ConnectedDevicesScreenContent(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painterResource(R.drawable.rounded_arrow_back_ios_new_24),
                             contentDescription = stringResource(R.string.navigate_back)
                         )
                     }
@@ -173,7 +174,7 @@ private fun DeviceItem(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_rounded_devices_wearables_24),
+                    painter = painterResource(id = R.drawable.rounded_watch_24),
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -195,23 +196,25 @@ private fun DeviceItem(
 
             AnimatedVisibility(visible = device.isExpanded) {
                 Column(modifier = Modifier.padding(top = 16.dp)) {
-                    Divider(modifier = Modifier.padding(bottom = 8.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
                     if (device.batteryPercent != -1) {
                         InfoRow(
-                            icon = Icons.Outlined.BatteryChargingFull,
+                            icon = painterResource(R.drawable.battery_full_24dp),
                             label = stringResource(R.string.device_info_battery),
                             value = "${device.batteryPercent}%"
                         )
                     }
                     InfoRow(
-                        icon = if (device.isAppInstalled) Icons.Default.CheckCircle else Icons.Default.Error,
+                        icon = if (device.isAppInstalled) painterResource(R.drawable.ic_check) else painterResource(R.drawable.exclamation_24dp),
                         iconTint = if (device.isAppInstalled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         label = stringResource(R.string.device_info_app_status),
                         value = if (device.isAppInstalled) stringResource(R.string.app_status_installed) else stringResource(R.string.app_status_not_installed)
                     )
                     if (lastSyncTimestamp != null) {
                         InfoRow(
-                            icon = Icons.Outlined.CloudSync,
+                            icon = painterResource(R.drawable.cloud_sync_24dp),
                             label = stringResource(R.string.device_info_last_sync),
                             value = formatRelativeTime(lastSyncTimestamp.toEpochMilli())
                         )
@@ -236,7 +239,7 @@ private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isRefreshing: Boo
         modifier = Modifier.padding(32.dp)
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_rounded_devices_wearables_24),
+            painter = painterResource(id = R.drawable.watch_off_24dp),
             contentDescription = null,
             modifier = Modifier.size(128.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -257,7 +260,7 @@ private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isRefreshing: Boo
             if (isRefreshing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
             } else {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Icon(painterResource(R.drawable.refresh_24dp), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
                 Text(stringResource(R.string.refresh_device_list_button))
             }
@@ -286,7 +289,7 @@ private fun ActionButtons(
             if (isSyncing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
             } else {
-                Icon(imageVector = Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Icon(painterResource(R.drawable.sync_24dp), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
                 Text(stringResource(R.string.sync_data_button))
             }
@@ -299,7 +302,7 @@ private fun ActionButtons(
             if (isRefreshing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
             } else {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Icon(painterResource(R.drawable.refresh_24dp), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
                 Text(stringResource(R.string.refresh_device_list_button))
             }
@@ -379,17 +382,17 @@ fun ConnectedDevicesScreenPreview_List_Expanded() {
         )
     )
     val uiState = ConnectedDevicesViewModel.UiState(
-        isLoading = false,
         connectedDevices = devices,
         lastSyncTimestamp = Instant.now().minusSeconds(300)
     )
-    MedicationTheme {
+    AppTheme {
         ConnectedDevicesScreenContent(
             uiState = uiState,
             onSyncData = {},
             onRefreshList = {},
             onDeviceClicked = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onInstallAppOnWatch = {}
         )
     }
 }
@@ -398,16 +401,16 @@ fun ConnectedDevicesScreenPreview_List_Expanded() {
 @Composable
 fun ConnectedDevicesScreenPreview_Disconnected() {
     val uiState = ConnectedDevicesViewModel.UiState(
-        isLoading = false,
         connectedDevices = emptyList()
     )
-    MedicationTheme {
+    AppTheme {
         ConnectedDevicesScreenContent(
             uiState = uiState,
             onSyncData = {},
             onRefreshList = {},
             onDeviceClicked = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onInstallAppOnWatch = {}
         )
     }
 }
@@ -416,16 +419,16 @@ fun ConnectedDevicesScreenPreview_Disconnected() {
 @Composable
 fun ConnectedDevicesScreenPreview_Loading() {
     val uiState = ConnectedDevicesViewModel.UiState(
-        isLoading = true,
         connectedDevices = emptyList()
     )
-    MedicationTheme {
+    AppTheme {
         ConnectedDevicesScreenContent(
             uiState = uiState,
             onSyncData = {},
             onRefreshList = {},
             onDeviceClicked = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onInstallAppOnWatch = {}
         )
     }
 }

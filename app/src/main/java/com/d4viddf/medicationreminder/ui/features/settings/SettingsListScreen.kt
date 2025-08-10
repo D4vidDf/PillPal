@@ -145,7 +145,8 @@ fun SettingsListScreenPreview() {
             SettingsListScreen(
                 onNavigateToGeneral = {},
                 onNavigateToSound = {},
-                onNavigateToDeveloper = {}
+                onNavigateToDeveloper = {},
+                onNavigateToConnectedDevices = {},
             )
         }
     }
