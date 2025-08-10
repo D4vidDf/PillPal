@@ -32,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -154,7 +155,7 @@ fun ConnectedDevicesScreenContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DeviceItem(
     device: ConnectedDevicesViewModel.DeviceInfo,
@@ -221,7 +222,7 @@ private fun DeviceItem(
                     }
                     if (!device.isAppInstalled) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = onInstallApp, modifier = Modifier.fillMaxWidth()) {
+                        Button(onClick = onInstallApp, modifier = Modifier.fillMaxWidth(), shapes = ButtonDefaults.shapes()) {
                             Text(stringResource(id = R.string.install_on_watch_button))
                         }
                     }
@@ -268,6 +269,7 @@ private fun NoDeviceConnectedStatus(onRefreshList: () -> Unit, isRefreshing: Boo
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionButtons(
     onSyncData: () -> Unit,
@@ -284,7 +286,8 @@ private fun ActionButtons(
         Button(
             onClick = onSyncData,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isAnyLoading
+            enabled = !isAnyLoading,
+            shapes = ButtonDefaults.shapes()
         ) {
             if (isSyncing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
@@ -297,7 +300,8 @@ private fun ActionButtons(
         OutlinedButton(
             onClick = onRefreshList,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isAnyLoading
+            enabled = !isAnyLoading,
+            shapes = ButtonDefaults.shapes()
         ) {
             if (isRefreshing) {
                 CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
