@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,8 +19,9 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 fun MedicationCardSkeleton(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
+            .padding(vertical = 8.dp)
             .fillMaxWidth()
-            .height(100.dp)
+            .height(90.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .shimmerLoadingAnimation()
