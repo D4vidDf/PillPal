@@ -18,8 +18,9 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 fun MedicationCardSkeleton(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
+            .padding(vertical = 8.dp)
             .fillMaxWidth()
-            .height(100.dp)
+            .height(90.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .shimmerLoadingAnimation()
