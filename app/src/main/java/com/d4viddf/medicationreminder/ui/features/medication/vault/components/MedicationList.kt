@@ -81,12 +81,15 @@ fun MedicationList(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = bottomContentPadding)
             ) {
-                itemsIndexed(medicationState, key = { index, itemState ->
-                    when (itemState) {
-                        is UiItemState.Success -> itemState.data.id
-                        else -> index // Use index as key for skeletons/errors
+                itemsIndexed(
+                    items = medicationState,
+                    key = { index, itemState ->
+                        when (itemState) {
+                            is UiItemState.Success -> "medication-${itemState.data.id}"
+                            else -> "placeholder-$index"
+                        }
                     }
-                }) { index, itemState ->
+                ) { index, itemState ->
                     Crossfade(targetState = itemState, label = "MedicationItemCrossfade") { state ->
                         when (state) {
                             is UiItemState.Loading -> {
