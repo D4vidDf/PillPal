@@ -123,8 +123,8 @@ fun MedicationList(
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
-@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MedicationListPreview() {
     AppTheme(dynamicColor = false) {
