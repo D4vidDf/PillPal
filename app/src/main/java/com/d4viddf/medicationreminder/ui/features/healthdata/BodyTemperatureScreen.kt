@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,9 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChart
-import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -29,8 +32,9 @@ fun BodyTemperatureScreen(
     viewModel: BodyTemperatureViewModel = hiltViewModel()
 ) {
     val bodyTemperatureRecords by viewModel.bodyTemperatureRecords.collectAsState()
-    val timeRange by viewModel.timeRange.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
+    var showDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -57,24 +61,27 @@ fun BodyTemperatureScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TabRow(selectedTabIndex = timeRange.ordinal) {
-                TimeRange.values().forEach { range ->
-                    Tab(
-                        selected = timeRange == range,
-                        onClick = { viewModel.setTimeRange(range) },
-                        text = { Text(range.name) }
-                    )
-                }
-            }
+            DateRangeSelector(
+                dateRange = selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy")),
+                onPreviousClick = viewModel::onPreviousDayClick,
+                onNextClick = viewModel::onNextDayClick,
+                onDateRangeClick = { showDatePicker = true }
+            )
 
             LineChart(data = bodyTemperatureRecords.map { it.time to it.temperatureCelsius })
 
             LazyColumn {
                 items(bodyTemperatureRecords) { record ->
-                    Text(
-                        text = "Temperature: ${record.temperatureCelsius} °C at ${formatter.format(record.time)}",
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "Temperature: ${record.temperatureCelsius} °C at ${formatter.format(record.time)} (Site: ${getMeasurementSite(record.measurementLocation)})",
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
 
@@ -83,5 +90,48 @@ fun BodyTemperatureScreen(
                 modifier = Modifier.padding(16.dp)
             )
         }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let {
+                            viewModel.onDateSelected(
+                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                            )
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
+private fun getMeasurementSite(location: Int?): String {
+    return when (location) {
+        BodyTemperature.LOCATION_ARMPIT -> "Armpit"
+        BodyTemperature.LOCATION_EAR -> "Ear"
+        BodyTemperature.LOCATION_FINGER -> "Finger"
+        BodyTemperature.LOCATION_FOREHEAD -> "Forehead"
+        BodyTemperature.LOCATION_MOUTH -> "Mouth"
+        BodyTemperature.LOCATION_RECTUM -> "Rectum"
+        BodyTemperature.LOCATION_TEMPORAL_ARTERY -> "Temporal Artery"
+        BodyTemperature.LOCATION_TOE -> "Toe"
+        BodyTemperature.LOCATION_WRIST -> "Wrist"
+        else -> "Unknown"
     }
 }
