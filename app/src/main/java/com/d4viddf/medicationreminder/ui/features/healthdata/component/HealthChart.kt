@@ -23,7 +23,7 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import kotlin.math.ceil
 
 @Composable
 fun HealthChart(
@@ -46,6 +46,12 @@ fun HealthChart(
     val barColor = MaterialTheme.colorScheme.primary
     val goalLineColor = MaterialTheme.colorScheme.error
 
+    val yAxisTextPaint = Paint().apply {
+        color = MaterialTheme.colorScheme.onSurface.toArgb()
+        textAlign = Paint.Align.RIGHT
+        textSize = with(density) { 12.sp.toPx() }
+    }
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -57,14 +63,20 @@ fun HealthChart(
         }
         val yRange = if (maxY == minY) 1f else (maxY ?: 0f) - (minY ?: 0f)
 
+        val yAxisLabelPadding = 16.dp.toPx()
+        val yAxisMaxLabelWidth = (0..5).maxOfOrNull { i ->
+            val value = (minY ?: 0f) + (yRange * i / 5)
+            yAxisTextPaint.measureText(yAxisLabelFormatter(value.toDouble()))
+        } ?: 0f
+        val yAxisLabelAreaWidth = yAxisMaxLabelWidth + yAxisLabelPadding
+
         val minTime = startTime.epochSecond
         val maxTime = endTime.epochSecond
         val timeRangeSeconds = maxTime - minTime
 
-        val yAxisLabelAreaWidth = 60.dp.toPx()
         val xAxisLabelHeight = 30.dp.toPx()
         val horizontalPadding = 16.dp.toPx()
-        val chartAreaWidth = size.width - yAxisLabelAreaWidth - horizontalPadding * 2
+        val chartAreaWidth = size.width - yAxisLabelAreaWidth - horizontalPadding
         val chartDrawableHeight = size.height - xAxisLabelHeight
 
         if (chartType == ChartType.BAR) {
@@ -144,7 +156,7 @@ fun HealthChart(
                 label,
                 yAxisLabelAreaWidth - 10.dp.toPx(),
                 y,
-                textPaint
+                yAxisTextPaint
             )
         }
     }
