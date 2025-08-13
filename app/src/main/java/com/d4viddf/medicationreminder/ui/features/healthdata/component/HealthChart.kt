@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -47,32 +48,38 @@ fun HealthChart(
             .fillMaxWidth()
             .height(300.dp)
     ) {
-        val (minY, maxY) = yAxisRange?.let { it.start to it.endInclusive } ?: data.let { d ->
-            d.minOfOrNull { it.second } to d.maxOfOrNull { it.second }
+        val (minY, maxY) = yAxisRange?.let { it.start.toFloat() to it.endInclusive.toFloat() } ?: data.let { d ->
+            d.minOfOrNull { it.second }?.toFloat() to d.maxOfOrNull { it.second }?.toFloat()
         }
-        val range = if (maxY == minY) 1.0 else (maxY ?: 0.0) - (minY ?: 0.0)
+        val yRange = if (maxY == minY) 1f else (maxY ?: 0f) - (minY ?: 0f)
 
         val minTime = startTime.epochSecond
         val maxTime = endTime.epochSecond
         val timeRangeSeconds = maxTime - minTime
 
+        val yAxisLabelAreaWidth = 60.dp.toPx()
+        val xAxisLabelHeight = 30.dp.toPx()
+        val chartAreaWidth = size.width - yAxisLabelAreaWidth
+        val chartDrawableHeight = size.height - xAxisLabelHeight
+
         if (chartType == ChartType.BAR) {
             if (data.isNotEmpty()) {
-                val barWidth = size.width / (data.size * 2)
+                val itemAvailableWidth = chartAreaWidth / data.size
+                val barWidth = itemAvailableWidth * 0.7f
                 data.forEach { pair ->
-                    val x = size.width * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
-                    val y = size.height * (((maxY ?: 0.0) - pair.second) / range).toFloat()
+                    val x = yAxisLabelAreaWidth + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
+                    val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
                     drawRect(
                         color = barColor,
                         topLeft = Offset(x - barWidth / 2, y),
-                        size = Size(barWidth, size.height - y)
+                        size = Size(barWidth, chartDrawableHeight - y)
                     )
                 }
             }
         } else if (chartType == ChartType.POINT) {
             data.forEach { pair ->
-                val x = size.width * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
-                val y = size.height * (((maxY ?: 0.0) - pair.second) / range).toFloat()
+                val x = yAxisLabelAreaWidth + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
+                val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
                 drawCircle(
                     color = barColor,
                     radius = 4.dp.toPx(),
@@ -82,11 +89,11 @@ fun HealthChart(
         }
 
         goalLineValue?.let { goal ->
-            if (range > 0) {
-                val goalY = size.height * (((maxY ?: 0.0) - goal) / range).toFloat()
+            if (yRange > 0) {
+                val goalY = chartDrawableHeight * (((maxY ?: 0f) - goal) / yRange)
                 drawLine(
                     color = goalLineColor,
-                    start = Offset(0f, goalY),
+                    start = Offset(yAxisLabelAreaWidth, goalY),
                     end = Offset(size.width, goalY),
                     strokeWidth = 2.dp.toPx()
                 )
@@ -109,7 +116,7 @@ fun HealthChart(
             val t = minTime + (timeRangeSeconds * i / labelCount)
             val instant = Instant.ofEpochSecond(t)
             val label = xAxisLabelFormatter.format(instant)
-            val x = size.width * i / labelCount
+            val x = yAxisLabelAreaWidth + chartAreaWidth * i / labelCount
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 x,
@@ -120,12 +127,12 @@ fun HealthChart(
 
         val yLabelCount = 5
         for (i in 0..yLabelCount) {
-            val value = (minY ?: 0.0) + (range * i / yLabelCount)
-            val label = yAxisLabelFormatter(value)
-            val y = size.height * (1 - (i.toFloat() / yLabelCount))
+            val value = (minY ?: 0f) + (yRange * i / yLabelCount)
+            val label = yAxisLabelFormatter(value.toDouble())
+            val y = chartDrawableHeight * (1 - (i.toFloat() / yLabelCount))
             drawContext.canvas.nativeCanvas.drawText(
                 label,
-                0f,
+                yAxisLabelAreaWidth - 10.dp.toPx(),
                 y,
                 textPaint
             )
