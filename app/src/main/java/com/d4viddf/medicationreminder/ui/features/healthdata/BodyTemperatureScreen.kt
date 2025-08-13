@@ -23,7 +23,6 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthCha
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +34,9 @@ fun BodyTemperatureScreen(
     val bodyTemperatureRecords by viewModel.bodyTemperatureRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
-    val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
+    val formatter = DateTimeFormatter.ofPattern("d/M H:m")
 
     Scaffold(
         topBar = {
@@ -81,7 +82,10 @@ fun BodyTemperatureScreen(
             HealthChart(
                 data = bodyTemperatureRecords.map { it.time to it.temperatureCelsius },
                 chartType = ChartType.LINE,
-                yAxisRange = 35.0..40.0
+                timeRange = timeRange,
+                yAxisRange = 35.0..40.0,
+                startTime = startTime,
+                endTime = endTime
             )
 
             LazyColumn {

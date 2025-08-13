@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -32,6 +33,12 @@ class WeightViewModel @Inject constructor(
 
     private val _dateRangeText = MutableStateFlow("")
     val dateRangeText: StateFlow<String> = _dateRangeText.asStateFlow()
+
+    private val _startTime = MutableStateFlow(Instant.now())
+    val startTime: StateFlow<Instant> = _startTime.asStateFlow()
+
+    private val _endTime = MutableStateFlow(Instant.now())
+    val endTime: StateFlow<Instant> = _endTime.asStateFlow()
 
     init {
         fetchWeightRecords()
@@ -69,8 +76,10 @@ class WeightViewModel @Inject constructor(
 
     private fun fetchWeightRecords() {
         viewModelScope.launch {
-            val (startTime, endTime) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
-            healthDataRepository.getWeightBetween(startTime, endTime)
+            val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
+            _startTime.value = start
+            _endTime.value = end
+            healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
                     _weightRecords.value = records
                 }

@@ -22,7 +22,6 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthCha
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +33,9 @@ fun WaterIntakeScreen(
     val waterIntakeRecords by viewModel.waterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
-    val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
+    val formatter = DateTimeFormatter.ofPattern("d/M H:m")
 
     Scaffold(
         topBar = {
@@ -80,8 +81,11 @@ fun WaterIntakeScreen(
             HealthChart(
                 data = waterIntakeRecords.map { it.time to it.volumeMilliliters },
                 chartType = ChartType.BAR,
+                timeRange = timeRange,
                 yAxisRange = 0.0..4000.0,
                 yAxisLabelFormatter = { "${(it / 1000).toInt()}k" },
+                startTime = startTime,
+                endTime = endTime,
                 modifier = Modifier.padding(top = 16.dp)
             )
 

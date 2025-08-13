@@ -17,23 +17,24 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HealthChart(
     data: List<Pair<Instant, Double>>,
     modifier: Modifier = Modifier,
     chartType: ChartType,
+    timeRange: TimeRange,
+    startTime: Instant,
+    endTime: Instant,
     lineColor: Color = Color.Blue,
     strokeWidth: Float = 5f,
     yAxisRange: ClosedRange<Double>? = null,
-    xAxisLabelFormatter: (Instant) -> String = { "" },
     yAxisLabelFormatter: (Double) -> String = { "" }
 ) {
-    if (data.isEmpty()) {
-        return
-    }
-
     val density = LocalDensity.current
     val textPaint = Paint().apply {
         color = Color.Black.toArgb()
@@ -52,13 +53,13 @@ fun HealthChart(
         }
         val range = if (maxY == minY) 1.0 else (maxY ?: 0.0) - (minY ?: 0.0)
 
-        val minTime = data.minOf { it.first }.epochSecond
-        val maxTime = data.maxOf { it.first }.epochSecond
-        val timeRange = maxTime - minTime
+        val minTime = startTime.epochSecond
+        val maxTime = endTime.epochSecond
+        val timeRangeSeconds = maxTime - minTime
 
         if (chartType == ChartType.LINE) {
             data.forEachIndexed { index, pair ->
-                val x = size.width * ((pair.first.epochSecond - minTime).toFloat() / timeRange)
+                val x = size.width * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
                 val y = size.height * (((maxY ?: 0.0) - pair.second) / range).toFloat()
                 if (index == 0) {
                     path.moveTo(x, y)
@@ -72,24 +73,37 @@ fun HealthChart(
                 style = Stroke(width = strokeWidth)
             )
         } else {
-            val barWidth = size.width / (data.size * 2)
-            data.forEach { pair ->
-                val x = size.width * ((pair.first.epochSecond - minTime).toFloat() / timeRange)
-                val y = size.height * (((maxY ?: 0.0) - pair.second) / range).toFloat()
-                drawRect(
-                    color = lineColor,
-                    topLeft = Offset(x - barWidth / 2, y),
-                    size = Size(barWidth, size.height - y)
-                )
+            if (data.isNotEmpty()) {
+                val barWidth = size.width / (data.size * 2)
+                data.forEach { pair ->
+                    val x = size.width * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
+                    val y = size.height * (((maxY ?: 0.0) - pair.second) / range).toFloat()
+                    drawRect(
+                        color = lineColor,
+                        topLeft = Offset(x - barWidth / 2, y),
+                        size = Size(barWidth, size.height - y)
+                    )
+                }
             }
         }
 
         // Draw X-axis labels
-        val labelCount = 5
-        for (i in 0..labelCount) {
-            val t = minTime + (timeRange * i / labelCount)
+        val xAxisLabelFormatter = when (timeRange) {
+            TimeRange.DAY -> DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+            TimeRange.WEEK -> DateTimeFormatter.ofPattern("EEE").withZone(ZoneId.systemDefault())
+            TimeRange.MONTH -> DateTimeFormatter.ofPattern("d").withZone(ZoneId.systemDefault())
+            TimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").withZone(ZoneId.systemDefault())
+        }
+        val labelCount = when (timeRange) {
+            TimeRange.DAY -> 6
+            TimeRange.WEEK -> 7
+            TimeRange.MONTH -> 6
+            TimeRange.YEAR -> 12
+        }
+        for (i in 0 until labelCount) {
+            val t = minTime + (timeRangeSeconds * i / labelCount)
             val instant = Instant.ofEpochSecond(t)
-            val label = xAxisLabelFormatter(instant)
+            val label = xAxisLabelFormatter.format(instant)
             val x = size.width * i / labelCount
             drawContext.canvas.nativeCanvas.drawText(
                 label,
