@@ -53,9 +53,11 @@ fun WaterIntakeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.LogWater.route) }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_water_intake_record))
-            }
+            ExtendedFloatingActionButton(
+                onClick = { navController.navigate(Screen.LogWater.route) },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(text = stringResource(id = R.string.log_water)) }
+            )
         }
     ) { paddingValues ->
         Column(

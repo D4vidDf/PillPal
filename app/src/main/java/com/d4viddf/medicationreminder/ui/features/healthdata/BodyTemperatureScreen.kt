@@ -54,9 +54,11 @@ fun BodyTemperatureScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.LogTemperature.route) }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_body_temperature_record))
-            }
+            ExtendedFloatingActionButton(
+                onClick = { navController.navigate(Screen.LogTemperature.route) },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(text = stringResource(id = R.string.log_temperature)) }
+            )
         }
     ) { paddingValues ->
         Column(

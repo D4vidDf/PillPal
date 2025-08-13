@@ -490,4 +490,7 @@
     <string name="weight_screen_title">Weight</string>
     <string name="water_intake_screen_title">Water Intake</string>
     <string name="body_temperature_screen_title">Body Temperature</string>
+    <string name="log_weight">Log Weight</string>
+    <string name="log_water">Log Water</string>
+    <string name="log_temperature">Log Temperature</string>
 </resources>
