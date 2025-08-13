@@ -18,9 +18,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
-import com.d4viddf.medicationreminder.ui.features.medication.graph.component.BarChartItem
-import com.d4viddf.medicationreminder.ui.features.medication.graph.component.SimpleBarChart
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -34,6 +34,8 @@ fun WeightScreen(
     val aggregatedWeightRecords by viewModel.aggregatedWeightRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
 
     Scaffold(
@@ -77,23 +79,15 @@ fun WeightScreen(
                 onDateRangeClick = { /* No-op */ }
             )
 
-            val chartData = aggregatedWeightRecords.map {
-                BarChartItem(
-                    label = it.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
-                    value = it.second.toFloat()
-                )
-            }
-
-            SimpleBarChart(
-                data = chartData,
+            HealthChart(
+                data = aggregatedWeightRecords,
+                chartType = ChartType.BAR,
                 timeRange = timeRange,
-                explicitYAxisTopValue = 100f,
+                startTime = startTime,
+                endTime = endTime,
+                yAxisRange = 0.0..100.0,
                 goalLineValue = 80f,
-                chartContentDescription = "Weight chart",
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth()
-                    .height(300.dp)
+                modifier = Modifier.padding(top = 16.dp)
             )
 
             LazyColumn {

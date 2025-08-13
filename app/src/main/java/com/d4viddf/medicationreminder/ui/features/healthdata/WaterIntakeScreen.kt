@@ -3,7 +3,6 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,9 +18,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
-import com.d4viddf.medicationreminder.ui.features.medication.graph.component.BarChartItem
-import com.d4viddf.medicationreminder.ui.features.medication.graph.component.SimpleBarChart
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -35,6 +34,8 @@ fun WaterIntakeScreen(
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
 
     Scaffold(
@@ -78,23 +79,16 @@ fun WaterIntakeScreen(
                 onDateRangeClick = { /* No-op */ }
             )
 
-            val chartData = aggregatedWaterIntakeRecords.map {
-                BarChartItem(
-                    label = it.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
-                    value = it.second.toFloat()
-                )
-            }
-
-            SimpleBarChart(
-                data = chartData,
+            HealthChart(
+                data = aggregatedWaterIntakeRecords,
+                chartType = ChartType.BAR,
                 timeRange = timeRange,
-                explicitYAxisTopValue = 5000f,
+                startTime = startTime,
+                endTime = endTime,
+                yAxisRange = 0.0..5000.0,
                 goalLineValue = 4000f,
-                chartContentDescription = "Water intake chart",
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth()
-                    .height(300.dp)
+                yAxisLabelFormatter = { "${(it / 1000).toInt()}k" },
+                modifier = Modifier.padding(top = 16.dp)
             )
 
             LazyColumn {

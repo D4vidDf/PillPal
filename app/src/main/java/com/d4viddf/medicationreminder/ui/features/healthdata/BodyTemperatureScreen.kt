@@ -3,7 +3,6 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,10 +19,9 @@ import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
-import com.d4viddf.medicationreminder.ui.features.medication.graph.component.BarChartItem
-import com.d4viddf.medicationreminder.ui.features.medication.graph.component.SimpleBarChart
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -37,6 +35,8 @@ fun BodyTemperatureScreen(
     val aggregatedBodyTemperatureRecords by viewModel.aggregatedBodyTemperatureRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
 
     Scaffold(
@@ -80,22 +80,13 @@ fun BodyTemperatureScreen(
                 onDateRangeClick = { /* No-op */ }
             )
 
-            val chartData = aggregatedBodyTemperatureRecords.map {
-                BarChartItem(
-                    label = it.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
-                    value = it.second.toFloat()
-                )
-            }
-
-            SimpleBarChart(
-                data = chartData,
+            HealthChart(
+                data = aggregatedBodyTemperatureRecords,
                 chartType = ChartType.POINT,
                 timeRange = timeRange,
-                explicitYAxisTopValue = 40f,
-                chartContentDescription = "Body temperature chart",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
+                startTime = startTime,
+                endTime = endTime,
+                yAxisRange = 35.0..40.0
             )
 
             LazyColumn {
