@@ -63,7 +63,8 @@ fun HealthChart(
 
         val yAxisLabelAreaWidth = 60.dp.toPx()
         val xAxisLabelHeight = 30.dp.toPx()
-        val chartAreaWidth = size.width - yAxisLabelAreaWidth
+        val horizontalPadding = 16.dp.toPx()
+        val chartAreaWidth = size.width - yAxisLabelAreaWidth - horizontalPadding * 2
         val chartDrawableHeight = size.height - xAxisLabelHeight
 
         if (chartType == ChartType.BAR) {
@@ -76,7 +77,7 @@ fun HealthChart(
                 }
                 val barWidth = itemAvailableWidth * 0.3f
                 data.forEach { pair ->
-                    val x = yAxisLabelAreaWidth + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
+                    val x = yAxisLabelAreaWidth + horizontalPadding + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
                     val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
                     drawRoundRect(
                         color = barColor,
@@ -88,7 +89,7 @@ fun HealthChart(
             }
         } else if (chartType == ChartType.POINT) {
             data.forEach { pair ->
-                val x = yAxisLabelAreaWidth + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
+                val x = yAxisLabelAreaWidth + horizontalPadding + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
                 val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
                 drawCircle(
                     color = barColor,
@@ -125,7 +126,7 @@ fun HealthChart(
                 TimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").withZone(ZoneId.systemDefault())
             }
             val label = formatter.format(instant)
-            val x = yAxisLabelAreaWidth + chartAreaWidth * i / labelCount
+            val x = yAxisLabelAreaWidth + horizontalPadding + chartAreaWidth * i / labelCount
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 x,
