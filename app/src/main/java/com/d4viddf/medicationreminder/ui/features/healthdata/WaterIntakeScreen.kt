@@ -55,7 +55,7 @@ fun WaterIntakeScreen(
 
             val chartData = waterIntakeRecords.map {
                 BarChartItem(
-                    label = it.time.format(DateTimeFormatter.ofPattern("d/M")),
+                    label = DateTimeFormatter.ofPattern("d/M").withZone(ZoneId.systemDefault()).format(it.time),
                     value = it.volumeMilliliters.toFloat()
                 )
             }
