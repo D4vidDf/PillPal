@@ -18,9 +18,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
-import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
-import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
+import com.d4viddf.medicationreminder.ui.features.medication.graph.component.BarChartItem
+import com.d4viddf.medicationreminder.ui.features.medication.graph.component.SimpleBarChart
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -34,8 +34,6 @@ fun WaterIntakeScreen(
     val waterIntakeRecords by viewModel.waterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
-    val startTime by viewModel.startTime.collectAsState()
-    val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
 
     Scaffold(
@@ -79,14 +77,18 @@ fun WaterIntakeScreen(
                 onDateRangeClick = { /* No-op */ }
             )
 
-            HealthChart(
-                data = waterIntakeRecords.map { it.time to it.volumeMilliliters },
-                chartType = ChartType.BAR,
-                timeRange = timeRange,
-                yAxisRange = 0.0..4000.0,
-                yAxisLabelFormatter = { "${(it / 1000).toInt()}k" },
-                startTime = startTime,
-                endTime = endTime,
+            val chartData = waterIntakeRecords.map {
+                BarChartItem(
+                    label = it.time.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
+                    value = it.volumeMilliliters.toFloat()
+                )
+            }
+
+            SimpleBarChart(
+                data = chartData,
+                explicitYAxisTopValue = 5000f,
+                goalLineValue = 4000f,
+                chartContentDescription = "Water intake chart",
                 modifier = Modifier.padding(top = 16.dp)
             )
 

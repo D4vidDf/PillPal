@@ -29,20 +29,24 @@ data class BarChartItem(
     val isHighlighted: Boolean = false
 )
 
+import androidx.compose.material3.MaterialTheme
+
 @Composable
 fun SimpleBarChart(
     data: List<BarChartItem>,
     modifier: Modifier = Modifier,
-    highlightedBarColor: Color,
-    normalBarColor: Color,
-    labelTextColor: Color,
+    highlightedBarColor: Color = MaterialTheme.colorScheme.primary,
+    normalBarColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    labelTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    valueTextColor: Color = MaterialTheme.colorScheme.onSurface,
+    goalLineColor: Color = MaterialTheme.colorScheme.error,
     barWidthDp: Dp = 24.dp, // Default bar width
     spaceAroundBarsDp: Dp = 8.dp, // Default space between and around bars
     barCornerRadiusDp: Dp = 4.dp,
-    valueTextColor: Color = labelTextColor,
     valueTextSizeSp: Float = 10f,
     chartContentDescription: String,
-    explicitYAxisTopValue: Float? = null, // New parameter
+    explicitYAxisTopValue: Float? = null,
+    goalLineValue: Float? = null,
     onBarClick: ((label: String) -> Unit)? = null
 ) {
     // Diagnostic Logging
@@ -253,6 +257,19 @@ fun SimpleBarChart(
                 tickY + yAxisTextPaint.textSize / 3f,
                 yAxisTextPaint
             )
+        }
+
+        // Draw Goal Line
+        goalLineValue?.let { goal ->
+            if (yAxisTopValue > 0f) {
+                val goalY = topPaddingForValueText + chartDrawableHeight * (1f - (goal / yAxisTopValue))
+                drawLine(
+                    color = goalLineColor,
+                    start = Offset(yAxisLabelAreaWidth, goalY),
+                    end = Offset(canvasWidth, goalY),
+                    strokeWidth = 2.dp.toPx()
+                )
+            }
         }
 
         // Adjust Bar and Label Drawing Coordinates
