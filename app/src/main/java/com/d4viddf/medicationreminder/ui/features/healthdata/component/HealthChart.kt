@@ -64,8 +64,13 @@ fun HealthChart(
 
         if (chartType == ChartType.BAR) {
             if (data.isNotEmpty()) {
-                val itemAvailableWidth = chartAreaWidth / data.size
-                val barWidth = itemAvailableWidth * 0.7f
+                val itemAvailableWidth = when (timeRange) {
+                    TimeRange.DAY -> chartAreaWidth / 24 // 24 hours
+                    TimeRange.WEEK -> chartAreaWidth / 7 // 7 days
+                    TimeRange.MONTH -> chartAreaWidth / 30 // 30 days
+                    TimeRange.YEAR -> chartAreaWidth / 12 // 12 months
+                }
+                val barWidth = itemAvailableWidth * 0.3f
                 data.forEach { pair ->
                     val x = yAxisLabelAreaWidth + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
                     val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
