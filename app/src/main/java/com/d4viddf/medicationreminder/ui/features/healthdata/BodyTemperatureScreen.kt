@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -88,7 +89,10 @@ fun BodyTemperatureScreen(
             SimpleBarChart(
                 data = chartData,
                 explicitYAxisTopValue = 40f,
-                chartContentDescription = "Body temperature chart"
+                chartContentDescription = "Body temperature chart",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
             )
 
             LazyColumn {

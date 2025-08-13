@@ -54,10 +54,6 @@ fun SimpleBarChart(
     val actualMaxValueForLog = data.maxOfOrNull { it.value }?.coerceAtLeast(0f) ?: 0f
     Log.d("SimpleBarChartData", "Calculated actualMaxValueForLog (initial): $actualMaxValueForLog")
 
-    if (data.isEmpty()) {
-        return
-    }
-
     val density = LocalDensity.current
     val textPaint = remember(labelTextColor, density) {
         Paint().apply {
