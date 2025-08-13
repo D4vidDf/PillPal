@@ -475,7 +475,8 @@ internal fun HomeScreenContent(
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
                                                     is UiItemState.Success -> WeightCard(
-                                                        weight = state.data?.weightKilograms?.toString()
+                                                        weight = state.data?.weightKilograms?.toString(),
+                                                        onClick = { navController.navigate(Screen.Weight.route) }
                                                     )
 
                                                     is UiItemState.Error -> {}
@@ -489,7 +490,8 @@ internal fun HomeScreenContent(
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
                                                     is UiItemState.Success -> WaterCard(
-                                                        totalIntakeMl = state.data
+                                                        totalIntakeMl = state.data,
+                                                        onClick = { navController.navigate(Screen.WaterIntake.route) }
                                                     )
 
                                                     is UiItemState.Error -> {}
@@ -503,7 +505,8 @@ internal fun HomeScreenContent(
                                                 when (state) {
                                                     is UiItemState.Loading -> TemperatureCardSkeleton()
                                                     is UiItemState.Success -> TemperatureCard(
-                                                        temperatureRecord = state.data
+                                                        temperatureRecord = state.data,
+                                                        onClick = { navController.navigate(Screen.BodyTemperature.route) }
                                                     )
 
                                                     is UiItemState.Error -> {}
