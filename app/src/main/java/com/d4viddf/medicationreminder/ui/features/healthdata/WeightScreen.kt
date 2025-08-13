@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,6 +22,7 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeightScreen(
     navController: NavController,
@@ -31,6 +33,19 @@ fun WeightScreen(
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.weight_screen_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
+                            contentDescription = stringResource(id = R.string.back)
+                        )
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate(Screen.LogWeight.route) }) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_weight_record))

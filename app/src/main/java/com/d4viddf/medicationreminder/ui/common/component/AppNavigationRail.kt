@@ -29,7 +29,6 @@ fun AppNavigationRail(
     onCalendarClick: () -> Unit,
     onAnalysisClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onHealthClick: () -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String? = null
@@ -108,26 +107,6 @@ fun AppNavigationRail(
             selected = calendarSelected,
             onClick = onCalendarClick,
             label = { Text(stringResource(R.string.calendar_screen_title)) },
-            colors = NavigationRailItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.primary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                indicatorColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        )
-
-        val healthSelected = currentRoute == Screen.Health.route
-        NavigationRailItem(
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_analytics),
-                    contentDescription = stringResource(R.string.health_screen_title)
-                )
-            },
-            selected = healthSelected,
-            onClick = onHealthClick,
-            label = { Text(stringResource(R.string.health_screen_title)) },
             colors = NavigationRailItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.primary,
                 selectedTextColor = MaterialTheme.colorScheme.primary,

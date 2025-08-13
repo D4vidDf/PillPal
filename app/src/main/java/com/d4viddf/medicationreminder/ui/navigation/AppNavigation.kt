@@ -107,7 +107,6 @@ sealed class Screen(val route: String) {
     object Weight : Screen("weight")
     object WaterIntake : Screen("waterIntake")
     object BodyTemperature : Screen("bodyTemperature")
-    object Health : Screen("health")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -401,9 +400,6 @@ fun AppNavigation(
             }
             composable(Screen.LogTemperature.route) {
                 LogTemperatureScreen(onNavigateBack = { navController.popBackStack() })
-            }
-            composable(Screen.Health.route) {
-                HealthScreen(navController = navController)
             }
             composable(Screen.Weight.route) {
                 WeightScreen(navController = navController)

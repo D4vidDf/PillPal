@@ -24,7 +24,6 @@ fun AppHorizontalFloatingToolbar(
     onCalendarClick: () -> Unit,
     onAnalysisClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onHealthClick: () -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String? = null
@@ -78,18 +77,6 @@ fun AppHorizontalFloatingToolbar(
             Icon(
                 painter = painterResource(id = if (calendarSelected) R.drawable.ic_calendar_filled else R.drawable.ic_calendar),
                 contentDescription = stringResource(id = R.string.calendar_screen_title)
-            )
-        }
-
-        // Health Button
-        val healthSelected = currentRoute == Screen.Health.route
-        FilledIconToggleButton(
-            checked = healthSelected,
-            onCheckedChange = { if (!healthSelected) onHealthClick() }
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_analytics),
-                contentDescription = stringResource(id = R.string.health_screen_title)
             )
         }
 
