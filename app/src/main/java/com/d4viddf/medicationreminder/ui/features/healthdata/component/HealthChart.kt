@@ -4,10 +4,12 @@ import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -21,6 +23,7 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun HealthChart(
@@ -47,6 +50,7 @@ fun HealthChart(
         modifier = modifier
             .fillMaxWidth()
             .height(300.dp)
+            .padding(16.dp)
     ) {
         val (minY, maxY) = yAxisRange?.let { it.start.toFloat() to it.endInclusive.toFloat() } ?: data.let { d ->
             d.minOfOrNull { it.second }?.toFloat() to d.maxOfOrNull { it.second }?.toFloat()
@@ -74,10 +78,11 @@ fun HealthChart(
                 data.forEach { pair ->
                     val x = yAxisLabelAreaWidth + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
                     val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
-                    drawRect(
+                    drawRoundRect(
                         color = barColor,
                         topLeft = Offset(x - barWidth / 2, y),
-                        size = Size(barWidth, chartDrawableHeight - y)
+                        size = Size(barWidth, chartDrawableHeight - y),
+                        cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx())
                     )
                 }
             }
@@ -105,22 +110,21 @@ fun HealthChart(
             }
         }
 
-        val xAxisLabelFormatter = when (timeRange) {
-            TimeRange.DAY -> DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
-            TimeRange.WEEK -> DateTimeFormatter.ofPattern("EEE").withZone(ZoneId.systemDefault())
-            TimeRange.MONTH -> DateTimeFormatter.ofPattern("d").withZone(ZoneId.systemDefault())
-            TimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").withZone(ZoneId.systemDefault())
-        }
         val labelCount = when (timeRange) {
             TimeRange.DAY -> 6
             TimeRange.WEEK -> 7
             TimeRange.MONTH -> 6
             TimeRange.YEAR -> 12
         }
-        for (i in 0 until labelCount) {
-            val t = minTime + (timeRangeSeconds * i / labelCount)
-            val instant = Instant.ofEpochSecond(t)
-            val label = xAxisLabelFormatter.format(instant)
+        for (i in 0..labelCount) {
+            val instant = startTime.plusSeconds((timeRangeSeconds * i / labelCount))
+            val formatter = when (timeRange) {
+                TimeRange.DAY -> DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+                TimeRange.WEEK -> DateTimeFormatter.ofPattern("EEE").withZone(ZoneId.systemDefault())
+                TimeRange.MONTH -> DateTimeFormatter.ofPattern("d").withZone(ZoneId.systemDefault())
+                TimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").withZone(ZoneId.systemDefault())
+            }
+            val label = formatter.format(instant)
             val x = yAxisLabelAreaWidth + chartAreaWidth * i / labelCount
             drawContext.canvas.nativeCanvas.drawText(
                 label,

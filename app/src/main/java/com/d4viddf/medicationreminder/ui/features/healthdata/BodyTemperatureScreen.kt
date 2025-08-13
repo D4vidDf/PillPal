@@ -89,12 +89,20 @@ fun BodyTemperatureScreen(
                 yAxisRange = 35.0..40.0
             )
 
-            LazyColumn {
+            Text(
+                text = "History",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
                 items(aggregatedBodyTemperatureRecords) { record ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .padding(vertical = 4.dp)
                             .clickable {
                                 val newTimeRange = when (timeRange) {
                                     TimeRange.YEAR -> TimeRange.MONTH
