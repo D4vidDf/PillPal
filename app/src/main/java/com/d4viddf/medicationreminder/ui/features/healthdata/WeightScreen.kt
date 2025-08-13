@@ -3,7 +3,6 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +31,7 @@ fun WeightScreen(
     navController: NavController,
     viewModel: WeightViewModel = hiltViewModel()
 ) {
-    val weightRecords by viewModel.weightRecords.collectAsState()
+    val aggregatedWeightRecords by viewModel.aggregatedWeightRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
@@ -78,15 +77,16 @@ fun WeightScreen(
                 onDateRangeClick = { /* No-op */ }
             )
 
-            val chartData = weightRecords.map {
+            val chartData = aggregatedWeightRecords.map {
                 BarChartItem(
-                    label = it.time.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
-                    value = it.weightKilograms.toFloat()
+                    label = it.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
+                    value = it.second.toFloat()
                 )
             }
 
             SimpleBarChart(
                 data = chartData,
+                timeRange = timeRange,
                 explicitYAxisTopValue = 100f,
                 goalLineValue = 80f,
                 chartContentDescription = "Weight chart",
@@ -97,14 +97,25 @@ fun WeightScreen(
             )
 
             LazyColumn {
-                items(weightRecords) { record ->
+                items(aggregatedWeightRecords) { record ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .clickable {
+                                val newTimeRange = when (timeRange) {
+                                    TimeRange.YEAR -> TimeRange.MONTH
+                                    TimeRange.MONTH -> TimeRange.WEEK
+                                    TimeRange.WEEK -> TimeRange.DAY
+                                    else -> null
+                                }
+                                if (newTimeRange != null) {
+                                    viewModel.onHistoryItemClick(newTimeRange, record.first.atZone(ZoneId.systemDefault()).toLocalDate())
+                                }
+                            }
                     ) {
                         Text(
-                            text = "Weight: ${record.weightKilograms} kg at ${formatter.format(record.time)}",
+                            text = "Weight: ${record.second} kg at ${formatter.format(record.first)}",
                             modifier = Modifier.padding(16.dp)
                         )
                     }

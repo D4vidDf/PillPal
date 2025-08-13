@@ -14,6 +14,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +25,9 @@ class BodyTemperatureViewModel @Inject constructor(
 
     private val _bodyTemperatureRecords = MutableStateFlow<List<BodyTemperature>>(emptyList())
     val bodyTemperatureRecords: StateFlow<List<BodyTemperature>> = _bodyTemperatureRecords.asStateFlow()
+
+    private val _aggregatedBodyTemperatureRecords = MutableStateFlow<List<Pair<Instant, Double>>>(emptyList())
+    val aggregatedBodyTemperatureRecords: StateFlow<List<Pair<Instant, Double>>> = _aggregatedBodyTemperatureRecords.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
@@ -71,6 +76,12 @@ class BodyTemperatureViewModel @Inject constructor(
         fetchBodyTemperatureRecords()
     }
 
+    fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
+        _timeRange.value = newTimeRange
+        _selectedDate.value = newDate
+        fetchBodyTemperatureRecords()
+    }
+
     private fun fetchBodyTemperatureRecords() {
         viewModelScope.launch {
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
@@ -79,9 +90,47 @@ class BodyTemperatureViewModel @Inject constructor(
             healthDataRepository.getBodyTemperatureBetween(start, end)
                 .collect { records ->
                     _bodyTemperatureRecords.value = records
+                    aggregateRecords(records)
                 }
             updateDateRangeText()
         }
+    }
+
+    private fun aggregateRecords(records: List<BodyTemperature>) {
+        _aggregatedBodyTemperatureRecords.value = when (_timeRange.value) {
+            TimeRange.DAY -> records.map { it.time to it.temperatureCelsius }
+            TimeRange.WEEK -> aggregateByDay(records)
+            TimeRange.MONTH -> aggregateByWeek(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+        }
+    }
+
+    private fun aggregateByDay(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .map { (date, records) ->
+                val average = records.map { it.temperatureCelsius }.average()
+                date.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
+            }
+    }
+
+    private fun aggregateByWeek(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
+        val weekFields = WeekFields.of(Locale.getDefault())
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).get(weekFields.weekOfWeekBasedYear()) }
+            .map { (_, records) ->
+                val average = records.map { it.temperatureCelsius }.average()
+                records.first().time to average
+            }
+    }
+
+    private fun aggregateByMonth(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
+            .map { (_, records) ->
+                val average = records.map { it.temperatureCelsius }.average()
+                records.first().time to average
+            }
     }
 
     private fun updateDateRangeText() {

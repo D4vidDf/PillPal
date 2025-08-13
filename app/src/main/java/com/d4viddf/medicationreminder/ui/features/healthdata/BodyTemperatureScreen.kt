@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.features.medication.graph.component.BarChartItem
 import com.d4viddf.medicationreminder.ui.features.medication.graph.component.SimpleBarChart
@@ -33,7 +34,7 @@ fun BodyTemperatureScreen(
     navController: NavController,
     viewModel: BodyTemperatureViewModel = hiltViewModel()
 ) {
-    val bodyTemperatureRecords by viewModel.bodyTemperatureRecords.collectAsState()
+    val aggregatedBodyTemperatureRecords by viewModel.aggregatedBodyTemperatureRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
@@ -79,15 +80,17 @@ fun BodyTemperatureScreen(
                 onDateRangeClick = { /* No-op */ }
             )
 
-            val chartData = bodyTemperatureRecords.map {
+            val chartData = aggregatedBodyTemperatureRecords.map {
                 BarChartItem(
-                    label = it.time.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
-                    value = it.temperatureCelsius.toFloat()
+                    label = it.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d/M")),
+                    value = it.second.toFloat()
                 )
             }
 
             SimpleBarChart(
                 data = chartData,
+                chartType = ChartType.POINT,
+                timeRange = timeRange,
                 explicitYAxisTopValue = 40f,
                 chartContentDescription = "Body temperature chart",
                 modifier = Modifier
@@ -96,14 +99,25 @@ fun BodyTemperatureScreen(
             )
 
             LazyColumn {
-                items(bodyTemperatureRecords) { record ->
+                items(aggregatedBodyTemperatureRecords) { record ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .clickable {
+                                val newTimeRange = when (timeRange) {
+                                    TimeRange.YEAR -> TimeRange.MONTH
+                                    TimeRange.MONTH -> TimeRange.WEEK
+                                    TimeRange.WEEK -> TimeRange.DAY
+                                    else -> null
+                                }
+                                if (newTimeRange != null) {
+                                    viewModel.onHistoryItemClick(newTimeRange, record.first.atZone(ZoneId.systemDefault()).toLocalDate())
+                                }
+                            }
                     ) {
                         Text(
-                            text = "Temperature: ${record.temperatureCelsius} °C at ${formatter.format(record.time)} (Site: ${getMeasurementSite(record.measurementLocation)})",
+                            text = "Temperature: ${record.second} °C at ${formatter.format(record.first)}",
                             modifier = Modifier.padding(16.dp)
                         )
                     }

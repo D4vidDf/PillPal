@@ -14,7 +14,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import java.time.temporal.WeekFields
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +25,9 @@ class WeightViewModel @Inject constructor(
 
     private val _weightRecords = MutableStateFlow<List<Weight>>(emptyList())
     val weightRecords: StateFlow<List<Weight>> = _weightRecords.asStateFlow()
+
+    private val _aggregatedWeightRecords = MutableStateFlow<List<Pair<Instant, Double>>>(emptyList())
+    val aggregatedWeightRecords: StateFlow<List<Pair<Instant, Double>>> = _aggregatedWeightRecords.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
@@ -56,7 +60,6 @@ class WeightViewModel @Inject constructor(
             TimeRange.WEEK -> _selectedDate.value.minusWeeks(1)
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
-            else -> _selectedDate.value
         }
         fetchWeightRecords()
     }
@@ -67,10 +70,15 @@ class WeightViewModel @Inject constructor(
             TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
             TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.plusYears(1)
-            else -> _selectedDate.value
         }
         if (nextDate.isAfter(LocalDate.now())) return
         _selectedDate.value = nextDate
+        fetchWeightRecords()
+    }
+
+    fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
+        _timeRange.value = newTimeRange
+        _selectedDate.value = newDate
         fetchWeightRecords()
     }
 
@@ -82,9 +90,47 @@ class WeightViewModel @Inject constructor(
             healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
                     _weightRecords.value = records
+                    aggregateRecords(records)
                 }
             updateDateRangeText()
         }
+    }
+
+    private fun aggregateRecords(records: List<Weight>) {
+        _aggregatedWeightRecords.value = when (_timeRange.value) {
+            TimeRange.DAY -> records.map { it.time to it.weightKilograms }
+            TimeRange.WEEK -> aggregateByDay(records)
+            TimeRange.MONTH -> aggregateByWeek(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+        }
+    }
+
+    private fun aggregateByDay(records: List<Weight>): List<Pair<Instant, Double>> {
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .map { (date, records) ->
+                val average = records.map { it.weightKilograms }.average()
+                date.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
+            }
+    }
+
+    private fun aggregateByWeek(records: List<Weight>): List<Pair<Instant, Double>> {
+        val weekFields = WeekFields.of(Locale.getDefault())
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).get(weekFields.weekOfWeekBasedYear()) }
+            .map { (_, records) ->
+                val average = records.map { it.weightKilograms }.average()
+                records.first().time to average
+            }
+    }
+
+    private fun aggregateByMonth(records: List<Weight>): List<Pair<Instant, Double>> {
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
+            .map { (_, records) ->
+                val average = records.map { it.weightKilograms }.average()
+                records.first().time to average
+            }
     }
 
     private fun updateDateRangeText() {
@@ -104,7 +150,6 @@ class WeightViewModel @Inject constructor(
             }
             TimeRange.MONTH -> _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
             TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
-            else -> ""
         }
     }
 }

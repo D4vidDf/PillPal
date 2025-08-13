@@ -14,6 +14,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +25,9 @@ class WaterIntakeViewModel @Inject constructor(
 
     private val _waterIntakeRecords = MutableStateFlow<List<WaterIntake>>(emptyList())
     val waterIntakeRecords: StateFlow<List<WaterIntake>> = _waterIntakeRecords.asStateFlow()
+
+    private val _aggregatedWaterIntakeRecords = MutableStateFlow<List<Pair<Instant, Double>>>(emptyList())
+    val aggregatedWaterIntakeRecords: StateFlow<List<Pair<Instant, Double>>> = _aggregatedWaterIntakeRecords.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
@@ -71,6 +76,12 @@ class WaterIntakeViewModel @Inject constructor(
         fetchWaterIntakeRecords()
     }
 
+    fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
+        _timeRange.value = newTimeRange
+        _selectedDate.value = newDate
+        fetchWaterIntakeRecords()
+    }
+
     private fun fetchWaterIntakeRecords() {
         viewModelScope.launch {
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
@@ -79,9 +90,47 @@ class WaterIntakeViewModel @Inject constructor(
             healthDataRepository.getWaterIntakeBetween(start, end)
                 .collect { records ->
                     _waterIntakeRecords.value = records
+                    aggregateRecords(records)
                 }
             updateDateRangeText()
         }
+    }
+
+    private fun aggregateRecords(records: List<WaterIntake>) {
+        _aggregatedWaterIntakeRecords.value = when (_timeRange.value) {
+            TimeRange.DAY -> records.map { it.time to it.volumeMilliliters }
+            TimeRange.WEEK -> aggregateByDay(records)
+            TimeRange.MONTH -> aggregateByWeek(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+        }
+    }
+
+    private fun aggregateByDay(records: List<WaterIntake>): List<Pair<Instant, Double>> {
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .map { (date, records) ->
+                val average = records.map { it.volumeMilliliters }.average()
+                date.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
+            }
+    }
+
+    private fun aggregateByWeek(records: List<WaterIntake>): List<Pair<Instant, Double>> {
+        val weekFields = WeekFields.of(Locale.getDefault())
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).get(weekFields.weekOfWeekBasedYear()) }
+            .map { (_, records) ->
+                val average = records.map { it.volumeMilliliters }.average()
+                records.first().time to average
+            }
+    }
+
+    private fun aggregateByMonth(records: List<WaterIntake>): List<Pair<Instant, Double>> {
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
+            .map { (_, records) ->
+                val average = records.map { it.volumeMilliliters }.average()
+                records.first().time to average
+            }
     }
 
     private fun updateDateRangeText() {
