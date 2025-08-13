@@ -5,6 +5,7 @@ import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.source.local.HealthDataDao
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,6 +18,14 @@ class HealthDataRepository @Inject constructor(
     fun getLatestBodyTemperature(): Flow<BodyTemperature?> = healthDataDao.getLatestBodyTemperature()
     fun getLatestWeight(): Flow<Weight?> = healthDataDao.getLatestWeight()
     fun getTotalWaterIntakeSince(startTime: Long): Flow<Double?> = healthDataDao.getTotalWaterIntakeSince(startTime)
+    fun getBodyTemperatureBetween(startTime: Instant, endTime: Instant): Flow<List<BodyTemperature>> =
+        healthDataDao.getBodyTemperatureBetween(startTime, endTime)
+
+    fun getWeightBetween(startTime: Instant, endTime: Instant): Flow<List<Weight>> =
+        healthDataDao.getWeightBetween(startTime, endTime)
+
+    fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> =
+        healthDataDao.getWaterIntakeBetween(startTime, endTime)
 
     // --- WRITE Functions ---
     suspend fun insertBodyTemperature(record: BodyTemperature) {
