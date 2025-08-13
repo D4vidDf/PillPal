@@ -18,10 +18,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
-import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChart
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
-import java.time.Instant
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,9 +31,9 @@ fun WeightScreen(
     viewModel: WeightViewModel = hiltViewModel()
 ) {
     val weightRecords by viewModel.weightRecords.collectAsState()
-    val selectedDate by viewModel.selectedDate.collectAsState()
-    val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
-    var showDatePicker by remember { mutableStateOf(false) }
+    val timeRange by viewModel.timeRange.collectAsState()
+    val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val formatter = DateTimeFormatter.ofPattern("d/M H:m")
 
     Scaffold(
         topBar = {
@@ -60,14 +60,28 @@ fun WeightScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            TabRow(selectedTabIndex = timeRange.ordinal) {
+                TimeRange.values().forEach { range ->
+                    Tab(
+                        selected = timeRange == range,
+                        onClick = { viewModel.setTimeRange(range) },
+                        text = { Text(range.name) }
+                    )
+                }
+            }
             DateRangeSelector(
-                dateRange = selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy")),
-                onPreviousClick = viewModel::onPreviousDayClick,
-                onNextClick = viewModel::onNextDayClick,
-                onDateRangeClick = { showDatePicker = true }
+                dateRange = dateRangeText,
+                onPreviousClick = viewModel::onPreviousClick,
+                onNextClick = viewModel::onNextClick,
+                onDateRangeClick = { /* No-op */ }
             )
 
-            LineChart(data = weightRecords.map { it.time to it.weightKilograms })
+            HealthChart(
+                data = weightRecords.map { it.time to it.weightKilograms },
+                chartType = ChartType.LINE,
+                yAxisRange = 0.0..80.0,
+                modifier = Modifier.padding(top = 16.dp)
+            )
 
             LazyColumn {
                 items(weightRecords) { record ->
@@ -88,34 +102,6 @@ fun WeightScreen(
                 text = stringResource(id = R.string.health_data_disclaimer),
                 modifier = Modifier.padding(16.dp)
             )
-        }
-    }
-
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState()
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            viewModel.onDateSelected(
-                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                            )
-                        }
-                        showDatePicker = false
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
         }
     }
 }
