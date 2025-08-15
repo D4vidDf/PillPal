@@ -105,7 +105,7 @@ object DatabaseModule {
                     }
                 }
             })
-            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7) // Added MIGRATION_5_6
+            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_7_8) // Added MIGRATION_7_8
             .fallbackToDestructiveMigration(false) // Added this line
             .build()
     }

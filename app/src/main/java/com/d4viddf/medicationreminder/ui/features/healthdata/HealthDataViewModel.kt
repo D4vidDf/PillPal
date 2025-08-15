@@ -16,11 +16,12 @@ class HealthDataViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository
 ) : ViewModel() {
 
-    fun logWater(volumeMl: Double, time: Instant) {
+    fun logWater(volumeMl: Double, time: Instant, type: String?) {
         viewModelScope.launch {
             val record = WaterIntake(
                 time = time,
                 volumeMilliliters = volumeMl,
+                type = type,
                 sourceApp = "com.d4viddf.medicationreminder"
             )
             healthDataRepository.insertWaterIntake(record)

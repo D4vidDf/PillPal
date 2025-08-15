@@ -36,6 +36,7 @@ fun LogWaterScreen(
     var bottleCount by remember { mutableStateOf(0) }
     var bigBottleCount by remember { mutableStateOf(0) }
     var customAmount by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf("") }
 
     val totalAmount = (waterCount * 250) +
             (bottleCount * 500) +
@@ -146,13 +147,23 @@ fun LogWaterScreen(
                 singleLine = true
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = type,
+                onValueChange = { type = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Type (e.g., Coffee, Tea)") },
+                singleLine = true
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             // Save Button
             Button(
                 onClick = {
                     val logTime = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                    viewModel.logWater(totalAmount, logTime)
+                    viewModel.logWater(totalAmount, logTime, if (type.isNotBlank()) type else null)
                     onNavigateBack()
                 },
                 enabled = isButtonEnabled,
