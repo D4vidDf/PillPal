@@ -50,6 +50,21 @@ class WaterIntakeViewModel @Inject constructor(
     private val _daysGoalReached = MutableStateFlow(0)
     val daysGoalReached: StateFlow<Int> = _daysGoalReached.asStateFlow()
 
+    private val _dailyGoal = MutableStateFlow(4000.0) // Daily goal in ml
+    val dailyGoal: StateFlow<Double> = _dailyGoal.asStateFlow()
+
+    private val _waterIntakeProgress = MutableStateFlow(0f)
+    val waterIntakeProgress: StateFlow<Float> = _waterIntakeProgress.asStateFlow()
+
+    private val _waterIntakeByType = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val waterIntakeByType: StateFlow<Map<String, Int>> = _waterIntakeByType.asStateFlow()
+
+    private val _isNextEnabled = MutableStateFlow(false)
+    val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
+
+    private val _numberOfDaysInRange = MutableStateFlow(1)
+    val numberOfDaysInRange: StateFlow<Int> = _numberOfDaysInRange.asStateFlow()
+
     init {
         fetchWaterIntakeRecords()
     }
@@ -90,6 +105,12 @@ class WaterIntakeViewModel @Inject constructor(
 
     fun fetchWaterIntakeRecords() {
         viewModelScope.launch {
+            _numberOfDaysInRange.value = when (_timeRange.value) {
+                TimeRange.DAY -> 1
+                TimeRange.WEEK -> 7
+                TimeRange.MONTH -> _selectedDate.value.lengthOfMonth()
+                TimeRange.YEAR -> _selectedDate.value.lengthOfYear()
+            }
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             _startTime.value = start
             _endTime.value = end
@@ -97,6 +118,17 @@ class WaterIntakeViewModel @Inject constructor(
                 .collect { records ->
                     _waterIntakeRecords.value = records
                     _totalWaterIntake.value = records.sumOf { it.volumeMilliliters }
+                    _waterIntakeProgress.value = (_totalWaterIntake.value / _dailyGoal.value).toFloat().coerceIn(0f, 1f)
+
+                    if (_timeRange.value == TimeRange.DAY) {
+                        _waterIntakeByType.value = records
+                            .mapNotNull { it.type }
+                            .groupBy { it }
+                            .mapValues { it.value.size }
+                    } else {
+                        _waterIntakeByType.value = emptyMap()
+                    }
+
                     _daysGoalReached.value = records.groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
                         .mapValues { (_, records) -> records.sumOf { it.volumeMilliliters } }
                         .filter { it.value >= 4000 }
@@ -104,6 +136,14 @@ class WaterIntakeViewModel @Inject constructor(
                     aggregateRecords(records)
                 }
             updateDateRangeText()
+
+            val nextDate = when (_timeRange.value) {
+                TimeRange.DAY -> _selectedDate.value.plusDays(1)
+                TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+                TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+                TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+            }
+            _isNextEnabled.value = !nextDate.isAfter(LocalDate.now())
         }
     }
 

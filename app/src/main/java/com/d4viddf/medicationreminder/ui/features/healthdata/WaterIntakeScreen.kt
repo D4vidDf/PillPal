@@ -47,10 +47,12 @@ fun WaterIntakeScreen(
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val isNextEnabled by viewModel.isNextEnabled.collectAsState()
     val startTime by viewModel.startTime.collectAsState()
     val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
     val totalWaterIntake by viewModel.totalWaterIntake.collectAsState()
+    val numberOfDaysInRange by viewModel.numberOfDaysInRange.collectAsState()
     val waterIntakeGoal = 4000f
 
     LaunchedEffect(Unit) {
@@ -97,6 +99,7 @@ fun WaterIntakeScreen(
                 dateRange = dateRangeText,
                 onPreviousClick = viewModel::onPreviousClick,
                 onNextClick = viewModel::onNextClick,
+                isNextEnabled = isNextEnabled,
                 onDateRangeClick = { /* No-op */ },
                 widthSizeClass = widthSizeClass
             )
@@ -146,11 +149,19 @@ fun WaterIntakeScreen(
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    items(viewModel.waterIntakeRecords.value.groupBy { it.type }.entries.toList()) { (type, records) ->
+                    val items = viewModel.waterIntakeRecords.value.groupBy { it.type }.entries.toList()
+                    itemsIndexed(items) { index, (type, records) ->
+                        val shape = when {
+                            items.size == 1 -> RoundedCornerShape(12.dp)
+                            index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            index == items.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                            else -> RoundedCornerShape(0.dp)
+                        }
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 1.dp), // Reduced padding for connected look
+                            shape = shape
                         ) {
                             Row(
                                 modifier = Modifier
@@ -173,7 +184,7 @@ fun WaterIntakeScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "${(totalWaterIntake / 7).toInt()} ml",
+                            text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -209,22 +220,31 @@ fun WaterIntakeScreen(
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    items(aggregatedWaterIntakeRecords) { record ->
+                    itemsIndexed(aggregatedWaterIntakeRecords) { index, record ->
+                        val shape = when {
+                            aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(12.dp)
+                            index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                            else -> RoundedCornerShape(0.dp)
+                        }
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 1.dp) // Reduced padding for connected look
                                 .clickable {
                                     viewModel.onHistoryItemClick(
-                                        when(timeRange) {
+                                        when (timeRange) {
                                             TimeRange.WEEK -> TimeRange.DAY
                                             TimeRange.MONTH -> TimeRange.WEEK
                                             TimeRange.YEAR -> TimeRange.MONTH
                                             else -> timeRange
                                         },
-                                        record.first.atZone(ZoneId.systemDefault()).toLocalDate()
+                                        record.first
+                                            .atZone(ZoneId.systemDefault())
+                                            .toLocalDate()
                                     )
-                                }
+                                },
+                            shape = shape
                         ) {
                             Row(
                                 modifier = Modifier
@@ -232,7 +252,7 @@ fun WaterIntakeScreen(
                                     .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(text = when(timeRange) {
+                                Text(text = when (timeRange) {
                                     TimeRange.WEEK -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEEE"))
                                     TimeRange.MONTH -> "Week of ${record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))}"
                                     TimeRange.YEAR -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMMM"))

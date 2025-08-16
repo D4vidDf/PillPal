@@ -436,5 +436,20 @@
     <string name="no_weight_data">No weight registered</string>
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
-    <string name="no_missed_schedules">No missed doses! You\'re on track</string>
+    <string name="no_missed_schedules">¡Sin dosis omitidas! Estás al día</string>
+
+    <!-- Health Data -->
+    <string name="add_weight_record">Añadir registro de peso</string>
+    <string name="add_water_intake_record">Añadir toma de agua</string>
+    <string name="add_body_temperature_record">Añadir registro de temperatura corporal</string>
+    <string name="health_data_disclaimer">Esta información es solo para fines informativos y no para uso médico.</string>
+    <string name="health_screen_title">Salud</string>
+    <string name="weight_screen_title">Peso</string>
+    <string name="water_intake_screen_title">Consumo de Agua</string>
+    <string name="body_temperature_screen_title">Temperatura Corporal</string>
+    <string name="log_weight">Registrar Peso</string>
+    <string name="log_water">Registrar Agua</string>
+    <string name="log_temperature">Registrar Temperatura</string>
+    <string name="water_intake_goal_progress">Estás a %1$d ml de tu objetivo diario de 4000 ml</string>
+    <string name="water_intake_goal_reached_days">Has alcanzado tu objetivo %1$d día(s) y bebido un total de %2$d ml</string>
 </resources>
