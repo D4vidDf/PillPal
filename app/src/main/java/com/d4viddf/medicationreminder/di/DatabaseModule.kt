@@ -55,49 +55,52 @@ object DatabaseModule {
             "medications.db"
         )
             .addCallback(object : RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    // Llamar a un método que inserte los tipos de medicamentos predeterminados
-                    val defaultTypes = listOf(
-                        MedicationType(
-                            name = "Tablet",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Pill",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Powder",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Syringe",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Creme",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Spray",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Liquid",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Suppositoriun",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                        MedicationType(
-                            name = "Patch",
-                            imageUrl = "https://placehold.co/600x400.png"
-                        ),
-                    )
-                    // Iniciar una coroutine para insertar los datos predeterminados'
-                    CoroutineScope(Dispatchers.IO).launch {
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
+
+                    val cursor = db.query("SELECT COUNT(*) FROM medication_types")
+                    val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
+                    cursor.close()
+
+                    if (count == 0) {
+                        val defaultTypes = listOf(
+                            MedicationType(
+                                name = "Tablet",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Pill",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Powder",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Syringe",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Creme",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Spray",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Liquid",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Suppositoriun",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                            MedicationType(
+                                name = "Patch",
+                                imageUrl = "https://placehold.co/600x400.png"
+                            ),
+                        )
                         db.execSQL(
                             "INSERT INTO medication_types (name, imageUrl) VALUES " +
                                     defaultTypes.joinToString(", ") { "('${it.name}', '${it.imageUrl}')" }
