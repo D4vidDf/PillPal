@@ -29,7 +29,7 @@ fun DateRangeSelector(
     dateRange: String,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
-    isNextEnabled: Boolean, // Added this parameter
+    isNextEnabled: Boolean,
     onDateRangeClick: () -> Unit,
     widthSizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier
@@ -39,7 +39,6 @@ fun DateRangeSelector(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
     ) {
         if (widthSizeClass == WindowWidthSizeClass.Compact) {
             // Layout for small screens: [<] [Date] [>]
@@ -81,11 +80,12 @@ fun DateRangeSelector(
                     )
                 }
             }
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = dateRange,
                 modifier = Modifier
-                    .padding(start = 16.dp)
-                    .clickable(onClick = onDateRangeClick),
+                    .clickable(onClick = onDateRangeClick)
+                    .padding(start = 16.dp),
                 textAlign = TextAlign.End,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,

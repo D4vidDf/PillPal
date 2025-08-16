@@ -48,16 +48,13 @@ class WeightViewModel @Inject constructor(
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            _selectedDate.collect {
-                fetchWeightRecords()
-            }
-        }
+        fetchWeightRecords()
     }
 
     fun setTimeRange(timeRange: TimeRange) {
         _timeRange.value = timeRange
         _selectedDate.value = LocalDate.now()
+        fetchWeightRecords()
     }
 
     fun onPreviousClick() {
@@ -67,23 +64,25 @@ class WeightViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
+        fetchWeightRecords()
     }
 
     fun onNextClick() {
-        val newSelectedDate = when (_timeRange.value) {
+        val nextDate = when (_timeRange.value) {
             TimeRange.DAY -> _selectedDate.value.plusDays(1)
             TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
             TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.plusYears(1)
         }
-        if (!newSelectedDate.isAfter(LocalDate.now())) {
-            _selectedDate.value = newSelectedDate
-        }
+        if (nextDate.isAfter(LocalDate.now())) return
+        _selectedDate.value = nextDate
+        fetchWeightRecords()
     }
 
     fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
         _timeRange.value = newTimeRange
         _selectedDate.value = newDate
+        fetchWeightRecords()
     }
 
     private fun fetchWeightRecords() {
