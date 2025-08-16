@@ -53,6 +53,10 @@ fun WaterIntakeScreen(
     val totalWaterIntake by viewModel.totalWaterIntake.collectAsState()
     val waterIntakeGoal = 4000f
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchWaterIntakeRecords()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -131,6 +135,13 @@ fun WaterIntakeScreen(
                         )
                     }
                 }
+
+                Text(
+                    text = dateRangeText,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                )
 
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 16.dp)
