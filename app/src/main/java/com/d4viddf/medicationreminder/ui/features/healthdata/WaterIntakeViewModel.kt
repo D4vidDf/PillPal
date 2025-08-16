@@ -44,6 +44,9 @@ class WaterIntakeViewModel @Inject constructor(
     private val _endTime = MutableStateFlow(Instant.now())
     val endTime: StateFlow<Instant> = _endTime.asStateFlow()
 
+    private val _totalWaterIntake = MutableStateFlow(0.0)
+    val totalWaterIntake: StateFlow<Double> = _totalWaterIntake.asStateFlow()
+
     init {
         fetchWaterIntakeRecords()
     }
@@ -92,6 +95,7 @@ class WaterIntakeViewModel @Inject constructor(
             healthDataRepository.getWaterIntakeBetween(start, end)
                 .collect { records ->
                     _waterIntakeRecords.value = records
+                    _totalWaterIntake.value = records.sumOf { it.volumeMilliliters }
                     aggregateRecords(records)
                 }
             updateDateRangeText()
