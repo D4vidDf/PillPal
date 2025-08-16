@@ -85,6 +85,7 @@ fun HealthChart(
                     TimeRange.DAY -> chartAreaWidth / 24 // 24 hours
                     TimeRange.WEEK -> chartAreaWidth / 7 // 7 days
                     TimeRange.MONTH -> chartAreaWidth / 30 // 30 days
+                    TimeRange.THREE_MONTHS -> chartAreaWidth / 3
                     TimeRange.YEAR -> chartAreaWidth / 12 // 12 months
                 }
                 val barWidth = itemAvailableWidth * 0.3f
@@ -99,14 +100,29 @@ fun HealthChart(
                     )
                 }
             }
-        } else if (chartType == ChartType.POINT) {
-            data.forEach { pair ->
+        } else if (chartType == ChartType.POINT || chartType == ChartType.LINE) {
+            val points = data.map { pair ->
                 val x = yAxisLabelAreaWidth + horizontalPadding + chartAreaWidth * ((pair.first.epochSecond - minTime).toFloat() / timeRangeSeconds)
                 val y = chartDrawableHeight * (((maxY ?: 0f) - pair.second.toFloat()) / yRange)
+                Offset(x, y)
+            }
+
+            if (chartType == ChartType.LINE) {
+                for (i in 0 until points.size - 1) {
+                    drawLine(
+                        color = barColor,
+                        start = points[i],
+                        end = points[i + 1],
+                        strokeWidth = 2.dp.toPx()
+                    )
+                }
+            }
+
+            points.forEach { point ->
                 drawCircle(
                     color = barColor,
                     radius = 4.dp.toPx(),
-                    center = Offset(x, y)
+                    center = point
                 )
             }
         }
@@ -127,6 +143,7 @@ fun HealthChart(
             TimeRange.DAY -> 6
             TimeRange.WEEK -> 7
             TimeRange.MONTH -> 6
+            TimeRange.THREE_MONTHS -> 3
             TimeRange.YEAR -> 12
         }
         for (i in 0..labelCount) {
@@ -135,6 +152,7 @@ fun HealthChart(
                 TimeRange.DAY -> DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
                 TimeRange.WEEK -> DateTimeFormatter.ofPattern("EEE").withZone(ZoneId.systemDefault())
                 TimeRange.MONTH -> DateTimeFormatter.ofPattern("d").withZone(ZoneId.systemDefault())
+                TimeRange.THREE_MONTHS -> DateTimeFormatter.ofPattern("MMM").withZone(ZoneId.systemDefault())
                 TimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").withZone(ZoneId.systemDefault())
             }
             val label = formatter.format(instant)

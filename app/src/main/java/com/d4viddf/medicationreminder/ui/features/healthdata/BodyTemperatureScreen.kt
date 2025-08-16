@@ -84,7 +84,7 @@ fun BodyTemperatureScreen(
 
             HealthChart(
                 data = aggregatedBodyTemperatureRecords,
-                chartType = ChartType.POINT,
+                chartType = ChartType.LINE,
                 timeRange = timeRange,
                 startTime = startTime,
                 endTime = endTime,
