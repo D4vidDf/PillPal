@@ -117,31 +117,55 @@ class WaterIntakeViewModel @Inject constructor(
     }
 
     private fun aggregateByDay(records: List<WaterIntake>): List<Pair<Instant, Double>> {
-        return records
+        val weekFields = WeekFields.of(Locale.getDefault())
+        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
+        val endOfWeek = startOfWeek.plusDays(6)
+        val weekMap = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
-            .map { (date, records) ->
-                val average = records.map { it.volumeMilliliters }.average()
-                date.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
-            }
+            .mapValues { (_, records) -> records.sumOf { it.volumeMilliliters } }
+
+        val fullWeek = (0..6).map {
+            val date = startOfWeek.plusDays(it.toLong())
+            val value = weekMap[date] ?: 0.0
+            date.atStartOfDay(ZoneId.systemDefault()).toInstant() to value
+        }
+        return fullWeek
     }
 
     private fun aggregateByWeek(records: List<WaterIntake>): List<Pair<Instant, Double>> {
-        val weekFields = WeekFields.of(Locale.getDefault())
-        return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).get(weekFields.weekOfWeekBasedYear()) }
-            .map { (_, records) ->
-                val average = records.map { it.volumeMilliliters }.average()
-                records.first().time to average
+        val monthMap = records
+            .groupBy {
+                val date = it.time.atZone(ZoneId.systemDefault()).toLocalDate()
+                val weekFields = WeekFields.of(Locale.getDefault())
+                date.with(weekFields.dayOfWeek(), 1)
             }
+            .mapValues { (_, records) -> records.sumOf { it.volumeMilliliters } / 7 }
+
+        val startOfMonth = _selectedDate.value.withDayOfMonth(1)
+        val endOfMonth = _selectedDate.value.withDayOfMonth(_selectedDate.value.lengthOfMonth())
+        val weeksInMonth = mutableListOf<LocalDate>()
+        var current = startOfMonth
+        while (current.isBefore(endOfMonth) || current.isEqual(endOfMonth)) {
+            weeksInMonth.add(current.with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1))
+            current = current.plusWeeks(1)
+        }
+
+        return weeksInMonth.distinct().map { weekStart ->
+            val value = monthMap[weekStart] ?: 0.0
+            weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant() to value
+        }
     }
 
     private fun aggregateByMonth(records: List<WaterIntake>): List<Pair<Instant, Double>> {
-        return records
+        val yearMap = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .map { (_, records) ->
-                val average = records.map { it.volumeMilliliters }.average()
-                records.first().time to average
-            }
+            .mapValues { (_, records) -> records.sumOf { it.volumeMilliliters } / records.map { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }.distinct().size }
+
+        return (1..12).map {
+            val month = java.time.Month.of(it)
+            val value = yearMap[month] ?: 0.0
+            _selectedDate.value.withMonth(it).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant() to value
+        }
     }
 
     private fun updateDateRangeText() {
