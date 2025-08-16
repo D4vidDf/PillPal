@@ -66,13 +66,16 @@ class WaterIntakeViewModel @Inject constructor(
     val numberOfDaysInRange: StateFlow<Int> = _numberOfDaysInRange.asStateFlow()
 
     init {
-        fetchWaterIntakeRecords()
+        viewModelScope.launch {
+            _selectedDate.collect {
+                fetchWaterIntakeRecords()
+            }
+        }
     }
 
     fun setTimeRange(timeRange: TimeRange) {
         _timeRange.value = timeRange
         _selectedDate.value = LocalDate.now()
-        fetchWaterIntakeRecords()
     }
 
     fun onPreviousClick() {
@@ -82,25 +85,23 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
-        fetchWaterIntakeRecords()
     }
 
     fun onNextClick() {
-        if(isNextEnabled.value) {
-            _selectedDate.value = when (_timeRange.value) {
-                TimeRange.DAY -> _selectedDate.value.plusDays(1)
-                TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
-                TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
-                TimeRange.YEAR -> _selectedDate.value.plusYears(1)
-            }
-            fetchWaterIntakeRecords()
+        val newSelectedDate = when (_timeRange.value) {
+            TimeRange.DAY -> _selectedDate.value.plusDays(1)
+            TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+            TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+            TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+        }
+        if (!newSelectedDate.isAfter(LocalDate.now())) {
+            _selectedDate.value = newSelectedDate
         }
     }
 
     fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
         _timeRange.value = newTimeRange
         _selectedDate.value = newDate
-        fetchWaterIntakeRecords()
     }
 
     fun fetchWaterIntakeRecords() {

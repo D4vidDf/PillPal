@@ -81,190 +81,190 @@ fun WaterIntakeScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
-                TimeRange.values().forEach { range ->
-                    Tab(
-                        selected = timeRange == range,
-                        onClick = { viewModel.setTimeRange(range) },
-                        text = { Text(range.name) }
-                    )
+            item {
+                PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
+                    TimeRange.values().forEach { range ->
+                        Tab(
+                            selected = timeRange == range,
+                            onClick = { viewModel.setTimeRange(range) },
+                            text = { Text(range.name) }
+                        )
+                    }
                 }
+                DateRangeSelector(
+                    dateRange = dateRangeText,
+                    onPreviousClick = viewModel::onPreviousClick,
+                    onNextClick = viewModel::onNextClick,
+                    isNextEnabled = isNextEnabled,
+                    onDateRangeClick = { /* No-op */ },
+                    widthSizeClass = widthSizeClass
+                )
             }
-            DateRangeSelector(
-                dateRange = dateRangeText,
-                onPreviousClick = viewModel::onPreviousClick,
-                onNextClick = viewModel::onNextClick,
-                isNextEnabled = isNextEnabled,
-                onDateRangeClick = { /* No-op */ },
-                widthSizeClass = widthSizeClass
-            )
 
             if (timeRange == TimeRange.DAY) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "${totalWaterIntake.toInt()} ml",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.water_intake_goal_progress,
-                                (waterIntakeGoal - totalWaterIntake).toInt()
-                            ),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Box(contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            progress = { (totalWaterIntake / waterIntakeGoal).toFloat() },
-                            modifier = Modifier.size(100.dp),
-                            strokeWidth = 8.dp
-                        )
-                        Text(
-                            text = "${(totalWaterIntake / waterIntakeGoal * 100).toInt()}%",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${totalWaterIntake.toInt()} ml",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.water_intake_goal_progress,
+                                    (waterIntakeGoal - totalWaterIntake).toInt()
+                                ),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Box(contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(
+                                progress = { (totalWaterIntake / waterIntakeGoal).toFloat() },
+                                modifier = Modifier.size(100.dp),
+                                strokeWidth = 8.dp
+                            )
+                            Text(
+                                text = "${(totalWaterIntake / waterIntakeGoal * 100).toInt()}%",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
-                Text(
-                    text = dateRangeText,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-                )
+                item {
+                    Text(
+                        text = dateRangeText,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                    )
+                }
 
-                LazyColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    val items = viewModel.waterIntakeRecords.value.groupBy { it.type }.entries.toList()
-                    itemsIndexed(items) { index, (type, records) ->
-                        val shape = when {
-                            items.size == 1 -> RoundedCornerShape(12.dp)
-                            index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                            index == items.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-                            else -> RoundedCornerShape(0.dp)
-                        }
-                        Card(
+                val items = viewModel.waterIntakeRecords.value.groupBy { it.type }.entries.toList()
+                itemsIndexed(items) { index, (type, records) ->
+                    val shape = when {
+                        items.size == 1 -> RoundedCornerShape(12.dp)
+                        index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        index == items.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                        else -> RoundedCornerShape(0.dp)
+                    }
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 1.dp)
+                            .padding(horizontal = 16.dp),
+                        shape = shape
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 1.dp), // Reduced padding for connected look
-                            shape = shape
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = "${records.size} ${type ?: "Custom Qty"}")
-                                Text(text = "${records.sumOf { it.volumeMilliliters }.toInt()} ml")
-                            }
+                            Text(text = "${records.size} ${type ?: "Custom Qty"}")
+                            Text(text = "${records.sumOf { it.volumeMilliliters }.toInt()} ml")
                         }
                     }
                 }
             } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.water_intake_goal_reached_days,
-                                viewModel.daysGoalReached.value,
-                                totalWaterIntake.toInt()
-                            ),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-                HealthChart(
-                    data = aggregatedWaterIntakeRecords,
-                    chartType = ChartType.BAR,
-                    timeRange = timeRange,
-                    startTime = startTime,
-                    endTime = endTime,
-                    yAxisRange = 0.0..5000.0,
-                    goalLineValue = 4000f,
-                    yAxisLabelFormatter = { "${(it / 1000).toInt()}k" },
-                    modifier = Modifier.padding(top = 16.dp)
-                )
-
-                Text(
-                    text = dateRangeText,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-                )
-
-                LazyColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    itemsIndexed(aggregatedWaterIntakeRecords) { index, record ->
-                        val shape = when {
-                            aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(12.dp)
-                            index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                            index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-                            else -> RoundedCornerShape(0.dp)
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.water_intake_goal_reached_days,
+                                    viewModel.daysGoalReached.value,
+                                    totalWaterIntake.toInt()
+                                ),
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
-                        Card(
+                    }
+                    HealthChart(
+                        data = aggregatedWaterIntakeRecords,
+                        chartType = ChartType.BAR,
+                        timeRange = timeRange,
+                        startTime = startTime,
+                        endTime = endTime,
+                        yAxisRange = 0.0..5000.0,
+                        goalLineValue = 4000f,
+                        yAxisLabelFormatter = { "${(it / 1000).toInt()}k" },
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    Text(
+                        text = dateRangeText,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                    )
+                }
+
+                itemsIndexed(aggregatedWaterIntakeRecords) { index, record ->
+                    val shape = when {
+                        aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(12.dp)
+                        index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                        else -> RoundedCornerShape(0.dp)
+                    }
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 1.dp)
+                            .padding(horizontal = 16.dp)
+                            .clickable {
+                                viewModel.onHistoryItemClick(
+                                    when (timeRange) {
+                                        TimeRange.WEEK -> TimeRange.DAY
+                                        TimeRange.MONTH -> TimeRange.WEEK
+                                        TimeRange.YEAR -> TimeRange.MONTH
+                                        else -> timeRange
+                                    },
+                                    record.first
+                                        .atZone(ZoneId.systemDefault())
+                                        .toLocalDate()
+                                )
+                            },
+                        shape = shape
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 1.dp) // Reduced padding for connected look
-                                .clickable {
-                                    viewModel.onHistoryItemClick(
-                                        when (timeRange) {
-                                            TimeRange.WEEK -> TimeRange.DAY
-                                            TimeRange.MONTH -> TimeRange.WEEK
-                                            TimeRange.YEAR -> TimeRange.MONTH
-                                            else -> timeRange
-                                        },
-                                        record.first
-                                            .atZone(ZoneId.systemDefault())
-                                            .toLocalDate()
-                                    )
-                                },
-                            shape = shape
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = when (timeRange) {
-                                    TimeRange.WEEK -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEEE"))
-                                    TimeRange.MONTH -> "Week of ${record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))}"
-                                    TimeRange.YEAR -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMMM"))
-                                    else -> ""
-                                })
-                                Text(text = "${record.second.toInt()} ml")
-                            }
+                            Text(text = when (timeRange) {
+                                TimeRange.WEEK -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEEE"))
+                                TimeRange.MONTH -> "Week of ${record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))}"
+                                TimeRange.YEAR -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMMM"))
+                                else -> ""
+                            })
+                            Text(text = "${record.second.toInt()} ml")
                         }
                     }
                 }
             }
-
         }
     }
 }

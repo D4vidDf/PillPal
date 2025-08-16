@@ -65,76 +65,83 @@ fun BodyTemperatureScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TabRow(selectedTabIndex = timeRange.ordinal) {
-                TimeRange.values().forEach { range ->
-                    Tab(
-                        selected = timeRange == range,
-                        onClick = { viewModel.setTimeRange(range) },
-                        text = { Text(range.name) }
-                    )
-                }
-            }
-            DateRangeSelector(
-                dateRange = dateRangeText,
-                onPreviousClick = viewModel::onPreviousClick,
-                onNextClick = viewModel::onNextClick,
-                isNextEnabled = isNextEnabled,
-                onDateRangeClick = { /* No-op */ },
-                widthSizeClass = widthSizeClass
-            )
-
-            HealthChart(
-                data = aggregatedBodyTemperatureRecords,
-                chartType = ChartType.LINE,
-                timeRange = timeRange,
-                startTime = startTime,
-                endTime = endTime,
-                yAxisRange = 35.0..40.0
-            )
-
-            Text(
-                text = "History",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                items(aggregatedBodyTemperatureRecords) { record ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                val newTimeRange = when (timeRange) {
-                                    TimeRange.YEAR -> TimeRange.MONTH
-                                    TimeRange.MONTH -> TimeRange.WEEK
-                                    TimeRange.WEEK -> TimeRange.DAY
-                                    else -> null
-                                }
-                                if (newTimeRange != null) {
-                                    viewModel.onHistoryItemClick(newTimeRange, record.first.atZone(ZoneId.systemDefault()).toLocalDate())
-                                }
-                            }
-                    ) {
-                        Text(
-                            text = "Temperature: ${record.second} °C at ${formatter.format(record.first)}",
-                            modifier = Modifier.padding(16.dp)
+            item {
+                TabRow(selectedTabIndex = timeRange.ordinal) {
+                    TimeRange.values().forEach { range ->
+                        Tab(
+                            selected = timeRange == range,
+                            onClick = { viewModel.setTimeRange(range) },
+                            text = { Text(range.name) }
                         )
                     }
                 }
+                DateRangeSelector(
+                    dateRange = dateRangeText,
+                    onPreviousClick = viewModel::onPreviousClick,
+                    onNextClick = viewModel::onNextClick,
+                    isNextEnabled = isNextEnabled,
+                    onDateRangeClick = { /* No-op */ },
+                    widthSizeClass = widthSizeClass
+                )
             }
 
-            Text(
-                text = stringResource(id = R.string.health_data_disclaimer),
-                modifier = Modifier.padding(16.dp)
-            )
+            item {
+                HealthChart(
+                    data = aggregatedBodyTemperatureRecords,
+                    chartType = ChartType.LINE,
+                    timeRange = timeRange,
+                    startTime = startTime,
+                    endTime = endTime,
+                    yAxisRange = 35.0..40.0
+                )
+            }
+
+            item {
+                Text(
+                    text = "History",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                )
+            }
+
+            items(aggregatedBodyTemperatureRecords) { record ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp, horizontal = 16.dp)
+                        .clickable {
+                            val newTimeRange = when (timeRange) {
+                                TimeRange.YEAR -> TimeRange.MONTH
+                                TimeRange.MONTH -> TimeRange.WEEK
+                                TimeRange.WEEK -> TimeRange.DAY
+                                else -> null
+                            }
+                            if (newTimeRange != null) {
+                                viewModel.onHistoryItemClick(
+                                    newTimeRange,
+                                    record.first.atZone(ZoneId.systemDefault()).toLocalDate()
+                                )
+                            }
+                        }
+                ) {
+                    Text(
+                        text = "Temperature: ${record.second} °C at ${formatter.format(record.first)}",
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+
+            item {
+                Text(
+                    text = stringResource(id = R.string.health_data_disclaimer),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }
