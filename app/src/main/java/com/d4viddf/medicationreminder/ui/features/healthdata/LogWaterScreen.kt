@@ -160,7 +160,20 @@ fun LogWaterScreen(
             Button(
                 onClick = {
                     val logTime = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                    viewModel.logWater(totalAmount, logTime)
+                    if (waterCount > 0) {
+                        viewModel.logWater(waterCount * 250.0, logTime, "Water")
+                    }
+                    if (bottleCount > 0) {
+                        viewModel.logWater(bottleCount * 500.0, logTime, "Bottle")
+                    }
+                    if (bigBottleCount > 0) {
+                        viewModel.logWater(bigBottleCount * 750.0, logTime, "Big Bottle")
+                    }
+                    customAmount.toDoubleOrNull()?.let {
+                        if (it > 0) {
+                            viewModel.logWater(it, logTime, "Custom Qty")
+                        }
+                    }
                     onNavigateBack()
                 },
                 enabled = isButtonEnabled,

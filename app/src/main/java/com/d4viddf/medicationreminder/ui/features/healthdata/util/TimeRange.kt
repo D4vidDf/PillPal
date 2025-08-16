@@ -11,6 +11,7 @@ enum class TimeRange {
     DAY,
     WEEK,
     MONTH,
+    THREE_MONTHS,
     YEAR;
 
     fun getStartAndEndTimes(date: LocalDate): Pair<Instant, Instant> {
@@ -30,6 +31,10 @@ enum class TimeRange {
                 val yearMonth = YearMonth.from(date)
                 start = yearMonth.atDay(1)
                 end = yearMonth.atEndOfMonth()
+            }
+            THREE_MONTHS -> {
+                start = date.withDayOfMonth(1).minusMonths(2)
+                end = date.withDayOfMonth(1).plusMonths(1).minusDays(1)
             }
             YEAR -> {
                 start = date.withDayOfYear(1)
