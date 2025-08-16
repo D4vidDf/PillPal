@@ -80,7 +80,7 @@ fun WaterIntakeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TabRow(selectedTabIndex = timeRange.ordinal) {
+            PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
                 TimeRange.values().forEach { range ->
                     Tab(
                         selected = timeRange == range,
@@ -120,7 +120,7 @@ fun WaterIntakeScreen(
                     }
                     Box(contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
-                            progress = (totalWaterIntake / waterIntakeGoal).toFloat(),
+                            progress = { (totalWaterIntake / waterIntakeGoal).toFloat() },
                             modifier = Modifier.size(100.dp),
                             strokeWidth = 8.dp
                         )

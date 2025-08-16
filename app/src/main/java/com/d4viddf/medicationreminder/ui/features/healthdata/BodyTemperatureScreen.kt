@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -30,6 +31,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun BodyTemperatureScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass,
     viewModel: BodyTemperatureViewModel = hiltViewModel()
 ) {
     val aggregatedBodyTemperatureRecords by viewModel.aggregatedBodyTemperatureRecords.collectAsState()
@@ -79,7 +81,8 @@ fun BodyTemperatureScreen(
                 dateRange = dateRangeText,
                 onPreviousClick = viewModel::onPreviousClick,
                 onNextClick = viewModel::onNextClick,
-                onDateRangeClick = { /* No-op */ }
+                onDateRangeClick = { /* No-op */ },
+                widthSizeClass = widthSizeClass
             )
 
             HealthChart(

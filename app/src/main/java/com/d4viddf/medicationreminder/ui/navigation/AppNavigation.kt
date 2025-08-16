@@ -407,13 +407,13 @@ fun AppNavigation(
                 LogTemperatureScreen(onNavigateBack = { navController.popBackStack() })
             }
             composable(Screen.Weight.route) {
-                WeightScreen(navController = navController)
+                WeightScreen(navController = navController, widthSizeClass = widthSizeClass)
             }
             composable(Screen.WaterIntake.route) {
                 WaterIntakeScreen(navController = navController, widthSizeClass = widthSizeClass)
             }
             composable(Screen.BodyTemperature.route) {
-                BodyTemperatureScreen(navController = navController)
+                BodyTemperatureScreen(navController = navController, widthSizeClass = widthSizeClass)
             }
             composable(Screen.ManageWaterPresets.route) {
                 ManageWaterPresetsScreen(navController = navController)

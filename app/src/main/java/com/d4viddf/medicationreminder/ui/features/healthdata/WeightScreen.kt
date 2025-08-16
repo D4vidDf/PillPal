@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,6 +30,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun WeightScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass,
     viewModel: WeightViewModel = hiltViewModel()
 ) {
     val aggregatedWeightRecords by viewModel.aggregatedWeightRecords.collectAsState()
@@ -78,7 +80,8 @@ fun WeightScreen(
                 dateRange = dateRangeText,
                 onPreviousClick = viewModel::onPreviousClick,
                 onNextClick = viewModel::onNextClick,
-                onDateRangeClick = { /* No-op */ }
+                onDateRangeClick = { /* No-op */ },
+                widthSizeClass = widthSizeClass
             )
 
             HealthChart(
