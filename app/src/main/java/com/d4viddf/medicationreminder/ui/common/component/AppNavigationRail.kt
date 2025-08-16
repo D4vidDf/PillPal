@@ -172,7 +172,6 @@ fun AppNavigationRailPreview() {
             onCalendarClick = {},
             onAnalysisClick = {},
             onProfileClick = {},
-            onHealthClick = {},
             onAddClick = {},
             currentRoute = Screen.Home.route
         )

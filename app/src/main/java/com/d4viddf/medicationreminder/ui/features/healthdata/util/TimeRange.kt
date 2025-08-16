@@ -31,10 +31,6 @@ enum class TimeRange {
                 start = yearMonth.atDay(1)
                 end = yearMonth.atEndOfMonth()
             }
-            THREE_MONTHS -> {
-                start = date.withDayOfMonth(1).minusMonths(2)
-                end = date.withDayOfMonth(1).plusMonths(1).minusDays(1)
-            }
             YEAR -> {
                 start = date.withDayOfYear(1)
                 end = date.withDayOfYear(date.lengthOfYear())

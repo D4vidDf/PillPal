@@ -88,7 +88,7 @@ class WaterIntakeViewModel @Inject constructor(
         fetchWaterIntakeRecords()
     }
 
-    private fun fetchWaterIntakeRecords() {
+    fun fetchWaterIntakeRecords() {
         viewModelScope.launch {
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             _startTime.value = start

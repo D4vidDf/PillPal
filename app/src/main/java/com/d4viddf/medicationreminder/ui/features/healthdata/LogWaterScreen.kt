@@ -28,6 +28,7 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.collectAsState
 
@@ -327,8 +328,6 @@ private fun DateInputButton(
 }
 
 
-import androidx.compose.material.icons.filled.Delete
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WaterPresetRow(
@@ -345,13 +344,7 @@ private fun WaterPresetRow(
             .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (onDelete != null) {
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
-            }
-        } else {
-            Spacer(modifier = Modifier.width(48.dp))
-        }
+
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleLarge)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -120,7 +120,6 @@ fun AppHorizontalFloatingToolbarPreview() {
             onCalendarClick = {},
             onAnalysisClick = {},
             onProfileClick = {},
-            onHealthClick = {},
             onAddClick = {},
             currentRoute = Screen.Home.route
         )

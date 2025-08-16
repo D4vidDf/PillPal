@@ -35,10 +35,13 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationChoiceScreen
 import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationScreen
 import com.d4viddf.medicationreminder.ui.features.calendar.CalendarScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.BodyTemperatureScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.LogTemperatureScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.LogWaterScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.LogWeightScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.ManageWaterPresetsScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.WaterIntakeScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.WeightScreen
 import com.d4viddf.medicationreminder.ui.features.home.HomeScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
