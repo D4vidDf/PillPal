@@ -83,7 +83,7 @@ fun WeightScreen(
 
             HealthChart(
                 data = aggregatedWeightRecords,
-                chartType = ChartType.BAR,
+                chartType = ChartType.LINE,
                 timeRange = timeRange,
                 startTime = startTime,
                 endTime = endTime,

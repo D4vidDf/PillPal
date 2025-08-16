@@ -38,12 +38,6 @@ abstract class MedicationDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_7_8 = object : Migration(7, 8) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE water_intake_records ADD COLUMN type TEXT")
-            }
-        }
-
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Create BodyTemperature table
