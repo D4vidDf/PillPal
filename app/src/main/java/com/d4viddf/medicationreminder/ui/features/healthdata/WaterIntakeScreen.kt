@@ -35,10 +35,13 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaterIntakeScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass,
     viewModel: WaterIntakeViewModel = hiltViewModel()
 ) {
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
@@ -90,7 +93,8 @@ fun WaterIntakeScreen(
                 dateRange = dateRangeText,
                 onPreviousClick = viewModel::onPreviousClick,
                 onNextClick = viewModel::onNextClick,
-                onDateRangeClick = { /* No-op */ }
+                onDateRangeClick = { /* No-op */ },
+                widthSizeClass = widthSizeClass
             )
 
             if (timeRange == TimeRange.DAY) {

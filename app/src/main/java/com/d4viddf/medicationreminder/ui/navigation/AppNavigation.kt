@@ -410,7 +410,7 @@ fun AppNavigation(
                 WeightScreen(navController = navController)
             }
             composable(Screen.WaterIntake.route) {
-                WaterIntakeScreen(navController = navController)
+                WaterIntakeScreen(navController = navController, widthSizeClass = widthSizeClass)
             }
             composable(Screen.BodyTemperature.route) {
                 BodyTemperatureScreen(navController = navController)

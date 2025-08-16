@@ -10,7 +10,11 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,27 +27,35 @@ fun DateRangeSelector(
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
     onDateRangeClick: () -> Unit,
+    widthSizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (widthSizeClass == WindowWidthSizeClass.Compact) Arrangement.SpaceBetween else Arrangement.Start
     ) {
-        IconButton(onClick = onPreviousClick) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Previous")
+        Row {
+            IconButton(onClick = onPreviousClick) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Previous")
+            }
+            if (widthSizeClass != WindowWidthSizeClass.Compact) {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            IconButton(onClick = onNextClick) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Next")
+            }
         }
         Text(
             text = dateRange,
             modifier = Modifier
-                .weight(1f)
-                .clickable(onClick = onDateRangeClick),
-            textAlign = TextAlign.Center,
+                .weight(if (widthSizeClass == WindowWidthSizeClass.Compact) 1f else 0f)
+                .clickable(onClick = onDateRangeClick)
+                .padding(start = if (widthSizeClass != WindowWidthSizeClass.Compact) 16.dp else 0.dp),
+            textAlign = if (widthSizeClass == WindowWidthSizeClass.Compact) TextAlign.Center else TextAlign.Start,
             color = MaterialTheme.colorScheme.onSurface
         )
-        IconButton(onClick = onNextClick) {
-            Icon(Icons.Default.ArrowForward, contentDescription = "Next")
-        }
     }
 }
