@@ -24,6 +24,7 @@ fun AppHorizontalFloatingToolbar(
     onCalendarClick: () -> Unit,
     onAnalysisClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onHealthClick: () -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String? = null
@@ -80,17 +81,17 @@ fun AppHorizontalFloatingToolbar(
             )
         }
 
-        // Analysis Button
-        val analysisSelected = currentRoute == Screen.Analysis.route
-        FilledIconToggleButton(
-            checked = analysisSelected,
-            onCheckedChange = { if (!analysisSelected) onAnalysisClick() }
-        ) {
-            Icon(
-                painter = painterResource(id = if (analysisSelected) R.drawable.health_and_safety_24px_filled else R.drawable.health_and_safety_24px),
-                contentDescription = stringResource(id = R.string.analysis_screen_title)
-            )
-        }
+//        // Analysis Button
+//        val analysisSelected = currentRoute == Screen.Analysis.route
+//        FilledIconToggleButton(
+//            checked = analysisSelected,
+//            onCheckedChange = { if (!analysisSelected) onAnalysisClick() }
+//        ) {
+//            Icon(
+//                painter = painterResource(id = if (analysisSelected) R.drawable.health_and_safety_24px_filled else R.drawable.health_and_safety_24px),
+//                contentDescription = stringResource(id = R.string.analysis_screen_title)
+//            )
+//        }
 
         // Profile Button
         val profileSelected = currentRoute == Screen.Profile.route
@@ -101,6 +102,18 @@ fun AppHorizontalFloatingToolbar(
             Icon(
                 painter = painterResource(id = if (profileSelected) R.drawable.ic_person_filled else R.drawable.rounded_person_24),
                 contentDescription = stringResource(id = R.string.profile_screen_title)
+            )
+        }
+
+        // Health Button
+        val healthSelected = currentRoute == Screen.Health.route
+        FilledIconToggleButton(
+            checked = healthSelected,
+            onCheckedChange = { if (!healthSelected) onHealthClick() }
+        ) {
+            Icon(
+                painter = painterResource(id = if (healthSelected) R.drawable.ic_health_filled else R.drawable.ic_health),
+                contentDescription = stringResource(id = R.string.health_screen_title)
             )
         }
     }

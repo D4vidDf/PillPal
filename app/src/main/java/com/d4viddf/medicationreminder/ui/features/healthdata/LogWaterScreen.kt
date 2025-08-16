@@ -41,14 +41,20 @@ fun LogWaterScreen(
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
     val waterPresets by viewModel.waterPresets.collectAsState()
+    var waterCount by remember { mutableStateOf(0) }
+    var bottleCount by remember { mutableStateOf(0) }
+    var bigBottleCount by remember { mutableStateOf(0) }
     val presetCounts = remember { mutableStateMapOf<Int, Int>() }
     var customAmount by remember { mutableStateOf("") }
     var showAddPresetDialog by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
 
-    val totalAmount = waterPresets.sumOf { preset ->
-        (presetCounts[preset.id] ?: 0) * preset.amount
-    } + (customAmount.toDoubleOrNull() ?: 0.0)
+    val totalAmount = (waterCount * 250) +
+            (bottleCount * 500) +
+            (bigBottleCount * 750) +
+            waterPresets.sumOf { preset ->
+                (presetCounts[preset.id] ?: 0) * preset.amount
+            } + (customAmount.toDoubleOrNull() ?: 0.0)
 
     val isButtonEnabled = totalAmount > 0
 
@@ -135,6 +141,36 @@ fun LogWaterScreen(
 
             // Preset Options
             LazyColumn(modifier = Modifier.weight(1f)) {
+                item {
+                    WaterPresetRow(
+                        title = "Water",
+                        subtitle = "250 ml",
+                        count = waterCount,
+                        onIncrement = { waterCount++ },
+                        onDecrement = { if (waterCount > 0) waterCount-- }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    WaterPresetRow(
+                        title = "Bottle",
+                        subtitle = "500 ml",
+                        count = bottleCount,
+                        onIncrement = { bottleCount++ },
+                        onDecrement = { if (bottleCount > 0) bottleCount-- }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    WaterPresetRow(
+                        title = "Big Bottle",
+                        subtitle = "750 ml",
+                        count = bigBottleCount,
+                        onIncrement = { bigBottleCount++ },
+                        onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
                 items(waterPresets) { preset ->
                     WaterPresetRow(
                         title = preset.name,
@@ -145,7 +181,8 @@ fun LogWaterScreen(
                             if ((presetCounts[preset.id] ?: 0) > 0) {
                                 presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) - 1
                             }
-                        }
+                        },
+                        onDelete = { viewModel.deleteWaterPreset(preset.id) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -220,6 +257,15 @@ fun LogWaterScreen(
             Button(
                 onClick = {
                     val logTime = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                    if (waterCount > 0) {
+                        viewModel.logWater(waterCount * 250.0, logTime, "Water")
+                    }
+                    if (bottleCount > 0) {
+                        viewModel.logWater(bottleCount * 500.0, logTime, "Bottle")
+                    }
+                    if (bigBottleCount > 0) {
+                        viewModel.logWater(bigBottleCount * 750.0, logTime, "Big Bottle")
+                    }
                     waterPresets.forEach { preset ->
                         val count = presetCounts[preset.id] ?: 0
                         if (count > 0) {
@@ -281,6 +327,8 @@ private fun DateInputButton(
 }
 
 
+import androidx.compose.material.icons.filled.Delete
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WaterPresetRow(
@@ -288,7 +336,8 @@ private fun WaterPresetRow(
     subtitle: String,
     count: Int,
     onIncrement: () -> Unit,
-    onDecrement: () -> Unit
+    onDecrement: () -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -296,6 +345,13 @@ private fun WaterPresetRow(
             .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (onDelete != null) {
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete")
+            }
+        } else {
+            Spacer(modifier = Modifier.width(48.dp))
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleLarge)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

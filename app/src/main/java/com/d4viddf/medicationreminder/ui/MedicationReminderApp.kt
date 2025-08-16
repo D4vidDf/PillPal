@@ -71,6 +71,7 @@ fun MedicationReminderApp(
                         onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
                         onAnalysisClick = { navController.navigate(Screen.Analysis.route) { popUpTo(Screen.Home.route) } },
                         onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
+                        onHealthClick = { navController.navigate(Screen.Health.route) { popUpTo(Screen.Home.route) } },
                         // **MODIFIED ACTION**
                         onAddClick = { showBottomSheet = true },
                         currentRoute = currentRoute
@@ -95,6 +96,7 @@ fun MedicationReminderApp(
                                 onCalendarClick = { navController.navigate(Screen.Calendar.route) { popUpTo(Screen.Home.route) } },
                                 onAnalysisClick = { navController.navigate(Screen.Analysis.route) { popUpTo(Screen.Home.route) } },
                                 onProfileClick = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Home.route) } },
+                                onHealthClick = { navController.navigate(Screen.Health.route) { popUpTo(Screen.Home.route) } },
                                 // **MODIFIED ACTION**
                                 onAddClick = { showBottomSheet = true },
                                 currentRoute = currentRoute
