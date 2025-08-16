@@ -47,6 +47,9 @@ class WaterIntakeViewModel @Inject constructor(
     private val _totalWaterIntake = MutableStateFlow(0.0)
     val totalWaterIntake: StateFlow<Double> = _totalWaterIntake.asStateFlow()
 
+    private val _daysGoalReached = MutableStateFlow(0)
+    val daysGoalReached: StateFlow<Int> = _daysGoalReached.asStateFlow()
+
     init {
         fetchWaterIntakeRecords()
     }
@@ -94,6 +97,10 @@ class WaterIntakeViewModel @Inject constructor(
                 .collect { records ->
                     _waterIntakeRecords.value = records
                     _totalWaterIntake.value = records.sumOf { it.volumeMilliliters }
+                    _daysGoalReached.value = records.groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+                        .mapValues { (_, records) -> records.sumOf { it.volumeMilliliters } }
+                        .filter { it.value >= 4000 }
+                        .count()
                     aggregateRecords(records)
                 }
             updateDateRangeText()

@@ -165,6 +165,28 @@ fun WaterIntakeScreen(
                     }
                 }
             } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "${(totalWaterIntake / 7).toInt()} ml",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.water_intake_goal_reached_days,
+                                viewModel.daysGoalReached.value,
+                                totalWaterIntake.toInt()
+                            ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
                 HealthChart(
                     data = aggregatedWaterIntakeRecords,
                     chartType = ChartType.BAR,
@@ -178,8 +200,9 @@ fun WaterIntakeScreen(
                 )
 
                 Text(
-                    text = "History",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = dateRangeText,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp)
                 )
 
@@ -192,33 +215,36 @@ fun WaterIntakeScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                                 .clickable {
-                                    val newTimeRange = when (timeRange) {
-                                        TimeRange.YEAR -> TimeRange.MONTH
-                                        TimeRange.MONTH -> TimeRange.WEEK
-                                        TimeRange.WEEK -> TimeRange.DAY
-                                        else -> null
-                                    }
-                                    if (newTimeRange != null) {
-                                        viewModel.onHistoryItemClick(
-                                            newTimeRange,
-                                            record.first.atZone(ZoneId.systemDefault()).toLocalDate()
-                                        )
-                                    }
+                                    viewModel.onHistoryItemClick(
+                                        when(timeRange) {
+                                            TimeRange.WEEK -> TimeRange.DAY
+                                            TimeRange.MONTH -> TimeRange.WEEK
+                                            TimeRange.YEAR -> TimeRange.MONTH
+                                            else -> timeRange
+                                        },
+                                        record.first.atZone(ZoneId.systemDefault()).toLocalDate()
+                                    )
                                 }
                         ) {
-                            Text(
-                                text = "Water: ${record.second} ml at ${formatter.format(record.first)}",
-                                modifier = Modifier.padding(16.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = when(timeRange) {
+                                    TimeRange.WEEK -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEEE"))
+                                    TimeRange.MONTH -> "Week of ${record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))}"
+                                    TimeRange.YEAR -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMMM"))
+                                    else -> ""
+                                })
+                                Text(text = "${record.second.toInt()} ml")
+                            }
                         }
                     }
                 }
             }
 
-            Text(
-                text = stringResource(id = R.string.health_data_disclaimer),
-                modifier = Modifier.padding(16.dp)
-            )
         }
     }
 }
