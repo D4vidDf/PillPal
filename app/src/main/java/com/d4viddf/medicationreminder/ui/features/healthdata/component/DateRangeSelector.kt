@@ -35,27 +35,35 @@ fun DateRangeSelector(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (widthSizeClass == WindowWidthSizeClass.Compact) Arrangement.SpaceBetween else Arrangement.Start
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onPreviousClick) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
-            }
-            if (widthSizeClass != WindowWidthSizeClass.Compact) {
-                Spacer(modifier = Modifier.width(8.dp))
             }
             IconButton(onClick = onNextClick) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
             }
         }
-        Text(
-            text = dateRange,
-            modifier = Modifier
-                .weight(if (widthSizeClass == WindowWidthSizeClass.Compact) 1f else 0f)
-                .clickable(onClick = onDateRangeClick)
-                .padding(start = if (widthSizeClass != WindowWidthSizeClass.Compact) 16.dp else 0.dp),
-            textAlign = if (widthSizeClass == WindowWidthSizeClass.Compact) TextAlign.Center else TextAlign.Start,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        if (widthSizeClass == WindowWidthSizeClass.Compact) {
+            Text(
+                text = dateRange,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(onClick = onDateRangeClick),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = dateRange,
+                modifier = Modifier
+                    .clickable(onClick = onDateRangeClick)
+                    .padding(start = 16.dp),
+                textAlign = TextAlign.End,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
