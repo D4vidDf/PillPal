@@ -44,6 +44,9 @@ class WeightViewModel @Inject constructor(
     private val _endTime = MutableStateFlow(Instant.now())
     val endTime: StateFlow<Instant> = _endTime.asStateFlow()
 
+    private val _isNextEnabled = MutableStateFlow(false)
+    val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
+
     init {
         fetchWeightRecords()
     }
@@ -93,6 +96,14 @@ class WeightViewModel @Inject constructor(
                     aggregateRecords(records)
                 }
             updateDateRangeText()
+
+            val nextDate = when (_timeRange.value) {
+                TimeRange.DAY -> _selectedDate.value.plusDays(1)
+                TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+                TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+                TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+            }
+            _isNextEnabled.value = !nextDate.isAfter(LocalDate.now())
         }
     }
 

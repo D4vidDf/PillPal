@@ -38,6 +38,7 @@ fun WeightScreen(
     val aggregatedWeightRecords by viewModel.aggregatedWeightRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val isNextEnabled by viewModel.isNextEnabled.collectAsState()
     val startTime by viewModel.startTime.collectAsState()
     val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
@@ -82,6 +83,7 @@ fun WeightScreen(
                 dateRange = dateRangeText,
                 onPreviousClick = viewModel::onPreviousClick,
                 onNextClick = viewModel::onNextClick,
+                isNextEnabled = isNextEnabled,
                 onDateRangeClick = { /* No-op */ },
                 widthSizeClass = widthSizeClass
             )
