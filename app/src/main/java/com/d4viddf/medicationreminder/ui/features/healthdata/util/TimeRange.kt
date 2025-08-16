@@ -11,7 +11,6 @@ enum class TimeRange {
     DAY,
     WEEK,
     MONTH,
-    THREE_MONTHS,
     YEAR;
 
     fun getStartAndEndTimes(date: LocalDate): Pair<Instant, Instant> {

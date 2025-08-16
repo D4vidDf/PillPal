@@ -62,7 +62,6 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.DAY -> _selectedDate.value.minusDays(1)
             TimeRange.WEEK -> _selectedDate.value.minusWeeks(1)
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
-            TimeRange.THREE_MONTHS -> _selectedDate.value.minusMonths(3)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
         fetchWaterIntakeRecords()
@@ -73,7 +72,6 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.DAY -> _selectedDate.value.plusDays(1)
             TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
             TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
-            TimeRange.THREE_MONTHS -> _selectedDate.value.plusMonths(3)
             TimeRange.YEAR -> _selectedDate.value.plusYears(1)
         }
         if (nextDate.isAfter(LocalDate.now())) return
@@ -107,7 +105,6 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.DAY -> records.map { it.time to it.volumeMilliliters }
             TimeRange.WEEK -> aggregateByDay(records)
             TimeRange.MONTH -> aggregateByWeek(records)
-            TimeRange.THREE_MONTHS -> aggregateByMonth(records)
             TimeRange.YEAR -> aggregateByMonth(records)
         }
     }
@@ -156,10 +153,6 @@ class WaterIntakeViewModel @Inject constructor(
                 "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
             }
             TimeRange.MONTH -> _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
-            TimeRange.THREE_MONTHS -> {
-                val startMonth = _selectedDate.value.minusMonths(2)
-                "${startMonth.format(DateTimeFormatter.ofPattern("MMM"))} - ${_selectedDate.value.format(DateTimeFormatter.ofPattern("MMM yyyy"))}"
-            }
             TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
         }
     }

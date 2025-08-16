@@ -132,13 +132,6 @@ fun WaterIntakeScreen(
                     }
                 }
 
-                Text(
-                    text = dateRangeText,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-                )
-
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
