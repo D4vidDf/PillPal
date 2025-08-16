@@ -22,6 +22,7 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthCha
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -37,6 +38,9 @@ fun WaterIntakeScreen(
     val startTime by viewModel.startTime.collectAsState()
     val endTime by viewModel.endTime.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -54,12 +58,26 @@ fun WaterIntakeScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { navController.navigate(Screen.LogWater.route) },
+                onClick = { showBottomSheet = true },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text(text = stringResource(id = R.string.log_water)) }
             )
         }
     ) { paddingValues ->
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState
+            ) {
+                LogWaterScreen(onNavigateBack = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            showBottomSheet = false
+                        }
+                    }
+                })
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()

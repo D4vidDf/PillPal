@@ -2,11 +2,16 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
@@ -15,6 +20,21 @@ import javax.inject.Inject
 class HealthDataViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository
 ) : ViewModel() {
+
+    val waterPresets = healthDataRepository.getWaterPresets()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun addWaterPreset(name: String, amount: Double) {
+        viewModelScope.launch {
+            healthDataRepository.insertWaterPreset(WaterPreset(name = name, amount = amount))
+        }
+    }
+
+    fun deleteWaterPreset(id: Int) {
+        viewModelScope.launch {
+            healthDataRepository.deleteWaterPreset(id)
+        }
+    }
 
     fun logWater(volumeMl: Double, time: Instant, type: String?) {
         viewModelScope.launch {

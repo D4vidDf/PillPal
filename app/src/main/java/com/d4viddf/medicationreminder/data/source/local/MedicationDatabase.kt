@@ -13,18 +13,31 @@ import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
-        WaterIntake::class],
-    version = 8, // Incremented version to 8
+        WaterIntake::class, WaterPreset::class],
+    version = 9, // Incremented version to 9
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `water_presets` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `amount` REAL NOT NULL
+                    )
+                """)
+            }
+        }
+
         val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE water_intake_records ADD COLUMN type TEXT")

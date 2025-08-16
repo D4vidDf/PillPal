@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
@@ -49,4 +50,15 @@ interface HealthDataDao {
 
     @Query("SELECT * FROM water_intake_records WHERE time BETWEEN :startTime AND :endTime ORDER BY time DESC")
     fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>>
+
+    // --- Water Presets ---
+
+    @Query("SELECT * FROM water_presets")
+    fun getWaterPresets(): Flow<List<WaterPreset>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWaterPreset(preset: WaterPreset)
+
+    @Query("DELETE FROM water_presets WHERE id = :id")
+    suspend fun deleteWaterPreset(id: Int)
 }

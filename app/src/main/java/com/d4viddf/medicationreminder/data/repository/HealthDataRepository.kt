@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.data.repository
 
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.source.local.HealthDataDao
 import kotlinx.coroutines.flow.Flow
@@ -38,5 +39,15 @@ class HealthDataRepository @Inject constructor(
 
     suspend fun insertWaterIntake(record: WaterIntake) {
         healthDataDao.insertWaterIntake(record)
+    }
+
+    fun getWaterPresets(): Flow<List<WaterPreset>> = healthDataDao.getWaterPresets()
+
+    suspend fun insertWaterPreset(preset: WaterPreset) {
+        healthDataDao.insertWaterPreset(preset)
+    }
+
+    suspend fun deleteWaterPreset(id: Int) {
+        healthDataDao.deleteWaterPreset(id)
     }
 }
