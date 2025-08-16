@@ -68,15 +68,15 @@ class WeightViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val nextDate = when (_timeRange.value) {
-            TimeRange.DAY -> _selectedDate.value.plusDays(1)
-            TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
-            TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
-            TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+        if(isNextEnabled.value) {
+            _selectedDate.value = when (_timeRange.value) {
+                TimeRange.DAY -> _selectedDate.value.plusDays(1)
+                TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+                TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+                TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+            }
+            fetchWeightRecords()
         }
-        if (nextDate.isAfter(LocalDate.now())) return
-        _selectedDate.value = nextDate
-        fetchWeightRecords()
     }
 
     fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {

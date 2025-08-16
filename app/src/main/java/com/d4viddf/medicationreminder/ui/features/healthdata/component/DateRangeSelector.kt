@@ -67,13 +67,7 @@ fun DateRangeSelector(
             }
         } else {
             // Layout for larger screens: [<][>] [Date]
-            Row(
-                modifier = Modifier.border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline,
-                    shape = RoundedCornerShape(50)
-                )
-            ) {
+            Row {
                 IconButton(onClick = onPreviousClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
