@@ -97,7 +97,8 @@ fun BodyTemperatureScreen(
                     timeRange = timeRange,
                     startTime = startTime,
                     endTime = endTime,
-                    yAxisRange = 35.0..40.0
+                    yAxisRange = 35.0..40.0,
+                    onBarSelected = {  }
                 )
             }
 

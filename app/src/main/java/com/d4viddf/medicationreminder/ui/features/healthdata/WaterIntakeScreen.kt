@@ -1,25 +1,42 @@
 package com.d4viddf.medicationreminder.ui.features.healthdata
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -34,12 +51,13 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthCha
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
+import java.util.Locale
 
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WaterIntakeScreen(
     navController: NavController,
@@ -52,14 +70,12 @@ fun WaterIntakeScreen(
     val isNextEnabled by viewModel.isNextEnabled.collectAsState()
     val startTime by viewModel.startTime.collectAsState()
     val endTime by viewModel.endTime.collectAsState()
-    val formatter = DateTimeFormatter.ofPattern("d/M H:m").withZone(ZoneId.systemDefault())
     val totalWaterIntake by viewModel.totalWaterIntake.collectAsState()
     val numberOfDaysInRange by viewModel.numberOfDaysInRange.collectAsState()
     val waterIntakeGoal = 4000f
-
-    LaunchedEffect(Unit) {
-        viewModel.fetchWaterIntakeRecords()
-    }
+    val waterIntakeByType by viewModel.waterIntakeByType.collectAsState()
+    val yAxisMax by viewModel.yAxisMax.collectAsState()
+    val selectedBar by viewModel.selectedBar.collectAsState()
 
     Scaffold(
         topBar = {
@@ -88,28 +104,31 @@ fun WaterIntakeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            item {
-                PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
-                    TimeRange.entries.forEach { range ->
-                        Tab(
-                            selected = timeRange == range,
-                            onClick = { viewModel.setTimeRange(range) },
-                            text = { Text(range.name) }
-                        )
+            stickyHeader {
+                Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                    PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
+                        TimeRange.entries.forEach { range ->
+                            Tab(
+                                selected = timeRange == range,
+                                onClick = { viewModel.setTimeRange(range) },
+                                text = { Text(range.name) }
+                            )
+                        }
                     }
+                    DateRangeSelector(
+                        dateRange = dateRangeText,
+                        onPreviousClick = viewModel::onPreviousClick,
+                        onNextClick = viewModel::onNextClick,
+                        isNextEnabled = isNextEnabled,
+                        onDateRangeClick = { /* No-op */ },
+                        widthSizeClass = widthSizeClass
+                    )
                 }
-                DateRangeSelector(
-                    dateRange = dateRangeText,
-                    onPreviousClick = viewModel::onPreviousClick,
-                    onNextClick = viewModel::onNextClick,
-                    isNextEnabled = isNextEnabled,
-                    onDateRangeClick = { /* No-op */ },
-                    widthSizeClass = widthSizeClass
-                )
             }
 
             if (timeRange == TimeRange.DAY) {
                 item {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -131,8 +150,13 @@ fun WaterIntakeScreen(
                             )
                         }
                         Box(contentAlignment = Alignment.Center) {
+                            val animatedProgress by animateFloatAsState(
+                                targetValue = (totalWaterIntake / waterIntakeGoal).toFloat(),
+                                animationSpec = tween(durationMillis = 1000),
+                                label = "WaterIntakeProgressAnimation"
+                            )
                             CircularProgressIndicator(
-                                progress = { (totalWaterIntake / waterIntakeGoal).toFloat() },
+                                progress = { animatedProgress },
                                 modifier = Modifier.size(100.dp),
                                 strokeWidth = 8.dp
                             )
@@ -154,12 +178,16 @@ fun WaterIntakeScreen(
                     )
                 }
 
-                val items = viewModel.waterIntakeRecords.value.groupBy { it.type }.entries.toList()
-                itemsIndexed(items) { index, (type, records) ->
+                val items = waterIntakeByType.entries.toList()
+                itemsIndexed(items, key = { index, (type, _) -> (type ?: "custom") + index }) { index, (type, records) ->
                     val shape = when {
                         items.size == 1 -> RoundedCornerShape(12.dp)
                         index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        index == items.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                        index == items.size - 1 -> RoundedCornerShape(
+                            bottomStart = 12.dp,
+                            bottomEnd = 12.dp
+                        )
+
                         else -> RoundedCornerShape(0.dp)
                     }
                     Card(
@@ -182,6 +210,7 @@ fun WaterIntakeScreen(
                 }
             } else {
                 item {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -189,19 +218,32 @@ fun WaterIntakeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = stringResource(
-                                    R.string.water_intake_goal_reached_days,
-                                    viewModel.daysGoalReached.value,
-                                    totalWaterIntake.toInt()
-                                ),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            if (selectedBar != null) {
+                                Text(
+                                    text = "${selectedBar!!.second.toInt()} ml",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = selectedBar!!.first.atZone(ZoneId.systemDefault())
+                                        .format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            } else {
+                                Text(
+                                    text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.water_intake_goal_reached_days,
+                                        viewModel.daysGoalReached.value,
+                                        totalWaterIntake.toInt()
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                     HealthChart(
@@ -210,10 +252,13 @@ fun WaterIntakeScreen(
                         timeRange = timeRange,
                         startTime = startTime,
                         endTime = endTime,
-                        yAxisRange = 0.0..5000.0,
+                        yAxisRange = 0.0..yAxisMax,
                         goalLineValue = 4000f,
-                        yAxisLabelFormatter = { "${(it / 1000).toInt()}k" },
-                        modifier = Modifier.padding(top = 16.dp)
+                        yAxisLabelFormatter = {
+                            if (it > 0) "${(it / 1000).toInt()}k" else "0"
+                        },
+                        modifier = Modifier.padding(top = 16.dp),
+                        onBarSelected = { viewModel.onBarSelected(it) }
                     )
                     Text(
                         text = dateRangeText,
@@ -223,11 +268,18 @@ fun WaterIntakeScreen(
                     )
                 }
 
-                itemsIndexed(aggregatedWaterIntakeRecords) { index, record ->
+                itemsIndexed(
+                    aggregatedWaterIntakeRecords.sortedByDescending { it.first },
+                    key = { index, record -> record.first.toEpochMilli() + index }
+                ) { index, record ->
                     val shape = when {
                         aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(12.dp)
                         index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                        index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(
+                            bottomStart = 12.dp,
+                            bottomEnd = 12.dp
+                        )
+
                         else -> RoundedCornerShape(0.dp)
                     }
                     Card(
@@ -256,12 +308,29 @@ fun WaterIntakeScreen(
                                 .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = when (timeRange) {
-                                TimeRange.WEEK -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEEE"))
-                                TimeRange.MONTH -> "Week of ${record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))}"
-                                TimeRange.YEAR -> record.first.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMMM"))
+                            val today = LocalDate.now()
+                            val yesterday = today.minusDays(1)
+                            val recordDate = record.first.atZone(ZoneId.systemDefault()).toLocalDate()
+                            val weekFields = WeekFields.of(Locale.getDefault())
+                            val startOfWeek = recordDate.with(weekFields.dayOfWeek(), 1)
+
+                            val text = when (timeRange) {
+                                TimeRange.WEEK -> when (recordDate) {
+                                    today -> "Today"
+                                    yesterday -> "Yesterday"
+                                    else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE"))
+                                }
+                                TimeRange.MONTH -> {
+                                    if (startOfWeek == today.with(weekFields.dayOfWeek(), 1)) {
+                                        "This Week"
+                                    } else {
+                                        "Week of ${recordDate.format(DateTimeFormatter.ofPattern("d MMM"))}"
+                                    }
+                                }
+                                TimeRange.YEAR -> recordDate.format(DateTimeFormatter.ofPattern("MMMM"))
                                 else -> ""
-                            })
+                            }
+                            Text(text = text)
                             Text(text = "${record.second.toInt()} ml")
                         }
                     }
