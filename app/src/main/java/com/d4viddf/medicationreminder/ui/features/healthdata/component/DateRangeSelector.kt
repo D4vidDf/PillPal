@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun DateRangeSelector(
@@ -98,7 +98,7 @@ fun DateRangeSelector(
 @Preview(showBackground = true)
 @Composable
 fun DateRangeSelectorPreviewCompact() {
-    MedicationReminderTheme {
+    AppTheme {
         DateRangeSelector(
             dateRange = "Today",
             onPreviousClick = {},
@@ -113,7 +113,7 @@ fun DateRangeSelectorPreviewCompact() {
 @Preview(showBackground = true)
 @Composable
 fun DateRangeSelectorPreviewMedium() {
-    MedicationReminderTheme {
+    AppTheme {
         DateRangeSelector(
             dateRange = "This Week",
             onPreviousClick = {},

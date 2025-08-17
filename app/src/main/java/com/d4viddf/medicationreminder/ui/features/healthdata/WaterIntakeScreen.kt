@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -88,7 +90,7 @@ fun WaterIntakeScreen(
         ) {
             item {
                 PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
-                    TimeRange.values().forEach { range ->
+                    TimeRange.entries.forEach { range ->
                         Tab(
                             selected = timeRange == range,
                             onClick = { viewModel.setTimeRange(range) },
