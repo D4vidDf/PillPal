@@ -13,18 +13,31 @@ import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
-        WaterIntake::class],
-    version = 7, // Incremented version to 6
+        WaterIntake::class, WaterPreset::class],
+    version = 9, // Incremented version to 9
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `water_presets` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `amount` REAL NOT NULL
+                    )
+                """)
+            }
+        }
+
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Create BodyTemperature table
@@ -60,14 +73,8 @@ abstract class MedicationDatabase : RoomDatabase() {
                 """)
             }
         }
-        // Add a new migration for version 5 to 6.
-        // Since the changes (String to List with TypeConverter) alter how data is stored
-        // but the underlying column type (TEXT) likely remains the same, an empty migration
-        // might be sufficient if Room handles the data conversion automatically.
-        // However, if existing data needs transformation, specific SQL would be required.
-        // For now, assuming Room handles it or new data format doesn't conflict with old string format.
-        val MIGRATION_5_6 = object : Migration(5, 6) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        val MIGRATION_5_6 = object : androidx.room.migration.Migration(5, 6) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
                 // No explicit SQL needed if Room handles the TypeConverter changes gracefully
                 // for existing data, or if data transformation is complex and handled elsewhere (e.g., manual one-time).
                 // If the string format was "1,2,3" for DayOfWeek and "08:00,12:00" for LocalTime,
@@ -75,8 +82,8 @@ abstract class MedicationDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
                 // 1. Create new table with medicationScheduleId as nullable INTEGER
                 database.execSQL("""
                     CREATE TABLE medication_reminder_new (
@@ -111,11 +118,12 @@ abstract class MedicationDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_4_5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+        val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE medications ADD COLUMN nregistro TEXT DEFAULT NULL")
             }
         }
+
     }
 
     abstract fun medicationDao(): MedicationDao
@@ -126,4 +134,3 @@ abstract class MedicationDatabase : RoomDatabase() {
     abstract fun firebaseSyncDao(): FirebaseSyncDao
     abstract fun healthDataDao(): HealthDataDao
 }
-

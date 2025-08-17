@@ -155,6 +155,7 @@ fun AppNavigationRail(
                 indicatorColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
+
     }
 }
 

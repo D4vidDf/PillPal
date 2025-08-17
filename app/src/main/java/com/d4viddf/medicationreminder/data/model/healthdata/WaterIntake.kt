@@ -9,6 +9,7 @@ data class WaterIntake(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val time: Instant,
     val volumeMilliliters: Double,
+    val type: String? = null,
     // Metadata fields
     val sourceApp: String? = null,
     val device: String? = null

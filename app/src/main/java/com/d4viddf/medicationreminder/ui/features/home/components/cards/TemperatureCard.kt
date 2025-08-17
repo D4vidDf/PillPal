@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.home.components.cards
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -14,10 +15,13 @@ import java.time.format.FormatStyle
 @Composable
 fun TemperatureCard(
     temperatureRecord: BodyTemperature?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Body Temperature", style = MaterialTheme.typography.titleMedium)

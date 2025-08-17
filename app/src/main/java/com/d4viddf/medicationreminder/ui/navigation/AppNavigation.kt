@@ -35,9 +35,13 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationChoiceScreen
 import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationScreen
 import com.d4viddf.medicationreminder.ui.features.calendar.CalendarScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.BodyTemperatureScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.LogTemperatureScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.LogWaterScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.LogWeightScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.ManageWaterPresetsScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.WaterIntakeScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.WeightScreen
 import com.d4viddf.medicationreminder.ui.features.home.HomeScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
@@ -104,6 +108,10 @@ sealed class Screen(val route: String) {
     object LogWater : Screen("logWater")
     object LogWeight : Screen("logWeight")
     object LogTemperature : Screen("logTemperature")
+    object Weight : Screen("weight")
+    object WaterIntake : Screen("waterIntake")
+    object BodyTemperature : Screen("bodyTemperature")
+    object ManageWaterPresets : Screen("manageWaterPresets")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -390,13 +398,28 @@ fun AppNavigation(
                 )
             }
             composable(Screen.LogWater.route) {
-                LogWaterScreen(onNavigateBack = { navController.popBackStack() })
+                LogWaterScreen(
+                    navController = navController,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(Screen.LogWeight.route) {
                 LogWeightScreen(onNavigateBack = { navController.popBackStack() })
             }
             composable(Screen.LogTemperature.route) {
                 LogTemperatureScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable(Screen.Weight.route) {
+                WeightScreen(navController = navController, widthSizeClass = widthSizeClass)
+            }
+            composable(Screen.WaterIntake.route) {
+                WaterIntakeScreen(navController = navController, widthSizeClass = widthSizeClass)
+            }
+            composable(Screen.BodyTemperature.route) {
+                BodyTemperatureScreen(navController = navController, widthSizeClass = widthSizeClass)
+            }
+            composable(Screen.ManageWaterPresets.route) {
+                ManageWaterPresetsScreen(navController = navController)
             }
         }
     }

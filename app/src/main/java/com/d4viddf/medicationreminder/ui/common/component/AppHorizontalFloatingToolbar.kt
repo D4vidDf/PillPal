@@ -103,6 +103,7 @@ fun AppHorizontalFloatingToolbar(
                 contentDescription = stringResource(id = R.string.profile_screen_title)
             )
         }
+
     }
 }
 

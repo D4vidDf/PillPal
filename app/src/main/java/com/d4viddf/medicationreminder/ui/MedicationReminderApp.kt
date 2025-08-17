@@ -48,7 +48,7 @@ fun MedicationReminderApp(
             Screen.MedicationVault.route,
             Screen.Calendar.route,
             Screen.Analysis.route,
-            Screen.Profile.route
+            Screen.Profile.route,
         )
         val isMainScreen = currentRoute in mainScreenRoutes
 

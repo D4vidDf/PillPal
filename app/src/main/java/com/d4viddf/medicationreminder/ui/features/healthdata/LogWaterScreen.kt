@@ -23,24 +23,39 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+import androidx.navigation.NavController
+import com.d4viddf.medicationreminder.ui.navigation.Screen
+
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.runtime.collectAsState
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LogWaterScreen(
+    navController: NavController,
     onNavigateBack: () -> Unit,
     viewModel: HealthDataViewModel = hiltViewModel()
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
-
+    val waterPresets by viewModel.waterPresets.collectAsState()
     var waterCount by remember { mutableStateOf(0) }
     var bottleCount by remember { mutableStateOf(0) }
     var bigBottleCount by remember { mutableStateOf(0) }
+    val presetCounts = remember { mutableStateMapOf<Int, Int>() }
     var customAmount by remember { mutableStateOf("") }
+    var showAddPresetDialog by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
 
     val totalAmount = (waterCount * 250) +
             (bottleCount * 500) +
             (bigBottleCount * 750) +
-            (customAmount.toDoubleOrNull() ?: 0.0)
+            waterPresets.sumOf { preset ->
+                (presetCounts[preset.id] ?: 0) * preset.amount
+            } + (customAmount.toDoubleOrNull() ?: 0.0)
 
     val isButtonEnabled = totalAmount > 0
 
@@ -83,6 +98,23 @@ fun LogWaterScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    IconButton(onClick = { showMenu = !showMenu }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "More")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Manage Presets") },
+                            onClick = {
+                                navController.navigate(Screen.ManageWaterPresets.route)
+                                showMenu = false
+                            }
+                        )
+                    }
                 }
             )
         }
@@ -109,31 +141,105 @@ fun LogWaterScreen(
             Spacer(modifier = Modifier.height(24.dp)) // Increased space
 
             // Preset Options
-            WaterPresetRow(
-                title = "Water",
-                subtitle = "250 ml",
-                count = waterCount,
-                onIncrement = { waterCount++ },
-                onDecrement = { if (waterCount > 0) waterCount-- }
-            )
-            Spacer(modifier = Modifier.height(24.dp)) // Increased space
-            WaterPresetRow(
-                title = "Bottle",
-                subtitle = "500 ml",
-                count = bottleCount,
-                onIncrement = { bottleCount++ },
-                onDecrement = { if (bottleCount > 0) bottleCount-- }
-            )
-            Spacer(modifier = Modifier.height(24.dp)) // Increased space
-            WaterPresetRow(
-                title = "Big Bottle",
-                subtitle = "750 ml",
-                count = bigBottleCount,
-                onIncrement = { bigBottleCount++ },
-                onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
-            )
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                item {
+                    WaterPresetRow(
+                        title = "Water",
+                        subtitle = "250 ml",
+                        count = waterCount,
+                        onIncrement = { waterCount++ },
+                        onDecrement = { if (waterCount > 0) waterCount-- }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    WaterPresetRow(
+                        title = "Bottle",
+                        subtitle = "500 ml",
+                        count = bottleCount,
+                        onIncrement = { bottleCount++ },
+                        onDecrement = { if (bottleCount > 0) bottleCount-- }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    WaterPresetRow(
+                        title = "Big Bottle",
+                        subtitle = "750 ml",
+                        count = bigBottleCount,
+                        onIncrement = { bigBottleCount++ },
+                        onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                items(waterPresets) { preset ->
+                    WaterPresetRow(
+                        title = preset.name,
+                        subtitle = "${preset.amount} ml",
+                        count = presetCounts.getOrPut(preset.id) { 0 },
+                        onIncrement = { presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) + 1 },
+                        onDecrement = {
+                            if ((presetCounts[preset.id] ?: 0) > 0) {
+                                presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) - 1
+                            }
+                        },
+                        onDelete = { viewModel.deleteWaterPreset(preset.id) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
 
-            Spacer(modifier = Modifier.height(32.dp)) // Increased space
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = { showAddPresetDialog = true }) {
+                    Text("Add Preset")
+                }
+            }
+
+            if (showAddPresetDialog) {
+                var newPresetName by remember { mutableStateOf("") }
+                var newPresetAmount by remember { mutableStateOf("") }
+
+                AlertDialog(
+                    onDismissRequest = { showAddPresetDialog = false },
+                    title = { Text("Add New Preset") },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = newPresetName,
+                                onValueChange = { newPresetName = it },
+                                label = { Text("Preset Name") }
+                            )
+                            OutlinedTextField(
+                                value = newPresetAmount,
+                                onValueChange = { newPresetAmount = it.filter { char -> char.isDigit() } },
+                                label = { Text("Amount (ml)") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                val amount = newPresetAmount.toDoubleOrNull()
+                                if (newPresetName.isNotBlank() && amount != null) {
+                                    viewModel.addWaterPreset(newPresetName, amount)
+                                    showAddPresetDialog = false
+                                }
+                            }
+                        ) {
+                            Text("Add")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showAddPresetDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
 
             // Custom Amount Input
             OutlinedTextField(
@@ -146,13 +252,32 @@ fun LogWaterScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Save Button
             Button(
                 onClick = {
                     val logTime = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                    viewModel.logWater(totalAmount, logTime)
+                    if (waterCount > 0) {
+                        viewModel.logWater(waterCount * 250.0, logTime, "Water")
+                    }
+                    if (bottleCount > 0) {
+                        viewModel.logWater(bottleCount * 500.0, logTime, "Bottle")
+                    }
+                    if (bigBottleCount > 0) {
+                        viewModel.logWater(bigBottleCount * 750.0, logTime, "Big Bottle")
+                    }
+                    waterPresets.forEach { preset ->
+                        val count = presetCounts[preset.id] ?: 0
+                        if (count > 0) {
+                            viewModel.logWater(count * preset.amount, logTime, preset.name)
+                        }
+                    }
+                    customAmount.toDoubleOrNull()?.let {
+                        if (it > 0) {
+                            viewModel.logWater(it, logTime, "Custom Qty")
+                        }
+                    }
                     onNavigateBack()
                 },
                 enabled = isButtonEnabled,
@@ -210,7 +335,8 @@ private fun WaterPresetRow(
     subtitle: String,
     count: Int,
     onIncrement: () -> Unit,
-    onDecrement: () -> Unit
+    onDecrement: () -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -218,6 +344,7 @@ private fun WaterPresetRow(
             .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleLarge)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

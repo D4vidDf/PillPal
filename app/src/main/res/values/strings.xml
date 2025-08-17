@@ -482,4 +482,17 @@
     <string name="refresh_device_list_button">Refresh Device List</string>
     <string name="search_for_devices_button">Search for Devices</string>
     <string name="install_on_watch_button">Install App on Watch</string>
+    <string name="add_weight_record">Add weight record</string>
+    <string name="add_water_intake_record">Add water intake record</string>
+    <string name="add_body_temperature_record">Add body temperature record</string>
+    <string name="health_data_disclaimer">This information is for informational purposes only and not for medical use.</string>
+    <string name="health_screen_title">Health</string>
+    <string name="weight_screen_title">Weight</string>
+    <string name="water_intake_screen_title">Water Intake</string>
+    <string name="body_temperature_screen_title">Body Temperature</string>
+    <string name="log_weight">Log Weight</string>
+    <string name="log_water">Log Water</string>
+    <string name="log_temperature">Log Temperature</string>
+    <string name="water_intake_goal_progress">You are %1$dml away from reaching your daily goal of 4000ml</string>
+    <string name="water_intake_goal_reached_days">So far, you have reached your goal %1$d day(s) and have drunk a total of %2$dml</string>
 </resources>
