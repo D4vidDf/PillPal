@@ -96,8 +96,15 @@ fun HealthDataChart(
             textSize = 12.sp.toPx()
         }
         if (yAxisMax > 0) {
+            val labelValues = mutableListOf<Float>()
             (0..numYAxisLabels).forEach { i ->
-                val value = yAxisMax * i / numYAxisLabels
+                labelValues.add(yAxisMax * i / numYAxisLabels)
+            }
+            if (showGoalLine) {
+                labelValues.add(goalLineValue)
+            }
+
+            labelValues.distinct().sorted().forEach { value ->
                 val y = chartAreaHeight - (value / yAxisMax) * chartAreaHeight
                 val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 20f else size.width - yAxisAreaWidth + 20f
                 drawContext.canvas.nativeCanvas.drawText(
