@@ -357,13 +357,23 @@ fun WaterIntakeScreen(
                                     else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE"))
                                 }
                                 TimeRange.MONTH -> {
-                                    if (startOfWeek == today.with(weekFields.dayOfWeek(), 1)) {
-                                        "This Week"
+                                    val endOfWeek = startOfWeek.plusDays(6)
+                                    val startMonth = startOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale("es", "ES")))
+                                    val endMonth = endOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale("es", "ES")))
+
+                                    if (startMonth == endMonth) {
+                                        "${startOfWeek.dayOfMonth} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
                                     } else {
-                                        "Week of ${recordDate.format(DateTimeFormatter.ofPattern("d MMM"))}"
+                                        "${startOfWeek.dayOfMonth} ${startMonth.replace(".", "")} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
                                     }
                                 }
-                                TimeRange.YEAR -> recordDate.format(DateTimeFormatter.ofPattern("MMMM"))
+                                TimeRange.YEAR -> {
+                                    if (recordDate.month == today.month && recordDate.year == today.year) {
+                                        "Current month"
+                                    } else {
+                                        recordDate.format(DateTimeFormatter.ofPattern("MMMM"))
+                                    }
+                                }
                                 else -> ""
                             }
                             Text(text = text)
