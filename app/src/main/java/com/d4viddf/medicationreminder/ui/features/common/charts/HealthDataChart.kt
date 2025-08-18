@@ -107,16 +107,14 @@ fun HealthDataChart(
         val spaceBetweenBars = barWidth * 0.2f
 
         data.forEachIndexed { index, dataPoint ->
-            val minBarHeight = 2f
             val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
-            val finalBarHeight = if(dataPoint.value > 0) max(barHeight, minBarHeight) else 0f
             val barX = yAxisAreaWidth + index * barWidth
 
             // Draw the bar with rounded corners
             drawRoundRect(
                 color = barColor,
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
+                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
+                size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
                 cornerRadius = CornerRadius(10f, 10f)
             )
 
@@ -160,13 +158,12 @@ fun HealthDataChart(
 
             if(showTooltip) {
                 val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
-                val finalBarHeight = if(dataPoint.value > 0) max(barHeight, 2f) else 0f
 
                 // Highlight the selected bar
                 drawRoundRect(
                     color = barColor.copy(alpha = 0.5f),
-                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
-                    size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
+                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
+                    size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
                     cornerRadius = CornerRadius(10f, 10f)
                 )
 
@@ -182,7 +179,7 @@ fun HealthDataChart(
                 textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
 
                 val tooltipX = barCenter
-                val tooltipY = chartAreaHeight - finalBarHeight - 20f
+                val tooltipY = chartAreaHeight - barHeight - 20f
                 val tooltipPadding = 8.dp.toPx()
                 val tooltipWidth = textBounds.width() + tooltipPadding * 2
                 val tooltipHeight = textBounds.height() + tooltipPadding * 2

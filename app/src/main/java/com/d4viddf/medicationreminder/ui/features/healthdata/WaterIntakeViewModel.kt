@@ -386,29 +386,46 @@ class WaterIntakeViewModel @Inject constructor(
     }
 
     private fun loadChartDataForMonth(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
-        val aggregated = aggregateByWeek(allRecordsInRange)
+        val monthMap = allRecordsInRange
+            .groupBy {
+                val date = it.time.atZone(ZoneId.systemDefault()).toLocalDate()
+                val weekFields = WeekFields.of(Locale("es", "ES"))
+                date.with(weekFields.dayOfWeek(), 1)
+            }
+            .mapValues { (_, weekRecords) -> weekRecords.sumOf { it.volumeMilliliters }.toFloat() }
 
-        _chartData.value = aggregated.map { (instant, value) ->
-            val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-            val weekOfMonth = date.get(WeekFields.of(Locale("es", "ES")).weekOfMonth())
+        val startOfMonth = selectedDate.withDayOfMonth(1)
+        val endOfMonth = selectedDate.withDayOfMonth(selectedDate.lengthOfMonth())
+        val weeksInMonth = mutableListOf<LocalDate>()
+        var current = startOfMonth
+        while (current.isBefore(endOfMonth) || current.isEqual(endOfMonth)) {
+            weeksInMonth.add(current.with(WeekFields.of(Locale("es", "ES")).dayOfWeek(), 1))
+            current = current.plusWeeks(1)
+        }
+
+        _chartData.value = weeksInMonth.distinct().map { weekStart ->
+            val weekOfMonth = weekStart.get(WeekFields.of(Locale("es", "ES")).weekOfMonth())
             ChartDataPoint(
-                value = value.toFloat(),
-                label = "S$weekOfMonth", // "S" for "Semana" (Week)
-                fullLabel = "Semana del ${date.format(DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES")))}"
+                value = monthMap[weekStart] ?: 0f,
+                label = "S$weekOfMonth",
+                fullLabel = "Semana del ${weekStart.format(DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES")))}"
             )
         }
         _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES")))
     }
 
     private fun loadChartDataForYear(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
-        val aggregated = aggregateByMonth(allRecordsInRange)
+        val yearMap = allRecordsInRange
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
+            .mapValues { (_, monthRecords) -> monthRecords.sumOf { it.volumeMilliliters }.toFloat() }
 
-        _chartData.value = aggregated.map { (instant, value) ->
-            val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
+        _chartData.value = (1..12).map {
+            val month = java.time.Month.of(it)
+            val monthDate = selectedDate.withMonth(it)
             ChartDataPoint(
-                value = value.toFloat(),
-                label = date.month.getDisplayName(TextStyle.NARROW, Locale("es", "ES")),
-                fullLabel = date.month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
+                value = yearMap[month] ?: 0f,
+                label = month.getDisplayName(TextStyle.SHORT, Locale("es", "ES")),
+                fullLabel = month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
             )
         }
         _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy", Locale("es", "ES")))
