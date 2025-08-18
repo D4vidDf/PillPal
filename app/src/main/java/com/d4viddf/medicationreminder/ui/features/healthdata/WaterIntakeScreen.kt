@@ -265,7 +265,14 @@ fun WaterIntakeScreen(
                             onBarSelected = { viewModel.onChartBarSelected(it) },
                             showTooltip = false,
                             showGoalLine = true,
-                            goalLineValue = waterIntakeGoal.toFloat()
+                            goalLineValue = waterIntakeGoal.toFloat(),
+                            yAxisLabelFormatter = { value ->
+                                if (value >= 1000) {
+                                    "${(value / 1000).toInt()}k"
+                                } else {
+                                    "${value.roundToInt()}"
+                                }
+                            }
                         )
                     }
                 }

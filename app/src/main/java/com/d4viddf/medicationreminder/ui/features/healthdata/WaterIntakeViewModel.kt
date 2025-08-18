@@ -272,27 +272,20 @@ class WaterIntakeViewModel @Inject constructor(
     }
 
     private fun aggregateByMonth(records: List<WaterIntake>): List<Pair<Instant, Double>> {
-        val today = LocalDate.now()
         val yearMap = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .mapValues { (_, monthRecords) ->
-                monthRecords.sumOf { it.volumeMilliliters } / monthRecords.map {
-                    it.time.atZone(
-                        ZoneId.systemDefault()
-                    ).toLocalDate()
-                }.distinct().size.coerceAtLeast(1)
+            .mapValues { (month, monthRecords) ->
+                val totalIntake = monthRecords.sumOf { it.volumeMilliliters }
+                val daysInMonth = month.length(_selectedDate.value.isLeapYear)
+                totalIntake.toDouble() / daysInMonth
             }
 
-        return (1..12).mapNotNull {
+        return (1..12).map {
             val month = java.time.Month.of(it)
             val monthDate = _selectedDate.value.withMonth(it)
-            if (monthDate.isAfter(today.withDayOfMonth(1))) {
-                null
-            } else {
-                val value = yearMap[month] ?: 0.0
-                monthDate.withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault())
-                    .toInstant() to value
-            }
+            val value = yearMap[month] ?: 0.0
+            monthDate.withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault())
+                .toInstant() to value
         }.sortedBy { it.first }
     }
 
@@ -411,7 +404,11 @@ class WaterIntakeViewModel @Inject constructor(
     private fun loadChartDataForYear(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
         val yearMap = allRecordsInRange
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .mapValues { (_, monthRecords) -> monthRecords.sumOf { it.volumeMilliliters }.toFloat() }
+            .mapValues { (month, monthRecords) ->
+                val totalIntake = monthRecords.sumOf { it.volumeMilliliters }.toFloat()
+                val daysInMonth = month.length(selectedDate.isLeapYear)
+                totalIntake / daysInMonth
+            }
 
         _chartData.value = (1..12).map {
             val month = java.time.Month.of(it)

@@ -39,6 +39,7 @@ fun HealthDataChart(
     goalLineValue: Float = 0f,
     goalLineColor: Color = Color.Red,
     showTooltip: Boolean = true,
+    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() },
     onBarSelected: (ChartDataPoint?) -> Unit
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
@@ -100,7 +101,7 @@ fun HealthDataChart(
                 val y = chartAreaHeight - (value / yAxisMax) * chartAreaHeight
                 val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 10f else size.width - yAxisAreaWidth + 10f
                 drawContext.canvas.nativeCanvas.drawText(
-                    "${value.roundToInt()}",
+                    yAxisLabelFormatter(value),
                     xPos,
                     y,
                     yAxisLabelPaint
