@@ -240,10 +240,10 @@ fun WaterIntakeScreen(
                         } else {
                             Text(
                                 buildAnnotatedString {
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp)) {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineLarge.fontSize)) {
                                         append("${weeklyAverage.roundToInt()} ml")
                                     }
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, fontSize = 16.sp)) {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, fontSize = MaterialTheme.typography.titleLarge.fontSize)) {
                                         append(" at day(average)")
                                     }
                                 }
