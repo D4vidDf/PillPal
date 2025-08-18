@@ -47,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.common.charts.HealthDataChart
+import com.d4viddf.medicationreminder.ui.features.common.charts.YAxisPosition
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
@@ -68,7 +69,6 @@ fun WaterIntakeScreen(
     viewModel: WaterIntakeViewModel = hiltViewModel()
 ) {
     val chartData by viewModel.chartData.collectAsState()
-    val chartDateRangeLabel by viewModel.chartDateRangeLabel.collectAsState()
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
@@ -77,11 +77,14 @@ fun WaterIntakeScreen(
     val endTime by viewModel.endTime.collectAsState()
     val totalWaterIntake by viewModel.totalWaterIntake.collectAsState()
     val numberOfDaysInRange by viewModel.numberOfDaysInRange.collectAsState()
-    val waterIntakeGoal = 4000f
+    val waterIntakeGoal by viewModel.dailyGoal.collectAsState()
     val waterIntakeByType by viewModel.waterIntakeByType.collectAsState()
     val yAxisMax by viewModel.yAxisMax.collectAsState()
     val selectedBar by viewModel.selectedBar.collectAsState()
     val selectedChartBar by viewModel.selectedChartBar.collectAsState()
+    val weeklyAverage by viewModel.weeklyAverage.collectAsState()
+    val weeklyDaysGoalReached by viewModel.weeklyDaysGoalReached.collectAsState()
+    val weeklyTotalIntake by viewModel.weeklyTotalIntake.collectAsState()
 
     Scaffold(
         topBar = {
@@ -233,12 +236,16 @@ fun WaterIntakeScreen(
                                 )
                             } else {
                                 Text(
-                                    text = if (chartData.any { it.value > 0 }) "${(chartData.sumOf { it.value.toDouble() } / chartData.count { it.value > 0 }).toInt()} ml" else "0 ml",
+                                    text = "${weeklyAverage.roundToInt()} ml at day(average)",
                                     style = MaterialTheme.typography.headlineLarge,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = chartDateRangeLabel,
+                                    text = stringResource(
+                                        R.string.water_intake_goal_reached_days,
+                                        weeklyDaysGoalReached,
+                                        weeklyTotalIntake.toInt()
+                                    ),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
@@ -247,7 +254,11 @@ fun WaterIntakeScreen(
                             HealthDataChart(
                                 data = chartData,
                                 barColor = MaterialTheme.colorScheme.primary,
-                                onBarSelected = { viewModel.onChartBarSelected(it) }
+                                onBarSelected = { viewModel.onChartBarSelected(it) },
+                                yAxisPosition = YAxisPosition.Right,
+                                showGoalLine = true,
+                                goalLineValue = waterIntakeGoal.toFloat(),
+                                showTooltip = false
                             )
                         }
                     }
@@ -296,20 +307,31 @@ fun WaterIntakeScreen(
                             startTime = startTime,
                             endTime = endTime,
                             yAxisRange = 0.0..yAxisMax,
-                            goalLineValue = waterIntakeGoal,
+                            goalLineValue = waterIntakeGoal.toFloat(),
                             yAxisLabelFormatter = {
                                 if (it > 0) "${(it / 1000).toInt()}k" else "0"
                             },
                             modifier = Modifier.padding(top = Dimensions.PaddingLarge),
                             onBarSelected = { viewModel.onBarSelected(it) }
                         )
-                        Text(
-                            text = dateRangeText,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
-                        )
                     }
+                }
+
+                val weekFields = WeekFields.of(Locale.getDefault())
+                val today = LocalDate.now()
+                val dateText = if (timeRange == TimeRange.WEEK && viewModel.selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
+                    "Current week"
+                } else {
+                    dateRangeText
+                }
+
+                item {
+                    Text(
+                        text = dateText,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
+                    )
                 }
 
                 itemsIndexed(
@@ -352,10 +374,7 @@ fun WaterIntakeScreen(
                                 .padding(Dimensions.PaddingLarge),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            val today = LocalDate.now()
-                            val yesterday = today.minusDays(1)
                             val recordDate = record.first.atZone(ZoneId.systemDefault()).toLocalDate()
-                            val weekFields = WeekFields.of(Locale.getDefault())
                             val startOfWeek = recordDate.with(weekFields.dayOfWeek(), 1)
 
                             val text = when (timeRange) {

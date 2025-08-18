@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
+enum class YAxisPosition {
+    Left, Right
+}
+
 @Composable
 fun HealthDataChart(
     data: List<ChartDataPoint>,
@@ -27,6 +31,11 @@ fun HealthDataChart(
     axisLabelColor: Color = MaterialTheme.colorScheme.onBackground,
     tooltipColor: Color = MaterialTheme.colorScheme.onSurface,
     tooltipBackgroundColor: Color = MaterialTheme.colorScheme.surface,
+    yAxisPosition: YAxisPosition = YAxisPosition.Right,
+    showGoalLine: Boolean = false,
+    goalLineValue: Float = 0f,
+    goalLineColor: Color = Color.Red,
+    showTooltip: Boolean = true,
     onBarSelected: (ChartDataPoint?) -> Unit
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
@@ -74,16 +83,17 @@ fun HealthDataChart(
         val numYAxisLabels = 4
         val yAxisLabelPaint = android.graphics.Paint().apply {
             color = axisLabelColor.toArgb()
-            textAlign = android.graphics.Paint.Align.RIGHT
+            textAlign = if (yAxisPosition == YAxisPosition.Left) android.graphics.Paint.Align.RIGHT else android.graphics.Paint.Align.LEFT
             textSize = 12.sp.toPx()
         }
         if (maxValue > 0) {
             (0..numYAxisLabels).forEach { i ->
                 val value = maxValue * i / numYAxisLabels
                 val y = chartAreaHeight - (value / maxValue) * chartAreaHeight
+                val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 10f else size.width - yAxisAreaWidth + 10f
                 drawContext.canvas.nativeCanvas.drawText(
                     "${value.roundToInt()}",
-                    yAxisAreaWidth - 10f,
+                    xPos,
                     y,
                     yAxisLabelPaint
                 )
@@ -120,51 +130,63 @@ fun HealthDataChart(
             }
         }
 
+        if (showGoalLine && maxValue > 0) {
+            val goalY = chartAreaHeight - (goalLineValue / maxValue) * chartAreaHeight
+            drawLine(
+                color = goalLineColor,
+                start = Offset(x = yAxisAreaWidth, y = goalY),
+                end = Offset(x = size.width, y = goalY),
+                strokeWidth = 2.dp.toPx()
+            )
+        }
+
         // Draw tooltip if a bar is selected
-        selectedIndex?.let { index ->
-            val dataPoint = data[index]
-            val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * chartAreaHeight else 0f
-            val barX = yAxisAreaWidth + index * barWidth
+        if(showTooltip) {
+            selectedIndex?.let { index ->
+                val dataPoint = data[index]
+                val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * chartAreaHeight else 0f
+                val barX = yAxisAreaWidth + index * barWidth
 
-            // Highlight the selected bar
-            drawRoundRect(
-                color = barColor.copy(alpha = 0.5f),
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
-                cornerRadius = CornerRadius(10f, 10f)
-            )
-
-            // Draw the tooltip text above the bar
-            val tooltipText = "${dataPoint.value.roundToInt()} ml on ${dataPoint.fullLabel}"
-            val textPaint = android.graphics.Paint().apply {
-                color = tooltipColor.toArgb()
-                textAlign = android.graphics.Paint.Align.CENTER
-                textSize = 14.sp.toPx()
-            }
-
-            val textBounds = Rect()
-            textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
-
-            val tooltipX = barX + barWidth / 2
-            val tooltipY = chartAreaHeight - barHeight - 20f
-            val tooltipPadding = 8.dp.toPx()
-            val tooltipWidth = textBounds.width() + tooltipPadding * 2
-            val tooltipHeight = textBounds.height() + tooltipPadding * 2
-
-            drawRoundRect(
-                color = tooltipBackgroundColor,
-                topLeft = Offset(tooltipX - tooltipWidth / 2, tooltipY - tooltipHeight + textBounds.bottom),
-                size = Size(tooltipWidth, tooltipHeight),
-                cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
-            )
-
-            drawContext.canvas.nativeCanvas.apply {
-                drawText(
-                    tooltipText,
-                    tooltipX,
-                    tooltipY,
-                    textPaint
+                // Highlight the selected bar
+                drawRoundRect(
+                    color = barColor.copy(alpha = 0.5f),
+                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
+                    size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                    cornerRadius = CornerRadius(10f, 10f)
                 )
+
+                // Draw the tooltip text above the bar
+                val tooltipText = "${dataPoint.value.roundToInt()} ml on ${dataPoint.fullLabel}"
+                val textPaint = android.graphics.Paint().apply {
+                    color = tooltipColor.toArgb()
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    textSize = 14.sp.toPx()
+                }
+
+                val textBounds = Rect()
+                textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
+
+                val tooltipX = barX + barWidth / 2
+                val tooltipY = chartAreaHeight - barHeight - 20f
+                val tooltipPadding = 8.dp.toPx()
+                val tooltipWidth = textBounds.width() + tooltipPadding * 2
+                val tooltipHeight = textBounds.height() + tooltipPadding * 2
+
+                drawRoundRect(
+                    color = tooltipBackgroundColor,
+                    topLeft = Offset(tooltipX - tooltipWidth / 2, tooltipY - tooltipHeight + textBounds.bottom),
+                    size = Size(tooltipWidth, tooltipHeight),
+                    cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
+                )
+
+                drawContext.canvas.nativeCanvas.apply {
+                    drawText(
+                        tooltipText,
+                        tooltipX,
+                        tooltipY,
+                        textPaint
+                    )
+                }
             }
         }
     }
