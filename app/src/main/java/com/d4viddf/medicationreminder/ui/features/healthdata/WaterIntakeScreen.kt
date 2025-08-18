@@ -299,8 +299,15 @@ fun WaterIntakeScreen(
                     )
                 }
 
+                val recordsToShow = if (timeRange == TimeRange.YEAR) {
+                    aggregatedWaterIntakeRecords.filter {
+                        it.first.atZone(ZoneId.systemDefault()).toLocalDate().isBefore(today.withDayOfMonth(1).plusMonths(1))
+                    }
+                } else {
+                    aggregatedWaterIntakeRecords
+                }
                 itemsIndexed(
-                    aggregatedWaterIntakeRecords.sortedByDescending { it.first },
+                    recordsToShow.sortedByDescending { it.first },
                     key = { index, record -> record.first.toEpochMilli() + index }
                 ) { index, record ->
                     val shape = when {
