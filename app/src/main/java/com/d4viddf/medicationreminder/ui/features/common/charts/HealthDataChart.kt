@@ -12,11 +12,13 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 enum class YAxisPosition {
@@ -39,7 +41,8 @@ fun HealthDataChart(
     onBarSelected: (ChartDataPoint?) -> Unit
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
-    val maxValue = data.maxOfOrNull { it.value } ?: 0f
+    val maxDataValue = data.maxOfOrNull { it.value } ?: 0f
+    val yAxisMax = if (showGoalLine) max(maxDataValue, goalLineValue) * 1.2f else maxDataValue
 
     Canvas(
         modifier = modifier
@@ -86,10 +89,10 @@ fun HealthDataChart(
             textAlign = if (yAxisPosition == YAxisPosition.Left) android.graphics.Paint.Align.RIGHT else android.graphics.Paint.Align.LEFT
             textSize = 12.sp.toPx()
         }
-        if (maxValue > 0) {
+        if (yAxisMax > 0) {
             (0..numYAxisLabels).forEach { i ->
-                val value = maxValue * i / numYAxisLabels
-                val y = chartAreaHeight - (value / maxValue) * chartAreaHeight
+                val value = yAxisMax * i / numYAxisLabels
+                val y = chartAreaHeight - (value / yAxisMax) * chartAreaHeight
                 val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 10f else size.width - yAxisAreaWidth + 10f
                 drawContext.canvas.nativeCanvas.drawText(
                     "${value.roundToInt()}",
@@ -104,14 +107,16 @@ fun HealthDataChart(
         val spaceBetweenBars = barWidth * 0.2f
 
         data.forEachIndexed { index, dataPoint ->
-            val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * chartAreaHeight else 0f
+            val minBarHeight = 2f
+            val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
+            val finalBarHeight = if(dataPoint.value > 0) max(barHeight, minBarHeight) else 0f
             val barX = yAxisAreaWidth + index * barWidth
 
             // Draw the bar with rounded corners
             drawRoundRect(
                 color = barColor,
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
+                size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
                 cornerRadius = CornerRadius(10f, 10f)
             )
 
@@ -130,8 +135,8 @@ fun HealthDataChart(
             }
         }
 
-        if (showGoalLine && maxValue > 0) {
-            val goalY = chartAreaHeight - (goalLineValue / maxValue) * chartAreaHeight
+        if (showGoalLine && yAxisMax > 0) {
+            val goalY = chartAreaHeight - (goalLineValue / yAxisMax) * chartAreaHeight
             drawLine(
                 color = goalLineColor,
                 start = Offset(x = yAxisAreaWidth, y = goalY),
@@ -140,18 +145,28 @@ fun HealthDataChart(
             )
         }
 
-        // Draw tooltip if a bar is selected
-        if(showTooltip) {
-            selectedIndex?.let { index ->
-                val dataPoint = data[index]
-                val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * chartAreaHeight else 0f
-                val barX = yAxisAreaWidth + index * barWidth
+        // Dotted line and tooltip on hover
+        selectedIndex?.let { index ->
+            val dataPoint = data[index]
+            val barX = yAxisAreaWidth + index * barWidth
+            val barCenter = barX + spaceBetweenBars / 2 + (barWidth - spaceBetweenBars) / 2
+
+            drawLine(
+                color = axisLabelColor,
+                start = Offset(barCenter, 0f),
+                end = Offset(barCenter, chartAreaHeight),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+            )
+
+            if(showTooltip) {
+                val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
+                val finalBarHeight = if(dataPoint.value > 0) max(barHeight, 2f) else 0f
 
                 // Highlight the selected bar
                 drawRoundRect(
                     color = barColor.copy(alpha = 0.5f),
-                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
-                    size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
+                    size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
                     cornerRadius = CornerRadius(10f, 10f)
                 )
 
@@ -166,8 +181,8 @@ fun HealthDataChart(
                 val textBounds = Rect()
                 textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
 
-                val tooltipX = barX + barWidth / 2
-                val tooltipY = chartAreaHeight - barHeight - 20f
+                val tooltipX = barCenter
+                val tooltipY = chartAreaHeight - finalBarHeight - 20f
                 val tooltipPadding = 8.dp.toPx()
                 val tooltipWidth = textBounds.width() + tooltipPadding * 2
                 val tooltipHeight = textBounds.height() + tooltipPadding * 2

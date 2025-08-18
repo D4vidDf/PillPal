@@ -236,7 +236,7 @@ fun WaterIntakeScreen(
                         } else {
                             Text(
                                 text = "${weeklyAverage.roundToInt()} ml at day(average)",
-                                style = MaterialTheme.typography.headlineLarge,
+                                style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
@@ -253,7 +253,10 @@ fun WaterIntakeScreen(
                         HealthDataChart(
                             data = chartData,
                             barColor = MaterialTheme.colorScheme.primary,
-                            onBarSelected = { viewModel.onChartBarSelected(it) }
+                            onBarSelected = { viewModel.onChartBarSelected(it) },
+                            showTooltip = false,
+                            showGoalLine = true,
+                            goalLineValue = waterIntakeGoal.toFloat()
                         )
                     }
                 }
