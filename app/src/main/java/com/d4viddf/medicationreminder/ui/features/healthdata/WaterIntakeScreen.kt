@@ -86,9 +86,9 @@ fun WaterIntakeScreen(
     val yAxisMax by viewModel.yAxisMax.collectAsState()
     val selectedBar by viewModel.selectedBar.collectAsState()
     val selectedChartBar by viewModel.selectedChartBar.collectAsState()
-    val weeklyAverage by viewModel.weeklyAverage.collectAsState()
-    val weeklyDaysGoalReached by viewModel.weeklyDaysGoalReached.collectAsState()
-    val weeklyTotalIntake by viewModel.weeklyTotalIntake.collectAsState()
+    val headerAverage by viewModel.headerAverage.collectAsState()
+    val headerDaysGoalReached by viewModel.headerDaysGoalReached.collectAsState()
+    val headerTotalIntake by viewModel.headerTotalIntake.collectAsState()
 
     Scaffold(
         topBar = {
@@ -246,7 +246,7 @@ fun WaterIntakeScreen(
                             Text(
                                 buildAnnotatedString {
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineLarge.fontSize)) {
-                                        append("${weeklyAverage.roundToInt()} ml")
+                                        append("${headerAverage.roundToInt()} ml")
                                     }
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, fontSize = MaterialTheme.typography.titleLarge.fontSize)) {
                                         append(" at day(average)")
@@ -256,8 +256,8 @@ fun WaterIntakeScreen(
                             Text(
                                 text = stringResource(
                                     R.string.water_intake_goal_reached_days,
-                                    weeklyDaysGoalReached,
-                                    weeklyTotalIntake.toInt()
+                                    headerDaysGoalReached,
+                                    headerTotalIntake.toInt()
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )

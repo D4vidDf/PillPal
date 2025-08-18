@@ -17,6 +17,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
@@ -86,14 +87,14 @@ class WaterIntakeViewModel @Inject constructor(
     private val _selectedChartBar = MutableStateFlow<ChartDataPoint?>(null)
     val selectedChartBar: StateFlow<ChartDataPoint?> = _selectedChartBar.asStateFlow()
 
-    private val _weeklyAverage = MutableStateFlow(0.0)
-    val weeklyAverage: StateFlow<Double> = _weeklyAverage.asStateFlow()
+    private val _headerAverage = MutableStateFlow(0.0)
+    val headerAverage: StateFlow<Double> = _headerAverage.asStateFlow()
 
-    private val _weeklyDaysGoalReached = MutableStateFlow(0)
-    val weeklyDaysGoalReached: StateFlow<Int> = _weeklyDaysGoalReached.asStateFlow()
+    private val _headerDaysGoalReached = MutableStateFlow(0)
+    val headerDaysGoalReached: StateFlow<Int> = _headerDaysGoalReached.asStateFlow()
 
-    private val _weeklyTotalIntake = MutableStateFlow(0.0)
-    val weeklyTotalIntake: StateFlow<Double> = _weeklyTotalIntake.asStateFlow()
+    private val _headerTotalIntake = MutableStateFlow(0.0)
+    val headerTotalIntake: StateFlow<Double> = _headerTotalIntake.asStateFlow()
 
     init {
         updateDateAndButtonStates()
@@ -203,6 +204,22 @@ class WaterIntakeViewModel @Inject constructor(
                     }
                     _aggregatedWaterIntakeRecords.value = aggregatedRecords
                     _yAxisMax.value = yMax * 1.2
+
+                    val today = LocalDate.now()
+                    val recordsInPast = allRecordsInRange.filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate().isBefore(today.plusDays(1)) }
+
+                    _headerTotalIntake.value = recordsInPast.sumOf { it.volumeMilliliters }
+
+                    val dailyIntakes = recordsInPast.groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+                        .mapValues { (_, dayRecords) -> dayRecords.sumOf { it.volumeMilliliters } }
+
+                    _headerDaysGoalReached.value = dailyIntakes.filter { it.value >= _dailyGoal.value }.count()
+
+                    val startOfRange = _startTime.value.atZone(ZoneId.systemDefault()).toLocalDate()
+                    val endOfRange = minOf(today, _endTime.value.atZone(ZoneId.systemDefault()).toLocalDate())
+                    val daysInRange = ChronoUnit.DAYS.between(startOfRange, endOfRange).toInt() + 1
+
+                    _headerAverage.value = if (daysInRange > 0) _headerTotalIntake.value / daysInRange else 0.0
 
                     _daysGoalReached.value =
                         allRecordsInRange.groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
@@ -349,17 +366,6 @@ class WaterIntakeViewModel @Inject constructor(
             )
         }
         _chartData.value = chartDataWithDate.map { it.second }
-
-        val today = LocalDate.now()
-        val pastOrTodayData = chartDataWithDate.filter { it.first.isBefore(today.plusDays(1)) }
-        val pastOrTodayChartData = pastOrTodayData.map { it.second }
-
-        val totalIntake = pastOrTodayChartData.sumOf { it.value.toDouble() }
-        val numberOfPastOrTodayDays = pastOrTodayData.size
-
-        _weeklyTotalIntake.value = totalIntake
-        _weeklyAverage.value = if (numberOfPastOrTodayDays > 0) totalIntake / numberOfPastOrTodayDays else 0.0
-        _weeklyDaysGoalReached.value = pastOrTodayChartData.count { it.value >= _dailyGoal.value }
 
         _chartDateRangeLabel.value = formatWeekRange(selectedDate)
     }
