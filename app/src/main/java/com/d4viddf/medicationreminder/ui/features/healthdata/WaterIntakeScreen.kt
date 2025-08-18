@@ -58,6 +58,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -80,6 +81,7 @@ fun WaterIntakeScreen(
     val waterIntakeByType by viewModel.waterIntakeByType.collectAsState()
     val yAxisMax by viewModel.yAxisMax.collectAsState()
     val selectedBar by viewModel.selectedBar.collectAsState()
+    val selectedChartBar by viewModel.selectedChartBar.collectAsState()
 
     Scaffold(
         topBar = {
@@ -219,20 +221,33 @@ fun WaterIntakeScreen(
                         Column(
                             modifier = Modifier.padding(Dimensions.PaddingLarge)
                         ) {
-                            Text(
-                                text = "Resumen Semanal",
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
-                            Text(
-                                text = chartDateRangeLabel,
-                                style = MaterialTheme.typography.titleLarge
-                            )
+                            if (selectedChartBar != null) {
+                                Text(
+                                    text = "${selectedChartBar!!.value.roundToInt()} ml",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = selectedChartBar!!.fullLabel,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            } else {
+                                Text(
+                                    text = if (chartData.any { it.value > 0 }) "${(chartData.sumOf { it.value.toDouble() } / chartData.count { it.value > 0 }).toInt()} ml" else "0 ml",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = chartDateRangeLabel,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                             Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
 
                             HealthDataChart(
                                 data = chartData,
-                                barColor = MaterialTheme.colorScheme.primary
+                                barColor = MaterialTheme.colorScheme.primary,
+                                onBarSelected = { viewModel.onChartBarSelected(it) }
                             )
                         }
                     }

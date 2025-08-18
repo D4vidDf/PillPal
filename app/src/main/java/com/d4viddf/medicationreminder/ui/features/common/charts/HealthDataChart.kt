@@ -1,9 +1,11 @@
 package com.d4viddf.medicationreminder.ui.features.common.charts
 
+import android.graphics.Rect
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -21,7 +23,11 @@ import kotlin.math.roundToInt
 fun HealthDataChart(
     data: List<ChartDataPoint>,
     modifier: Modifier = Modifier,
-    barColor: Color = Color.Blue // You can customize this
+    barColor: Color = Color.Blue,
+    axisLabelColor: Color = MaterialTheme.colorScheme.onBackground,
+    tooltipColor: Color = MaterialTheme.colorScheme.onSurface,
+    tooltipBackgroundColor: Color = MaterialTheme.colorScheme.surface,
+    onBarSelected: (ChartDataPoint?) -> Unit
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     val maxValue = data.maxOfOrNull { it.value } ?: 0f
@@ -38,6 +44,7 @@ fun HealthDataChart(
                         val barWidth = chartAreaWidth / data.size
                         val index = ((offset.x - yAxisAreaWidth) / barWidth).toInt().coerceIn(0, data.lastIndex)
                         selectedIndex = index
+                        onBarSelected(data.getOrNull(index))
                     },
                     onDrag = { change, _ ->
                         val yAxisAreaWidth = 80f
@@ -45,9 +52,16 @@ fun HealthDataChart(
                         val barWidth = chartAreaWidth / data.size
                         val index = ((change.position.x - yAxisAreaWidth) / barWidth).toInt().coerceIn(0, data.lastIndex)
                         selectedIndex = index
+                        onBarSelected(data.getOrNull(index))
                     },
-                    onDragEnd = { selectedIndex = null },
-                    onDragCancel = { selectedIndex = null }
+                    onDragEnd = {
+                        selectedIndex = null
+                        onBarSelected(null)
+                    },
+                    onDragCancel = {
+                        selectedIndex = null
+                        onBarSelected(null)
+                    }
                 )
             }
     ) {
@@ -59,7 +73,7 @@ fun HealthDataChart(
         // Draw Y-axis labels
         val numYAxisLabels = 4
         val yAxisLabelPaint = android.graphics.Paint().apply {
-            color = Color.Black.toArgb()
+            color = axisLabelColor.toArgb()
             textAlign = android.graphics.Paint.Align.RIGHT
             textSize = 12.sp.toPx()
         }
@@ -98,7 +112,7 @@ fun HealthDataChart(
                     barX + barWidth / 2,
                     size.height - xAxisAreaHeight + 40f, // Position label below the chart
                     android.graphics.Paint().apply {
-                        color = Color.Black.toArgb()
+                        color = axisLabelColor.toArgb()
                         textAlign = android.graphics.Paint.Align.CENTER
                         textSize = 12.sp.toPx()
                     }
@@ -122,16 +136,34 @@ fun HealthDataChart(
 
             // Draw the tooltip text above the bar
             val tooltipText = "${dataPoint.value.roundToInt()} ml on ${dataPoint.fullLabel}"
+            val textPaint = android.graphics.Paint().apply {
+                color = tooltipColor.toArgb()
+                textAlign = android.graphics.Paint.Align.CENTER
+                textSize = 14.sp.toPx()
+            }
+
+            val textBounds = Rect()
+            textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
+
+            val tooltipX = barX + barWidth / 2
+            val tooltipY = chartAreaHeight - barHeight - 20f
+            val tooltipPadding = 8.dp.toPx()
+            val tooltipWidth = textBounds.width() + tooltipPadding * 2
+            val tooltipHeight = textBounds.height() + tooltipPadding * 2
+
+            drawRoundRect(
+                color = tooltipBackgroundColor,
+                topLeft = Offset(tooltipX - tooltipWidth / 2, tooltipY - tooltipHeight + textBounds.bottom),
+                size = Size(tooltipWidth, tooltipHeight),
+                cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
+            )
+
             drawContext.canvas.nativeCanvas.apply {
                 drawText(
                     tooltipText,
-                    barX + barWidth / 2,
-                    chartAreaHeight - barHeight - 20f,
-                    android.graphics.Paint().apply {
-                        color = Color.DarkGray.toArgb()
-                        textAlign = android.graphics.Paint.Align.CENTER
-                        textSize = 14.sp.toPx()
-                    }
+                    tooltipX,
+                    tooltipY,
+                    textPaint
                 )
             }
         }

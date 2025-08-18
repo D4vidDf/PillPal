@@ -83,6 +83,9 @@ class WaterIntakeViewModel @Inject constructor(
     private val _selectedBar = MutableStateFlow<Pair<Instant, Double>?>(null)
     val selectedBar: StateFlow<Pair<Instant, Double>?> = _selectedBar.asStateFlow()
 
+    private val _selectedChartBar = MutableStateFlow<ChartDataPoint?>(null)
+    val selectedChartBar: StateFlow<ChartDataPoint?> = _selectedChartBar.asStateFlow()
+
     init {
         updateDateAndButtonStates()
         fetchWaterIntakeRecords()
@@ -90,6 +93,10 @@ class WaterIntakeViewModel @Inject constructor(
 
     fun onBarSelected(bar: Pair<Instant, Double>?) {
         _selectedBar.value = bar
+    }
+
+    fun onChartBarSelected(dataPoint: ChartDataPoint?) {
+        _selectedChartBar.value = dataPoint
     }
 
     fun setTimeRange(timeRange: TimeRange) {
