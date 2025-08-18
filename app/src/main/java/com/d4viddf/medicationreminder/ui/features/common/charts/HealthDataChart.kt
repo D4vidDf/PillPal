@@ -44,7 +44,10 @@ fun HealthDataChart(
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     val maxDataValue = data.maxOfOrNull { it.value } ?: 0f
-    val yAxisMax = if (showGoalLine) max(maxDataValue, goalLineValue) else maxDataValue
+    var yAxisMax = if (showGoalLine) max(maxDataValue, goalLineValue) else maxDataValue
+    if (yAxisMax == goalLineValue) {
+        yAxisMax += 1000f
+    }
 
     Canvas(
         modifier = modifier
