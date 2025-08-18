@@ -4,16 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.ui.features.common.charts.ChartDataPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
@@ -30,6 +33,12 @@ class WaterIntakeViewModel @Inject constructor(
         MutableStateFlow<List<Pair<Instant, Double>>>(emptyList())
     val aggregatedWaterIntakeRecords: StateFlow<List<Pair<Instant, Double>>> =
         _aggregatedWaterIntakeRecords.asStateFlow()
+
+    private val _chartData = MutableStateFlow<List<ChartDataPoint>>(emptyList())
+    val chartData: StateFlow<List<ChartDataPoint>> = _chartData.asStateFlow()
+
+    private val _chartDateRangeLabel = MutableStateFlow("")
+    val chartDateRangeLabel: StateFlow<String> = _chartDateRangeLabel.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
@@ -135,6 +144,12 @@ class WaterIntakeViewModel @Inject constructor(
 
             healthDataRepository.getWaterIntakeBetween(start, end)
                 .collect { allRecordsInRange ->
+                    if (_timeRange.value == TimeRange.WEEK) {
+                        loadChartDataForWeek(_selectedDate.value, allRecordsInRange)
+                    } else {
+                        _chartData.value = emptyList()
+                    }
+
                     val (aggregatedRecords, yMax) = when (_timeRange.value) {
                         TimeRange.DAY -> {
                             val dayRecords = allRecordsInRange.filter {
@@ -292,6 +307,50 @@ class WaterIntakeViewModel @Inject constructor(
                 }
             }
             TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
+        }
+    }
+
+    private fun loadChartDataForWeek(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
+        val rawData = allRecordsInRange.groupBy {
+            it.time.atZone(ZoneId.systemDefault()).toLocalDate()
+        }.mapValues { entry ->
+            entry.value.sumOf { it.volumeMilliliters }.toFloat()
+        }
+
+        val weekStart = selectedDate.with(DayOfWeek.MONDAY)
+        val daysOfWeek = (0..6).map { weekStart.plusDays(it.toLong()) }
+
+        _chartData.value = daysOfWeek.map { date ->
+            ChartDataPoint(
+                value = rawData[date] ?: 0f, // Default to 0 if no data for that day
+                label = date.dayOfWeek.getDisplayName(
+                    TextStyle.NARROW,
+                    Locale("es", "ES")
+                ).first().toString(), // L, M, X, J, V, S, D
+                fullLabel = date.format(
+                    DateTimeFormatter.ofPattern(
+                        "EEEE, d MMM",
+                        Locale("es", "ES")
+                    )
+                ) // lunes, 18 ago
+            )
+        }
+
+        _chartDateRangeLabel.value = formatWeekRange(selectedDate)
+    }
+
+    private fun formatWeekRange(dateInWeek: LocalDate): String {
+        val locale = Locale("es", "ES")
+        val startOfWeek = dateInWeek.with(DayOfWeek.MONDAY)
+        val endOfWeek = dateInWeek.with(DayOfWeek.SUNDAY)
+
+        val startMonth = startOfWeek.format(DateTimeFormatter.ofPattern("MMM", locale))
+        val endMonth = endOfWeek.format(DateTimeFormatter.ofPattern("MMM", locale))
+
+        return if (startMonth == endMonth) {
+            "${startOfWeek.dayOfMonth} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}" // e.g., "11 - 17 ago"
+        } else {
+            "${startOfWeek.dayOfMonth} ${startMonth.replace(".", "")} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}" // e.g., "28 jul - 3 ago"
         }
     }
 }

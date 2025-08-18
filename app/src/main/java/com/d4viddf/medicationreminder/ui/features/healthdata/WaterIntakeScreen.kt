@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +37,6 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -46,11 +46,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.features.common.charts.HealthDataChart
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.ui.theme.Dimensions
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -64,6 +66,8 @@ fun WaterIntakeScreen(
     widthSizeClass: WindowWidthSizeClass,
     viewModel: WaterIntakeViewModel = hiltViewModel()
 ) {
+    val chartData by viewModel.chartData.collectAsState()
+    val chartDateRangeLabel by viewModel.chartDateRangeLabel.collectAsState()
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
@@ -102,7 +106,8 @@ fun WaterIntakeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = Dimensions.PaddingLarge)
         ) {
             stickyHeader {
                 Column(Modifier.background(MaterialTheme.colorScheme.background)) {
@@ -128,11 +133,11 @@ fun WaterIntakeScreen(
 
             if (timeRange == TimeRange.DAY) {
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(Dimensions.PaddingLarge),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -174,7 +179,7 @@ fun WaterIntakeScreen(
                         text = dateRangeText,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                        modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
                     )
                 }
 
@@ -194,13 +199,13 @@ fun WaterIntakeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 1.dp)
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = Dimensions.PaddingLarge),
                         shape = shape
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(Dimensions.PaddingLarge),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(text = "${records.size} ${type ?: "Custom Qty"}")
@@ -209,63 +214,87 @@ fun WaterIntakeScreen(
                     }
                 }
             } else {
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            if (selectedBar != null) {
-                                Text(
-                                    text = "${selectedBar!!.second.toInt()} ml",
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = selectedBar!!.first.atZone(ZoneId.systemDefault())
-                                        .format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            } else {
-                                Text(
-                                    text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = stringResource(
-                                        R.string.water_intake_goal_reached_days,
-                                        viewModel.daysGoalReached.value,
-                                        totalWaterIntake.toInt()
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
+                if (timeRange == TimeRange.WEEK) {
+                    item {
+                        Column(
+                            modifier = Modifier.padding(Dimensions.PaddingLarge)
+                        ) {
+                            Text(
+                                text = "Resumen Semanal",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
+                            Text(
+                                text = chartDateRangeLabel,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+
+                            HealthDataChart(
+                                data = chartData,
+                                barColor = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
-                    HealthChart(
-                        data = aggregatedWaterIntakeRecords,
-                        chartType = ChartType.BAR,
-                        timeRange = timeRange,
-                        startTime = startTime,
-                        endTime = endTime,
-                        yAxisRange = 0.0..yAxisMax,
-                        goalLineValue = 4000f,
-                        yAxisLabelFormatter = {
-                            if (it > 0) "${(it / 1000).toInt()}k" else "0"
-                        },
-                        modifier = Modifier.padding(top = 16.dp),
-                        onBarSelected = { viewModel.onBarSelected(it) }
-                    )
-                    Text(
-                        text = dateRangeText,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-                    )
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimensions.PaddingLarge),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (selectedBar != null) {
+                                    Text(
+                                        text = "${selectedBar!!.second.toInt()} ml",
+                                        style = MaterialTheme.typography.headlineLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = selectedBar!!.first.atZone(ZoneId.systemDefault())
+                                            .format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                } else {
+                                    Text(
+                                        text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
+                                        style = MaterialTheme.typography.headlineLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = stringResource(
+                                            R.string.water_intake_goal_reached_days,
+                                            viewModel.daysGoalReached.value,
+                                            totalWaterIntake.toInt()
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                        }
+                        HealthChart(
+                            data = aggregatedWaterIntakeRecords,
+                            chartType = ChartType.BAR,
+                            timeRange = timeRange,
+                            startTime = startTime,
+                            endTime = endTime,
+                            yAxisRange = 0.0..yAxisMax,
+                            goalLineValue = waterIntakeGoal,
+                            yAxisLabelFormatter = {
+                                if (it > 0) "${(it / 1000).toInt()}k" else "0"
+                            },
+                            modifier = Modifier.padding(top = Dimensions.PaddingLarge),
+                            onBarSelected = { viewModel.onBarSelected(it) }
+                        )
+                        Text(
+                            text = dateRangeText,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
+                        )
+                    }
                 }
 
                 itemsIndexed(
@@ -286,7 +315,7 @@ fun WaterIntakeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 1.dp)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = Dimensions.PaddingLarge)
                             .clickable {
                                 viewModel.onHistoryItemClick(
                                     when (timeRange) {
@@ -305,7 +334,7 @@ fun WaterIntakeScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(Dimensions.PaddingLarge),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             val today = LocalDate.now()
@@ -335,6 +364,10 @@ fun WaterIntakeScreen(
                         }
                     }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(Dimensions.BottomSpacerHeight))
             }
         }
     }
