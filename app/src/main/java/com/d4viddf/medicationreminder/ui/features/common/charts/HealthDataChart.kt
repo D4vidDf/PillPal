@@ -53,7 +53,7 @@ fun HealthDataChart(
             .pointerInput(data) {
                 detectDragGestures(
                     onDragStart = { offset ->
-                        val yAxisAreaWidth = 80f
+                        val yAxisAreaWidth = 120f
                         val chartAreaStartX = if (yAxisPosition == YAxisPosition.Left) yAxisAreaWidth else 0f
                         val chartAreaWidth = size.width - yAxisAreaWidth
                         val barWidth = chartAreaWidth / data.size
@@ -62,7 +62,7 @@ fun HealthDataChart(
                         onBarSelected(data.getOrNull(index))
                     },
                     onDrag = { change, _ ->
-                        val yAxisAreaWidth = 80f
+                        val yAxisAreaWidth = 120f
                         val chartAreaStartX = if (yAxisPosition == YAxisPosition.Left) yAxisAreaWidth else 0f
                         val chartAreaWidth = size.width - yAxisAreaWidth
                         val barWidth = chartAreaWidth / data.size
@@ -81,7 +81,7 @@ fun HealthDataChart(
                 )
             }
     ) {
-        val yAxisAreaWidth = 80f
+        val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
         val chartAreaWidth = size.width - yAxisAreaWidth
         val chartAreaHeight = size.height - xAxisAreaHeight
@@ -99,7 +99,7 @@ fun HealthDataChart(
             (0..numYAxisLabels).forEach { i ->
                 val value = yAxisMax * i / numYAxisLabels
                 val y = chartAreaHeight - (value / yAxisMax) * chartAreaHeight
-                val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 10f else size.width - yAxisAreaWidth + 10f
+                val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 20f else size.width - yAxisAreaWidth + 20f
                 drawContext.canvas.nativeCanvas.drawText(
                     yAxisLabelFormatter(value),
                     xPos,
