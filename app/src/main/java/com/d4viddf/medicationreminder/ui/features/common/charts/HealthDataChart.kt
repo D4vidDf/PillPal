@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -28,38 +29,66 @@ fun HealthDataChart(
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp) // Or any height you prefer
-            .pointerInput(data) { // Relaunch gesture detection if data changes
+            .height(250.dp) // Increased height for labels
+            .pointerInput(data) {
                 detectDragGestures(
                     onDragStart = { offset ->
-                        // Find the bar corresponding to the initial touch offset
-                        val barWidth = size.width / data.size
-                        val index = (offset.x / barWidth).toInt().coerceIn(0, data.lastIndex)
+                        val yAxisAreaWidth = 80f
+                        val chartAreaWidth = size.width - yAxisAreaWidth
+                        val barWidth = chartAreaWidth / data.size
+                        val index = ((offset.x - yAxisAreaWidth) / barWidth).toInt().coerceIn(0, data.lastIndex)
                         selectedIndex = index
                     },
                     onDrag = { change, _ ->
-                        // Update selected bar as the user drags their finger
-                        val barWidth = size.width / data.size
-                        val index = (change.position.x / barWidth).toInt().coerceIn(0, data.lastIndex)
+                        val yAxisAreaWidth = 80f
+                        val chartAreaWidth = size.width - yAxisAreaWidth
+                        val barWidth = chartAreaWidth / data.size
+                        val index = ((change.position.x - yAxisAreaWidth) / barWidth).toInt().coerceIn(0, data.lastIndex)
                         selectedIndex = index
                     },
-                    onDragEnd = { selectedIndex = null }, // Clear selection when finger is lifted
+                    onDragEnd = { selectedIndex = null },
                     onDragCancel = { selectedIndex = null }
                 )
             }
     ) {
-        val barWidth = size.width / data.size
-        val spaceBetweenBars = barWidth * 0.2f // 20% of bar width is space
+        val yAxisAreaWidth = 80f
+        val xAxisAreaHeight = 60f
+        val chartAreaWidth = size.width - yAxisAreaWidth
+        val chartAreaHeight = size.height - xAxisAreaHeight
+
+        // Draw Y-axis labels
+        val numYAxisLabels = 4
+        val yAxisLabelPaint = android.graphics.Paint().apply {
+            color = Color.Black.toArgb()
+            textAlign = android.graphics.Paint.Align.RIGHT
+            textSize = 12.sp.toPx()
+        }
+        if (maxValue > 0) {
+            (0..numYAxisLabels).forEach { i ->
+                val value = maxValue * i / numYAxisLabels
+                val y = chartAreaHeight - (value / maxValue) * chartAreaHeight
+                drawContext.canvas.nativeCanvas.drawText(
+                    "${value.roundToInt()}",
+                    yAxisAreaWidth - 10f,
+                    y,
+                    yAxisLabelPaint
+                )
+            }
+        }
+
+        val barWidth = chartAreaWidth / data.size
+        val spaceBetweenBars = barWidth * 0.2f
 
         data.forEachIndexed { index, dataPoint ->
-            val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * size.height else 0f
-            val barX = index * barWidth
+            val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * chartAreaHeight else 0f
+            val barX = yAxisAreaWidth + index * barWidth
 
-            // Draw the bar
-            drawRect(
+            // Draw the bar with rounded corners
+            drawRoundRect(
                 color = barColor,
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = size.height - barHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = barHeight)
+                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
+                size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                cornerRadius = CornerRadius(10f, 10f)
             )
 
             // Draw the X-axis label
@@ -67,7 +96,7 @@ fun HealthDataChart(
                 drawText(
                     dataPoint.label,
                     barX + barWidth / 2,
-                    size.height + 40f, // Position label below the chart
+                    size.height - xAxisAreaHeight + 40f, // Position label below the chart
                     android.graphics.Paint().apply {
                         color = Color.Black.toArgb()
                         textAlign = android.graphics.Paint.Align.CENTER
@@ -80,14 +109,15 @@ fun HealthDataChart(
         // Draw tooltip if a bar is selected
         selectedIndex?.let { index ->
             val dataPoint = data[index]
-            val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * size.height else 0f
-            val barX = index * barWidth
+            val barHeight = if (maxValue > 0) (dataPoint.value / maxValue) * chartAreaHeight else 0f
+            val barX = yAxisAreaWidth + index * barWidth
 
             // Highlight the selected bar
-            drawRect(
-                color = barColor.copy(alpha = 0.5f), // A slightly transparent highlight
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = size.height - barHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = barHeight)
+            drawRoundRect(
+                color = barColor.copy(alpha = 0.5f),
+                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
+                size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                cornerRadius = CornerRadius(10f, 10f)
             )
 
             // Draw the tooltip text above the bar
@@ -96,12 +126,11 @@ fun HealthDataChart(
                 drawText(
                     tooltipText,
                     barX + barWidth / 2,
-                    size.height - barHeight - 20f, // Position tooltip above the bar
+                    chartAreaHeight - barHeight - 20f,
                     android.graphics.Paint().apply {
                         color = Color.DarkGray.toArgb()
                         textAlign = android.graphics.Paint.Align.CENTER
                         textSize = 14.sp.toPx()
-                        // You can add a background to the text for better readability
                     }
                 )
             }
