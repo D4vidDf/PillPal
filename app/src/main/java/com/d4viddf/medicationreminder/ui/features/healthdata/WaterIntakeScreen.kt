@@ -82,9 +82,6 @@ fun WaterIntakeScreen(
     val yAxisMax by viewModel.yAxisMax.collectAsState()
     val selectedBar by viewModel.selectedBar.collectAsState()
     val selectedChartBar by viewModel.selectedChartBar.collectAsState()
-    val weeklyAverage by viewModel.weeklyAverage.collectAsState()
-    val weeklyDaysGoalReached by viewModel.weeklyDaysGoalReached.collectAsState()
-    val weeklyTotalIntake by viewModel.weeklyTotalIntake.collectAsState()
 
     Scaffold(
         topBar = {
@@ -219,100 +216,37 @@ fun WaterIntakeScreen(
                     }
                 }
             } else {
-                if (timeRange == TimeRange.WEEK) {
-                    item {
-                        Column(
-                            modifier = Modifier.padding(Dimensions.PaddingLarge)
-                        ) {
-                            if (selectedChartBar != null) {
-                                Text(
-                                    text = "${selectedChartBar!!.value.roundToInt()} ml",
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = selectedChartBar!!.fullLabel,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            } else {
-                                Text(
-                                    text = "${weeklyAverage.roundToInt()} ml at day(average)",
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = stringResource(
-                                        R.string.water_intake_goal_reached_days,
-                                        weeklyDaysGoalReached,
-                                        weeklyTotalIntake.toInt()
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-
-                            HealthDataChart(
-                                data = chartData,
-                                barColor = MaterialTheme.colorScheme.primary,
-                                onBarSelected = { viewModel.onChartBarSelected(it) },
-                                yAxisPosition = YAxisPosition.Right,
-                                showGoalLine = true,
-                                goalLineValue = waterIntakeGoal.toFloat(),
-                                showTooltip = false
+                item {
+                    Column(
+                        modifier = Modifier.padding(Dimensions.PaddingLarge)
+                    ) {
+                        if (selectedChartBar != null) {
+                            Text(
+                                text = "${selectedChartBar!!.value.roundToInt()} ml",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = selectedChartBar!!.fullLabel,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        } else {
+                            Text(
+                                text = if (chartData.any { it.value > 0 }) "${(chartData.sumOf { it.value.toDouble() } / chartData.count { it.value > 0 }).toInt()} ml" else "0 ml",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = dateRangeText,
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
-                    }
-                } else {
-                    item {
                         Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(Dimensions.PaddingLarge),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                if (selectedBar != null) {
-                                    Text(
-                                        text = "${selectedBar!!.second.toInt()} ml",
-                                        style = MaterialTheme.typography.headlineLarge,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = selectedBar!!.first.atZone(ZoneId.systemDefault())
-                                            .format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                } else {
-                                    Text(
-                                        text = if (numberOfDaysInRange > 0) "${(totalWaterIntake / numberOfDaysInRange).toInt()} ml" else "0 ml",
-                                        style = MaterialTheme.typography.headlineLarge,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = stringResource(
-                                            R.string.water_intake_goal_reached_days,
-                                            viewModel.daysGoalReached.value,
-                                            totalWaterIntake.toInt()
-                                        ),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-                        }
-                        HealthChart(
-                            data = aggregatedWaterIntakeRecords,
-                            chartType = ChartType.BAR,
-                            timeRange = timeRange,
-                            startTime = startTime,
-                            endTime = endTime,
-                            yAxisRange = 0.0..yAxisMax,
-                            goalLineValue = waterIntakeGoal.toFloat(),
-                            yAxisLabelFormatter = {
-                                if (it > 0) "${(it / 1000).toInt()}k" else "0"
-                            },
-                            modifier = Modifier.padding(top = Dimensions.PaddingLarge),
-                            onBarSelected = { viewModel.onBarSelected(it) }
+
+                        HealthDataChart(
+                            data = chartData,
+                            barColor = MaterialTheme.colorScheme.primary,
+                            onBarSelected = { viewModel.onChartBarSelected(it) }
                         )
                     }
                 }
@@ -376,6 +310,7 @@ fun WaterIntakeScreen(
                         ) {
                             val recordDate = record.first.atZone(ZoneId.systemDefault()).toLocalDate()
                             val startOfWeek = recordDate.with(weekFields.dayOfWeek(), 1)
+                            val yesterday = today.minusDays(1)
 
                             val text = when (timeRange) {
                                 TimeRange.WEEK -> when (recordDate) {

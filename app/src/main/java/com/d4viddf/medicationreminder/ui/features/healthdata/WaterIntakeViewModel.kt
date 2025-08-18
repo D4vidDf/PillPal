@@ -86,15 +86,6 @@ class WaterIntakeViewModel @Inject constructor(
     private val _selectedChartBar = MutableStateFlow<ChartDataPoint?>(null)
     val selectedChartBar: StateFlow<ChartDataPoint?> = _selectedChartBar.asStateFlow()
 
-    private val _weeklyAverage = MutableStateFlow(0.0)
-    val weeklyAverage: StateFlow<Double> = _weeklyAverage.asStateFlow()
-
-    private val _weeklyDaysGoalReached = MutableStateFlow(0)
-    val weeklyDaysGoalReached: StateFlow<Int> = _weeklyDaysGoalReached.asStateFlow()
-
-    private val _weeklyTotalIntake = MutableStateFlow(0.0)
-    val weeklyTotalIntake: StateFlow<Double> = _weeklyTotalIntake.asStateFlow()
-
     init {
         updateDateAndButtonStates()
         fetchWaterIntakeRecords()
@@ -160,10 +151,13 @@ class WaterIntakeViewModel @Inject constructor(
 
             healthDataRepository.getWaterIntakeBetween(start, end)
                 .collect { allRecordsInRange ->
-                    if (_timeRange.value == TimeRange.WEEK) {
-                        loadChartDataForWeek(_selectedDate.value, allRecordsInRange)
-                    } else {
-                        _chartData.value = emptyList()
+                    when (_timeRange.value) {
+                        TimeRange.WEEK -> loadChartDataForWeek(_selectedDate.value, allRecordsInRange)
+                        TimeRange.MONTH -> loadChartDataForMonth(_selectedDate.value, allRecordsInRange)
+                        TimeRange.YEAR -> loadChartDataForYear(_selectedDate.value, allRecordsInRange)
+                        else -> {
+                            _chartData.value = emptyList()
+                        }
                     }
 
                     val (aggregatedRecords, yMax) = when (_timeRange.value) {
@@ -335,10 +329,8 @@ class WaterIntakeViewModel @Inject constructor(
 
         val weekStart = selectedDate.with(DayOfWeek.MONDAY)
         val daysOfWeek = (0..6).map { weekStart.plusDays(it.toLong()) }
-        val today = LocalDate.now()
-
-        val chartDataWithDate = daysOfWeek.map { date ->
-            date to ChartDataPoint(
+        _chartData.value = daysOfWeek.map { date ->
+            ChartDataPoint(
                 value = rawData[date] ?: 0f, // Default to 0 if no data for that day
                 label = date.dayOfWeek.getDisplayName(
                     TextStyle.NARROW,
@@ -352,17 +344,6 @@ class WaterIntakeViewModel @Inject constructor(
                 ) // lunes, 18 ago
             )
         }
-        _chartData.value = chartDataWithDate.map { it.second }
-
-        val pastDaysData = chartDataWithDate.filter { it.first.isBefore(today.plusDays(1)) }.map { it.second }
-
-        val totalIntake = pastDaysData.sumOf { it.value.toDouble() }
-        val daysWithIntake = pastDaysData.count { it.value > 0 }
-        _weeklyTotalIntake.value = totalIntake
-        _weeklyAverage.value = if (daysWithIntake > 0) totalIntake / daysWithIntake else 0.0
-        _weeklyDaysGoalReached.value = pastDaysData.count { it.value >= _dailyGoal.value }
-
-
         _chartDateRangeLabel.value = formatWeekRange(selectedDate)
     }
 
@@ -379,5 +360,34 @@ class WaterIntakeViewModel @Inject constructor(
         } else {
             "${startOfWeek.dayOfMonth} ${startMonth.replace(".", "")} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}" // e.g., "28 jul - 3 ago"
         }
+    }
+
+    private fun loadChartDataForMonth(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
+        val aggregated = aggregateByWeek(allRecordsInRange)
+
+        _chartData.value = aggregated.map { (instant, value) ->
+            val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
+            val weekOfMonth = date.get(WeekFields.of(Locale("es", "ES")).weekOfMonth())
+            ChartDataPoint(
+                value = value.toFloat(),
+                label = "S$weekOfMonth", // "S" for "Semana" (Week)
+                fullLabel = "Semana del ${date.format(DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES")))}"
+            )
+        }
+        _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES")))
+    }
+
+    private fun loadChartDataForYear(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
+        val aggregated = aggregateByMonth(allRecordsInRange)
+
+        _chartData.value = aggregated.map { (instant, value) ->
+            val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
+            ChartDataPoint(
+                value = value.toFloat(),
+                label = date.month.getDisplayName(TextStyle.NARROW, Locale("es", "ES")),
+                fullLabel = date.month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
+            )
+        }
+        _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy", Locale("es", "ES")))
     }
 }
