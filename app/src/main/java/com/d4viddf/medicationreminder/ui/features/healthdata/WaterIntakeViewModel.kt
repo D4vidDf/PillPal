@@ -388,29 +388,21 @@ class WaterIntakeViewModel @Inject constructor(
 
     private fun loadChartDataForMonth(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
         val monthMap = allRecordsInRange
-            .groupBy {
-                val date = it.time.atZone(ZoneId.systemDefault()).toLocalDate()
-                val weekFields = WeekFields.of(Locale("es", "ES"))
-                date.with(weekFields.dayOfWeek(), 1)
-            }
-            .mapValues { (_, weekRecords) -> weekRecords.sumOf { it.volumeMilliliters }.toFloat() }
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .mapValues { (_, dayRecords) -> dayRecords.sumOf { it.volumeMilliliters }.toFloat() }
 
         val startOfMonth = selectedDate.withDayOfMonth(1)
         val endOfMonth = selectedDate.withDayOfMonth(selectedDate.lengthOfMonth())
-        val weeksInMonth = mutableListOf<LocalDate>()
-        var current = startOfMonth
-        while (current.isBefore(endOfMonth) || current.isEqual(endOfMonth)) {
-            weeksInMonth.add(current.with(WeekFields.of(Locale("es", "ES")).dayOfWeek(), 1))
-            current = current.plusWeeks(1)
-        }
+        val daysInMonth = (startOfMonth.dayOfMonth..endOfMonth.dayOfMonth).map { startOfMonth.withDayOfMonth(it) }
 
-        _chartData.value = weeksInMonth.distinct().map { weekStart ->
-            val weekOfMonth = weekStart.get(WeekFields.of(Locale("es", "ES")).weekOfMonth())
+        val labelsToShow = listOf(1, 5, 10, 15, 20, 25, endOfMonth.dayOfMonth).toSet()
+
+        _chartData.value = daysInMonth.map { date ->
             ChartDataPoint(
-                value = monthMap[weekStart] ?: 0f,
-                label = "S$weekOfMonth",
-                fullLabel = "Semana del ${weekStart.format(DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES")))}",
-                date = weekStart
+                value = monthMap[date] ?: 0f,
+                label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else "",
+                fullLabel = date.format(DateTimeFormatter.ofPattern("EEEE, d MMM", Locale("es", "ES"))),
+                date = date
             )
         }
         _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES")))
