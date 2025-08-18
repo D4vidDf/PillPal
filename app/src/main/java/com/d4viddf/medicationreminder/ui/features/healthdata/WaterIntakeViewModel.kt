@@ -351,7 +351,8 @@ class WaterIntakeViewModel @Inject constructor(
                         "EEEE, d MMM",
                         Locale("es", "ES")
                     )
-                ) // lunes, 18 ago
+                ), // lunes, 18 ago
+                date = date
             )
         }
         _chartData.value = chartDataWithDate.map { it.second }
@@ -408,7 +409,8 @@ class WaterIntakeViewModel @Inject constructor(
             ChartDataPoint(
                 value = monthMap[weekStart] ?: 0f,
                 label = "S$weekOfMonth",
-                fullLabel = "Semana del ${weekStart.format(DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES")))}"
+                fullLabel = "Semana del ${weekStart.format(DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES")))}",
+                date = weekStart
             )
         }
         _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES")))
@@ -425,7 +427,8 @@ class WaterIntakeViewModel @Inject constructor(
             ChartDataPoint(
                 value = yearMap[month] ?: 0f,
                 label = month.getDisplayName(TextStyle.SHORT, Locale("es", "ES")),
-                fullLabel = month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
+                fullLabel = month.getDisplayName(TextStyle.FULL, Locale("es", "ES")),
+                date = monthDate
             )
         }
         _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy", Locale("es", "ES")))

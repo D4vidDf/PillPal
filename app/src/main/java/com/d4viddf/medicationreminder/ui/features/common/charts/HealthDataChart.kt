@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalDate
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -52,17 +53,19 @@ fun HealthDataChart(
                 detectDragGestures(
                     onDragStart = { offset ->
                         val yAxisAreaWidth = 80f
+                        val chartAreaStartX = if (yAxisPosition == YAxisPosition.Left) yAxisAreaWidth else 0f
                         val chartAreaWidth = size.width - yAxisAreaWidth
                         val barWidth = chartAreaWidth / data.size
-                        val index = ((offset.x - yAxisAreaWidth) / barWidth).toInt().coerceIn(0, data.lastIndex)
+                        val index = ((offset.x - chartAreaStartX) / barWidth).toInt().coerceIn(0, data.lastIndex)
                         selectedIndex = index
                         onBarSelected(data.getOrNull(index))
                     },
                     onDrag = { change, _ ->
                         val yAxisAreaWidth = 80f
+                        val chartAreaStartX = if (yAxisPosition == YAxisPosition.Left) yAxisAreaWidth else 0f
                         val chartAreaWidth = size.width - yAxisAreaWidth
                         val barWidth = chartAreaWidth / data.size
-                        val index = ((change.position.x - yAxisAreaWidth) / barWidth).toInt().coerceIn(0, data.lastIndex)
+                        val index = ((change.position.x - chartAreaStartX) / barWidth).toInt().coerceIn(0, data.lastIndex)
                         selectedIndex = index
                         onBarSelected(data.getOrNull(index))
                     },
@@ -81,6 +84,8 @@ fun HealthDataChart(
         val xAxisAreaHeight = 60f
         val chartAreaWidth = size.width - yAxisAreaWidth
         val chartAreaHeight = size.height - xAxisAreaHeight
+        val chartAreaStartX = if (yAxisPosition == YAxisPosition.Left) yAxisAreaWidth else 0f
+        val today = LocalDate.now()
 
         // Draw Y-axis labels
         val numYAxisLabels = 4
@@ -107,14 +112,16 @@ fun HealthDataChart(
         val spaceBetweenBars = barWidth * 0.2f
 
         data.forEachIndexed { index, dataPoint ->
+            val minBarHeight = 2f
             val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
-            val barX = yAxisAreaWidth + index * barWidth
+            val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
+            val barX = chartAreaStartX + index * barWidth
 
             // Draw the bar with rounded corners
             drawRoundRect(
                 color = barColor,
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
+                size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
                 cornerRadius = CornerRadius(10f, 10f)
             )
 
@@ -137,8 +144,8 @@ fun HealthDataChart(
             val goalY = chartAreaHeight - (goalLineValue / yAxisMax) * chartAreaHeight
             drawLine(
                 color = goalLineColor,
-                start = Offset(x = yAxisAreaWidth, y = goalY),
-                end = Offset(x = size.width, y = goalY),
+                start = Offset(x = chartAreaStartX, y = goalY),
+                end = Offset(x = chartAreaStartX + chartAreaWidth, y = goalY),
                 strokeWidth = 2.dp.toPx()
             )
         }
@@ -146,7 +153,7 @@ fun HealthDataChart(
         // Dotted line and tooltip on hover
         selectedIndex?.let { index ->
             val dataPoint = data[index]
-            val barX = yAxisAreaWidth + index * barWidth
+            val barX = chartAreaStartX + index * barWidth
             val barCenter = barX + spaceBetweenBars / 2 + (barWidth - spaceBetweenBars) / 2
 
             drawLine(
@@ -158,12 +165,13 @@ fun HealthDataChart(
 
             if(showTooltip) {
                 val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
+                val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) 2f else barHeight
 
                 // Highlight the selected bar
                 drawRoundRect(
                     color = barColor.copy(alpha = 0.5f),
-                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - barHeight),
-                    size = Size(width = barWidth - spaceBetweenBars, height = barHeight),
+                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
+                    size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
                     cornerRadius = CornerRadius(10f, 10f)
                 )
 
@@ -179,7 +187,7 @@ fun HealthDataChart(
                 textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
 
                 val tooltipX = barCenter
-                val tooltipY = chartAreaHeight - barHeight - 20f
+                val tooltipY = chartAreaHeight - finalBarHeight - 20f
                 val tooltipPadding = 8.dp.toPx()
                 val tooltipWidth = textBounds.width() + tooltipPadding * 2
                 val tooltipHeight = textBounds.height() + tooltipPadding * 2
