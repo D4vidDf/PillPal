@@ -82,6 +82,9 @@ fun WaterIntakeScreen(
     val yAxisMax by viewModel.yAxisMax.collectAsState()
     val selectedBar by viewModel.selectedBar.collectAsState()
     val selectedChartBar by viewModel.selectedChartBar.collectAsState()
+    val weeklyAverage by viewModel.weeklyAverage.collectAsState()
+    val weeklyDaysGoalReached by viewModel.weeklyDaysGoalReached.collectAsState()
+    val weeklyTotalIntake by viewModel.weeklyTotalIntake.collectAsState()
 
     Scaffold(
         topBar = {
@@ -232,12 +235,16 @@ fun WaterIntakeScreen(
                             )
                         } else {
                             Text(
-                                text = if (chartData.any { it.value > 0 }) "${(chartData.sumOf { it.value.toDouble() } / chartData.count { it.value > 0 }).toInt()} ml" else "0 ml",
+                                text = "${weeklyAverage.roundToInt()} ml at day(average)",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = dateRangeText,
+                                text = stringResource(
+                                    R.string.water_intake_goal_reached_days,
+                                    weeklyDaysGoalReached,
+                                    weeklyTotalIntake.toInt()
+                                ),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

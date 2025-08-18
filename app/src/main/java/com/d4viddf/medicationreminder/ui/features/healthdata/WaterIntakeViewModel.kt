@@ -86,6 +86,15 @@ class WaterIntakeViewModel @Inject constructor(
     private val _selectedChartBar = MutableStateFlow<ChartDataPoint?>(null)
     val selectedChartBar: StateFlow<ChartDataPoint?> = _selectedChartBar.asStateFlow()
 
+    private val _weeklyAverage = MutableStateFlow(0.0)
+    val weeklyAverage: StateFlow<Double> = _weeklyAverage.asStateFlow()
+
+    private val _weeklyDaysGoalReached = MutableStateFlow(0)
+    val weeklyDaysGoalReached: StateFlow<Int> = _weeklyDaysGoalReached.asStateFlow()
+
+    private val _weeklyTotalIntake = MutableStateFlow(0.0)
+    val weeklyTotalIntake: StateFlow<Double> = _weeklyTotalIntake.asStateFlow()
+
     init {
         updateDateAndButtonStates()
         fetchWaterIntakeRecords()
@@ -329,8 +338,9 @@ class WaterIntakeViewModel @Inject constructor(
 
         val weekStart = selectedDate.with(DayOfWeek.MONDAY)
         val daysOfWeek = (0..6).map { weekStart.plusDays(it.toLong()) }
-        _chartData.value = daysOfWeek.map { date ->
-            ChartDataPoint(
+
+        val chartDataWithDate = daysOfWeek.map { date ->
+            date to ChartDataPoint(
                 value = rawData[date] ?: 0f, // Default to 0 if no data for that day
                 label = date.dayOfWeek.getDisplayName(
                     TextStyle.NARROW,
@@ -344,6 +354,19 @@ class WaterIntakeViewModel @Inject constructor(
                 ) // lunes, 18 ago
             )
         }
+        _chartData.value = chartDataWithDate.map { it.second }
+
+        val today = LocalDate.now()
+        val pastOrTodayData = chartDataWithDate.filter { it.first.isBefore(today.plusDays(1)) }
+        val pastOrTodayChartData = pastOrTodayData.map { it.second }
+
+        val totalIntake = pastOrTodayChartData.sumOf { it.value.toDouble() }
+        val numberOfPastOrTodayDays = pastOrTodayData.size
+
+        _weeklyTotalIntake.value = totalIntake
+        _weeklyAverage.value = if (numberOfPastOrTodayDays > 0) totalIntake / numberOfPastOrTodayDays else 0.0
+        _weeklyDaysGoalReached.value = pastOrTodayChartData.count { it.value >= _dailyGoal.value }
+
         _chartDateRangeLabel.value = formatWeekRange(selectedDate)
     }
 
