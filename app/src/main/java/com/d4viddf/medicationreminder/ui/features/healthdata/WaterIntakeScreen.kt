@@ -228,8 +228,13 @@ fun WaterIntakeScreen(
                         modifier = Modifier.padding(Dimensions.PaddingLarge)
                     ) {
                         if (selectedChartBar != null) {
+                            val valueText = if (timeRange == TimeRange.YEAR) {
+                                "${selectedChartBar!!.value.roundToInt()} ml (average)"
+                            } else {
+                                "${selectedChartBar!!.value.roundToInt()} ml"
+                            }
                             Text(
-                                text = "${selectedChartBar!!.value.roundToInt()} ml",
+                                text = valueText,
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold
                             )
