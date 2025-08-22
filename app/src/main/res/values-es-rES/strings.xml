@@ -445,7 +445,7 @@
     <string name="health_data_disclaimer">Esta información es solo para fines informativos y no para uso médico.</string>
     <string name="health_screen_title">Salud</string>
     <string name="weight_screen_title">Peso</string>
-    <string name="water_intake_screen_title">Consumo de Agua</string>
+    <string name="water_intake_screen_title">Agua</string>
     <string name="body_temperature_screen_title">Temperatura Corporal</string>
     <string name="log_weight">Registrar Peso</string>
     <string name="log_water">Registrar Agua</string>
