@@ -126,8 +126,8 @@ fun HealthDataChart(
         val totalSpacing = chartAreaWidth - totalBarWidth
         val spacing = if (data.size > 0) totalSpacing / (data.size + 1) else 0f
 
+        val minBarHeight = 20f
         data.forEachIndexed { index, dataPoint ->
-            val minBarHeight = 20f
             val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
             val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
             val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
