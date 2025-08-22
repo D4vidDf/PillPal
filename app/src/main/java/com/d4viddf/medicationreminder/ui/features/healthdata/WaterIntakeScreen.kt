@@ -157,10 +157,7 @@ fun WaterIntakeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = stringResource(
-                                    R.string.water_intake_goal_progress,
-                                    formatNumber((waterIntakeGoal - totalWaterIntake).toInt())
-                                ),
+                                text = "Remaining: ${formatNumber((waterIntakeGoal - totalWaterIntake).toInt())} ml to goal",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -255,11 +252,7 @@ fun WaterIntakeScreen(
                                 }
                             )
                             Text(
-                                text = stringResource(
-                                    R.string.water_intake_goal_reached_days,
-                                    headerDaysGoalReached,
-                                    formatNumber(headerTotalIntake.toInt())
-                                ),
+                                text = "Goal reached ${headerDaysGoalReached} days | Total: ${formatNumber(headerTotalIntake.toInt())} ml",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

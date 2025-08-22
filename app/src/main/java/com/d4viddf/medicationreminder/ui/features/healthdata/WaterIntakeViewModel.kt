@@ -162,6 +162,7 @@ class WaterIntakeViewModel @Inject constructor(
             healthDataRepository.getWaterIntakeBetween(start, end)
                 .collect { allRecordsInRange ->
                     when (_timeRange.value) {
+                        TimeRange.DAY -> loadChartDataForDay(_selectedDate.value, allRecordsInRange)
                         TimeRange.WEEK -> loadChartDataForWeek(_selectedDate.value, allRecordsInRange)
                         TimeRange.MONTH -> loadChartDataForMonth(_selectedDate.value, allRecordsInRange)
                         TimeRange.YEAR -> loadChartDataForYear(_selectedDate.value, allRecordsInRange)
@@ -427,5 +428,25 @@ class WaterIntakeViewModel @Inject constructor(
             )
         }
         _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy", Locale("es", "ES")))
+    }
+
+    private fun loadChartDataForDay(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
+        val dayRecords = allRecordsInRange.filter {
+            it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate
+        }
+
+        val hourlyData = dayRecords
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).hour }
+            .mapValues { (_, hourRecords) -> hourRecords.sumOf { it.volumeMilliliters }.toFloat() }
+
+        _chartData.value = (0..23).map { hour ->
+            val hourDate = selectedDate.atTime(hour, 0)
+            ChartDataPoint(
+                value = hourlyData[hour] ?: 0f,
+                label = if (hour % 2 == 0) "$hour" else "",
+                fullLabel = "$hour:00",
+                date = selectedDate
+            )
+        }
     }
 }
