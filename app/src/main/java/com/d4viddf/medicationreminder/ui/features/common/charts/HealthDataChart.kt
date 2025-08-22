@@ -49,6 +49,7 @@ fun HealthDataChart(
     onBarSelected: (ChartDataPoint?) -> Unit
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
+    val allDataIsZero = data.all { it.value == 0f }
     val maxDataValue = data.maxOfOrNull { it.value } ?: 0f
     var yAxisMax = if (showGoalLine) max(maxDataValue, goalLineValue) else maxDataValue
     if (yAxisMax == goalLineValue) {
@@ -56,32 +57,35 @@ fun HealthDataChart(
     }
 
     val goalLineAlpha by animateFloatAsState(
-        targetValue = if (data.isNotEmpty() && showGoalLine && yAxisMax > 0) 1f else 0f,
-        animationSpec = tween(durationMillis = 300)
+        targetValue = if (data.isNotEmpty() && !allDataIsZero && showGoalLine && yAxisMax > 0) 1f else 0f,
+        animationSpec = tween(durationMillis = 600)
     )
 
+    var chartAreaHeight by remember { mutableStateOf(0f) }
     val animatables = remember { mutableStateMapOf<String, Animatable<Float, AnimationVector1D>>() }
-    LaunchedEffect(data) {
-        val newKeys = data.map { it.fullLabel }.toSet()
-        val keysToRemove = mutableListOf<String>()
-        for (key in animatables.keys) {
-            if (key !in newKeys) {
-                keysToRemove.add(key)
-            }
-        }
-        keysToRemove.forEach { key ->
-            animatables.remove(key)
-        }
+    val minBarHeight = 20f
 
-        // Add/update animatables for current bars
+    LaunchedEffect(data, yAxisMax, chartAreaHeight) {
+        if (chartAreaHeight == 0f) return@LaunchedEffect
+
+        val newKeys = data.map { it.fullLabel }.toSet()
+        val keysToRemove = animatables.keys.filter { it !in newKeys }
+        keysToRemove.forEach { animatables.remove(it) }
+
         data.forEach { dataPoint ->
             val key = dataPoint.fullLabel
-            val targetValue = dataPoint.value
-            if (!animatables.containsKey(key)) {
+            val targetHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(LocalDate.now().plusDays(1))) {
+                minBarHeight
+            } else {
+                if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
+            }
+
+            val animatable = animatables[key]
+            if (animatable == null) {
                 animatables[key] = Animatable(0f)
             }
             launch {
-                animatables[key]?.animateTo(targetValue, animationSpec = tween(300))
+                animatables[key]?.animateTo(targetHeight, animationSpec = tween(600))
             }
         }
     }
@@ -123,8 +127,11 @@ fun HealthDataChart(
     ) {
         val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
+        val localChartAreaHeight = size.height - xAxisAreaHeight
+        if (chartAreaHeight != localChartAreaHeight) {
+            chartAreaHeight = localChartAreaHeight
+        }
         val chartAreaWidth = size.width - yAxisAreaWidth
-        val chartAreaHeight = size.height - xAxisAreaHeight
         val chartAreaStartX = if (yAxisPosition == YAxisPosition.Left) yAxisAreaWidth else 0f
         val today = LocalDate.now()
 
@@ -135,7 +142,7 @@ fun HealthDataChart(
             textAlign = if (yAxisPosition == YAxisPosition.Left) android.graphics.Paint.Align.RIGHT else android.graphics.Paint.Align.LEFT
             textSize = 12.sp.toPx()
         }
-        if (data.isNotEmpty() && yAxisMax > 0) {
+        if (data.isNotEmpty() && !allDataIsZero && yAxisMax > 0) {
             val labelValues = mutableListOf<Float>()
             (0..numYAxisLabels).forEach { i ->
                 labelValues.add(yAxisMax * i / numYAxisLabels)
@@ -145,7 +152,7 @@ fun HealthDataChart(
             }
 
             labelValues.distinct().sorted().forEach { value ->
-                val y = chartAreaHeight - (value / yAxisMax) * chartAreaHeight
+                val y = localChartAreaHeight - (value / yAxisMax) * localChartAreaHeight
                 val xPos = if(yAxisPosition == YAxisPosition.Left) yAxisAreaWidth - 20f else size.width - yAxisAreaWidth + 20f
                 drawContext.canvas.nativeCanvas.drawText(
                     yAxisLabelFormatter(value),
@@ -162,18 +169,15 @@ fun HealthDataChart(
         val totalSpacing = chartAreaWidth - totalBarWidth
         val spacing = if (data.size > 0) totalSpacing / (data.size + 1) else 0f
 
-        val minBarHeight = 20f
         data.forEachIndexed { index, dataPoint ->
-            val animatedValue: Float = animatables[dataPoint.fullLabel]?.value ?: 0f
-            val barHeight = if (yAxisMax > 0) (animatedValue / yAxisMax) * chartAreaHeight else 0f
-            val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
+            val finalBarHeight = animatables[dataPoint.fullLabel]?.value ?: 0f
             val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
             val barCenter = barX + fixedBarWidth / 2
 
             // Draw the bar with rounded corners
             drawRoundRect(
                 color = barColor,
-                topLeft = Offset(x = barX, y = chartAreaHeight - finalBarHeight),
+                topLeft = Offset(x = barX, y = localChartAreaHeight - finalBarHeight),
                 size = Size(width = fixedBarWidth, height = finalBarHeight),
                 cornerRadius = CornerRadius(10f, 10f)
             )
@@ -194,7 +198,7 @@ fun HealthDataChart(
         }
 
         if (goalLineAlpha > 0f) {
-            val goalY = chartAreaHeight - (goalLineValue / yAxisMax) * chartAreaHeight
+            val goalY = localChartAreaHeight - (goalLineValue / yAxisMax) * localChartAreaHeight
             drawLine(
                 color = goalLineColor.copy(alpha = goalLineAlpha),
                 start = Offset(x = chartAreaStartX, y = goalY),
@@ -213,19 +217,17 @@ fun HealthDataChart(
             drawLine(
                 color = axisLabelColor,
                 start = Offset(barCenter, 0f),
-                end = Offset(barCenter, chartAreaHeight),
+                end = Offset(barCenter, localChartAreaHeight),
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
             )
 
             if(showTooltip) {
-                val animatedValue: Float = animatables[dataPoint.fullLabel]?.value ?: 0f
-                val barHeight = if (yAxisMax > 0) (animatedValue / yAxisMax) * chartAreaHeight else 0f
-                val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
+                val finalBarHeight = animatables[dataPoint.fullLabel]?.value ?: 0f
 
                 // Highlight the selected bar
                 drawRoundRect(
                     color = barColor.copy(alpha = 0.5f),
-                    topLeft = Offset(x = barX, y = chartAreaHeight - finalBarHeight),
+                    topLeft = Offset(x = barX, y = localChartAreaHeight - finalBarHeight),
                     size = Size(width = fixedBarWidth, height = finalBarHeight),
                     cornerRadius = CornerRadius(10f, 10f)
                 )
@@ -242,7 +244,7 @@ fun HealthDataChart(
                 textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
 
                 val tooltipX = barCenter
-                val tooltipY = chartAreaHeight - finalBarHeight - 20f
+                val tooltipY = localChartAreaHeight - finalBarHeight - 20f
                 val tooltipPadding = 8.dp.toPx()
                 val tooltipWidth = textBounds.width() + tooltipPadding * 2
                 val tooltipHeight = textBounds.height() + tooltipPadding * 2
