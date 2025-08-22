@@ -4,6 +4,9 @@ import android.graphics.Rect
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -22,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 enum class YAxisPosition {
     Left, Right
@@ -48,6 +52,31 @@ fun HealthDataChart(
     var yAxisMax = if (showGoalLine) max(maxDataValue, goalLineValue) else maxDataValue
     if (yAxisMax == goalLineValue) {
         yAxisMax += 1000f
+    }
+
+    val goalLineAlpha by animateFloatAsState(
+        targetValue = if (data.isNotEmpty() && showGoalLine && yAxisMax > 0) 1f else 0f,
+        animationSpec = tween(durationMillis = 300)
+    )
+
+    val animatables = remember { mutableStateMapOf<String, Animatable<Float>>() }
+    LaunchedEffect(data) {
+        // Remove animatables for bars that no longer exist
+        (animatables.keys - data.map { it.fullLabel }.toSet()).forEach {
+            animatables.remove(it)
+        }
+
+        // Add/update animatables for current bars
+        data.forEach { dataPoint ->
+            val key = dataPoint.fullLabel
+            val targetValue = dataPoint.value
+            if (!animatables.containsKey(key)) {
+                animatables[key] = Animatable(0f) // New bars start from 0
+            }
+            launch {
+                animatables[key]?.animateTo(targetValue, animationSpec = tween(300))
+            }
+        }
     }
 
     Canvas(
@@ -99,7 +128,7 @@ fun HealthDataChart(
             textAlign = if (yAxisPosition == YAxisPosition.Left) android.graphics.Paint.Align.RIGHT else android.graphics.Paint.Align.LEFT
             textSize = 12.sp.toPx()
         }
-        if (yAxisMax > 0) {
+        if (data.isNotEmpty() && yAxisMax > 0) {
             val labelValues = mutableListOf<Float>()
             (0..numYAxisLabels).forEach { i ->
                 labelValues.add(yAxisMax * i / numYAxisLabels)
@@ -128,7 +157,8 @@ fun HealthDataChart(
 
         val minBarHeight = 20f
         data.forEachIndexed { index, dataPoint ->
-            val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
+            val animatedValue = animatables[dataPoint.fullLabel]?.value ?: 0f
+            val barHeight = if (yAxisMax > 0) (animatedValue / yAxisMax) * chartAreaHeight else 0f
             val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
             val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
             val barCenter = barX + fixedBarWidth / 2
@@ -156,10 +186,10 @@ fun HealthDataChart(
             }
         }
 
-        if (showGoalLine && yAxisMax > 0) {
+        if (goalLineAlpha > 0f) {
             val goalY = chartAreaHeight - (goalLineValue / yAxisMax) * chartAreaHeight
             drawLine(
-                color = goalLineColor,
+                color = goalLineColor.copy(alpha = goalLineAlpha),
                 start = Offset(x = chartAreaStartX, y = goalY),
                 end = Offset(x = chartAreaStartX + chartAreaWidth, y = goalY),
                 strokeWidth = 2.dp.toPx()
@@ -181,7 +211,8 @@ fun HealthDataChart(
             )
 
             if(showTooltip) {
-                val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
+                val animatedValue = animatables[dataPoint.fullLabel]?.value ?: 0f
+                val barHeight = if (yAxisMax > 0) (animatedValue / yAxisMax) * chartAreaHeight else 0f
                 val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
 
                 // Highlight the selected bar
