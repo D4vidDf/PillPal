@@ -61,9 +61,12 @@ fun HealthDataChart(
 
     val animatables = remember { mutableStateMapOf<String, Animatable<Float>>() }
     LaunchedEffect(data) {
+        val currentKeys = data.map { it.fullLabel }.toSet()
+        val oldKeys = animatables.keys.toSet()
+
         // Remove animatables for bars that no longer exist
-        (animatables.keys - data.map { it.fullLabel }.toSet()).forEach {
-            animatables.remove(it)
+        (oldKeys - currentKeys).forEach { key ->
+            animatables.remove(key)
         }
 
         // Add/update animatables for current bars
@@ -71,7 +74,7 @@ fun HealthDataChart(
             val key = dataPoint.fullLabel
             val targetValue = dataPoint.value
             if (!animatables.containsKey(key)) {
-                animatables[key] = Animatable(0f) // New bars start from 0
+                animatables[key] = Animatable<Float>(0f)
             }
             launch {
                 animatables[key]?.animateTo(targetValue, animationSpec = tween(300))
@@ -157,7 +160,7 @@ fun HealthDataChart(
 
         val minBarHeight = 20f
         data.forEachIndexed { index, dataPoint ->
-            val animatedValue = animatables[dataPoint.fullLabel]?.value ?: 0f
+            val animatedValue: Float = animatables[dataPoint.fullLabel]?.value ?: 0f
             val barHeight = if (yAxisMax > 0) (animatedValue / yAxisMax) * chartAreaHeight else 0f
             val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
             val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
@@ -211,7 +214,7 @@ fun HealthDataChart(
             )
 
             if(showTooltip) {
-                val animatedValue = animatables[dataPoint.fullLabel]?.value ?: 0f
+                val animatedValue: Float = animatables[dataPoint.fullLabel]?.value ?: 0f
                 val barHeight = if (yAxisMax > 0) (animatedValue / yAxisMax) * chartAreaHeight else 0f
                 val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
 
