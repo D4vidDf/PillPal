@@ -120,20 +120,24 @@ fun HealthDataChart(
             }
         }
 
-        val barWidth = chartAreaWidth / data.size
-        val spaceBetweenBars = barWidth * 0.2f
+        val maxBars = 31
+        val fixedBarWidth = (chartAreaWidth / maxBars) * 0.8f
+        val totalBarWidth = data.size * fixedBarWidth
+        val totalSpacing = chartAreaWidth - totalBarWidth
+        val spacing = if (data.size > 0) totalSpacing / (data.size + 1) else 0f
 
         data.forEachIndexed { index, dataPoint ->
-            val minBarHeight = 2f
+            val minBarHeight = 20f
             val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
             val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
-            val barX = chartAreaStartX + index * barWidth
+            val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
+            val barCenter = barX + fixedBarWidth / 2
 
             // Draw the bar with rounded corners
             drawRoundRect(
                 color = barColor,
-                topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
-                size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
+                topLeft = Offset(x = barX, y = chartAreaHeight - finalBarHeight),
+                size = Size(width = fixedBarWidth, height = finalBarHeight),
                 cornerRadius = CornerRadius(10f, 10f)
             )
 
@@ -141,7 +145,7 @@ fun HealthDataChart(
             drawContext.canvas.nativeCanvas.apply {
                 drawText(
                     dataPoint.label,
-                    barX + barWidth / 2,
+                    barCenter,
                     size.height - xAxisAreaHeight + 40f, // Position label below the chart
                     android.graphics.Paint().apply {
                         color = axisLabelColor.toArgb()
@@ -165,8 +169,9 @@ fun HealthDataChart(
         // Dotted line and tooltip on hover
         selectedIndex?.let { index ->
             val dataPoint = data[index]
-            val barX = chartAreaStartX + index * barWidth
-            val barCenter = barX + spaceBetweenBars / 2 + (barWidth - spaceBetweenBars) / 2
+
+            val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
+            val barCenter = barX + fixedBarWidth / 2
 
             drawLine(
                 color = axisLabelColor,
@@ -177,13 +182,13 @@ fun HealthDataChart(
 
             if(showTooltip) {
                 val barHeight = if (yAxisMax > 0) (dataPoint.value / yAxisMax) * chartAreaHeight else 0f
-                val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) 2f else barHeight
+                val finalBarHeight = if (dataPoint.value == 0f && dataPoint.date.isBefore(today.plusDays(1))) minBarHeight else barHeight
 
                 // Highlight the selected bar
                 drawRoundRect(
                     color = barColor.copy(alpha = 0.5f),
-                    topLeft = Offset(x = barX + spaceBetweenBars / 2, y = chartAreaHeight - finalBarHeight),
-                    size = Size(width = barWidth - spaceBetweenBars, height = finalBarHeight),
+                    topLeft = Offset(x = barX, y = chartAreaHeight - finalBarHeight),
+                    size = Size(width = fixedBarWidth, height = finalBarHeight),
                     cornerRadius = CornerRadius(10f, 10f)
                 )
 
