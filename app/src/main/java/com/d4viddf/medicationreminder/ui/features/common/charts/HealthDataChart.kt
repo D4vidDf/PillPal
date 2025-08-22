@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.height
@@ -59,13 +60,16 @@ fun HealthDataChart(
         animationSpec = tween(durationMillis = 300)
     )
 
-    val animatables = remember { mutableStateMapOf<String, Animatable<Float>>() }
+    val animatables = remember { mutableStateMapOf<String, Animatable<Float, AnimationVector1D>>() }
     LaunchedEffect(data) {
-        val currentKeys = data.map { it.fullLabel }.toSet()
-        val oldKeys = animatables.keys.toSet()
-
-        // Remove animatables for bars that no longer exist
-        (oldKeys - currentKeys).forEach { key ->
+        val newKeys = data.map { it.fullLabel }.toSet()
+        val keysToRemove = mutableListOf<String>()
+        for (key in animatables.keys) {
+            if (key !in newKeys) {
+                keysToRemove.add(key)
+            }
+        }
+        keysToRemove.forEach { key ->
             animatables.remove(key)
         }
 
@@ -74,7 +78,7 @@ fun HealthDataChart(
             val key = dataPoint.fullLabel
             val targetValue = dataPoint.value
             if (!animatables.containsKey(key)) {
-                animatables[key] = Animatable<Float>(0f)
+                animatables[key] = Animatable(0f)
             }
             launch {
                 animatables[key]?.animateTo(targetValue, animationSpec = tween(300))
