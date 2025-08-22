@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.common.util.formatNumber
 import com.d4viddf.medicationreminder.ui.features.common.charts.HealthDataChart
 import com.d4viddf.medicationreminder.ui.features.common.charts.YAxisPosition
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
@@ -151,14 +152,14 @@ fun WaterIntakeScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "${totalWaterIntake.toInt()} ml",
+                                text = "${formatNumber(totalWaterIntake.toInt())} ml",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = stringResource(
                                     R.string.water_intake_goal_progress,
-                                    (waterIntakeGoal - totalWaterIntake).toInt()
+                                    formatNumber((waterIntakeGoal - totalWaterIntake).toInt())
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -218,7 +219,7 @@ fun WaterIntakeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(text = "${records.size} ${type ?: "Custom Qty"}")
-                            Text(text = "${records.sumOf { it.volumeMilliliters }.toInt()} ml")
+                            Text(text = "${formatNumber(records.sumOf { it.volumeMilliliters }.toInt())} ml")
                         }
                     }
                 }
@@ -229,9 +230,9 @@ fun WaterIntakeScreen(
                     ) {
                         if (selectedChartBar != null) {
                             val valueText = if (timeRange == TimeRange.YEAR) {
-                                "${selectedChartBar!!.value.roundToInt()} ml (average)"
+                                "${formatNumber(selectedChartBar!!.value.roundToInt())} ml (average)"
                             } else {
-                                "${selectedChartBar!!.value.roundToInt()} ml"
+                                "${formatNumber(selectedChartBar!!.value.roundToInt())} ml"
                             }
                             Text(
                                 text = valueText,
@@ -246,7 +247,7 @@ fun WaterIntakeScreen(
                             Text(
                                 buildAnnotatedString {
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineLarge.fontSize)) {
-                                        append("${headerAverage.roundToInt()} ml")
+                                        append("${formatNumber(headerAverage.roundToInt())} ml")
                                     }
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, fontSize = MaterialTheme.typography.titleLarge.fontSize)) {
                                         append(" at day(average)")
@@ -257,7 +258,7 @@ fun WaterIntakeScreen(
                                 text = stringResource(
                                     R.string.water_intake_goal_reached_days,
                                     headerDaysGoalReached,
-                                    headerTotalIntake.toInt()
+                                    formatNumber(headerTotalIntake.toInt())
                                 ),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -273,9 +274,9 @@ fun WaterIntakeScreen(
                             goalLineValue = waterIntakeGoal.toFloat(),
                             yAxisLabelFormatter = { value ->
                                 if (value >= 1000) {
-                                    "${(value / 1000).toInt()}k"
+                                    "${formatNumber(value.toInt() / 1000)}k"
                                 } else {
-                                    "${value.roundToInt()}"
+                                    formatNumber(value.roundToInt())
                                 }
                             }
                         )
@@ -377,7 +378,7 @@ fun WaterIntakeScreen(
                                 else -> ""
                             }
                             Text(text = text)
-                            Text(text = "${record.second.toInt()} ml")
+                            Text(text = "${formatNumber(record.second.toInt())} ml")
                         }
                     }
                 }

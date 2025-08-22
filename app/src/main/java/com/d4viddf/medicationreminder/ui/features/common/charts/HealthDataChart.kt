@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.common.util.formatNumber
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import kotlin.math.max
@@ -187,7 +188,7 @@ fun HealthDataChart(
                 )
 
                 // Draw the tooltip text above the bar
-                val tooltipText = "${dataPoint.value.roundToInt()} ml on ${dataPoint.fullLabel}"
+                val tooltipText = "${formatNumber(dataPoint.value.roundToInt())} ml on ${dataPoint.fullLabel}"
                 val textPaint = android.graphics.Paint().apply {
                     color = tooltipColor.toArgb()
                     textAlign = android.graphics.Paint.Align.CENTER
