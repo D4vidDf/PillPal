@@ -196,7 +196,6 @@ fun WaterIntakeScreen(
                         Text(
                             text = dateText,
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(
                                 start = Dimensions.PaddingLarge,
                                 top = Dimensions.PaddingLarge,
@@ -313,14 +312,12 @@ fun WaterIntakeScreen(
                     ) {
                         Text(
                             text = dateText,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.headlineSmall
                         )
                         if (timeRange == TimeRange.MONTH || timeRange == TimeRange.YEAR) {
                             Text(
                                 text = stringResource(id = R.string.average),
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineSmall
                             )
                         }
                     }
