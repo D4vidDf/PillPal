@@ -319,8 +319,8 @@ fun WaterIntakeScreen(
                         if (timeRange == TimeRange.MONTH || timeRange == TimeRange.YEAR) {
                             Text(
                                 text = stringResource(id = R.string.average),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
