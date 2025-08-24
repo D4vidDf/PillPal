@@ -301,10 +301,10 @@ fun WaterIntakeScreen(
                 item {
                     Text(
                         text = dateText,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(
-                            start = Dimensions.PaddingMedium,
+                            start = Dimensions.PaddingLarge,
                             top = Dimensions.PaddingLarge,
                             bottom = Dimensions.PaddingLarge
                         )

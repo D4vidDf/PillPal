@@ -156,21 +156,22 @@ fun HealthDataChart(
             }
         }
 
-        val barWidth = if (data.isNotEmpty()) (chartAreaWidth / data.size) * 0.6f else 0f
-        val spacing = if (data.isNotEmpty()) (chartAreaWidth / data.size) * 0.4f else 0f
-        val totalContentWidth = (barWidth + spacing) * data.size
-        val startOffset = (chartAreaWidth - totalContentWidth) / 2
+        val maxBars = 31
+        val fixedBarWidth = (chartAreaWidth / maxBars) * 0.8f
+        val totalBarWidth = data.size * fixedBarWidth
+        val totalSpacing = chartAreaWidth - totalBarWidth
+        val spacing = if (data.size > 0) totalSpacing / (data.size + 1) else 0f
 
         data.forEachIndexed { index, dataPoint ->
             val finalBarHeight = animatables[dataPoint.fullLabel]?.value ?: 0f
-            val barX = chartAreaStartX + startOffset + index * (barWidth + spacing)
-            val barCenter = barX + barWidth / 2
+            val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
+            val barCenter = barX + fixedBarWidth / 2
 
             // Draw the bar with rounded corners
             drawRoundRect(
                 color = barColor,
                 topLeft = Offset(x = barX, y = localChartAreaHeight - finalBarHeight),
-                size = Size(width = barWidth, height = finalBarHeight),
+                size = Size(width = fixedBarWidth, height = finalBarHeight),
                 cornerRadius = CornerRadius(10f, 10f)
             )
 
@@ -203,8 +204,8 @@ fun HealthDataChart(
         selectedIndex?.let { index ->
             val dataPoint = data[index]
 
-            val barX = chartAreaStartX + startOffset + index * (barWidth + spacing)
-            val barCenter = barX + barWidth / 2
+            val barX = chartAreaStartX + spacing + index * (fixedBarWidth + spacing)
+            val barCenter = barX + fixedBarWidth / 2
 
             drawLine(
                 color = axisLabelColor,
@@ -220,7 +221,7 @@ fun HealthDataChart(
                 drawRoundRect(
                     color = barColor.copy(alpha = 0.5f),
                     topLeft = Offset(x = barX, y = localChartAreaHeight - finalBarHeight),
-                    size = Size(width = barWidth, height = finalBarHeight),
+                    size = Size(width = fixedBarWidth, height = finalBarHeight),
                     cornerRadius = CornerRadius(10f, 10f)
                 )
 
