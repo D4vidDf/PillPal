@@ -194,7 +194,7 @@ fun WaterIntakeScreen(
                 item {
                     if (waterIntakeByType.isNotEmpty()) {
                         Text(
-                            text = dateRangeText,
+                            text = dateText,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(
