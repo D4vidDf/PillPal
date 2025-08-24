@@ -182,8 +182,8 @@ fun WaterIntakeScreen(
                     }
                 }
 
-                if (waterIntakeByType.isNotEmpty()) {
-                    item {
+                item {
+                    if (waterIntakeByType.isNotEmpty()) {
                         Text(
                             text = dateRangeText,
                             style = MaterialTheme.typography.headlineSmall,
@@ -192,9 +192,8 @@ fun WaterIntakeScreen(
                         )
                     }
                 }
-
-                if (waterIntakeByType.isNotEmpty()) {
-                    item {
+                item {
+                    if (waterIntakeByType.isNotEmpty()) {
                         Text(
                             text = stringResource(R.string.water_intake_records_title),
                             style = MaterialTheme.typography.titleMedium,
@@ -362,33 +361,7 @@ fun WaterIntakeScreen(
                             val startOfWeek = recordDate.with(weekFields.dayOfWeek(), 1)
                             val yesterday = today.minusDays(1)
 
-                            val text = when (timeRange) {
-                                TimeRange.WEEK -> when (recordDate) {
-                                    today -> stringResource(R.string.today)
-                                    yesterday -> stringResource(R.string.yesterday)
-                                    else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE", Locale.getDefault()))
-                                }
-                                TimeRange.MONTH -> {
-                                    val endOfWeek = startOfWeek.plusDays(6)
-                                    val startMonth = startOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale.getDefault()))
-                                    val endMonth = endOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale.getDefault()))
-
-                                    if (startMonth == endMonth) {
-                                        "${startOfWeek.dayOfMonth} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
-                                    } else {
-                                        "${startOfWeek.dayOfMonth} ${startMonth.replace(".", "")} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
-                                    }
-                                }
-                                TimeRange.YEAR -> {
-                                    if (recordDate.month == today.month && recordDate.year == today.year) {
-                                        stringResource(R.string.current_month)
-                                    } else {
-                                        recordDate.format(DateTimeFormatter.ofPattern("MMMM", Locale.getDefault()))
-                                    }
-                                }
-                                else -> ""
-                            }
-                            Text(text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+                            RecordDateText(timeRange = timeRange, recordDate = recordDate, today = today, weekFields = weekFields)
                             Text(text = "${formatNumber(record.second.toInt())} ml")
                         }
                     }
@@ -400,4 +373,36 @@ fun WaterIntakeScreen(
             }
         }
     }
+}
+
+@Composable
+private fun RecordDateText(timeRange: TimeRange, recordDate: LocalDate, today: LocalDate, weekFields: WeekFields) {
+    val text = when (timeRange) {
+        TimeRange.WEEK -> when (recordDate) {
+            today -> stringResource(R.string.today)
+            today.minusDays(1) -> stringResource(R.string.yesterday)
+            else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE", Locale.getDefault()))
+        }
+        TimeRange.MONTH -> {
+            val startOfWeek = recordDate.with(weekFields.dayOfWeek(), 1)
+            val endOfWeek = startOfWeek.plusDays(6)
+            val startMonth = startOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale.getDefault()))
+            val endMonth = endOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale.getDefault()))
+
+            if (startMonth == endMonth) {
+                "${startOfWeek.dayOfMonth} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
+            } else {
+                "${startOfWeek.dayOfMonth} ${startMonth.replace(".", "")} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
+            }
+        }
+        TimeRange.YEAR -> {
+            if (recordDate.month == today.month && recordDate.year == today.year) {
+                stringResource(R.string.current_month)
+            } else {
+                recordDate.format(DateTimeFormatter.ofPattern("MMMM", Locale.getDefault()))
+            }
+        }
+        else -> ""
+    }
+    Text(text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
 }
