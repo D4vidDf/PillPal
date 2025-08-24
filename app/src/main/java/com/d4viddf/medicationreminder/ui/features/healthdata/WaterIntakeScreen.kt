@@ -95,6 +95,8 @@ fun WaterIntakeScreen(
     val dateText = when (dateRangeText) {
         "this_week" -> stringResource(id = R.string.this_week)
         "this_month" -> stringResource(id = R.string.this_month)
+        "today" -> stringResource(id = R.string.today)
+        "yesterday" -> stringResource(id = R.string.yesterday)
         else -> dateRangeText
     }
     Scaffold(

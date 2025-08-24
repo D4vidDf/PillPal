@@ -323,8 +323,8 @@ class WaterIntakeViewModel @Inject constructor(
 
         _dateRangeText.value = when (_timeRange.value) {
             TimeRange.DAY -> when (_selectedDate.value) {
-                today -> "Today"
-                yesterday -> "Yesterday"
+                today -> "today"
+                yesterday -> "yesterday"
                 else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault()))
             }
 
