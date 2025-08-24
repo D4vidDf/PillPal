@@ -195,7 +195,7 @@ fun WaterIntakeScreen(
                     if (waterIntakeByType.isNotEmpty()) {
                         Text(
                             text = dateText,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(
                                 start = Dimensions.PaddingLarge,
                                 top = Dimensions.PaddingLarge,
@@ -312,12 +312,12 @@ fun WaterIntakeScreen(
                     ) {
                         Text(
                             text = dateText,
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         if (timeRange == TimeRange.MONTH || timeRange == TimeRange.YEAR) {
                             Text(
                                 text = stringResource(id = R.string.average),
-                                style = MaterialTheme.typography.headlineSmall
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     }
