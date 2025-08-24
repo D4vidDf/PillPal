@@ -236,7 +236,11 @@ fun WaterIntakeScreen(
             } else {
                 item {
                     Column(
-                        modifier = Modifier.padding(Dimensions.PaddingLarge)
+                        modifier = Modifier.padding(
+                            start = Dimensions.PaddingLarge,
+                            end = Dimensions.PaddingLarge,
+                            top = Dimensions.PaddingLarge
+                        )
                     ) {
                         if (selectedChartBar != null) {
                             val valueText = if (timeRange == TimeRange.YEAR) {
