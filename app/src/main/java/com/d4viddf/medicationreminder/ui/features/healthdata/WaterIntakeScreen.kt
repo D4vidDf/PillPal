@@ -299,16 +299,31 @@ fun WaterIntakeScreen(
 
 
                 item {
-                    Text(
-                        text = dateText,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            start = Dimensions.PaddingLarge,
-                            top = Dimensions.PaddingLarge,
-                            bottom = Dimensions.PaddingLarge
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = Dimensions.PaddingLarge,
+                                end = Dimensions.PaddingLarge,
+                                top = Dimensions.PaddingLarge,
+                                bottom = Dimensions.PaddingLarge
+                            ),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = dateText,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
                         )
-                    )
+                        if (timeRange == TimeRange.MONTH || timeRange == TimeRange.YEAR) {
+                            Text(
+                                text = stringResource(id = R.string.average),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
 
                 val recordsToShow = if (timeRange == TimeRange.YEAR) {

@@ -470,4 +470,6 @@
 
     <string name="this_week">Esta Semana</string>
     <string name="this_month">Este Mes</string>
+
+    <string name="average">Promedio</string>
 </resources>

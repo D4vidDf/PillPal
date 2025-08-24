@@ -487,4 +487,6 @@
 
     <string name="this_week">This Week</string>
     <string name="this_month">This Month</string>
+
+    <string name="average">Average</string>
 </resources>

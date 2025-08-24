@@ -457,4 +457,6 @@
 
     <string name="this_week">Aquesta Setmana</string>
     <string name="this_month">Aquest Mes</string>
+
+    <string name="average">Mitjana</string>
 </resources>

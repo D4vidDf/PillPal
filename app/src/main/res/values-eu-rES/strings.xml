@@ -457,4 +457,6 @@
 
     <string name="this_week">Aste Honetan</string>
     <string name="this_month">Hilabete Honetan</string>
+
+    <string name="average">Batez bestekoa</string>
 </resources>
