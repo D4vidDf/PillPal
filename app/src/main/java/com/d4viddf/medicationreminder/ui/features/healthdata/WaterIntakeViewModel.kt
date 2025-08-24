@@ -204,7 +204,7 @@ class WaterIntakeViewModel @Inject constructor(
                         }
                     }
                     _aggregatedWaterIntakeRecords.value = aggregatedRecords
-                    _yAxisMax.value = yMax * 1.2
+                    _yAxisMax.value = (yMax * 1.2).coerceAtLeast(_dailyGoal.value)
 
                     val today = LocalDate.now()
                     val recordsInPast = allRecordsInRange.filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate().isBefore(today.plusDays(1)) }
