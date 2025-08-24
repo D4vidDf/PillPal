@@ -449,4 +449,12 @@
     <string name="yesterday">Atzo</string>
     <string name="current_week">Aste hau</string>
     <string name="current_month">Hilabete hau</string>
+
+    <string name="time_range_day">Eguna</string>
+    <string name="time_range_week">Astea</string>
+    <string name="time_range_month">Hilabetea</string>
+    <string name="time_range_year">Urtea</string>
+
+    <string name="this_week">Aste Honetan</string>
+    <string name="this_month">Hilabete Honetan</string>
 </resources>

@@ -4,14 +4,16 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import androidx.annotation.StringRes
+import com.d4viddf.medicationreminder.R
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-enum class TimeRange {
-    DAY,
-    WEEK,
-    MONTH,
-    YEAR;
+enum class TimeRange(@StringRes val titleResId: Int) {
+    DAY(R.string.time_range_day),
+    WEEK(R.string.time_range_week),
+    MONTH(R.string.time_range_month),
+    YEAR(R.string.time_range_year);
 
     fun getStartAndEndTimes(date: LocalDate): Pair<Instant, Instant> {
         val start: LocalDate

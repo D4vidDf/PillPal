@@ -127,7 +127,7 @@ fun WaterIntakeScreen(
                             Tab(
                                 selected = timeRange == range,
                                 onClick = { viewModel.setTimeRange(range) },
-                                text = { Text(range.name) }
+                                text = { Text(stringResource(id = range.titleResId)) }
                             )
                         }
                     }
@@ -295,10 +295,10 @@ fun WaterIntakeScreen(
 
                 val weekFields = WeekFields.of(Locale.getDefault())
                 val today = LocalDate.now()
-                val dateText = if (timeRange == TimeRange.WEEK && viewModel.selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
-                    stringResource(R.string.current_week)
-                } else {
-                    dateRangeText
+                val dateText = when (dateRangeText) {
+                    "this_week" -> stringResource(id = R.string.this_week)
+                    "this_month" -> stringResource(id = R.string.this_month)
+                    else -> dateRangeText
                 }
 
                 item {

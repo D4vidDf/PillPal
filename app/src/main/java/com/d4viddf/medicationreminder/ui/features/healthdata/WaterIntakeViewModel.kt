@@ -323,7 +323,7 @@ class WaterIntakeViewModel @Inject constructor(
 
             TimeRange.WEEK -> {
                 if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
-                    "This Week"
+                    "this_week"
                 } else {
                     "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault()))}"
                 }
@@ -331,7 +331,7 @@ class WaterIntakeViewModel @Inject constructor(
 
             TimeRange.MONTH -> {
                 if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
-                    "This Month"
+                    "this_month"
                 } else {
                     _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
                 }
