@@ -204,7 +204,7 @@ class WaterIntakeViewModel @Inject constructor(
                         }
                     }
                     _aggregatedWaterIntakeRecords.value = aggregatedRecords
-                    _yAxisMax.value = yMax * 1.2
+                    _yAxisMax.value = (yMax * 1.2).coerceAtLeast(_dailyGoal.value)
 
                     val today = LocalDate.now()
                     val recordsInPast = allRecordsInRange.filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate().isBefore(today.plusDays(1)) }
@@ -318,14 +318,14 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.DAY -> when (_selectedDate.value) {
                 today -> "Today"
                 yesterday -> "Yesterday"
-                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()))
             }
 
             TimeRange.WEEK -> {
                 if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
                     "This Week"
                 } else {
-                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault()))}"
                 }
             }
 
@@ -333,10 +333,10 @@ class WaterIntakeViewModel @Inject constructor(
                 if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
                     "This Month"
                 } else {
-                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
                 }
             }
-            TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
+            TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy", Locale.getDefault()))
         }
     }
 
@@ -355,12 +355,12 @@ class WaterIntakeViewModel @Inject constructor(
                 value = rawData[date] ?: 0f, // Default to 0 if no data for that day
                 label = date.dayOfWeek.getDisplayName(
                     TextStyle.NARROW,
-                    Locale("es", "ES")
+                    Locale.getDefault()
                 ).first().toString(), // L, M, X, J, V, S, D
                 fullLabel = date.format(
                     DateTimeFormatter.ofPattern(
                         "EEEE, d MMM",
-                        Locale("es", "ES")
+                        Locale.getDefault()
                     )
                 ), // lunes, 18 ago
                 date = date
@@ -372,7 +372,7 @@ class WaterIntakeViewModel @Inject constructor(
     }
 
     private fun formatWeekRange(dateInWeek: LocalDate): String {
-        val locale = Locale("es", "ES")
+        val locale = Locale.getDefault()
         val startOfWeek = dateInWeek.with(DayOfWeek.MONDAY)
         val endOfWeek = dateInWeek.with(DayOfWeek.SUNDAY)
 
@@ -401,11 +401,11 @@ class WaterIntakeViewModel @Inject constructor(
             ChartDataPoint(
                 value = monthMap[date] ?: 0f,
                 label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else "",
-                fullLabel = date.format(DateTimeFormatter.ofPattern("EEEE, d MMM", Locale("es", "ES"))),
+                fullLabel = date.format(DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.getDefault())),
                 date = date
             )
         }
-        _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES")))
+        _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
     }
 
     private fun loadChartDataForYear(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {
@@ -422,12 +422,12 @@ class WaterIntakeViewModel @Inject constructor(
             val monthDate = selectedDate.withMonth(it)
             ChartDataPoint(
                 value = yearMap[month] ?: 0f,
-                label = month.getDisplayName(TextStyle.SHORT, Locale("es", "ES")),
-                fullLabel = month.getDisplayName(TextStyle.FULL, Locale("es", "ES")),
+                label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                fullLabel = month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
                 date = monthDate
             )
         }
-        _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy", Locale("es", "ES")))
+        _chartDateRangeLabel.value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy", Locale.getDefault()))
     }
 
     private fun loadChartDataForDay(selectedDate: LocalDate, allRecordsInRange: List<WaterIntake>) {

@@ -437,4 +437,14 @@
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
     <string name="no_missed_schedules">No missed doses! You\'re on track</string>
+
+    <string name="water_intake_remaining_goal">Restante: %1$s ml para o obxectivo</string>
+    <string name="water_intake_records_title">Rexistros</string>
+    <string name="water_intake_custom_quantity">Cantidade personalizada</string>
+    <string name="water_intake_average_day">" de media diaria"</string>
+
+    <string name="today">Hoxe</string>
+    <string name="yesterday">Onte</string>
+    <string name="current_week">Semana actual</string>
+    <string name="current_month">Mes actual</string>
 </resources>

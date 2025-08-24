@@ -20,11 +20,10 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.common.util.formatNumber
 import androidx.compose.ui.unit.sp
+import com.d4viddf.medicationreminder.ui.theme.Dimensions
 import java.time.LocalDate
-import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -45,16 +44,12 @@ fun HealthDataChart(
     goalLineValue: Float = 0f,
     goalLineColor: Color = Color.Red,
     showTooltip: Boolean = true,
+    yAxisMax: Float,
     yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() },
     onBarSelected: (ChartDataPoint?) -> Unit
 ) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     val allDataIsZero = data.all { it.value == 0f }
-    val maxDataValue = data.maxOfOrNull { it.value } ?: 0f
-    var yAxisMax = if (showGoalLine) max(maxDataValue, goalLineValue) else maxDataValue
-    if (yAxisMax == goalLineValue) {
-        yAxisMax += 1000f
-    }
 
     val goalLineAlpha by animateFloatAsState(
         targetValue = if (data.isNotEmpty() && !allDataIsZero && showGoalLine && yAxisMax > 0) 1f else 0f,
@@ -93,7 +88,7 @@ fun HealthDataChart(
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(250.dp) // Increased height for labels
+            .height(250.dp)
             .pointerInput(data) {
                 detectDragGestures(
                     onDragStart = { offset ->
@@ -150,6 +145,7 @@ fun HealthDataChart(
             if (showGoalLine) {
                 labelValues.add(goalLineValue)
             }
+            labelValues.add(yAxisMax)
 
             labelValues.distinct().sorted().forEach { value ->
                 val y = localChartAreaHeight - (value / yAxisMax) * localChartAreaHeight
@@ -203,7 +199,7 @@ fun HealthDataChart(
                 color = goalLineColor.copy(alpha = goalLineAlpha),
                 start = Offset(x = chartAreaStartX, y = goalY),
                 end = Offset(x = chartAreaStartX + chartAreaWidth, y = goalY),
-                strokeWidth = 2.dp.toPx()
+                strokeWidth = Dimensions.PaddingSmall / 4
             )
         }
 
@@ -245,7 +241,7 @@ fun HealthDataChart(
 
                 val tooltipX = barCenter
                 val tooltipY = localChartAreaHeight - finalBarHeight - 20f
-                val tooltipPadding = 8.dp.toPx()
+                val tooltipPadding = Dimensions.PaddingMedium.toPx()
                 val tooltipWidth = textBounds.width() + tooltipPadding * 2
                 val tooltipHeight = textBounds.height() + tooltipPadding * 2
 
@@ -253,7 +249,7 @@ fun HealthDataChart(
                     color = tooltipBackgroundColor,
                     topLeft = Offset(tooltipX - tooltipWidth / 2, tooltipY - tooltipHeight + textBounds.bottom),
                     size = Size(tooltipWidth, tooltipHeight),
-                    cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
+                    cornerRadius = CornerRadius(Dimensions.PaddingSmall.toPx(), Dimensions.PaddingSmall.toPx())
                 )
 
                 drawContext.canvas.nativeCanvas.apply {

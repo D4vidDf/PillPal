@@ -45,7 +45,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -106,18 +105,20 @@ fun WaterIntakeScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { navController.navigate(Screen.LogWater.route) },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text(text = stringResource(id = R.string.log_water)) }
-            )
+            if (widthSizeClass == WindowWidthSizeClass.Compact) {
+                ExtendedFloatingActionButton(
+                    onClick = { navController.navigate(Screen.LogWater.route) },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text(text = stringResource(id = R.string.log_water)) }
+                )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(horizontal = Dimensions.PaddingLarge)
+            contentPadding = PaddingValues(horizontal = Dimensions.PaddingMedium)
         ) {
             stickyHeader {
                 Column(Modifier.background(MaterialTheme.colorScheme.background)) {
@@ -157,7 +158,7 @@ fun WaterIntakeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Remaining: ${formatNumber((waterIntakeGoal - totalWaterIntake).toInt())} ml to goal",
+                                text = stringResource(id = R.string.water_intake_remaining_goal, formatNumber((waterIntakeGoal - totalWaterIntake).toInt())),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -170,7 +171,7 @@ fun WaterIntakeScreen(
                             CircularProgressIndicator(
                                 progress = { animatedProgress },
                                 modifier = Modifier.size(100.dp),
-                                strokeWidth = 8.dp
+                                strokeWidth = Dimensions.PaddingMedium
                             )
                             Text(
                                 text = "${(totalWaterIntake / waterIntakeGoal * 100).toInt()}%",
@@ -181,23 +182,37 @@ fun WaterIntakeScreen(
                     }
                 }
 
-                item {
-                    Text(
-                        text = dateRangeText,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
-                    )
+                if (waterIntakeByType.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = dateRangeText,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = stringResource(R.string.water_intake_records_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(
+                                start = Dimensions.PaddingLarge,
+                                top = Dimensions.PaddingLarge,
+                                bottom = Dimensions.PaddingSmall
+                            )
+                        )
+                    }
                 }
 
                 val items = waterIntakeByType.entries.toList()
                 itemsIndexed(items, key = { index, (type, _) -> (type ?: "custom") + index }) { index, (type, records) ->
                     val shape = when {
-                        items.size == 1 -> RoundedCornerShape(12.dp)
-                        index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        items.size == 1 -> RoundedCornerShape(Dimensions.PaddingMedium)
+                        index == 0 -> RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
                         index == items.size - 1 -> RoundedCornerShape(
-                            bottomStart = 12.dp,
-                            bottomEnd = 12.dp
+                            bottomStart = Dimensions.PaddingMedium,
+                            bottomEnd = Dimensions.PaddingMedium
                         )
 
                         else -> RoundedCornerShape(0.dp)
@@ -215,7 +230,7 @@ fun WaterIntakeScreen(
                                 .padding(Dimensions.PaddingLarge),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = "${records.size} ${type ?: "Custom Qty"}")
+                            Text(text = "${records.size} ${type ?: stringResource(id = R.string.water_intake_custom_quantity)} ")
                             Text(text = "${formatNumber(records.sumOf { it.volumeMilliliters }.toInt())} ml")
                         }
                     }
@@ -247,12 +262,12 @@ fun WaterIntakeScreen(
                                         append("${formatNumber(headerAverage.roundToInt())} ml")
                                     }
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, fontSize = MaterialTheme.typography.titleLarge.fontSize)) {
-                                        append(" at day(average)")
+                                        append(stringResource(R.string.water_intake_average_day))
                                     }
                                 }
                             )
                             Text(
-                                text = "Goal reached ${headerDaysGoalReached} days | Total: ${formatNumber(headerTotalIntake.toInt())} ml",
+                                text = stringResource(id = R.string.water_intake_goal_reached_days, headerDaysGoalReached, formatNumber(headerTotalIntake.toInt())),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -265,6 +280,7 @@ fun WaterIntakeScreen(
                             showTooltip = false,
                             showGoalLine = true,
                             goalLineValue = waterIntakeGoal.toFloat(),
+                            yAxisMax = yAxisMax.toFloat(),
                             yAxisLabelFormatter = { value ->
                                 if (value >= 1000) {
                                     "${formatNumber(value.toInt() / 1000)}k"
@@ -279,7 +295,7 @@ fun WaterIntakeScreen(
                 val weekFields = WeekFields.of(Locale.getDefault())
                 val today = LocalDate.now()
                 val dateText = if (timeRange == TimeRange.WEEK && viewModel.selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
-                    "Current week"
+                    stringResource(R.string.current_week)
                 } else {
                     dateRangeText
                 }
@@ -305,11 +321,11 @@ fun WaterIntakeScreen(
                     key = { index, record -> record.first.toEpochMilli() + index }
                 ) { index, record ->
                     val shape = when {
-                        aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(12.dp)
-                        index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(Dimensions.PaddingMedium)
+                        index == 0 -> RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
                         index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(
-                            bottomStart = 12.dp,
-                            bottomEnd = 12.dp
+                            bottomStart = Dimensions.PaddingMedium,
+                            bottomEnd = Dimensions.PaddingMedium
                         )
 
                         else -> RoundedCornerShape(0.dp)
@@ -346,14 +362,14 @@ fun WaterIntakeScreen(
 
                             val text = when (timeRange) {
                                 TimeRange.WEEK -> when (recordDate) {
-                                    today -> "Today"
-                                    yesterday -> "Yesterday"
-                                    else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE"))
+                                    today -> stringResource(R.string.today)
+                                    yesterday -> stringResource(R.string.yesterday)
+                                    else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE", Locale.getDefault()))
                                 }
                                 TimeRange.MONTH -> {
                                     val endOfWeek = startOfWeek.plusDays(6)
-                                    val startMonth = startOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale("es", "ES")))
-                                    val endMonth = endOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale("es", "ES")))
+                                    val startMonth = startOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale.getDefault()))
+                                    val endMonth = endOfWeek.format(DateTimeFormatter.ofPattern("MMM", Locale.getDefault()))
 
                                     if (startMonth == endMonth) {
                                         "${startOfWeek.dayOfMonth} - ${endOfWeek.dayOfMonth} ${endMonth.replace(".", "")}"
@@ -363,14 +379,14 @@ fun WaterIntakeScreen(
                                 }
                                 TimeRange.YEAR -> {
                                     if (recordDate.month == today.month && recordDate.year == today.year) {
-                                        "Current month"
+                                        stringResource(R.string.current_month)
                                     } else {
-                                        recordDate.format(DateTimeFormatter.ofPattern("MMMM"))
+                                        recordDate.format(DateTimeFormatter.ofPattern("MMMM", Locale.getDefault()))
                                     }
                                 }
                                 else -> ""
                             }
-                            Text(text = text)
+                            Text(text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
                             Text(text = "${formatNumber(record.second.toInt())} ml")
                         }
                     }

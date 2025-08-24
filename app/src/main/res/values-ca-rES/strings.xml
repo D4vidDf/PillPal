@@ -437,4 +437,14 @@
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
     <string name="no_missed_schedules">No missed doses! You\'re on track</string>
+
+    <string name="water_intake_remaining_goal">Restant: %1$s ml per a l\'objectiu</string>
+    <string name="water_intake_records_title">Registres</string>
+    <string name="water_intake_custom_quantity">Quantitat personalitzada</string>
+    <string name="water_intake_average_day">" de mitjana diària"</string>
+
+    <string name="today">Avui</string>
+    <string name="yesterday">Ahir</string>
+    <string name="current_week">Setmana actual</string>
+    <string name="current_month">Mes actual</string>
 </resources>
