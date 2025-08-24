@@ -450,8 +450,8 @@
     <string name="log_weight">Registrar Peso</string>
     <string name="log_water">Registrar Agua</string>
     <string name="log_temperature">Registrar Temperatura</string>
-    <string name="water_intake_goal_progress">Estás a %1$d ml de tu objetivo diario de 4000 ml</string>
-    <string name="water_intake_goal_reached_days">Has alcanzado tu objetivo %1$d día(s) y bebido un total de %2$d ml</string>
+    <string name="water_intake_goal_progress">Estás a %1$s ml de tu objetivo diario de 4000 ml</string>
+    <string name="water_intake_goal_reached_days">Has alcanzado tu objetivo %1$d día(s) y bebido un total de %2$s ml</string>
 
     <string name="water_intake_remaining_goal">Restante: %1$s ml para el objetivo</string>
     <string name="water_intake_records_title">Registros</string>

@@ -437,6 +437,8 @@
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
     <string name="no_missed_schedules">No missed doses! You\'re on track</string>
+    <string name="water_intake_goal_progress">%1$sml falta zaizkizu zure eguneroko 4000ml-ko helburua lortzeko</string>
+    <string name="water_intake_goal_reached_days">Orain arte, zure helburua %1$d egunetan lortu duzu eta guztira %2$sml edan duzu</string>
 
     <string name="water_intake_remaining_goal">Gainerakoa: %1$s ml helbururako</string>
     <string name="water_intake_records_title">Erregistroak</string>

@@ -493,8 +493,8 @@
     <string name="log_weight">Log Weight</string>
     <string name="log_water">Log Water</string>
     <string name="log_temperature">Log Temperature</string>
-    <string name="water_intake_goal_progress">You are %1$dml away from reaching your daily goal of 4000ml</string>
-    <string name="water_intake_goal_reached_days">So far, you have reached your goal %1$d day(s) and have drunk a total of %2$dml</string>
+    <string name="water_intake_goal_progress">You are %1$sml away from reaching your daily goal of 4000ml</string>
+    <string name="water_intake_goal_reached_days">So far, you have reached your goal %1$d day(s) and have drunk a total of %2$sml</string>
 
     <string name="water_intake_remaining_goal">Remaining: %1$s ml to goal</string>
     <string name="water_intake_records_title">Records</string>
@@ -505,5 +505,4 @@
     <string name="yesterday">Yesterday</string>
     <string name="current_week">Current week</string>
     <string name="current_month">Current month</string>
-
 </resources>
