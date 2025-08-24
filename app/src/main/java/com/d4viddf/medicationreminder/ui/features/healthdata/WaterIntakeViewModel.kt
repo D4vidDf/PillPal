@@ -194,8 +194,15 @@ class WaterIntakeViewModel @Inject constructor(
                         }
 
                         TimeRange.MONTH -> {
+                            val dailyIntakes = allRecordsInRange
+                                .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+                                .mapValues { (_, dayRecords) -> dayRecords.sumOf { it.volumeMilliliters } }
+
                             val aggregated = aggregateByWeek(allRecordsInRange)
-                            aggregated to (aggregated.maxOfOrNull { it.second } ?: _dailyGoal.value)
+
+                            val yMax = dailyIntakes.values.maxOrNull()
+
+                            aggregated to (yMax ?: _dailyGoal.value)
                         }
 
                         TimeRange.YEAR -> {
