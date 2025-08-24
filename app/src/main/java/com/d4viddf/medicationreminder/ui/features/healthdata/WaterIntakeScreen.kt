@@ -191,7 +191,9 @@ fun WaterIntakeScreen(
                             modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
                         )
                     }
+                }
 
+                if (waterIntakeByType.isNotEmpty()) {
                     item {
                         Text(
                             text = stringResource(R.string.water_intake_records_title),

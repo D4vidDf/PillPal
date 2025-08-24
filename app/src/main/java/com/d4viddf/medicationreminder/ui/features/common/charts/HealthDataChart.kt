@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.ui.common.util.formatNumber
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.ui.theme.Dimensions
@@ -199,7 +200,7 @@ fun HealthDataChart(
                 color = goalLineColor.copy(alpha = goalLineAlpha),
                 start = Offset(x = chartAreaStartX, y = goalY),
                 end = Offset(x = chartAreaStartX + chartAreaWidth, y = goalY),
-                strokeWidth = Dimensions.PaddingSmall / 4
+                strokeWidth = (Dimensions.PaddingSmall / 4).toPx()
             )
         }
 
