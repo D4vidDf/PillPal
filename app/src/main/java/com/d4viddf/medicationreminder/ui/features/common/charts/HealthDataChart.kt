@@ -88,7 +88,7 @@ fun HealthDataChart(
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(300.dp)
+            .height(250.dp)
             .pointerInput(data) {
                 detectDragGestures(
                     onDragStart = { offset ->
@@ -139,9 +139,6 @@ fun HealthDataChart(
         }
         if (data.isNotEmpty() && !allDataIsZero && yAxisMax > 0) {
             val labelValues = mutableListOf<Float>()
-            (0..numYAxisLabels).forEach { i ->
-                labelValues.add(yAxisMax * i / numYAxisLabels)
-            }
             if (showGoalLine) {
                 labelValues.add(goalLineValue)
             }

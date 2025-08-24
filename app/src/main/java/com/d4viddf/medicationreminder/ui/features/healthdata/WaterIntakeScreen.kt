@@ -195,19 +195,10 @@ fun WaterIntakeScreen(
                             text = dateRangeText,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
-                        )
-                    }
-                }
-                item {
-                    if (waterIntakeByType.isNotEmpty()) {
-                        Text(
-                            text = stringResource(R.string.water_intake_records_title),
-                            style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(
                                 start = Dimensions.PaddingLarge,
                                 top = Dimensions.PaddingLarge,
-                                bottom = Dimensions.PaddingSmall
+                                bottom = Dimensions.PaddingLarge
                             )
                         )
                     }
@@ -306,7 +297,11 @@ fun WaterIntakeScreen(
                         text = dateText,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = Dimensions.PaddingMedium, top = Dimensions.PaddingLarge)
+                        modifier = Modifier.padding(
+                            start = Dimensions.PaddingMedium,
+                            top = Dimensions.PaddingLarge,
+                            bottom = Dimensions.PaddingLarge
+                        )
                     )
                 }
 
@@ -322,9 +317,9 @@ fun WaterIntakeScreen(
                     key = { index, record -> record.first.toEpochMilli() + index }
                 ) { index, record ->
                     val shape = when {
-                        aggregatedWaterIntakeRecords.size == 1 -> RoundedCornerShape(Dimensions.PaddingMedium)
+                        recordsToShow.size == 1 -> RoundedCornerShape(Dimensions.PaddingMedium)
                         index == 0 -> RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
-                        index == aggregatedWaterIntakeRecords.size - 1 -> RoundedCornerShape(
+                        index == recordsToShow.size - 1 -> RoundedCornerShape(
                             bottomStart = Dimensions.PaddingMedium,
                             bottomEnd = Dimensions.PaddingMedium
                         )
@@ -377,10 +372,10 @@ fun WaterIntakeScreen(
 @Composable
 private fun RecordDateText(timeRange: TimeRange, recordDate: LocalDate, today: LocalDate, weekFields: WeekFields) {
     val text = when (timeRange) {
-        TimeRange.WEEK -> when (recordDate) {
+        TimeRange.DAY, TimeRange.WEEK -> when (recordDate) {
             today -> stringResource(R.string.today)
             today.minusDays(1) -> stringResource(R.string.yesterday)
-            else -> recordDate.format(DateTimeFormatter.ofPattern("EEEE", Locale.getDefault()))
+            else -> recordDate.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault()))
         }
         TimeRange.MONTH -> {
             val startOfWeek = recordDate.with(weekFields.dayOfWeek(), 1)

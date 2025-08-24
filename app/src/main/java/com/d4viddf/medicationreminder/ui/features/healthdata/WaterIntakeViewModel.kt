@@ -204,7 +204,7 @@ class WaterIntakeViewModel @Inject constructor(
                         }
                     }
                     _aggregatedWaterIntakeRecords.value = aggregatedRecords
-                    _yAxisMax.value = (yMax * 1.2).coerceAtLeast(_dailyGoal.value)
+                    _yAxisMax.value = yMax * 1.2
 
                     val today = LocalDate.now()
                     val recordsInPast = allRecordsInRange.filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate().isBefore(today.plusDays(1)) }
@@ -318,14 +318,14 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.DAY -> when (_selectedDate.value) {
                 today -> "Today"
                 yesterday -> "Yesterday"
-                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()))
+                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault()))
             }
 
             TimeRange.WEEK -> {
                 if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
                     "this_week"
                 } else {
-                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault()))}"
+                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))}"
                 }
             }
 
@@ -333,7 +333,7 @@ class WaterIntakeViewModel @Inject constructor(
                 if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
                     "this_month"
                 } else {
-                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
+                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM", Locale.getDefault()))
                 }
             }
             TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy", Locale.getDefault()))
@@ -361,7 +361,7 @@ class WaterIntakeViewModel @Inject constructor(
                     DateTimeFormatter.ofPattern(
                         "EEEE, d MMM",
                         Locale.getDefault()
-                    )
+                    ).withLocale(Locale.getDefault())
                 ), // lunes, 18 ago
                 date = date
             )
