@@ -45,6 +45,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -89,7 +90,13 @@ fun WaterIntakeScreen(
     val headerAverage by viewModel.headerAverage.collectAsState()
     val headerDaysGoalReached by viewModel.headerDaysGoalReached.collectAsState()
     val headerTotalIntake by viewModel.headerTotalIntake.collectAsState()
-
+    val weekFields = WeekFields.of(Locale.getDefault())
+    val today = LocalDate.now()
+    val dateText = when (dateRangeText) {
+        "this_week" -> stringResource(id = R.string.this_week)
+        "this_month" -> stringResource(id = R.string.this_month)
+        else -> dateRangeText
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -132,7 +139,7 @@ fun WaterIntakeScreen(
                         }
                     }
                     DateRangeSelector(
-                        dateRange = dateRangeText,
+                        dateRange = dateText,
                         onPreviousClick = viewModel::onPreviousClick,
                         onNextClick = viewModel::onNextClick,
                         isNextEnabled = isNextEnabled,
@@ -221,8 +228,7 @@ fun WaterIntakeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 1.dp)
-                            .padding(horizontal = Dimensions.PaddingLarge),
+                            .padding(vertical = 1.dp),
                         shape = shape
                     ) {
                         Row(
@@ -293,20 +299,14 @@ fun WaterIntakeScreen(
                     }
                 }
 
-                val weekFields = WeekFields.of(Locale.getDefault())
-                val today = LocalDate.now()
-                val dateText = when (dateRangeText) {
-                    "this_week" -> stringResource(id = R.string.this_week)
-                    "this_month" -> stringResource(id = R.string.this_month)
-                    else -> dateRangeText
-                }
+
 
                 item {
                     Text(
                         text = dateText,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = Dimensions.PaddingLarge, top = Dimensions.PaddingLarge)
+                        modifier = Modifier.padding(start = Dimensions.PaddingMedium, top = Dimensions.PaddingLarge)
                     )
                 }
 
@@ -335,7 +335,6 @@ fun WaterIntakeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 1.dp)
-                            .padding(horizontal = Dimensions.PaddingLarge)
                             .clickable {
                                 viewModel.onHistoryItemClick(
                                     when (timeRange) {
