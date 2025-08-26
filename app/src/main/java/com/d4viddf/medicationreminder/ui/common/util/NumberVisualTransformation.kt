@@ -11,27 +11,32 @@ class NumberVisualTransformation : VisualTransformation {
 
     override fun filter(text: AnnotatedString): TransformedText {
         val originalText = text.text
+        if (originalText.isEmpty()) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
         val formattedText = try {
             formatter.format(originalText.toLong())
         } catch (e: NumberFormatException) {
-            originalText
+            return TransformedText(text, OffsetMapping.Identity)
         }
 
         val offsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
-                val commas = formattedText.count { it == ',' }
-                return offset + commas
+                val originalStr = originalText.take(offset)
+                val formattedStr = try {
+                    formatter.format(originalStr.toLong())
+                } catch (e: NumberFormatException) {
+                    originalStr
+                }
+                return formattedStr.length
             }
 
             override fun transformedToOriginal(offset: Int): Int {
-                val commas = formattedText.substring(0, offset).count { it == ',' }
-                return offset - commas
+                return formattedText.take(offset).count { it.isDigit() }
             }
         }
 
-        return TransformedText(
-            text = AnnotatedString(formattedText),
-            offsetMapping = offsetMapping
-        )
+        return TransformedText(AnnotatedString(formattedText), offsetMapping)
     }
 }
