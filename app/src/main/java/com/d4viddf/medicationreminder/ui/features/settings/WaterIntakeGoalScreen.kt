@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.common.util.NumberVisualTransformation
 import com.d4viddf.medicationreminder.ui.theme.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +77,7 @@ fun WaterIntakeGoalScreen(
                     textAlign = TextAlign.Center
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = NumberVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
