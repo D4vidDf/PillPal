@@ -475,7 +475,7 @@
 
     <string name="nutrition_weight_settings_title">Nutrición y Peso</string>
 
-    <string name="daily_water_intake_goal">Objetivo diario de ingesta de agua</string>
+    <string name="daily_water_intake_goal">Objetivo</string>
     <string name="water_intake_goal_ml">Objetivo (ml)</string>
     <string name="save">Guardar</string>
 

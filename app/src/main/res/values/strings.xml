@@ -518,7 +518,7 @@
 
     <string name="nutrition_weight_settings_title">Nutrition and Weight</string>
 
-    <string name="daily_water_intake_goal">Daily Water Intake Goal</string>
+    <string name="daily_water_intake_goal">Goal</string>
     <string name="water_intake_goal_ml">Goal (ml)</string>
     <string name="save">Save</string>
 

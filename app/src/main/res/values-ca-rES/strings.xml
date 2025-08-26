@@ -462,7 +462,7 @@
 
     <string name="nutrition_weight_settings_title">Nutrició i Pes</string>
 
-    <string name="daily_water_intake_goal">Objectiu diari d\'ingesta d\'aigua</string>
+    <string name="daily_water_intake_goal">Objectiu</string>
     <string name="water_intake_goal_ml">Objectiu (ml)</string>
     <string name="save">Desa</string>
 
