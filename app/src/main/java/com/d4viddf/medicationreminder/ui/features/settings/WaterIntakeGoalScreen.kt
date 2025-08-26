@@ -22,8 +22,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -90,8 +90,9 @@ fun WaterIntakeGoalScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val buttonSize = 48.dp
-                TextButton(
-                    onClick = {
+                ToggleButton(
+                    checked = false,
+                    onCheckedChange = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
                     },
@@ -103,8 +104,9 @@ fun WaterIntakeGoalScreen(
                     text = "100 ml",
                     modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge)
                 )
-                TextButton(
-                    onClick = {
+                ToggleButton(
+                    checked = false,
+                    onCheckedChange = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
                     },
