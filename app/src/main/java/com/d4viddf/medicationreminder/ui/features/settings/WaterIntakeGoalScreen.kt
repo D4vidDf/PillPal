@@ -20,10 +20,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -90,13 +89,13 @@ fun WaterIntakeGoalScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val buttonSize = 48.dp
-                ToggleButton(
-                    checked = false,
-                    onCheckedChange = {
+                OutlinedButton(
+                    onClick = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
                     },
-                    modifier = Modifier.size(buttonSize)
+                    modifier = Modifier.size(buttonSize),
+                    shape = RoundedCornerShape(topStart = 50, bottomStart = 50)
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Decrement")
                 }
@@ -104,13 +103,13 @@ fun WaterIntakeGoalScreen(
                     text = "100 ml",
                     modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge)
                 )
-                ToggleButton(
-                    checked = false,
-                    onCheckedChange = {
+                OutlinedButton(
+                    onClick = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
                     },
-                    modifier = Modifier.size(buttonSize)
+                    modifier = Modifier.size(buttonSize),
+                    shape = RoundedCornerShape(topEnd = 50, bottomEnd = 50)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Increment")
                 }
