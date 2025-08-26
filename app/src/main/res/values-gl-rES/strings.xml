@@ -459,4 +459,18 @@
     <string name="this_month">Este Mes</string>
 
     <string name="average">Media</string>
+
+    <string name="nutrition_weight_settings_title">Nutrición e Peso</string>
+
+    <string name="daily_water_intake_goal">Obxectivo</string>
+    <string name="water_intake_goal_ml">Obxectivo (ml)</string>
+    <string name="save">Gardar</string>
+
+    <string name="weight_goal">Obxectivo de Peso</string>
+    <string name="lose_weight">Perder Peso</string>
+    <string name="gain_weight">Gañar Peso</string>
+    <string name="weight_goal_kg">Obxectivo (kg)</string>
+
+    <string name="ml_at_day">ml ao día</string>
+    <string name="set_objective">Establecer Obxectivo</string>
 </resources>

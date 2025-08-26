@@ -21,8 +21,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -37,6 +40,9 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -108,6 +114,27 @@ fun WaterIntakeScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                             contentDescription = stringResource(id = R.string.back)
+                        )
+                    }
+                },
+                actions = {
+                    var showMenu by remember { mutableStateOf(false) }
+                    IconButton(onClick = { showMenu = !showMenu }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(id = R.string.settings)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(id = R.string.nutrition_weight_settings_title)) },
+                            onClick = {
+                                navController.navigate(Screen.NutritionWeightSettings.route)
+                                showMenu = false
+                            }
                         )
                     }
                 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.features.common.charts.ChartDataPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WaterIntakeViewModel @Inject constructor(
-    private val healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _waterIntakeRecords = MutableStateFlow<List<WaterIntake>>(emptyList())
@@ -97,6 +99,11 @@ class WaterIntakeViewModel @Inject constructor(
     val headerTotalIntake: StateFlow<Double> = _headerTotalIntake.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            userPreferencesRepository.waterIntakeGoalFlow.collect {
+                _dailyGoal.value = it.toDouble()
+            }
+        }
         updateDateAndButtonStates()
         fetchWaterIntakeRecords()
     }

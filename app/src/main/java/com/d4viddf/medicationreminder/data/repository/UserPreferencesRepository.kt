@@ -33,6 +33,9 @@ class UserPreferencesRepository @Inject constructor(
     private object PreferencesKeys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
+        val WATER_INTAKE_GOAL = intPreferencesKey("water_intake_goal")
+        val WEIGHT_GOAL_TYPE = stringPreferencesKey("weight_goal_type")
+        val WEIGHT_GOAL_VALUE = floatPreferencesKey("weight_goal_value")
         // --- NEW KEY FOR HOME LAYOUT ---
         val HOME_LAYOUT_CONFIG = stringPreferencesKey("home_layout_config")
     }
@@ -108,6 +111,39 @@ class UserPreferencesRepository @Inject constructor(
         val jsonString = gson.toJson(sections)
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.HOME_LAYOUT_CONFIG] = jsonString
+        }
+    }
+
+    val waterIntakeGoalFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WATER_INTAKE_GOAL] ?: 4000
+        }
+
+    suspend fun setWaterIntakeGoal(goal: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WATER_INTAKE_GOAL] = goal
+        }
+    }
+
+    val weightGoalTypeFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_TYPE] ?: "lose"
+        }
+
+    suspend fun setWeightGoalType(type: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_TYPE] = type
+        }
+    }
+
+    val weightGoalValueFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_VALUE] ?: 0f
+        }
+
+    suspend fun setWeightGoalValue(value: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_VALUE] = value
         }
     }
 }
