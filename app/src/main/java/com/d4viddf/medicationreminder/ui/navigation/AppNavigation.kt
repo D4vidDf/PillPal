@@ -44,6 +44,7 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.WaterIntakeScreen
 import com.d4viddf.medicationreminder.ui.features.healthdata.WeightScreen
 import com.d4viddf.medicationreminder.ui.features.home.HomeScreen
 import com.d4viddf.medicationreminder.ui.features.settings.NutritionWeightSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.WaterIntakeGoalScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
 import com.d4viddf.medicationreminder.ui.features.medication.schedules.AllSchedulesScreen
@@ -114,6 +115,7 @@ sealed class Screen(val route: String) {
     object BodyTemperature : Screen("bodyTemperature")
     object ManageWaterPresets : Screen("manageWaterPresets")
     object NutritionWeightSettings : Screen("nutritionWeightSettings")
+    object WaterIntakeGoal : Screen("waterIntakeGoal")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -425,6 +427,9 @@ fun AppNavigation(
             }
             composable(Screen.NutritionWeightSettings.route) {
                 NutritionWeightSettingsScreen(navController = navController)
+            }
+            composable(Screen.WaterIntakeGoal.route) {
+                WaterIntakeGoalScreen(navController = navController)
             }
         }
     }

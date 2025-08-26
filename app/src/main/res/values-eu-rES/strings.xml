@@ -470,4 +470,7 @@
     <string name="lose_weight">Pisua Galdu</string>
     <string name="gain_weight">Pisua Irabazi</string>
     <string name="weight_goal_kg">Helburua (kg)</string>
+
+    <string name="ml_at_day">ml egunean</string>
+    <string name="set_objective">Helburua Ezarri</string>
 </resources>

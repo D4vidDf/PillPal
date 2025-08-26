@@ -500,4 +500,7 @@
     <string name="lose_weight">Lose Weight</string>
     <string name="gain_weight">Gain Weight</string>
     <string name="weight_goal_kg">Goal (kg)</string>
+
+    <string name="ml_at_day">ml at day</string>
+    <string name="set_objective">Set Objective</string>
 </resources>

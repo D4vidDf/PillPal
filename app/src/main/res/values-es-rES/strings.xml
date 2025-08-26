@@ -483,4 +483,7 @@
     <string name="lose_weight">Perder Peso</string>
     <string name="gain_weight">Ganar Peso</string>
     <string name="weight_goal_kg">Objetivo (kg)</string>
+
+    <string name="ml_at_day">ml al día</string>
+    <string name="set_objective">Establecer Objetivo</string>
 </resources>

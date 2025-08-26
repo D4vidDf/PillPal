@@ -470,4 +470,7 @@
     <string name="lose_weight">Perdre Pes</string>
     <string name="gain_weight">Guanyar Pes</string>
     <string name="weight_goal_kg">Objectiu (kg)</string>
+
+    <string name="ml_at_day">ml al dia</string>
+    <string name="set_objective">Establir Objectiu</string>
 </resources>
