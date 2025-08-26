@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -108,6 +109,14 @@ fun WaterIntakeScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                             contentDescription = stringResource(id = R.string.back)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { navController.navigate(Screen.NutritionWeightSettings.route) }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(id = R.string.settings)
                         )
                     }
                 }

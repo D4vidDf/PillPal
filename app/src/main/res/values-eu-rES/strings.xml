@@ -459,4 +459,15 @@
     <string name="this_month">Hilabete Honetan</string>
 
     <string name="average">Batez bestekoa</string>
+
+    <string name="nutrition_weight_settings_title">Elikadura eta Pisua</string>
+
+    <string name="daily_water_intake_goal">Eguneko ur-hartzearen helburua</string>
+    <string name="water_intake_goal_ml">Helburua (ml)</string>
+    <string name="save">Gorde</string>
+
+    <string name="weight_goal">Pisuaren Helburua</string>
+    <string name="lose_weight">Pisua Galdu</string>
+    <string name="gain_weight">Pisua Irabazi</string>
+    <string name="weight_goal_kg">Helburua (kg)</string>
 </resources>

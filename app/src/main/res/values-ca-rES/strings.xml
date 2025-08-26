@@ -459,4 +459,15 @@
     <string name="this_month">Aquest Mes</string>
 
     <string name="average">Mitjana</string>
+
+    <string name="nutrition_weight_settings_title">Nutrició i Pes</string>
+
+    <string name="daily_water_intake_goal">Objectiu diari d\'ingesta d\'aigua</string>
+    <string name="water_intake_goal_ml">Objectiu (ml)</string>
+    <string name="save">Desa</string>
+
+    <string name="weight_goal">Objectiu de Pes</string>
+    <string name="lose_weight">Perdre Pes</string>
+    <string name="gain_weight">Guanyar Pes</string>
+    <string name="weight_goal_kg">Objectiu (kg)</string>
 </resources>
