@@ -89,27 +89,23 @@ fun WaterIntakeGoalScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val buttonSize = 48.dp
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
                     },
                     modifier = Modifier.size(buttonSize),
-                    shape = RoundedCornerShape(topStart = 50, bottomStart = 50)
+                    shape = RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp, topEnd = 0.dp, bottomEnd = 0.dp)
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Decrement")
                 }
-                Text(
-                    text = "100 ml",
-                    modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge)
-                )
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
                     },
                     modifier = Modifier.size(buttonSize),
-                    shape = RoundedCornerShape(topEnd = 50, bottomEnd = 50)
+                    shape = RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp, topStart = 0.dp, bottomStart = 0.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Increment")
                 }
