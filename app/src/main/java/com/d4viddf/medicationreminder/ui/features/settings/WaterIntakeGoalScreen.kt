@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,22 +20,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -45,7 +45,6 @@ fun WaterIntakeGoalScreen(
     navController: NavController,
     viewModel: NutritionWeightSettingsViewModel = hiltViewModel()
 ) {
-    var isEditing by remember { mutableStateOf(false) }
     val waterIntakeGoal by viewModel.waterIntakeGoal.collectAsState()
 
     Scaffold(
@@ -65,47 +64,53 @@ fun WaterIntakeGoalScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(paddingValues)
                 .padding(Dimensions.PaddingLarge),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            if (isEditing) {
-                OutlinedTextField(
-                    value = waterIntakeGoal,
-                    onValueChange = viewModel::onWaterIntakeGoalChange,
-                    label = { Text(text = stringResource(id = R.string.water_intake_goal_ml)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            } else {
-                Text(
-                    text = waterIntakeGoal,
-                    style = MaterialTheme.typography.displayLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { isEditing = true }
-                )
-            }
+            BasicTextField(
+                value = waterIntakeGoal,
+                onValueChange = viewModel::onWaterIntakeGoalChange,
+                textStyle = MaterialTheme.typography.displayLarge.copy(
+                    textAlign = TextAlign.Center
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
             Text(
                 text = stringResource(id = R.string.ml_at_day),
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.PaddingLarge)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {
-                    val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
-                    viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
-                }) {
-                    Icon(imageVector = Icons.Default.Remove, contentDescription = "Decrease by 100")
+                val buttonSize = 48.dp
+                TextButton(
+                    onClick = {
+                        val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
+                        viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
+                    },
+                    modifier = Modifier.size(buttonSize)
+                ) {
+                    Icon(Icons.Default.Remove, contentDescription = "Decrement")
                 }
-                Text(text = "100 ml")
-                IconButton(onClick = {
-                    val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
-                    viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
-                }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Increase by 100")
+                Text(
+                    text = "100 ml",
+                    modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge)
+                )
+                TextButton(
+                    onClick = {
+                        val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
+                        viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
+                    },
+                    modifier = Modifier.size(buttonSize)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Increment")
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
