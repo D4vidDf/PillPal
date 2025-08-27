@@ -1,9 +1,7 @@
 package com.d4viddf.medicationreminder.ui.features.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,15 +14,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,7 +51,7 @@ fun WaterIntakeGoalScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = R.string.daily_water_intake_goal)) },
+                title = { Text(text = stringResource(id = R.string.water)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -87,29 +86,31 @@ fun WaterIntakeGoalScreen(
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-            Row(
+
+            ButtonGroup(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.Center
             ) {
-                val buttonSize = 48.dp
-                FilledTonalButton(
-                    onClick = {
+                val buttonSize = 64.dp
+                ToggleButton(
+                    checked = false,
+                    onCheckedChange = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
                     },
                     modifier = Modifier.size(buttonSize),
-                    shape = RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp, topEnd = 0.dp, bottomEnd = 0.dp)
+                    shape = ButtonDefaults.outlinedShape
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Decrement")
                 }
-                FilledTonalButton(
-                    onClick = {
+                ToggleButton(
+                    checked = false,
+                    onCheckedChange = {
                         val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
                         viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
                     },
                     modifier = Modifier.size(buttonSize),
-                    shape = RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp, topStart = 0.dp, bottomStart = 0.dp)
+                    shape = ButtonDefaults.outlinedShape
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Increment")
                 }
