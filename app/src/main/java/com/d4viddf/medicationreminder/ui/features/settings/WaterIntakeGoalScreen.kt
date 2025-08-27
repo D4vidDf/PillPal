@@ -29,11 +29,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
@@ -47,6 +49,9 @@ fun WaterIntakeGoalScreen(
     viewModel: NutritionWeightSettingsViewModel = hiltViewModel()
 ) {
     val waterIntakeGoal by viewModel.waterIntakeGoal.collectAsState()
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp > 600
 
     Scaffold(
         topBar = {
@@ -74,7 +79,11 @@ fun WaterIntakeGoalScreen(
             BasicTextField(
                 value = waterIntakeGoal,
                 onValueChange = viewModel::onWaterIntakeGoalChange,
-                textStyle = MaterialTheme.typography.displayLarge.copy(
+                textStyle = (if (isTablet) {
+                    MaterialTheme.typography.displayLarge.copy(fontSize = 96.sp)
+                } else {
+                    MaterialTheme.typography.displayLarge
+                }).copy(
                     textAlign = TextAlign.Center
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -115,7 +124,7 @@ fun WaterIntakeGoalScreen(
                     Icon(Icons.Default.Add, contentDescription = "Increment")
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
             Button(
                 onClick = {
                     viewModel.saveWaterIntakeGoal()

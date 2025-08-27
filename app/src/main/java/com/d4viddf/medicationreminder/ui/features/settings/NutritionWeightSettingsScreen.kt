@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,9 +24,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
@@ -39,6 +42,9 @@ fun NutritionWeightSettingsScreen(
 ) {
     val showNutritionDataDialog = remember { mutableStateOf(false) }
     val showWeightDataDialog = remember { mutableStateOf(false) }
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp > 600
 
     if (showNutritionDataDialog.value) {
         ConfirmationDialog(
@@ -91,22 +97,40 @@ fun NutritionWeightSettingsScreen(
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.PaddingMedium)
-            ) {
-                GoalCard(
-                    title = stringResource(R.string.weight_goal),
-                    goal = "75 kg", // TODO: Replace with actual weight goal
-                    onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
-                    modifier = Modifier.weight(1f)
-                )
-                GoalCard(
-                    title = stringResource(R.string.water_goal),
-                    goal = "2000 ml", // TODO: Replace with actual water goal
-                    onClick = { navController.navigate(Screen.WaterIntakeGoal.route) },
-                    modifier = Modifier.weight(1f)
-                )
+            if (isTablet) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.PaddingMedium)
+                ) {
+                    GoalCard(
+                        title = stringResource(R.string.weight_goal),
+                        goal = "75 kg", // TODO: Replace with actual weight goal
+                        onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
+                        modifier = Modifier.weight(1f)
+                    )
+                    GoalCard(
+                        title = stringResource(R.string.water_goal),
+                        goal = "2000 ml", // TODO: Replace with actual water goal
+                        onClick = { navController.navigate(Screen.WaterIntakeGoal.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingMedium)
+                ) {
+                    GoalCard(
+                        title = stringResource(R.string.weight_goal),
+                        goal = "75 kg", // TODO: Replace with actual weight goal
+                        onClick = { /* navController.navigate(Screen.WeightGoal.route) */ }
+                    )
+                    GoalCard(
+                        title = stringResource(R.string.water_goal),
+                        goal = "2000 ml", // TODO: Replace with actual water goal
+                        onClick = { navController.navigate(Screen.WaterIntakeGoal.route) }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
@@ -141,7 +165,8 @@ fun NutritionWeightSettingsScreen(
             Card(
                 modifier = Modifier.clickable {
                     showNutritionDataDialog.value = true
-                }
+                },
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.delete_nutrition_data),
@@ -150,11 +175,11 @@ fun NutritionWeightSettingsScreen(
                         .fillMaxWidth()
                 )
             }
-            Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
             Card(
                 modifier = Modifier.clickable {
                     showWeightDataDialog.value = true
-                }
+                },
+                shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.delete_weight_data),
