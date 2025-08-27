@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -81,6 +83,7 @@ fun NutritionWeightSettingsScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(Dimensions.PaddingLarge)
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = stringResource(id = R.string.goals),
@@ -95,12 +98,14 @@ fun NutritionWeightSettingsScreen(
                 GoalCard(
                     title = stringResource(R.string.weight_goal),
                     goal = "75 kg", // TODO: Replace with actual weight goal
-                    onClick = { /* navController.navigate(Screen.WeightGoal.route) */ }
+                    onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
+                    modifier = Modifier.weight(1f)
                 )
                 GoalCard(
                     title = stringResource(R.string.water_goal),
                     goal = "2000 ml", // TODO: Replace with actual water goal
-                    onClick = { navController.navigate(Screen.WaterIntakeGoal.route) }
+                    onClick = { navController.navigate(Screen.WaterIntakeGoal.route) },
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -172,15 +177,16 @@ fun GoalCard(
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
             .clickable(onClick = onClick),
     ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.PaddingLarge),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier
+                .padding(Dimensions.PaddingLarge)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
             Text(text = goal, style = MaterialTheme.typography.bodyLarge)
         }
     }
