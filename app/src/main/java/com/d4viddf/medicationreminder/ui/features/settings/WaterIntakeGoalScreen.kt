@@ -72,59 +72,62 @@ fun WaterIntakeGoalScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(Dimensions.PaddingLarge),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(Dimensions.PaddingLarge)
         ) {
-            BasicTextField(
-                value = waterIntakeGoal,
-                onValueChange = viewModel::onWaterIntakeGoalChange,
-                textStyle = (if (isTablet) {
-                    MaterialTheme.typography.displayLarge.copy(fontSize = 96.sp)
-                } else {
-                    MaterialTheme.typography.displayLarge
-                }).copy(
-                    textAlign = TextAlign.Center
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                visualTransformation = NumberVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                text = stringResource(id = R.string.ml_at_day),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-
-            ButtonGroup(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                val buttonSize = 64.dp
-                ToggleButton(
-                    checked = false,
-                    onCheckedChange = {
-                        val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
-                        viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
-                    },
-                    modifier = Modifier.size(buttonSize),
-                    shape = ButtonDefaults.outlinedShape
+                BasicTextField(
+                    value = waterIntakeGoal,
+                    onValueChange = viewModel::onWaterIntakeGoalChange,
+                    textStyle = (if (isTablet) {
+                        MaterialTheme.typography.displayLarge.copy(fontSize = 96.sp)
+                    } else {
+                        MaterialTheme.typography.displayLarge
+                    }).copy(
+                        textAlign = TextAlign.Center
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = NumberVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = stringResource(id = R.string.ml_at_day),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+
+                ButtonGroup(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Decrement")
-                }
-                ToggleButton(
-                    checked = false,
-                    onCheckedChange = {
-                        val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
-                        viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
-                    },
-                    modifier = Modifier.size(buttonSize),
-                    shape = ButtonDefaults.outlinedShape
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Increment")
+                    val buttonSize = 64.dp
+                    ToggleButton(
+                        checked = false,
+                        onCheckedChange = {
+                            val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
+                            viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
+                        },
+                        modifier = Modifier.size(buttonSize),
+                        shape = ButtonDefaults.outlinedShape
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Decrement")
+                    }
+                    ToggleButton(
+                        checked = false,
+                        onCheckedChange = {
+                            val currentGoal = waterIntakeGoal.toIntOrNull() ?: 0
+                            viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
+                        },
+                        modifier = Modifier.size(buttonSize),
+                        shape = ButtonDefaults.outlinedShape
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Increment")
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
             Button(
                 onClick = {
                     viewModel.saveWaterIntakeGoal()
