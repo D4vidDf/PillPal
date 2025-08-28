@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,15 +21,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
@@ -38,20 +43,24 @@ import com.d4viddf.medicationreminder.ui.theme.Dimensions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NutritionWeightSettingsScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: NutritionWeightSettingsViewModel = hiltViewModel()
 ) {
     val showNutritionDataDialog = remember { mutableStateOf(false) }
     val showWeightDataDialog = remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
     val isTablet = screenWidthDp > 600
+    val waterIntakeGoal by viewModel.waterIntakeGoal.collectAsState()
+    val weightGoalValue by viewModel.weightGoalValue.collectAsState()
+
 
     if (showNutritionDataDialog.value) {
         ConfirmationDialog(
             title = stringResource(R.string.delete_nutrition_data),
             text = stringResource(R.string.delete_nutrition_data_confirmation),
             onConfirm = {
-                // TODO: Add logic to delete nutrition data
+                viewModel.deleteNutritionData()
                 showNutritionDataDialog.value = false
             },
             onDismiss = { showNutritionDataDialog.value = false }
@@ -63,7 +72,7 @@ fun NutritionWeightSettingsScreen(
             title = stringResource(R.string.delete_weight_data),
             text = stringResource(R.string.delete_weight_data_confirmation),
             onConfirm = {
-                // TODO: Add logic to delete weight data
+                viewModel.deleteWeightData()
                 showWeightDataDialog.value = false
             },
             onDismiss = { showWeightDataDialog.value = false }
@@ -104,31 +113,32 @@ fun NutritionWeightSettingsScreen(
                 ) {
                     GoalCard(
                         title = stringResource(R.string.weight_goal),
-                        goal = "75 kg", // TODO: Replace with actual weight goal
+                        goal = "$weightGoalValue kg",
                         onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
                         modifier = Modifier.weight(1f)
                     )
                     GoalCard(
                         title = stringResource(R.string.water_goal),
-                        goal = "2000 ml", // TODO: Replace with actual water goal
+                        goal = "$waterIntakeGoal ml",
                         onClick = { navController.navigate(Screen.WaterIntakeGoal.route) },
                         modifier = Modifier.weight(1f)
                     )
                 }
             } else {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingMedium)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     GoalCard(
                         title = stringResource(R.string.weight_goal),
-                        goal = "75 kg", // TODO: Replace with actual weight goal
-                        onClick = { /* navController.navigate(Screen.WeightGoal.route) */ }
+                        goal = "$weightGoalValue kg",
+                        onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
                     )
                     GoalCard(
                         title = stringResource(R.string.water_goal),
-                        goal = "2000 ml", // TODO: Replace with actual water goal
-                        onClick = { navController.navigate(Screen.WaterIntakeGoal.route) }
+                        goal = "$waterIntakeGoal ml",
+                        onClick = { navController.navigate(Screen.WaterIntakeGoal.route) },
+                        shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
                     )
                 }
             }
@@ -198,11 +208,13 @@ fun GoalCard(
     title: String,
     goal: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = CardDefaults.shape
 ) {
     Card(
         modifier = modifier
             .clickable(onClick = onClick),
+        shape = shape
     ) {
         Row(
             modifier = Modifier

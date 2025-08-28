@@ -50,4 +50,8 @@ class HealthDataRepository @Inject constructor(
     suspend fun deleteWaterPreset(id: Int) {
         healthDataDao.deleteWaterPreset(id)
     }
+
+    suspend fun deleteAllWaterIntake() {
+        healthDataDao.deleteAllWaterIntake()
+    }
 }

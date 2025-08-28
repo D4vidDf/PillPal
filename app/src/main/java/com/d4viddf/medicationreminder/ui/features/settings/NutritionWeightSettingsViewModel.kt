@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.features.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NutritionWeightSettingsViewModel @Inject constructor(
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val healthDataRepository: HealthDataRepository
 ) : ViewModel() {
     private val _waterIntakeGoal = MutableStateFlow("")
     val waterIntakeGoal = _waterIntakeGoal.asStateFlow()
@@ -74,6 +76,18 @@ class NutritionWeightSettingsViewModel @Inject constructor(
             _weightGoalValue.value.toFloatOrNull()?.let {
                 userPreferencesRepository.setWeightGoalValue(it)
             }
+        }
+    }
+
+    fun deleteNutritionData() {
+        viewModelScope.launch {
+            healthDataRepository.deleteAllWaterIntake()
+        }
+    }
+
+    fun deleteWeightData() {
+        viewModelScope.launch {
+            userPreferencesRepository.deleteWeightGoal()
         }
     }
 }

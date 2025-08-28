@@ -51,6 +51,9 @@ interface HealthDataDao {
     @Query("SELECT * FROM water_intake_records WHERE time BETWEEN :startTime AND :endTime ORDER BY time DESC")
     fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>>
 
+    @Query("DELETE FROM water_intake_records")
+    suspend fun deleteAllWaterIntake()
+
     // --- Water Presets ---
 
     @Query("SELECT * FROM water_presets")
