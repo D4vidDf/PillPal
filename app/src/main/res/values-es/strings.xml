@@ -9,4 +9,5 @@
     <string name="health_connect_settings">Ajustes de Health Connect</string>
     <string name="data">Datos</string>
     <string name="water">Agua</string>
+    <string name="configure_water">Configurar agua</string>
 </resources>

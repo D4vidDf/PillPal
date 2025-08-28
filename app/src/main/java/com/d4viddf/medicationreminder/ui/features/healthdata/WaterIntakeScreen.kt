@@ -130,7 +130,7 @@ fun WaterIntakeScreen(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text(text = stringResource(id = R.string.nutrition_weight_settings_title)) },
+                            text = { Text(text = stringResource(id = R.string.configure_water)) },
                             onClick = {
                                 navController.navigate(Screen.NutritionWeightSettings.route)
                                 showMenu = false

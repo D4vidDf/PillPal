@@ -539,4 +539,5 @@
     <string name="health_connect_settings">Health Connect</string>
     <string name="data">Data</string>
     <string name="water">Water</string>
+    <string name="configure_water">Configure water</string>
 </resources>
