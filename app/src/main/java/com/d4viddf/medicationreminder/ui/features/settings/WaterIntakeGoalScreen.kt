@@ -17,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,7 +42,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.common.util.NumberVisualTransformation
 import com.d4viddf.medicationreminder.ui.theme.Dimensions
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaterIntakeGoalScreen(
     navController: NavController,
@@ -89,6 +87,7 @@ fun WaterIntakeGoalScreen(
                     } else {
                         MaterialTheme.typography.displayLarge
                     }).copy(
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -113,8 +112,8 @@ fun WaterIntakeGoalScreen(
                             viewModel.onWaterIntakeGoalChange((currentGoal - 100).toString())
                         },
                         modifier = Modifier.size(buttonSize),
-                        shapes = ToggleButtonDefaults.shapes()
-                        ) {
+                        shape = ButtonDefaults.outlinedShape
+                    ) {
                         Icon(Icons.Default.Remove, contentDescription = "Decrement")
                     }
                     ToggleButton(
@@ -124,7 +123,7 @@ fun WaterIntakeGoalScreen(
                             viewModel.onWaterIntakeGoalChange((currentGoal + 100).toString())
                         },
                         modifier = Modifier.size(buttonSize),
-                        shapes = ToggleButtonDefaults.shapes()
+                        shape = ButtonDefaults.outlinedShape
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Increment")
                     }

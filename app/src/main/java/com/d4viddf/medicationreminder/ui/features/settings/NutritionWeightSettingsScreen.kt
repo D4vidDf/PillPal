@@ -57,25 +57,25 @@ fun NutritionWeightSettingsScreen(
 
     if (showNutritionDataDialog.value) {
         ConfirmationDialog(
-            dialogTitle = stringResource(R.string.delete_nutrition_data),
-            dialogText = stringResource(R.string.delete_nutrition_data_confirmation),
-            onConfirmation = {
+            title = stringResource(R.string.delete_nutrition_data),
+            text = stringResource(R.string.delete_nutrition_data_confirmation),
+            onConfirm = {
                 viewModel.deleteNutritionData()
                 showNutritionDataDialog.value = false
             },
-            onDismissRequest = { showNutritionDataDialog.value = false }
+            onDismiss = { showNutritionDataDialog.value = false }
         )
     }
 
     if (showWeightDataDialog.value) {
         ConfirmationDialog(
-            dialogTitle = stringResource(R.string.delete_weight_data),
-            dialogText = stringResource(R.string.delete_weight_data_confirmation),
-            onConfirmation = {
+            title = stringResource(R.string.delete_weight_data),
+            text = stringResource(R.string.delete_weight_data_confirmation),
+            onConfirm = {
                 viewModel.deleteWeightData()
                 showWeightDataDialog.value = false
             },
-            onDismissRequest = { showWeightDataDialog.value = false }
+            onDismiss = { showWeightDataDialog.value = false }
         )
     }
 
