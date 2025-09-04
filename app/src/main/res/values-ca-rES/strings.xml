@@ -474,4 +474,11 @@
     <string name="ml_at_day">ml al dia</string>
     <string name="set_objective">Establir Objectiu</string>
     <string name="goal_template">Objectiu: %s</string>
+    <string name="history">Historial</string>
+    <string name="weight_tracker">Seguiment del Pes</string>
+    <string name="body_temperature_tracker">Seguiment de la Temperatura Corporal</string>
+    <string name="time_range_day">Dia</string>
+    <string name="time_range_week">Setmana</string>
+    <string name="time_range_month">Mes</string>
+    <string name="time_range_year">Any</string>
 </resources>

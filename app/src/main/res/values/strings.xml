@@ -540,5 +540,12 @@
     <string name="data">Data</string>
     <string name="water">Water</string>
     <string name="goal_template">Goal: %s</string>
+    <string name="history">History</string>
+    <string name="weight_tracker">Weight Tracker</string>
+    <string name="body_temperature_tracker">Body Temperature Tracker</string>
+    <string name="time_range_day">Day</string>
+    <string name="time_range_week">Week</string>
+    <string name="time_range_month">Month</string>
+    <string name="time_range_year">Year</string>
     <string name="configure_water">Configure water</string>
 </resources>
