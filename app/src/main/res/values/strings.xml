@@ -528,4 +528,16 @@
 
     <string name="ml_at_day">ml at day</string>
     <string name="set_objective">Set Objective</string>
+
+    <string name="delete_nutrition_data">Delete water entries</string>
+    <string name="delete_nutrition_data_confirmation">Are you sure you want to delete all water entries? This action cannot be undone.</string>
+    <string name="delete_weight_data">Delete weight data</string>
+    <string name="delete_weight_data_confirmation">Are you sure you want to delete all weight data? This action cannot be undone.</string>
+    <string name="goals">Goals</string>
+    <string name="water_goal">Water Goal</string>
+    <string name="connection">Connection</string>
+    <string name="health_connect_settings">Health Connect</string>
+    <string name="data">Data</string>
+    <string name="water">Water</string>
+    <string name="configure_water">Configure water</string>
 </resources>

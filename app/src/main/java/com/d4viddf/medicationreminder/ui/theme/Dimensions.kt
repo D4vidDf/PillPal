@@ -6,6 +6,7 @@ object Dimensions {
     val PaddingSmall = 4.dp
     val PaddingMedium = 8.dp
     val PaddingLarge = 16.dp
+    val PaddingExtraLarge = 32.dp
     val PaddingScreen = 24.dp
 
     val FABSize = 56.dp

@@ -146,4 +146,17 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.WEIGHT_GOAL_VALUE] = value
         }
     }
+
+    suspend fun deleteWaterIntakeGoal() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.WATER_INTAKE_GOAL)
+        }
+    }
+
+    suspend fun deleteWeightGoal() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.WEIGHT_GOAL_TYPE)
+            preferences.remove(PreferencesKeys.WEIGHT_GOAL_VALUE)
+        }
+    }
 }
