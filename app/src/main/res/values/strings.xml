@@ -540,6 +540,5 @@
     <string name="data">Data</string>
     <string name="water">Water</string>
     <string name="goal_template">Goal: %s</string>
-    <string name="today">Today</string>
     <string name="configure_water">Configure water</string>
 </resources>

@@ -503,4 +503,5 @@
 
     <string name="ml_at_day">ml at day</string>
     <string name="set_objective">Set Objective</string>
+    <string name="goal_template">Goal: %s</string>
 </resources>

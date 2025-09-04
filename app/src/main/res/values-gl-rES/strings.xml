@@ -473,4 +473,5 @@
 
     <string name="ml_at_day">ml ao día</string>
     <string name="set_objective">Establecer Obxectivo</string>
+    <string name="goal_template">Obxectivo: %s</string>
 </resources>
