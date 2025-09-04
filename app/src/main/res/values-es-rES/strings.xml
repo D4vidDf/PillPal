@@ -500,9 +500,5 @@
     <string name="history">Historial</string>
     <string name="weight_tracker">Seguimiento de Peso</string>
     <string name="body_temperature_tracker">Seguimiento de Temperatura Corporal</string>
-    <string name="time_range_day">Día</string>
-    <string name="time_range_week">Semana</string>
-    <string name="time_range_month">Mes</string>
-    <string name="time_range_year">Año</string>
     <string name="configure_water">Configurar agua</string>
 </resources>

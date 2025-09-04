@@ -477,8 +477,4 @@
     <string name="history">Historia</string>
     <string name="weight_tracker">Pisuaren Jarraipena</string>
     <string name="body_temperature_tracker">Gorputzeko Tenperaturaren Jarraipena</string>
-    <string name="time_range_day">Eguna</string>
-    <string name="time_range_week">Astea</string>
-    <string name="time_range_month">Hilabetea</string>
-    <string name="time_range_year">Urtea</string>
 </resources>

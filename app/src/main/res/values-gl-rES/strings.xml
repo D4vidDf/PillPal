@@ -477,8 +477,4 @@
     <string name="history">Historial</string>
     <string name="weight_tracker">Seguimento do Peso</string>
     <string name="body_temperature_tracker">Seguimento da Temperatura Corporal</string>
-    <string name="time_range_day">Día</string>
-    <string name="time_range_week">Semana</string>
-    <string name="time_range_month">Mes</string>
-    <string name="time_range_year">Ano</string>
 </resources>
