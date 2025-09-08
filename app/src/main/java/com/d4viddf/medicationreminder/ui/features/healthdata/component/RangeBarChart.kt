@@ -59,12 +59,14 @@ fun RangeBarChart(
             val xPos = chartAreaStartX + xStep * (index + 1)
 
             // Draw X-axis label
-            drawContext.canvas.nativeCanvas.drawText(
-                dataPoint.x.roundToInt().toString(),
-                xPos,
-                size.height - 20f,
-                yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
-            )
+            if (index == 0 || index == data.size - 1 || (index + 1) % 5 == 0) {
+                drawContext.canvas.nativeCanvas.drawText(
+                    dataPoint.x.roundToInt().toString(),
+                    xPos,
+                    size.height - 20f,
+                    yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
+                )
+            }
 
             val yMinPos = chartAreaHeight - ((dataPoint.min - minY) / (maxY - minY)) * chartAreaHeight
             val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
