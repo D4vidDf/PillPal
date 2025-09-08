@@ -11,11 +11,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.d4viddf.medicationreminder.ui.features.common.charts.ChartDataPoint
+
+// Define a local data class for the line chart
+data class LineChartPoint(val x: Float, val y: Float)
 
 @Composable
 fun LineChart(
-    data: List<ChartDataPoint>,
+    data: List<LineChartPoint>,
     modifier: Modifier = Modifier,
     showLines: Boolean = true,
     showPoints: Boolean = false,
@@ -73,7 +75,7 @@ fun LineChart(
     }
 }
 
-private fun getChartBounds(data: List<ChartDataPoint>): List<Float> {
+private fun getChartBounds(data: List<LineChartPoint>): List<Float> {
     if (data.isEmpty()) return listOf(0f, 0f, 0f, 0f)
 
     val minX = data.minOf { it.x }

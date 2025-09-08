@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
-import com.d4viddf.medicationreminder.ui.features.common.charts.ChartDataPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChartPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 
 data class TemperatureUiState(
-    val chartData: List<ChartDataPoint> = emptyList(),
+    val chartData: List<LineChartPoint> = emptyList(),
     val temperatureLogs: List<TemperatureLogItem> = emptyList()
 )
 
@@ -54,7 +54,7 @@ class BodyTemperatureViewModel @Inject constructor(
                 .collect { records ->
                     val aggregatedRecords = aggregateRecords(records)
                     val chartData = aggregatedRecords.map {
-                        ChartDataPoint(x = it.first.toEpochMilli().toFloat(), y = it.second.toFloat())
+                        LineChartPoint(x = it.first.toEpochMilli().toFloat(), y = it.second.toFloat())
                     }
                     val temperatureLogs = records.map {
                         TemperatureLogItem(
