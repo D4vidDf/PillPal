@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChart
@@ -28,18 +30,21 @@ import java.time.format.FormatStyle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeightScreen(
-    onBackPressed: () -> Unit,
+    navController: NavController,
+    widthSizeClass: WindowWidthSizeClass,
     viewModel: WeightViewModel = hiltViewModel()
 ) {
     val weightUiState by viewModel.weightUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
+    val dateRangeText by viewModel.dateRangeText.collectAsState()
+    val isNextEnabled by viewModel.isNextEnabled.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.weight_tracker)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
@@ -50,23 +55,45 @@ fun WeightScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
         ) {
+            PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {
+                TimeRange.values().forEach { range ->
+                    Tab(
+                        selected = timeRange == range,
+                        onClick = { viewModel.setTimeRange(range) },
+                        text = { Text(stringResource(id = range.titleResId)) }
+                    )
+                }
+            }
             DateRangeSelector(
-                selectedRange = timeRange,
-                onRangeSelected = { viewModel.setTimeRange(it) }
+                dateRange = dateRangeText,
+                onPreviousClick = viewModel::onPreviousClick,
+                onNextClick = viewModel::onNextClick,
+                isNextEnabled = isNextEnabled,
+                onDateRangeClick = { /* No-op */ },
+                widthSizeClass = widthSizeClass
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             LineChart(
                 data = weightUiState.chartData,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
-                showPoints = true // We'll enable points on the line chart
+                    .height(200.dp)
+                    .padding(horizontal = 16.dp),
+                showPoints = true
             )
+
             Spacer(modifier = Modifier.height(16.dp))
-            Text(stringResource(R.string.history), style = MaterialTheme.typography.titleLarge)
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+
+            Text(
+                text = stringResource(R.string.history),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 items(weightUiState.weightLogs) { weightEntry ->
                     ListItem(
                         headlineContent = { Text("${weightEntry.weight} kg") },

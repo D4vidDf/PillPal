@@ -15,6 +15,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 data class WeightUiState(
@@ -38,18 +40,55 @@ class WeightViewModel @Inject constructor(
     private val _timeRange = MutableStateFlow(TimeRange.WEEK)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
+    private val _selectedDate = MutableStateFlow(LocalDate.now())
+    val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    private val _dateRangeText = MutableStateFlow("")
+    val dateRangeText: StateFlow<String> = _dateRangeText.asStateFlow()
+
+    private val _isNextEnabled = MutableStateFlow(false)
+    val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
+
     init {
+        updateDateAndButtonStates()
         fetchWeightRecords()
     }
 
     fun setTimeRange(timeRange: TimeRange) {
         _timeRange.value = timeRange
+        _selectedDate.value = LocalDate.now()
+        updateDateAndButtonStates()
         fetchWeightRecords()
+    }
+
+    fun onPreviousClick() {
+        _selectedDate.value = when (_timeRange.value) {
+            TimeRange.DAY -> _selectedDate.value.minusDays(1)
+            TimeRange.WEEK -> _selectedDate.value.minusWeeks(1)
+            TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
+            TimeRange.YEAR -> _selectedDate.value.minusYears(1)
+        }
+        updateDateAndButtonStates()
+        fetchWeightRecords()
+    }
+
+    fun onNextClick() {
+        val nextDate = when (_timeRange.value) {
+            TimeRange.DAY -> _selectedDate.value.plusDays(1)
+            TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+            TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+            TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+        }
+        if (!nextDate.isAfter(LocalDate.now())) {
+            _selectedDate.value = nextDate
+            updateDateAndButtonStates()
+            fetchWeightRecords()
+        }
     }
 
     private fun fetchWeightRecords() {
         viewModelScope.launch {
-            val (start, end) = _timeRange.value.getStartAndEndTimes(LocalDate.now())
+            val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
                     val aggregatedRecords = aggregateRecords(records)
@@ -98,5 +137,40 @@ class WeightViewModel @Inject constructor(
                 val firstDayOfMonth = monthRecords.first().time.atZone(ZoneId.systemDefault()).toLocalDate().withDayOfMonth(1)
                 firstDayOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
             }
+    }
+
+    private fun updateDateAndButtonStates() {
+        updateDateRangeText()
+        updateNextButtonState()
+    }
+
+    private fun updateNextButtonState() {
+        val nextDate = when (_timeRange.value) {
+            TimeRange.DAY -> _selectedDate.value.plusDays(1)
+            TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+            TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+            TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+        }
+        _isNextEnabled.value = !nextDate.isAfter(LocalDate.now())
+    }
+
+    private fun updateDateRangeText() {
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1)
+
+        _dateRangeText.value = when (_timeRange.value) {
+            TimeRange.DAY -> when (_selectedDate.value) {
+                today -> "Today"
+                yesterday -> "Yesterday"
+                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+            }
+            TimeRange.WEEK -> {
+                val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
+                val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
+                "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+            }
+            TimeRange.MONTH -> _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+            TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
+        }
     }
 }

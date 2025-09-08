@@ -12,9 +12,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 
-// Define a local data class for the line chart
-data class LineChartPoint(val x: Float, val y: Float)
-
 @Composable
 fun LineChart(
     data: List<LineChartPoint>,

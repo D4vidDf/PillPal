@@ -473,8 +473,6 @@
 
     <string name="ml_at_day">ml ao día</string>
     <string name="set_objective">Establecer Obxectivo</string>
-    <string name="goal_template">Obxectivo: %s</string>
-    <string name="history">Historial</string>
     <string name="weight_tracker">Seguimento do Peso</string>
-    <string name="body_temperature_tracker">Seguimento da Temperatura Corporal</string>
+    <string name="history">Historial</string>
 </resources>
