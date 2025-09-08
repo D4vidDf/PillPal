@@ -541,5 +541,7 @@
     <string name="water">Water</string>
     <string name="weight_tracker">Weight Tracker</string>
     <string name="history">History</string>
+    <string name="goal_template">Goal: %s</string>
+    <string name="body_temperature_tracker">Body Temperature Tracker</string>
     <string name="configure_water">Configure water</string>
 </resources>

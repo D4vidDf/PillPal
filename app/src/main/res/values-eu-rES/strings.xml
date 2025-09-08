@@ -475,4 +475,6 @@
     <string name="set_objective">Helburua Ezarri</string>
     <string name="weight_tracker">Pisuaren Jarraipena</string>
     <string name="history">Historia</string>
+    <string name="goal_template">Helburua: %s</string>
+    <string name="body_temperature_tracker">Gorputzeko Tenperaturaren Jarraipena</string>
 </resources>

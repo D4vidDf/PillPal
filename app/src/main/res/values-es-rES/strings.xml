@@ -498,5 +498,7 @@
     <string name="water">Agua</string>
     <string name="weight_tracker">Seguimiento de Peso</string>
     <string name="history">Historial</string>
+    <string name="goal_template">Objetivo: %s</string>
+    <string name="body_temperature_tracker">Seguimiento de Temperatura Corporal</string>
     <string name="configure_water">Configurar agua</string>
 </resources>

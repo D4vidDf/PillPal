@@ -475,4 +475,6 @@
     <string name="set_objective">Establir Objectiu</string>
     <string name="weight_tracker">Seguiment del Pes</string>
     <string name="history">Historial</string>
+    <string name="goal_template">Objectiu: %s</string>
+    <string name="body_temperature_tracker">Seguiment de la Temperatura Corporal</string>
 </resources>
