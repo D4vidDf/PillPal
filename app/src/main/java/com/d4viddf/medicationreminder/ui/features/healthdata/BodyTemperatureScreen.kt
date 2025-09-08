@@ -95,13 +95,13 @@ fun BodyTemperatureScreen(
             )
 
             LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                items(temperatureUiState.temperatureLogs) { tempEntry ->
-                    ListItem(
-                        headlineContent = { Text("${tempEntry.temperature}°C") },
-                        supportingContent = {
-                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                            Text(tempEntry.date.format(formatter))
-                        }
+                itemsIndexed(temperatureUiState.temperatureLogs) { index, tempEntry ->
+                    com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                        index = index,
+                        size = temperatureUiState.temperatureLogs.size,
+                        date = tempEntry.date.toLocalDate(),
+                        value = "${tempEntry.temperature}°C",
+                        onClick = { /* No-op */ }
                     )
                 }
             }

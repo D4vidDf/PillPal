@@ -93,7 +93,7 @@ class BodyTemperatureViewModel @Inject constructor(
                 .collect { records ->
                     val aggregatedRecords = aggregateRecords(records)
                     val chartData = aggregatedRecords.map {
-                        LineChartPoint(x = it.first.toEpochMilli().toFloat(), y = it.second.toFloat())
+                        LineChartPoint(x = it.first.toFloat(), y = it.second.toFloat())
                     }
                     val temperatureLogs = records.map {
                         TemperatureLogItem(
@@ -110,32 +110,47 @@ class BodyTemperatureViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateRecords(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
+    private fun aggregateRecords(records: List<BodyTemperature>): List<Pair<Number, Double>> {
         return when (_timeRange.value) {
-            TimeRange.DAY -> records.map { it.time to it.temperatureCelsius }
-            TimeRange.WEEK, TimeRange.MONTH -> aggregateByDay(records)
+            TimeRange.DAY -> {
+                records.map {
+                    val hour = it.time.atZone(ZoneId.systemDefault()).hour
+                    hour to it.temperatureCelsius
+                }
+            }
+            TimeRange.WEEK -> aggregateByDayOfWeek(records)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records)
             TimeRange.YEAR -> aggregateByMonth(records)
         }
     }
 
-    private fun aggregateByDay(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
+    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): List<Pair<Int, Double>> {
         if (records.isEmpty()) return emptyList()
         return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
-            .map { (date, dayRecords) ->
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek.value } // 1-7 for Monday-Sunday
+            .map { (day, dayRecords) ->
                 val average = dayRecords.map { it.temperatureCelsius }.average()
-                date.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
+                day to average
             }
     }
 
-    private fun aggregateByMonth(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
+    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): List<Pair<Int, Double>> {
         if (records.isEmpty()) return emptyList()
         return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .map { (_, monthRecords) ->
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfMonth }
+            .map { (day, dayRecords) ->
+                val average = dayRecords.map { it.temperatureCelsius }.average()
+                day to average
+            }
+    }
+
+    private fun aggregateByMonth(records: List<BodyTemperature>): List<Pair<Int, Double>> {
+        if (records.isEmpty()) return emptyList()
+        return records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).monthValue } // 1-12
+            .map { (month, monthRecords) ->
                 val average = monthRecords.map { it.temperatureCelsius }.average()
-                val firstDayOfMonth = monthRecords.first().time.atZone(ZoneId.systemDefault()).toLocalDate().withDayOfMonth(1)
-                firstDayOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
+                month to average
             }
     }
 
@@ -157,19 +172,30 @@ class BodyTemperatureViewModel @Inject constructor(
     private fun updateDateRangeText() {
         val today = LocalDate.now()
         val yesterday = today.minusDays(1)
+        val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
 
         _dateRangeText.value = when (_timeRange.value) {
             TimeRange.DAY -> when (_selectedDate.value) {
-                today -> "Today"
-                yesterday -> "Yesterday"
+                today -> "today"
+                yesterday -> "yesterday"
                 else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
             }
             TimeRange.WEEK -> {
-                val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
-                val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
-                "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
+                    "this_week"
+                } else {
+                    val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
+                    val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
+                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                }
             }
-            TimeRange.MONTH -> _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+            TimeRange.MONTH -> {
+                if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
+                    "this_month"
+                } else {
+                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+                }
+            }
             TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
         }
     }

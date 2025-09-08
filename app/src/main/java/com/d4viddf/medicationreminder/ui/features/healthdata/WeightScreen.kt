@@ -94,13 +94,13 @@ fun WeightScreen(
             )
 
             LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                items(weightUiState.weightLogs) { weightEntry ->
-                    ListItem(
-                        headlineContent = { Text("${weightEntry.weight} kg") },
-                        supportingContent = {
-                            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                            Text(weightEntry.date.format(formatter))
-                        }
+                itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
+                    com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                        index = index,
+                        size = weightUiState.weightLogs.size,
+                        date = weightEntry.date.toLocalDate(),
+                        value = "${weightEntry.weight} kg",
+                        onClick = { /* No-op */ }
                     )
                 }
             }
