@@ -76,14 +76,27 @@ fun WeightScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LineChart(
-                data = weightUiState.chartData,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(horizontal = 16.dp),
-                showPoints = true
-            )
+            when (timeRange) {
+                TimeRange.DAY -> {
+                    LineChart(
+                        data = weightUiState.chartData.lineChartData,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 16.dp),
+                        showPoints = true
+                    )
+                }
+                else -> {
+                    com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
+                        data = weightUiState.chartData.rangeChartData,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 16.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

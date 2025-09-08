@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChartPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeChartPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -19,8 +19,13 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
+data class WeightChartData(
+    val lineChartData: List<LineChartPoint> = emptyList(),
+    val rangeChartData: List<RangeChartPoint> = emptyList()
+)
+
 data class WeightUiState(
-    val chartData: List<LineChartPoint> = emptyList(),
+    val chartData: WeightChartData = WeightChartData(),
     val weightLogs: List<WeightLogItem> = emptyList()
 )
 
@@ -91,10 +96,12 @@ class WeightViewModel @Inject constructor(
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
-                    val aggregatedRecords = aggregateRecords(records)
-                    val chartData = aggregatedRecords.map {
-                        LineChartPoint(x = it.first.toFloat(), y = it.second.toFloat())
+                    val chartData = if (_timeRange.value == TimeRange.DAY) {
+                        WeightChartData(lineChartData = aggregateForLineChart(records))
+                    } else {
+                        WeightChartData(rangeChartData = aggregateForRangeChart(records))
                     }
+
                     val weightLogs = records.map {
                         WeightLogItem(
                             weight = it.weightKilograms,
@@ -110,47 +117,52 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateRecords(records: List<Weight>): List<Pair<Number, Double>> {
-        return when (_timeRange.value) {
-            TimeRange.DAY -> {
-                records.map {
-                    val hour = it.time.atZone(ZoneId.systemDefault()).hour
-                    hour to it.weightKilograms
-                }
-            }
-            TimeRange.WEEK -> aggregateByDayOfWeek(records)
-            TimeRange.MONTH -> aggregateByDayOfMonth(records)
-            TimeRange.YEAR -> aggregateByMonth(records)
+    private fun aggregateForLineChart(records: List<Weight>): List<LineChartPoint> {
+        return records.map {
+            val hour = it.time.atZone(ZoneId.systemDefault()).hour
+            LineChartPoint(x = hour.toFloat(), y = it.weightKilograms.toFloat())
         }
     }
 
-    private fun aggregateByDayOfWeek(records: List<Weight>): List<Pair<Int, Double>> {
+    private fun aggregateForRangeChart(records: List<Weight>): List<RangeChartPoint> {
+        return when (_timeRange.value) {
+            TimeRange.WEEK -> aggregateByDayOfWeek(records)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+            else -> emptyList()
+        }
+    }
+
+    private fun aggregateByDayOfWeek(records: List<Weight>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek.value } // 1-7 for Monday-Sunday
             .map { (day, dayRecords) ->
-                val average = dayRecords.map { it.weightKilograms }.average()
-                day to average
+                val min = dayRecords.minOf { it.weightKilograms }.toFloat()
+                val max = dayRecords.maxOf { it.weightKilograms }.toFloat()
+                RangeChartPoint(x = day.toFloat(), min = min, max = max)
             }
     }
 
-    private fun aggregateByDayOfMonth(records: List<Weight>): List<Pair<Int, Double>> {
+    private fun aggregateByDayOfMonth(records: List<Weight>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfMonth }
             .map { (day, dayRecords) ->
-                val average = dayRecords.map { it.weightKilograms }.average()
-                day to average
+                val min = dayRecords.minOf { it.weightKilograms }.toFloat()
+                val max = dayRecords.maxOf { it.weightKilograms }.toFloat()
+                RangeChartPoint(x = day.toFloat(), min = min, max = max)
             }
     }
 
-    private fun aggregateByMonth(records: List<Weight>): List<Pair<Int, Double>> {
+    private fun aggregateByMonth(records: List<Weight>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).monthValue } // 1-12
             .map { (month, monthRecords) ->
-                val average = monthRecords.map { it.weightKilograms }.average()
-                month to average
+                val min = monthRecords.minOf { it.weightKilograms }.toFloat()
+                val max = monthRecords.maxOf { it.weightKilograms }.toFloat()
+                RangeChartPoint(x = month.toFloat(), min = min, max = max)
             }
     }
 

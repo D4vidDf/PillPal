@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChartPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeChartPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -19,9 +19,15 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
+data class TemperatureChartData(
+    val lineChartData: List<LineChartPoint> = emptyList(),
+    val rangeChartData: List<RangeChartPoint> = emptyList()
+)
+
 data class TemperatureUiState(
-    val chartData: List<LineChartPoint> = emptyList(),
-    val temperatureLogs: List<TemperatureLogItem> = emptyList()
+    val chartData: TemperatureChartData = TemperatureChartData(),
+    val temperatureLogs: List<TemperatureLogItem> = emptyList(),
+    val yAxisRange: ClosedFloatingPointRange<Float> = 36f..40f
 )
 
 data class TemperatureLogItem(
@@ -91,10 +97,12 @@ class BodyTemperatureViewModel @Inject constructor(
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getBodyTemperatureBetween(start, end)
                 .collect { records ->
-                    val aggregatedRecords = aggregateRecords(records)
-                    val chartData = aggregatedRecords.map {
-                        LineChartPoint(x = it.first.toFloat(), y = it.second.toFloat())
+                    val chartData = if (_timeRange.value == TimeRange.DAY) {
+                        TemperatureChartData(lineChartData = aggregateForLineChart(records))
+                    } else {
+                        TemperatureChartData(rangeChartData = aggregateForRangeChart(records))
                     }
+
                     val temperatureLogs = records.map {
                         TemperatureLogItem(
                             temperature = it.temperatureCelsius,
@@ -102,55 +110,67 @@ class BodyTemperatureViewModel @Inject constructor(
                         )
                     }.sortedByDescending { it.date }
 
+                    val minTemp = records.minOfOrNull { it.temperatureCelsius }?.toFloat() ?: 36f
+                    val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: 40f
+
+                    val yMin = minOf(36f, minTemp)
+                    val yMax = maxOf(40f, maxTemp)
+
                     _temperatureUiState.value = TemperatureUiState(
                         chartData = chartData,
-                        temperatureLogs = temperatureLogs
+                        temperatureLogs = temperatureLogs,
+                        yAxisRange = yMin..yMax
                     )
                 }
         }
     }
 
-    private fun aggregateRecords(records: List<BodyTemperature>): List<Pair<Number, Double>> {
-        return when (_timeRange.value) {
-            TimeRange.DAY -> {
-                records.map {
-                    val hour = it.time.atZone(ZoneId.systemDefault()).hour
-                    hour to it.temperatureCelsius
-                }
-            }
-            TimeRange.WEEK -> aggregateByDayOfWeek(records)
-            TimeRange.MONTH -> aggregateByDayOfMonth(records)
-            TimeRange.YEAR -> aggregateByMonth(records)
+    private fun aggregateForLineChart(records: List<BodyTemperature>): List<LineChartPoint> {
+        return records.map {
+            val hour = it.time.atZone(ZoneId.systemDefault()).hour
+            LineChartPoint(x = hour.toFloat(), y = it.temperatureCelsius.toFloat())
         }
     }
 
-    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): List<Pair<Int, Double>> {
+    private fun aggregateForRangeChart(records: List<BodyTemperature>): List<RangeChartPoint> {
+        return when (_timeRange.value) {
+            TimeRange.WEEK -> aggregateByDayOfWeek(records)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+            else -> emptyList()
+        }
+    }
+
+    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek.value } // 1-7 for Monday-Sunday
             .map { (day, dayRecords) ->
-                val average = dayRecords.map { it.temperatureCelsius }.average()
-                day to average
+                val min = dayRecords.minOf { it.temperatureCelsius }.toFloat()
+                val max = dayRecords.maxOf { it.temperatureCelsius }.toFloat()
+                RangeChartPoint(x = day.toFloat(), min = min, max = max)
             }
     }
 
-    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): List<Pair<Int, Double>> {
+    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfMonth }
             .map { (day, dayRecords) ->
-                val average = dayRecords.map { it.temperatureCelsius }.average()
-                day to average
+                val min = dayRecords.minOf { it.temperatureCelsius }.toFloat()
+                val max = dayRecords.maxOf { it.temperatureCelsius }.toFloat()
+                RangeChartPoint(x = day.toFloat(), min = min, max = max)
             }
     }
 
-    private fun aggregateByMonth(records: List<BodyTemperature>): List<Pair<Int, Double>> {
+    private fun aggregateByMonth(records: List<BodyTemperature>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).monthValue } // 1-12
             .map { (month, monthRecords) ->
-                val average = monthRecords.map { it.temperatureCelsius }.average()
-                month to average
+                val min = monthRecords.minOf { it.temperatureCelsius }.toFloat()
+                val max = monthRecords.maxOf { it.temperatureCelsius }.toFloat()
+                RangeChartPoint(x = month.toFloat(), min = min, max = max)
             }
     }
 

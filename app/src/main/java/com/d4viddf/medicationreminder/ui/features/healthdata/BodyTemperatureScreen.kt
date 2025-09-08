@@ -76,15 +76,30 @@ fun BodyTemperatureScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LineChart(
-                data = temperatureUiState.chartData,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(horizontal = 16.dp),
-                showLines = false,
-                showPoints = true
-            )
+            when (timeRange) {
+                TimeRange.DAY -> {
+                    LineChart(
+                        data = temperatureUiState.chartData.lineChartData,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 16.dp),
+                        showLines = false,
+                        showPoints = true,
+                        yAxisRange = temperatureUiState.yAxisRange
+                    )
+                }
+                else -> {
+                    com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
+                        data = temperatureUiState.chartData.rangeChartData,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 16.dp),
+                        yAxisRange = temperatureUiState.yAxisRange
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

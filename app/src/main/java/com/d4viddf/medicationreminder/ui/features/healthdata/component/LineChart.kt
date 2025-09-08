@@ -19,9 +19,10 @@ fun LineChart(
     showLines: Boolean = true,
     showPoints: Boolean = false,
     lineColor: Color = MaterialTheme.colorScheme.primary,
-    pointColor: Color = MaterialTheme.colorScheme.secondary
+    pointColor: Color = MaterialTheme.colorScheme.secondary,
+    yAxisRange: ClosedFloatingPointRange<Float>? = null
 ) {
-    val (minX, maxX, minY, maxY) = getChartBounds(data)
+    val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         if (data.size > 1) {
@@ -72,13 +73,17 @@ fun LineChart(
     }
 }
 
-private fun getChartBounds(data: List<LineChartPoint>): List<Float> {
+private fun getChartBounds(
+    data: List<LineChartPoint>,
+    yAxisRange: ClosedFloatingPointRange<Float>? = null
+): List<Float> {
     if (data.isEmpty()) return listOf(0f, 0f, 0f, 0f)
 
     val minX = data.minOf { it.x }
     val maxX = data.maxOf { it.x }
-    val minY = data.minOf { it.y }
-    val maxY = data.maxOf { it.y }
+
+    val minY = yAxisRange?.start ?: data.minOf { it.y }
+    val maxY = yAxisRange?.endInclusive ?: data.maxOf { it.y }
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f
