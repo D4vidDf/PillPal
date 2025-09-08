@@ -25,6 +25,7 @@ fun RangeBarChart(
     yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() }
 ) {
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
+    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val yAxisAreaWidth = 120f
@@ -35,7 +36,7 @@ fun RangeBarChart(
 
         // Draw Y-axis labels
         val yAxisLabelPaint = android.graphics.Paint().apply {
-            color = MaterialTheme.colorScheme.onBackground.toArgb()
+            color = onBackgroundColor.toArgb()
             textAlign = android.graphics.Paint.Align.RIGHT
             textSize = 12.sp.toPx()
         }
