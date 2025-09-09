@@ -89,6 +89,7 @@ fun BodyTemperatureScreen(
                 TimeRange.DAY -> {
                     LineChart(
                         data = temperatureUiState.chartData.lineChartData,
+                        labels = temperatureUiState.chartData.labels,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
@@ -100,6 +101,7 @@ fun BodyTemperatureScreen(
                 else -> {
                     com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
                         data = temperatureUiState.chartData.rangeChartData,
+                        labels = temperatureUiState.chartData.labels,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)

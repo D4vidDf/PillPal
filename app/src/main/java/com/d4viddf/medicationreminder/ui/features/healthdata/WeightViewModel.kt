@@ -24,7 +24,8 @@ import java.util.Locale
 import javax.inject.Inject
 
 data class WeightChartData(
-    val lineChartData: List<LineChartPoint> = emptyList()
+    val lineChartData: List<LineChartPoint> = emptyList(),
+    val labels: List<String> = emptyList()
 )
 
 data class WeightUiState(
@@ -130,7 +131,7 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateDataForChart(records: List<Weight>): List<LineChartPoint> {
+    private fun aggregateDataForChart(records: List<Weight>): WeightChartData {
         return when (_timeRange.value) {
             TimeRange.DAY -> aggregateByHour(records)
             TimeRange.WEEK -> aggregateByDayOfWeek(records)
@@ -139,20 +140,22 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateByHour(records: List<Weight>): List<LineChartPoint> {
-        return records
+    private fun aggregateByHour(records: List<Weight>): WeightChartData {
+        val data = records
             .sortedBy { it.time }
             .map {
                 val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
                 LineChartPoint(
                     x = zonedDateTime.hour.toFloat(),
                     y = it.weightKilograms.toFloat(),
-                    label = zonedDateTime.hour.toString()
+                    label = "" // Labels are now separate
                 )
             }
+        val labels = (0..23).map { it.toString() }
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfWeek(records: List<Weight>): List<LineChartPoint> {
+    private fun aggregateByDayOfWeek(records: List<Weight>): WeightChartData {
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
         val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
 
@@ -164,7 +167,11 @@ class WeightViewModel @Inject constructor(
                 dayRecords.map { it.weightKilograms }.average().toFloat()
             }
 
-        return (0..6).mapNotNull {
+        val labels = (0..6).map {
+            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+
+        val data = (0..6).mapNotNull {
             val date = startOfWeek.plusDays(it.toLong())
             if (lastRecordDate != null && date.isAfter(lastRecordDate)) {
                 null
@@ -173,13 +180,14 @@ class WeightViewModel @Inject constructor(
                 LineChartPoint(
                     x = date.dayOfWeek.value.toFloat(),
                     y = avg,
-                    label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    label = ""
                 )
             }
         }
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfMonth(records: List<Weight>): List<LineChartPoint> {
+    private fun aggregateByDayOfMonth(records: List<Weight>): WeightChartData {
         val startOfMonth = _selectedDate.value.withDayOfMonth(1)
         val daysInMonth = _selectedDate.value.lengthOfMonth()
 
@@ -193,7 +201,12 @@ class WeightViewModel @Inject constructor(
 
         val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
 
-        return (0 until daysInMonth).mapNotNull {
+        val labels = (0 until daysInMonth).map {
+            val day = it + 1
+            if (day in labelsToShow) day.toString() else ""
+        }
+
+        val data = (0 until daysInMonth).mapNotNull {
             val date = startOfMonth.plusDays(it.toLong())
             if (lastRecordDate != null && date.isAfter(lastRecordDate)) {
                 null
@@ -202,13 +215,14 @@ class WeightViewModel @Inject constructor(
                 LineChartPoint(
                     x = date.dayOfMonth.toFloat(),
                     y = avg,
-                    label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
+                    label = ""
                 )
             }
         }
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByMonth(records: List<Weight>): List<LineChartPoint> {
+    private fun aggregateByMonth(records: List<Weight>): WeightChartData {
         val startOfYear = _selectedDate.value.withDayOfYear(1)
 
         val lastRecordDate = records.maxOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
@@ -219,7 +233,11 @@ class WeightViewModel @Inject constructor(
                 monthRecords.map { it.weightKilograms }.average().toFloat()
             }
 
-        return (0..11).mapNotNull {
+        val labels = (0..11).map {
+            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+
+        val data = (0..11).mapNotNull {
             val date = startOfYear.plusMonths(it.toLong())
             if (lastRecordDate != null && date.withDayOfMonth(1).isAfter(lastRecordDate.withDayOfMonth(1))) {
                 null
@@ -228,10 +246,11 @@ class WeightViewModel @Inject constructor(
                 LineChartPoint(
                     x = date.month.value.toFloat(),
                     y = avg,
-                    label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    label = ""
                 )
             }
         }
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
     private fun updateDateAndButtonStates() {

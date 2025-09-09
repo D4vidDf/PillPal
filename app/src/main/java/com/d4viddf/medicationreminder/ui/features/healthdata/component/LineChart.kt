@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LineChart(
     data: List<LineChartPoint>,
+    labels: List<String>,
     modifier: Modifier = Modifier,
     showPoints: Boolean = false,
     lineColor: Color = MaterialTheme.colorScheme.primary,
@@ -31,6 +32,21 @@ fun LineChart(
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     Canvas(modifier = modifier.fillMaxSize()) {
+        val xStep = size.width / (labels.size + 1)
+        labels.forEachIndexed { index, label ->
+            val xPos = xStep * (index + 1)
+            drawContext.canvas.nativeCanvas.drawText(
+                label,
+                xPos,
+                size.height - 20f,
+                android.graphics.Paint().apply {
+                    color = onBackgroundColor.toArgb()
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    textSize = 12.sp.toPx()
+                }
+            )
+        }
+
         if (data.size > 1) {
             val path = Path()
             val gradientBrush = Brush.verticalGradient(
@@ -42,18 +58,6 @@ fun LineChart(
             data.forEachIndexed { index, dataPoint ->
                 val currentX = ((dataPoint.x - minX) / (maxX - minX)) * size.width
                 val currentY = size.height - ((dataPoint.y - minY) / (maxY - minY)) * size.height
-
-                // Draw X-axis label
-                drawContext.canvas.nativeCanvas.drawText(
-                    dataPoint.label,
-                    currentX,
-                    size.height - 20f,
-                    android.graphics.Paint().apply {
-                        color = onBackgroundColor.toArgb()
-                        textAlign = android.graphics.Paint.Align.CENTER
-                        textSize = 12.sp.toPx()
-                    }
-                )
 
                 if (index == 0) {
                     path.moveTo(currentX, currentY)

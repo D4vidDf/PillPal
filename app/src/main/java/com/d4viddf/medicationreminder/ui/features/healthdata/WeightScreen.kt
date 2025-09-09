@@ -113,6 +113,7 @@ fun WeightScreen(
 
             LineChart(
                 data = weightUiState.chartData.lineChartData,
+                labels = weightUiState.chartData.labels,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)

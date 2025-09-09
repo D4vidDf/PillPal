@@ -24,7 +24,8 @@ import javax.inject.Inject
 
 data class TemperatureChartData(
     val lineChartData: List<LineChartPoint> = emptyList(),
-    val rangeChartData: List<RangeChartPoint> = emptyList()
+    val rangeChartData: List<RangeChartPoint> = emptyList(),
+    val labels: List<String> = emptyList()
 )
 
 data class TemperatureUiState(
@@ -107,11 +108,7 @@ class BodyTemperatureViewModel @Inject constructor(
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getBodyTemperatureBetween(start, end)
                 .collect { records ->
-                    val chartData = if (_timeRange.value == TimeRange.DAY) {
-                        TemperatureChartData(lineChartData = aggregateForLineChart(records))
-                    } else {
-                        TemperatureChartData(rangeChartData = aggregateForRangeChart(records))
-                    }
+                    val chartData = aggregateDataForChart(records)
 
                     val temperatureLogs = records.map {
                         TemperatureLogItem(
@@ -136,27 +133,29 @@ class BodyTemperatureViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateForLineChart(records: List<BodyTemperature>): List<LineChartPoint> {
-        return records.map {
+    private fun aggregateDataForChart(records: List<BodyTemperature>): TemperatureChartData {
+        return when (_timeRange.value) {
+            TimeRange.DAY -> aggregateByHour(records)
+            TimeRange.WEEK -> aggregateByDayOfWeek(records)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+        }
+    }
+
+    private fun aggregateByHour(records: List<BodyTemperature>): TemperatureChartData {
+        val data = records.map {
             val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
             LineChartPoint(
                 x = zonedDateTime.hour.toFloat(),
                 y = it.temperatureCelsius.toFloat(),
-                label = zonedDateTime.hour.toString()
+                label = "" // Labels are now separate
             )
         }
+        val labels = (0..23).map { it.toString() }
+        return TemperatureChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateForRangeChart(records: List<BodyTemperature>): List<RangeChartPoint> {
-        return when (_timeRange.value) {
-            TimeRange.WEEK -> aggregateByDayOfWeek(records)
-            TimeRange.MONTH -> aggregateByDayOfMonth(records)
-            TimeRange.YEAR -> aggregateByMonth(records)
-            else -> emptyList()
-        }
-    }
-
-    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): List<RangeChartPoint> {
+    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): TemperatureChartData {
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
         val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
 
@@ -166,19 +165,24 @@ class BodyTemperatureViewModel @Inject constructor(
                 dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
 
-        return (0..6).map {
+        val labels = (0..6).map {
+            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+
+        val data = (0..6).map {
             val date = startOfWeek.plusDays(it.toLong())
             val (min, max) = weekData[date] ?: (0f to 0f)
             RangeChartPoint(
                 x = date.dayOfWeek.value.toFloat(),
                 min = min,
                 max = max,
-                label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                label = ""
             )
         }
+        return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): List<RangeChartPoint> {
+    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): TemperatureChartData {
         val startOfMonth = _selectedDate.value.withDayOfMonth(1)
         val daysInMonth = _selectedDate.value.lengthOfMonth()
 
@@ -190,19 +194,25 @@ class BodyTemperatureViewModel @Inject constructor(
 
         val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
 
-        return (0 until daysInMonth).map {
+        val labels = (0 until daysInMonth).map {
+            val day = it + 1
+            if (day in labelsToShow) day.toString() else ""
+        }
+
+        val data = (0 until daysInMonth).map {
             val date = startOfMonth.plusDays(it.toLong())
             val (min, max) = monthData[date] ?: (0f to 0f)
             RangeChartPoint(
                 x = date.dayOfMonth.toFloat(),
                 min = min,
                 max = max,
-                label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
+                label = ""
             )
         }
+        return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
-    private fun aggregateByMonth(records: List<BodyTemperature>): List<RangeChartPoint> {
+    private fun aggregateByMonth(records: List<BodyTemperature>): TemperatureChartData {
         val startOfYear = _selectedDate.value.withDayOfYear(1)
 
         val yearData = records
@@ -211,16 +221,21 @@ class BodyTemperatureViewModel @Inject constructor(
                 monthRecords.minOf { it.temperatureCelsius }.toFloat() to monthRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
 
-        return (0..11).map {
+        val labels = (0..11).map {
+            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+
+        val data = (0..11).map {
             val date = startOfYear.plusMonths(it.toLong())
             val (min, max) = yearData[date.month] ?: (0f to 0f)
             RangeChartPoint(
                 x = date.month.value.toFloat(),
                 min = min,
                 max = max,
-                label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                label = ""
             )
         }
+        return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
     private fun updateDateAndButtonStates() {

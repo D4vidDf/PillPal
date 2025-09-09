@@ -24,6 +24,7 @@ data class RangeChartPoint(val x: Float, val min: Float, val max: Float, val lab
 @Composable
 fun RangeBarChart(
     data: List<RangeChartPoint>,
+    labels: List<String>,
     modifier: Modifier = Modifier,
     barColor: Color = MaterialTheme.colorScheme.primary,
     goal: Float? = null,
@@ -109,18 +110,19 @@ fun RangeBarChart(
             }
         }
 
-        val xStep = chartAreaWidth / (data.size + 1)
-        data.forEachIndexed { index, dataPoint ->
+        val xStep = chartAreaWidth / (labels.size + 1)
+        labels.forEachIndexed { index, label ->
             val xPos = chartAreaStartX + xStep * (index + 1)
-
-            // Draw X-axis label
             drawContext.canvas.nativeCanvas.drawText(
-                dataPoint.label,
+                label,
                 xPos,
                 size.height - 20f,
                 yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
             )
+        }
 
+        data.forEachIndexed { index, dataPoint ->
+            val xPos = chartAreaStartX + xStep * (data.indexOf(dataPoint) + 1)
             val yMinPos = chartAreaHeight - ((dataPoint.min - minY) / (maxY - minY)) * chartAreaHeight
             val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
 
