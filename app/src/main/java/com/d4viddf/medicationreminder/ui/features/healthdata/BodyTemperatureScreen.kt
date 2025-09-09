@@ -82,7 +82,6 @@ fun BodyTemperatureScreen(
                             .fillMaxWidth()
                             .height(200.dp)
                             .padding(horizontal = 16.dp),
-                        showLines = false,
                         showPoints = true,
                         yAxisRange = temperatureUiState.yAxisRange
                     )
