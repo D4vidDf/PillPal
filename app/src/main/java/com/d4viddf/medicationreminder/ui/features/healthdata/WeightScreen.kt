@@ -213,8 +213,10 @@ private fun DayView(weightUiState: WeightUiState, weightGoal: Float) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(weightUiState.weightLogs) { weightEntry ->
+            itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
                 com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                    index = index,
+                    size = weightUiState.weightLogs.size,
                     date = weightEntry.date.toLocalDate(),
                     value = "${String.format("%.1f", weightEntry.weight)} kg",
                     onClick = { /* No-op */ }
