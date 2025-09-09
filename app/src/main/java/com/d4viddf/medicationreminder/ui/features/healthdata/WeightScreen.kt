@@ -93,7 +93,8 @@ fun WeightScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 16.dp),
+                        onBarSelected = { viewModel.onBarSelected(it) }
                     )
                 }
             }

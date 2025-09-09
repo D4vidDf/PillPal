@@ -41,6 +41,13 @@ class BodyTemperatureViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository
 ) : ViewModel() {
 
+    private val _selectedBar = MutableStateFlow<RangeChartPoint?>(null)
+    val selectedBar: StateFlow<RangeChartPoint?> = _selectedBar.asStateFlow()
+
+    fun onBarSelected(bar: RangeChartPoint?) {
+        _selectedBar.value = bar
+    }
+
     private val _temperatureUiState = MutableStateFlow(TemperatureUiState())
     val temperatureUiState: StateFlow<TemperatureUiState> = _temperatureUiState.asStateFlow()
 

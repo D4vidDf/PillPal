@@ -96,7 +96,8 @@ fun BodyTemperatureScreen(
                             .fillMaxWidth()
                             .height(200.dp)
                             .padding(horizontal = 16.dp),
-                        yAxisRange = temperatureUiState.yAxisRange
+                        yAxisRange = temperatureUiState.yAxisRange,
+                        onBarSelected = { viewModel.onBarSelected(it) }
                     )
                 }
             }
