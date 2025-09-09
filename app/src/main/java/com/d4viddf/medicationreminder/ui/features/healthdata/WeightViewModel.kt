@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChartPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeChartPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.DateRangeText
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,8 +58,8 @@ class WeightViewModel @Inject constructor(
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
-    private val _dateRangeText = MutableStateFlow("")
-    val dateRangeText: StateFlow<String> = _dateRangeText.asStateFlow()
+    private val _dateRangeText = MutableStateFlow<DateRangeText?>(null)
+    val dateRangeText: StateFlow<DateRangeText?> = _dateRangeText.asStateFlow()
 
     private val _isNextEnabled = MutableStateFlow(false)
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
@@ -146,51 +148,58 @@ class WeightViewModel @Inject constructor(
     }
 
     private fun aggregateByDayOfWeek(records: List<Weight>): List<RangeChartPoint> {
-        if (records.isEmpty()) return emptyList()
-        return records
+        val weekData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek }
-            .map { (day, dayRecords) ->
-                val min = dayRecords.minOf { it.weightKilograms }.toFloat()
-                val max = dayRecords.maxOf { it.weightKilograms }.toFloat()
-                RangeChartPoint(
-                    x = day.value.toFloat(),
-                    min = min,
-                    max = max,
-                    label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                )
+            .mapValues { (_, dayRecords) ->
+                dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
             }
+
+        return java.time.DayOfWeek.values().map { day ->
+            val (min, max) = weekData[day] ?: (0f to 0f)
+            RangeChartPoint(
+                x = day.value.toFloat(),
+                min = min,
+                max = max,
+                label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            )
+        }
     }
 
     private fun aggregateByDayOfMonth(records: List<Weight>): List<RangeChartPoint> {
-        if (records.isEmpty()) return emptyList()
-        return records
+        val monthData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfMonth }
-            .map { (day, dayRecords) ->
-                val min = dayRecords.minOf { it.weightKilograms }.toFloat()
-                val max = dayRecords.maxOf { it.weightKilograms }.toFloat()
-                RangeChartPoint(
-                    x = day.toFloat(),
-                    min = min,
-                    max = max,
-                    label = day.toString()
-                )
+            .mapValues { (_, dayRecords) ->
+                dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
             }
+
+        val daysInMonth = _selectedDate.value.lengthOfMonth()
+        return (1..daysInMonth).map { day ->
+            val (min, max) = monthData[day] ?: (0f to 0f)
+            RangeChartPoint(
+                x = day.toFloat(),
+                min = min,
+                max = max,
+                label = day.toString()
+            )
+        }
     }
 
     private fun aggregateByMonth(records: List<Weight>): List<RangeChartPoint> {
-        if (records.isEmpty()) return emptyList()
-        return records
+        val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .map { (month, monthRecords) ->
-                val min = monthRecords.minOf { it.weightKilograms }.toFloat()
-                val max = monthRecords.maxOf { it.weightKilograms }.toFloat()
-                RangeChartPoint(
-                    x = month.value.toFloat(),
-                    min = min,
-                    max = max,
-                    label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                )
+            .mapValues { (_, monthRecords) ->
+                monthRecords.minOf { it.weightKilograms }.toFloat() to monthRecords.maxOf { it.weightKilograms }.toFloat()
             }
+
+        return java.time.Month.values().map { month ->
+            val (min, max) = yearData[month] ?: (0f to 0f)
+            RangeChartPoint(
+                x = month.value.toFloat(),
+                min = min,
+                max = max,
+                label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            )
+        }
     }
 
     private fun updateDateAndButtonStates() {
@@ -215,27 +224,28 @@ class WeightViewModel @Inject constructor(
 
         _dateRangeText.value = when (_timeRange.value) {
             TimeRange.DAY -> when (_selectedDate.value) {
-                today -> "today"
-                yesterday -> "yesterday"
-                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+                today -> DateRangeText.StringResource(R.string.today)
+                yesterday -> DateRangeText.StringResource(R.string.yesterday)
+                else -> DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
             }
             TimeRange.WEEK -> {
                 if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
-                    "this_week"
+                    DateRangeText.StringResource(R.string.this_week)
                 } else {
                     val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
                     val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
-                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                    val formattedString = "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                    DateRangeText.FormattedString(formattedString)
                 }
             }
             TimeRange.MONTH -> {
                 if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
-                    "this_month"
+                    DateRangeText.StringResource(R.string.this_month)
                 } else {
-                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+                    DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy")))
                 }
             }
-            TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
+            TimeRange.YEAR -> DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy")))
         }
     }
 }
