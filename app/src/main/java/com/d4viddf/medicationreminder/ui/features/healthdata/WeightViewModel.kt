@@ -148,57 +148,84 @@ class WeightViewModel @Inject constructor(
     }
 
     private fun aggregateByDayOfWeek(records: List<Weight>): List<RangeChartPoint> {
+        val today = LocalDate.now()
+        val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
+        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
+
         val weekData = records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek }
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
             .mapValues { (_, dayRecords) ->
                 dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
             }
 
-        return java.time.DayOfWeek.values().map { day ->
-            val (min, max) = weekData[day] ?: (0f to 0f)
-            RangeChartPoint(
-                x = day.value.toFloat(),
-                min = min,
-                max = max,
-                label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            )
+        return (0..6).mapNotNull {
+            val date = startOfWeek.plusDays(it.toLong())
+            if (date.isAfter(today)) {
+                null
+            } else {
+                val (min, max) = weekData[date] ?: (0f to 0f)
+                RangeChartPoint(
+                    x = date.dayOfWeek.value.toFloat(),
+                    min = min,
+                    max = max,
+                    label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
+            }
         }
     }
 
     private fun aggregateByDayOfMonth(records: List<Weight>): List<RangeChartPoint> {
+        val today = LocalDate.now()
+        val startOfMonth = _selectedDate.value.withDayOfMonth(1)
+        val daysInMonth = _selectedDate.value.lengthOfMonth()
+
         val monthData = records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfMonth }
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
             .mapValues { (_, dayRecords) ->
                 dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
             }
 
-        val daysInMonth = _selectedDate.value.lengthOfMonth()
-        return (1..daysInMonth).map { day ->
-            val (min, max) = monthData[day] ?: (0f to 0f)
-            RangeChartPoint(
-                x = day.toFloat(),
-                min = min,
-                max = max,
-                label = day.toString()
-            )
+        val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
+
+        return (0 until daysInMonth).mapNotNull {
+            val date = startOfMonth.plusDays(it.toLong())
+            if (date.isAfter(today)) {
+                null
+            } else {
+                val (min, max) = monthData[date] ?: (0f to 0f)
+                RangeChartPoint(
+                    x = date.dayOfMonth.toFloat(),
+                    min = min,
+                    max = max,
+                    label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
+                )
+            }
         }
     }
 
     private fun aggregateByMonth(records: List<Weight>): List<RangeChartPoint> {
+        val today = LocalDate.now()
+        val startOfYear = _selectedDate.value.withDayOfYear(1)
+
         val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
             .mapValues { (_, monthRecords) ->
                 monthRecords.minOf { it.weightKilograms }.toFloat() to monthRecords.maxOf { it.weightKilograms }.toFloat()
             }
 
-        return java.time.Month.values().map { month ->
-            val (min, max) = yearData[month] ?: (0f to 0f)
-            RangeChartPoint(
-                x = month.value.toFloat(),
-                min = min,
-                max = max,
-                label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            )
+        return (0..11).mapNotNull {
+            val date = startOfYear.plusMonths(it.toLong())
+            if (date.isAfter(today)) {
+                null
+            } else {
+                val (min, max) = yearData[date.month] ?: (0f to 0f)
+                RangeChartPoint(
+                    x = date.month.value.toFloat(),
+                    min = min,
+                    max = max,
+                    label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
+            }
         }
     }
 

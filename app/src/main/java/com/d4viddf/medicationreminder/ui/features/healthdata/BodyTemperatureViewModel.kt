@@ -156,51 +156,83 @@ class BodyTemperatureViewModel @Inject constructor(
     }
 
     private fun aggregateByDayOfWeek(records: List<BodyTemperature>): List<RangeChartPoint> {
-        if (records.isEmpty()) return emptyList()
-        return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek }
-            .map { (day, dayRecords) ->
-                val min = dayRecords.minOf { it.temperatureCelsius }.toFloat()
-                val max = dayRecords.maxOf { it.temperatureCelsius }.toFloat()
+        val today = LocalDate.now()
+        val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
+        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
+
+        val weekData = records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .mapValues { (_, dayRecords) ->
+                dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
+            }
+
+        return (0..6).mapNotNull {
+            val date = startOfWeek.plusDays(it.toLong())
+            if (date.isAfter(today)) {
+                null
+            } else {
+                val (min, max) = weekData[date] ?: (0f to 0f)
                 RangeChartPoint(
-                    x = day.value.toFloat(),
+                    x = date.dayOfWeek.value.toFloat(),
                     min = min,
                     max = max,
-                    label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 )
             }
+        }
     }
 
     private fun aggregateByDayOfMonth(records: List<BodyTemperature>): List<RangeChartPoint> {
-        if (records.isEmpty()) return emptyList()
-        return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfMonth }
-            .map { (day, dayRecords) ->
-                val min = dayRecords.minOf { it.temperatureCelsius }.toFloat()
-                val max = dayRecords.maxOf { it.temperatureCelsius }.toFloat()
+        val today = LocalDate.now()
+        val startOfMonth = _selectedDate.value.withDayOfMonth(1)
+        val daysInMonth = _selectedDate.value.lengthOfMonth()
+
+        val monthData = records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .mapValues { (_, dayRecords) ->
+                dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
+            }
+
+        return (0 until daysInMonth).mapNotNull {
+            val date = startOfMonth.plusDays(it.toLong())
+            if (date.isAfter(today)) {
+                null
+            } else {
+                val (min, max) = monthData[date] ?: (0f to 0f)
                 RangeChartPoint(
-                    x = day.toFloat(),
+                    x = date.dayOfMonth.toFloat(),
                     min = min,
                     max = max,
-                    label = day.toString()
+                    label = date.dayOfMonth.toString()
                 )
             }
+        }
     }
 
     private fun aggregateByMonth(records: List<BodyTemperature>): List<RangeChartPoint> {
-        if (records.isEmpty()) return emptyList()
-        return records
+        val today = LocalDate.now()
+        val startOfYear = _selectedDate.value.withDayOfYear(1)
+
+        val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .map { (month, monthRecords) ->
-                val min = monthRecords.minOf { it.temperatureCelsius }.toFloat()
-                val max = monthRecords.maxOf { it.temperatureCelsius }.toFloat()
+            .mapValues { (_, monthRecords) ->
+                monthRecords.minOf { it.temperatureCelsius }.toFloat() to monthRecords.maxOf { it.temperatureCelsius }.toFloat()
+            }
+
+        return (0..11).mapNotNull {
+            val date = startOfYear.plusMonths(it.toLong())
+            if (date.isAfter(today)) {
+                null
+            } else {
+                val (min, max) = yearData[date.month] ?: (0f to 0f)
                 RangeChartPoint(
-                    x = month.value.toFloat(),
+                    x = date.month.value.toFloat(),
                     min = min,
                     max = max,
-                    label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 )
             }
+        }
     }
 
     private fun updateDateAndButtonStates() {
