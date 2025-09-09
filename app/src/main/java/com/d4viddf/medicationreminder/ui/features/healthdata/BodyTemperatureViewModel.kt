@@ -120,16 +120,17 @@ class BodyTemperatureViewModel @Inject constructor(
                         )
                     }.sortedByDescending { it.date }
 
-                    val minTemp = records.minOfOrNull { it.temperatureCelsius }?.toFloat() ?: 36f
-                    val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: 40f
-
-                    val yMin = minOf(36f, minTemp)
-                    val yMax = maxOf(40f, maxTemp)
+                    val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: 0f
+                    val yMax = if (maxTemp > 40f) {
+                        if (maxTemp % 2 == 0f) maxTemp else maxTemp.toInt() + 1f
+                    } else {
+                        40f
+                    }
 
                     _temperatureUiState.value = TemperatureUiState(
                         chartData = chartData,
                         temperatureLogs = temperatureLogs,
-                        yAxisRange = yMin..yMax
+                        yAxisRange = 34f..yMax
                     )
                 }
         }
@@ -187,6 +188,8 @@ class BodyTemperatureViewModel @Inject constructor(
                 dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
 
+        val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
+
         return (0 until daysInMonth).map {
             val date = startOfMonth.plusDays(it.toLong())
             val (min, max) = monthData[date] ?: (0f to 0f)
@@ -194,7 +197,7 @@ class BodyTemperatureViewModel @Inject constructor(
                 x = date.dayOfMonth.toFloat(),
                 min = min,
                 max = max,
-                label = date.dayOfMonth.toString()
+                label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
             )
         }
     }

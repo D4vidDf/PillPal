@@ -36,6 +36,7 @@ fun WeightScreen(
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
     val isNextEnabled by viewModel.isNextEnabled.collectAsState()
+    val weightGoal by viewModel.weightGoal.collectAsState()
 
     Scaffold(
         topBar = {
@@ -82,7 +83,9 @@ fun WeightScreen(
                             .fillMaxWidth()
                             .height(200.dp)
                             .padding(horizontal = 16.dp),
-                        showPoints = true
+                        showPoints = true,
+                        goal = weightGoal,
+                        yAxisRange = weightUiState.yAxisRange
                     )
                 }
                 else -> {
@@ -92,6 +95,8 @@ fun WeightScreen(
                             .fillMaxWidth()
                             .height(200.dp)
                             .padding(horizontal = 16.dp),
+                        goal = weightGoal,
+                        yAxisRange = weightUiState.yAxisRange,
                         onBarSelected = { viewModel.onBarSelected(it) }
                     )
                 }

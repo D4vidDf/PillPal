@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -22,6 +23,7 @@ fun LineChart(
     showPoints: Boolean = false,
     lineColor: Color = MaterialTheme.colorScheme.primary,
     pointColor: Color = MaterialTheme.colorScheme.secondary,
+    goal: Float? = null,
     yAxisRange: ClosedFloatingPointRange<Float>? = null
 ) {
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
@@ -70,6 +72,20 @@ fun LineChart(
             path.lineTo(0f, size.height)
             path.close()
             drawPath(path, brush = gradientBrush)
+        }
+
+        // Draw goal line
+        goal?.let {
+            if (it in minY..maxY) {
+                val y = size.height - ((it - minY) / (maxY - minY)) * size.height
+                drawLine(
+                    color = onBackgroundColor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                )
+            }
         }
 
         if (showPoints) {

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChartPoint
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeChartPoint
@@ -29,7 +30,8 @@ data class WeightChartData(
 
 data class WeightUiState(
     val chartData: WeightChartData = WeightChartData(),
-    val weightLogs: List<WeightLogItem> = emptyList()
+    val weightLogs: List<WeightLogItem> = emptyList(),
+    val yAxisRange: ClosedFloatingPointRange<Float> = 0f..100f
 )
 
 data class WeightLogItem(
@@ -39,8 +41,12 @@ data class WeightLogItem(
 
 @HiltViewModel
 class WeightViewModel @Inject constructor(
-    private val healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
+
+    private val _weightGoal = MutableStateFlow(0f)
+    val weightGoal: StateFlow<Float> = _weightGoal.asStateFlow()
 
     private val _selectedBar = MutableStateFlow<RangeChartPoint?>(null)
     val selectedBar: StateFlow<RangeChartPoint?> = _selectedBar.asStateFlow()
@@ -65,6 +71,11 @@ class WeightViewModel @Inject constructor(
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            userPreferencesRepository.weightGoalFlow.collect { goal ->
+                _weightGoal.value = goal
+            }
+        }
         updateDateAndButtonStates()
         fetchWeightRecords()
     }
@@ -119,9 +130,13 @@ class WeightViewModel @Inject constructor(
                         )
                     }.sortedByDescending { it.date }
 
+                    val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: 0f
+                    val yMax = if (maxWeight > 100f) (maxWeight + 10) else 100f
+
                     _weightUiState.value = WeightUiState(
                         chartData = chartData,
-                        weightLogs = weightLogs
+                        weightLogs = weightLogs,
+                        yAxisRange = 0f..yMax
                     )
                 }
         }

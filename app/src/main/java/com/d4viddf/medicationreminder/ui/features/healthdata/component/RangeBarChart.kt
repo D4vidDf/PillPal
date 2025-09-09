@@ -11,6 +11,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -25,6 +26,7 @@ fun RangeBarChart(
     data: List<RangeChartPoint>,
     modifier: Modifier = Modifier,
     barColor: Color = MaterialTheme.colorScheme.primary,
+    goal: Float? = null,
     yAxisRange: ClosedFloatingPointRange<Float>? = null,
     yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() },
     onBarSelected: (RangeChartPoint?) -> Unit
@@ -89,6 +91,20 @@ fun RangeBarChart(
                     size.width - 20f,
                     y,
                     yAxisLabelPaint
+                )
+            }
+        }
+
+        // Draw goal line
+        goal?.let {
+            if (it in minY..maxY) {
+                val y = chartAreaHeight - ((it - minY) / (maxY - minY)) * chartAreaHeight
+                drawLine(
+                    color = onBackgroundColor,
+                    start = Offset(chartAreaStartX, y),
+                    end = Offset(chartAreaStartX + chartAreaWidth, y),
+                    strokeWidth = 2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                 )
             }
         }
