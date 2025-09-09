@@ -128,14 +128,16 @@ class WeightViewModel @Inject constructor(
     }
 
     private fun aggregateForLineChart(records: List<Weight>): List<LineChartPoint> {
-        return records.map {
-            val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
-            LineChartPoint(
-                x = zonedDateTime.hour.toFloat(),
-                y = it.weightKilograms.toFloat(),
-                label = zonedDateTime.hour.toString()
-            )
-        }
+        return records
+            .sortedBy { it.time }
+            .map {
+                val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+                LineChartPoint(
+                    x = zonedDateTime.hour.toFloat(),
+                    y = it.weightKilograms.toFloat(),
+                    label = zonedDateTime.hour.toString()
+                )
+            }
     }
 
     private fun aggregateForRangeChart(records: List<Weight>): List<RangeChartPoint> {
@@ -148,7 +150,6 @@ class WeightViewModel @Inject constructor(
     }
 
     private fun aggregateByDayOfWeek(records: List<Weight>): List<RangeChartPoint> {
-        val today = LocalDate.now()
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
         val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
 
@@ -158,24 +159,19 @@ class WeightViewModel @Inject constructor(
                 dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
             }
 
-        return (0..6).mapNotNull {
+        return (0..6).map {
             val date = startOfWeek.plusDays(it.toLong())
-            if (date.isAfter(today)) {
-                null
-            } else {
-                val (min, max) = weekData[date] ?: (0f to 0f)
-                RangeChartPoint(
-                    x = date.dayOfWeek.value.toFloat(),
-                    min = min,
-                    max = max,
-                    label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                )
-            }
+            val (min, max) = weekData[date] ?: (0f to 0f)
+            RangeChartPoint(
+                x = date.dayOfWeek.value.toFloat(),
+                min = min,
+                max = max,
+                label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            )
         }
     }
 
     private fun aggregateByDayOfMonth(records: List<Weight>): List<RangeChartPoint> {
-        val today = LocalDate.now()
         val startOfMonth = _selectedDate.value.withDayOfMonth(1)
         val daysInMonth = _selectedDate.value.lengthOfMonth()
 
@@ -187,24 +183,19 @@ class WeightViewModel @Inject constructor(
 
         val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
 
-        return (0 until daysInMonth).mapNotNull {
+        return (0 until daysInMonth).map {
             val date = startOfMonth.plusDays(it.toLong())
-            if (date.isAfter(today)) {
-                null
-            } else {
-                val (min, max) = monthData[date] ?: (0f to 0f)
-                RangeChartPoint(
-                    x = date.dayOfMonth.toFloat(),
-                    min = min,
-                    max = max,
-                    label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
-                )
-            }
+            val (min, max) = monthData[date] ?: (0f to 0f)
+            RangeChartPoint(
+                x = date.dayOfMonth.toFloat(),
+                min = min,
+                max = max,
+                label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
+            )
         }
     }
 
     private fun aggregateByMonth(records: List<Weight>): List<RangeChartPoint> {
-        val today = LocalDate.now()
         val startOfYear = _selectedDate.value.withDayOfYear(1)
 
         val yearData = records
@@ -213,19 +204,15 @@ class WeightViewModel @Inject constructor(
                 monthRecords.minOf { it.weightKilograms }.toFloat() to monthRecords.maxOf { it.weightKilograms }.toFloat()
             }
 
-        return (0..11).mapNotNull {
+        return (0..11).map {
             val date = startOfYear.plusMonths(it.toLong())
-            if (date.isAfter(today)) {
-                null
-            } else {
-                val (min, max) = yearData[date.month] ?: (0f to 0f)
-                RangeChartPoint(
-                    x = date.month.value.toFloat(),
-                    min = min,
-                    max = max,
-                    label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                )
-            }
+            val (min, max) = yearData[date.month] ?: (0f to 0f)
+            RangeChartPoint(
+                x = date.month.value.toFloat(),
+                min = min,
+                max = max,
+                label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            )
         }
     }
 

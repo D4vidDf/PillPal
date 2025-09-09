@@ -110,21 +110,23 @@ fun RangeBarChart(
 
             val barWidth = xStep / 4 // Reduced bar width
 
-            if (dataPoint.min == dataPoint.max) {
-                // Draw a dot
-                drawCircle(
-                    color = barColor,
-                    radius = barWidth / 2,
-                    center = Offset(x = xPos, y = yMinPos)
-                )
-            } else {
-                // Draw a rounded bar
-                drawRoundRect(
-                    color = barColor,
-                    topLeft = Offset(x = xPos - (barWidth / 2), y = yMaxPos),
-                    size = Size(width = barWidth, height = yMinPos - yMaxPos),
-                    cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
-                )
+            if (dataPoint.min > 0 || dataPoint.max > 0) {
+                if (dataPoint.min == dataPoint.max) {
+                    // Draw a dot
+                    drawCircle(
+                        color = barColor,
+                        radius = barWidth / 2,
+                        center = Offset(x = xPos, y = yMinPos)
+                    )
+                } else {
+                    // Draw a rounded bar
+                    drawRoundRect(
+                        color = barColor,
+                        topLeft = Offset(x = xPos - (barWidth / 2), y = yMaxPos),
+                        size = Size(width = barWidth, height = yMinPos - yMaxPos),
+                        cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
+                    )
+                }
             }
         }
 

@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.sp
 fun LineChart(
     data: List<LineChartPoint>,
     modifier: Modifier = Modifier,
-    showLines: Boolean = true,
     showPoints: Boolean = false,
     lineColor: Color = MaterialTheme.colorScheme.primary,
     pointColor: Color = MaterialTheme.colorScheme.secondary,
@@ -60,30 +59,30 @@ fun LineChart(
                 }
             }
 
-            if (showLines) {
-                drawPath(
-                    path = path,
-                    color = lineColor,
-                    style = Stroke(width = 5f, cap = StrokeCap.Round)
-                )
+            drawPath(
+                path = path,
+                color = lineColor,
+                style = Stroke(width = 5f, cap = StrokeCap.Round)
+            )
 
-                // Fill area under the line
-                path.lineTo(size.width, size.height)
-                path.lineTo(0f, size.height)
-                path.close()
-                drawPath(path, brush = gradientBrush)
-            }
+            // Fill area under the line
+            path.lineTo(size.width, size.height)
+            path.lineTo(0f, size.height)
+            path.close()
+            drawPath(path, brush = gradientBrush)
         }
 
         if (showPoints) {
-            data.forEach { dataPoint ->
-                val x = ((dataPoint.x - minX) / (maxX - minX)) * size.width
-                val y = size.height - ((dataPoint.y - minY) / (maxY - minY)) * size.height
-                drawCircle(
-                    color = pointColor,
-                    radius = 10f,
-                    center = Offset(x, y)
-                )
+            data.forEachIndexed { index, dataPoint ->
+                if (index == 0 || data[index - 1].y != dataPoint.y) {
+                    val x = ((dataPoint.x - minX) / (maxX - minX)) * size.width
+                    val y = size.height - ((dataPoint.y - minY) / (maxY - minY)) * size.height
+                    drawCircle(
+                        color = pointColor,
+                        radius = 10f,
+                        center = Offset(x, y)
+                    )
+                }
             }
         }
     }
