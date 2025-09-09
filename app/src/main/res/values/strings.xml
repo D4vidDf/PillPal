@@ -544,4 +544,5 @@
     <string name="goal_template">Goal: %s</string>
     <string name="body_temperature_tracker">Body Temperature</string>
     <string name="configure_water">Configure water</string>
+    <string name="configure_weight">Configure weight</string>
 </resources>

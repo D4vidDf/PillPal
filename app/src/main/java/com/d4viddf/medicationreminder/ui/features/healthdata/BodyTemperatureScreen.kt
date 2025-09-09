@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChart
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +49,15 @@ fun BodyTemperatureScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            if (widthSizeClass == WindowWidthSizeClass.Compact) {
+                ExtendedFloatingActionButton(
+                    onClick = { navController.navigate(Screen.LogTemperature.route) },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text(text = stringResource(id = R.string.log_temperature)) }
+                )
+            }
         }
     ) { paddingValues ->
         Column(

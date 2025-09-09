@@ -72,7 +72,7 @@ class WeightViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            userPreferencesRepository.weightGoalFlow.collect { goal ->
+            userPreferencesRepository.weightGoalValueFlow.collect { goal ->
                 _weightGoal.value = goal
             }
         }
