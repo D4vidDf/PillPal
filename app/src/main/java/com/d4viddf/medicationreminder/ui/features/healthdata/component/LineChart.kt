@@ -81,12 +81,12 @@ fun LineChart(
             val gradientBrush = Brush.verticalGradient(
                 colors = listOf(lineColor.copy(alpha = 0.5f), Color.Transparent),
                 startY = 0f,
-                endY = size.height
+                endY = chartAreaHeight
             )
 
             data.forEachIndexed { index, dataPoint ->
-                val currentX = ((dataPoint.x - minX) / (maxX - minX)) * size.width
-                val currentY = size.height - ((dataPoint.y - minY) / (maxY - minY)) * size.height
+                val currentX = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
+                val currentY = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
 
                 if (index == 0) {
                     path.moveTo(currentX, currentY)
@@ -102,8 +102,8 @@ fun LineChart(
             )
 
             // Fill area under the line
-            path.lineTo(size.width, size.height)
-            path.lineTo(0f, size.height)
+            path.lineTo(chartAreaWidth, chartAreaHeight)
+            path.lineTo(chartAreaStartX, chartAreaHeight)
             path.close()
             drawPath(path, brush = gradientBrush)
         }
@@ -111,11 +111,11 @@ fun LineChart(
         // Draw goal line
         goal?.let {
             if (it > 0 && it in minY..maxY) {
-                val y = size.height - ((it - minY) / (maxY - minY)) * size.height
+                val y = chartAreaHeight - ((it - minY) / (maxY - minY)) * chartAreaHeight
                 drawLine(
                     color = onBackgroundColor,
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
+                    start = Offset(chartAreaStartX, y),
+                    end = Offset(chartAreaStartX + chartAreaWidth, y),
                     strokeWidth = 2.dp.toPx(),
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                 )
@@ -125,8 +125,8 @@ fun LineChart(
         if (showPoints) {
             data.forEachIndexed { index, dataPoint ->
                 if (index == 0 || data[index - 1].y != dataPoint.y) {
-                    val x = ((dataPoint.x - minX) / (maxX - minX)) * size.width
-                    val y = size.height - ((dataPoint.y - minY) / (maxY - minY)) * size.height
+                    val x = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
+                    val y = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
                     drawCircle(
                         color = pointColor,
                         radius = 10f,
