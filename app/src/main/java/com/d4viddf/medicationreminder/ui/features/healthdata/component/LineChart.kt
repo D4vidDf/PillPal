@@ -77,7 +77,7 @@ fun LineChart(
 
         // Draw goal line
         goal?.let {
-            if (it in minY..maxY) {
+            if (it > 0 && it in minY..maxY) {
                 val y = size.height - ((it - minY) / (maxY - minY)) * size.height
                 drawLine(
                     color = onBackgroundColor,

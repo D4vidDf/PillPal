@@ -156,26 +156,34 @@ class WeightViewModel @Inject constructor(
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
         val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
 
+        val lastRecordDate = records.maxOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
+
         val weekData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
             .mapValues { (_, dayRecords) ->
                 dayRecords.map { it.weightKilograms }.average().toFloat()
             }
 
-        return (0..6).map {
+        return (0..6).mapNotNull {
             val date = startOfWeek.plusDays(it.toLong())
-            val avg = weekData[date] ?: 0f
-            LineChartPoint(
-                x = date.dayOfWeek.value.toFloat(),
-                y = avg,
-                label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            )
+            if (lastRecordDate != null && date.isAfter(lastRecordDate)) {
+                null
+            } else {
+                val avg = weekData[date] ?: 0f
+                LineChartPoint(
+                    x = date.dayOfWeek.value.toFloat(),
+                    y = avg,
+                    label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
+            }
         }
     }
 
     private fun aggregateByDayOfMonth(records: List<Weight>): List<LineChartPoint> {
         val startOfMonth = _selectedDate.value.withDayOfMonth(1)
         val daysInMonth = _selectedDate.value.lengthOfMonth()
+
+        val lastRecordDate = records.maxOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
 
         val monthData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
@@ -185,19 +193,25 @@ class WeightViewModel @Inject constructor(
 
         val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
 
-        return (0 until daysInMonth).map {
+        return (0 until daysInMonth).mapNotNull {
             val date = startOfMonth.plusDays(it.toLong())
-            val avg = monthData[date] ?: 0f
-            LineChartPoint(
-                x = date.dayOfMonth.toFloat(),
-                y = avg,
-                label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
-            )
+            if (lastRecordDate != null && date.isAfter(lastRecordDate)) {
+                null
+            } else {
+                val avg = monthData[date] ?: 0f
+                LineChartPoint(
+                    x = date.dayOfMonth.toFloat(),
+                    y = avg,
+                    label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
+                )
+            }
         }
     }
 
     private fun aggregateByMonth(records: List<Weight>): List<LineChartPoint> {
         val startOfYear = _selectedDate.value.withDayOfYear(1)
+
+        val lastRecordDate = records.maxOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
 
         val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
@@ -205,14 +219,18 @@ class WeightViewModel @Inject constructor(
                 monthRecords.map { it.weightKilograms }.average().toFloat()
             }
 
-        return (0..11).map {
+        return (0..11).mapNotNull {
             val date = startOfYear.plusMonths(it.toLong())
-            val avg = yearData[date.month] ?: 0f
-            LineChartPoint(
-                x = date.month.value.toFloat(),
-                y = avg,
-                label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            )
+            if (lastRecordDate != null && date.withDayOfMonth(1).isAfter(lastRecordDate.withDayOfMonth(1))) {
+                null
+            } else {
+                val avg = yearData[date.month] ?: 0f
+                LineChartPoint(
+                    x = date.month.value.toFloat(),
+                    y = avg,
+                    label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
+            }
         }
     }
 

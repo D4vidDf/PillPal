@@ -97,7 +97,7 @@ fun RangeBarChart(
 
         // Draw goal line
         goal?.let {
-            if (it in minY..maxY) {
+            if (it > 0 && it in minY..maxY) {
                 val y = chartAreaHeight - ((it - minY) / (maxY - minY)) * chartAreaHeight
                 drawLine(
                     color = onBackgroundColor,
