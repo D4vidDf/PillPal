@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
@@ -112,32 +111,16 @@ fun WeightScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            when (timeRange) {
-                TimeRange.DAY -> {
-                    LineChart(
-                        data = weightUiState.chartData.lineChartData,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(horizontal = 16.dp),
-                        showPoints = true,
-                        goal = weightGoal,
-                        yAxisRange = weightUiState.yAxisRange
-                    )
-                }
-                else -> {
-                    com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
-                        data = weightUiState.chartData.rangeChartData,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(horizontal = 16.dp),
-                        goal = weightGoal,
-                        yAxisRange = weightUiState.yAxisRange,
-                        onBarSelected = { viewModel.onBarSelected(it) }
-                    )
-                }
-            }
+            LineChart(
+                data = weightUiState.chartData.lineChartData,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(horizontal = 16.dp),
+                showPoints = true,
+                goal = weightGoal,
+                yAxisRange = weightUiState.yAxisRange
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

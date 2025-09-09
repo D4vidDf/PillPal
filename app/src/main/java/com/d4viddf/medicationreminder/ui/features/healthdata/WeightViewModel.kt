@@ -24,8 +24,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 data class WeightChartData(
-    val lineChartData: List<LineChartPoint> = emptyList(),
-    val rangeChartData: List<RangeChartPoint> = emptyList()
+    val lineChartData: List<LineChartPoint> = emptyList()
 )
 
 data class WeightUiState(
@@ -47,13 +46,6 @@ class WeightViewModel @Inject constructor(
 
     private val _weightGoal = MutableStateFlow(0f)
     val weightGoal: StateFlow<Float> = _weightGoal.asStateFlow()
-
-    private val _selectedBar = MutableStateFlow<RangeChartPoint?>(null)
-    val selectedBar: StateFlow<RangeChartPoint?> = _selectedBar.asStateFlow()
-
-    fun onBarSelected(bar: RangeChartPoint?) {
-        _selectedBar.value = bar
-    }
 
     private val _weightUiState = MutableStateFlow(WeightUiState())
     val weightUiState: StateFlow<WeightUiState> = _weightUiState.asStateFlow()
@@ -117,11 +109,7 @@ class WeightViewModel @Inject constructor(
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
-                    val chartData = if (_timeRange.value == TimeRange.DAY) {
-                        WeightChartData(lineChartData = aggregateForLineChart(records))
-                    } else {
-                        WeightChartData(rangeChartData = aggregateForRangeChart(records))
-                    }
+                    val chartData = WeightChartData(lineChartData = aggregateDataForChart(records))
 
                     val weightLogs = records.map {
                         WeightLogItem(
@@ -142,7 +130,16 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateForLineChart(records: List<Weight>): List<LineChartPoint> {
+    private fun aggregateDataForChart(records: List<Weight>): List<LineChartPoint> {
+        return when (_timeRange.value) {
+            TimeRange.DAY -> aggregateByHour(records)
+            TimeRange.WEEK -> aggregateByDayOfWeek(records)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records)
+            TimeRange.YEAR -> aggregateByMonth(records)
+        }
+    }
+
+    private fun aggregateByHour(records: List<Weight>): List<LineChartPoint> {
         return records
             .sortedBy { it.time }
             .map {
@@ -155,77 +152,65 @@ class WeightViewModel @Inject constructor(
             }
     }
 
-    private fun aggregateForRangeChart(records: List<Weight>): List<RangeChartPoint> {
-        return when (_timeRange.value) {
-            TimeRange.WEEK -> aggregateByDayOfWeek(records)
-            TimeRange.MONTH -> aggregateByDayOfMonth(records)
-            TimeRange.YEAR -> aggregateByMonth(records)
-            else -> emptyList()
-        }
-    }
-
-    private fun aggregateByDayOfWeek(records: List<Weight>): List<RangeChartPoint> {
+    private fun aggregateByDayOfWeek(records: List<Weight>): List<LineChartPoint> {
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
         val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
 
         val weekData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
             .mapValues { (_, dayRecords) ->
-                dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
+                dayRecords.map { it.weightKilograms }.average().toFloat()
             }
 
         return (0..6).map {
             val date = startOfWeek.plusDays(it.toLong())
-            val (min, max) = weekData[date] ?: (0f to 0f)
-            RangeChartPoint(
+            val avg = weekData[date] ?: 0f
+            LineChartPoint(
                 x = date.dayOfWeek.value.toFloat(),
-                min = min,
-                max = max,
+                y = avg,
                 label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
             )
         }
     }
 
-    private fun aggregateByDayOfMonth(records: List<Weight>): List<RangeChartPoint> {
+    private fun aggregateByDayOfMonth(records: List<Weight>): List<LineChartPoint> {
         val startOfMonth = _selectedDate.value.withDayOfMonth(1)
         val daysInMonth = _selectedDate.value.lengthOfMonth()
 
         val monthData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
             .mapValues { (_, dayRecords) ->
-                dayRecords.minOf { it.weightKilograms }.toFloat() to dayRecords.maxOf { it.weightKilograms }.toFloat()
+                dayRecords.map { it.weightKilograms }.average().toFloat()
             }
 
         val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
 
         return (0 until daysInMonth).map {
             val date = startOfMonth.plusDays(it.toLong())
-            val (min, max) = monthData[date] ?: (0f to 0f)
-            RangeChartPoint(
+            val avg = monthData[date] ?: 0f
+            LineChartPoint(
                 x = date.dayOfMonth.toFloat(),
-                min = min,
-                max = max,
+                y = avg,
                 label = if (date.dayOfMonth in labelsToShow) date.dayOfMonth.toString() else ""
             )
         }
     }
 
-    private fun aggregateByMonth(records: List<Weight>): List<RangeChartPoint> {
+    private fun aggregateByMonth(records: List<Weight>): List<LineChartPoint> {
         val startOfYear = _selectedDate.value.withDayOfYear(1)
 
         val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
             .mapValues { (_, monthRecords) ->
-                monthRecords.minOf { it.weightKilograms }.toFloat() to monthRecords.maxOf { it.weightKilograms }.toFloat()
+                monthRecords.map { it.weightKilograms }.average().toFloat()
             }
 
         return (0..11).map {
             val date = startOfYear.plusMonths(it.toLong())
-            val (min, max) = yearData[date.month] ?: (0f to 0f)
-            RangeChartPoint(
+            val avg = yearData[date.month] ?: 0f
+            LineChartPoint(
                 x = date.month.value.toFloat(),
-                min = min,
-                max = max,
+                y = avg,
                 label = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
             )
         }
