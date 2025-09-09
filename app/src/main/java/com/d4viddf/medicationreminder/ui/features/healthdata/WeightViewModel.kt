@@ -110,7 +110,7 @@ class WeightViewModel @Inject constructor(
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
-                    val chartData = WeightChartData(lineChartData = aggregateDataForChart(records))
+                    val chartData = aggregateDataForChart(records)
 
                     val weightLogs = records.map {
                         WeightLogItem(
