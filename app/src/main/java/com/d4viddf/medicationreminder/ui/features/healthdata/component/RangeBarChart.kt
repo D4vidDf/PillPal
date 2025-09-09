@@ -1,9 +1,11 @@
 package com.d4viddf.medicationreminder.ui.features.healthdata.component
 
+import android.graphics.Rect
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -11,10 +13,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
-data class RangeChartPoint(val x: Float, val min: Float, val max: Float)
+data class RangeChartPoint(val x: Float, val min: Float, val max: Float, val label: String)
 
 @Composable
 fun RangeBarChart(
@@ -22,12 +26,47 @@ fun RangeBarChart(
     modifier: Modifier = Modifier,
     barColor: Color = MaterialTheme.colorScheme.primary,
     yAxisRange: ClosedFloatingPointRange<Float>? = null,
-    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() }
+    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() },
+    onBarSelected: (RangeChartPoint?) -> Unit
 ) {
+    var selectedIndex by remember { mutableStateOf<Int?>(null) }
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    val tooltipColor = MaterialTheme.colorScheme.onSurface
+    val tooltipBackgroundColor = MaterialTheme.colorScheme.surface
 
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(data) {
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        val xStep = size.width / (data.size + 1)
+                        val index = (offset.x / xStep).toInt() - 1
+                        if (index in data.indices) {
+                            selectedIndex = index
+                            onBarSelected(data[index])
+                        }
+                    },
+                    onDrag = { change, _ ->
+                        val xStep = size.width / (data.size + 1)
+                        val index = (change.position.x / xStep).toInt() - 1
+                        if (index in data.indices) {
+                            selectedIndex = index
+                            onBarSelected(data[index])
+                        }
+                    },
+                    onDragEnd = {
+                        selectedIndex = null
+                        onBarSelected(null)
+                    },
+                    onDragCancel = {
+                        selectedIndex = null
+                        onBarSelected(null)
+                    }
+                )
+            }
+    ) {
         val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
         val chartAreaHeight = size.height - xAxisAreaHeight
@@ -59,14 +98,12 @@ fun RangeBarChart(
             val xPos = chartAreaStartX + xStep * (index + 1)
 
             // Draw X-axis label
-            if (index == 0 || index == data.size - 1 || (index + 1) % 5 == 0) {
-                drawContext.canvas.nativeCanvas.drawText(
-                    dataPoint.x.roundToInt().toString(),
-                    xPos,
-                    size.height - 20f,
-                    yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
-                )
-            }
+            drawContext.canvas.nativeCanvas.drawText(
+                dataPoint.label,
+                xPos,
+                size.height - 20f,
+                yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
+            )
 
             val yMinPos = chartAreaHeight - ((dataPoint.min - minY) / (maxY - minY)) * chartAreaHeight
             val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
@@ -89,6 +126,42 @@ fun RangeBarChart(
                     cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
                 )
             }
+        }
+
+        selectedIndex?.let { index ->
+            val dataPoint = data[index]
+            val xPos = chartAreaStartX + xStep * (index + 1)
+
+            val tooltipText = "Min: ${dataPoint.min.roundToInt()}, Max: ${dataPoint.max.roundToInt()}"
+            val textPaint = android.graphics.Paint().apply {
+                color = tooltipColor.toArgb()
+                textAlign = android.graphics.Paint.Align.CENTER
+                textSize = 14.sp.toPx()
+            }
+
+            val textBounds = Rect()
+            textPaint.getTextBounds(tooltipText, 0, tooltipText.length, textBounds)
+
+            val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
+            val tooltipX = xPos
+            val tooltipY = yMaxPos - 20f
+            val tooltipPadding = 16.dp.toPx()
+            val tooltipWidth = textBounds.width() + tooltipPadding * 2
+            val tooltipHeight = textBounds.height() + tooltipPadding * 2
+
+            drawRoundRect(
+                color = tooltipBackgroundColor,
+                topLeft = Offset(tooltipX - tooltipWidth / 2, tooltipY - tooltipHeight + textBounds.bottom),
+                size = Size(tooltipWidth, tooltipHeight),
+                cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx())
+            )
+
+            drawContext.canvas.nativeCanvas.drawText(
+                tooltipText,
+                tooltipX,
+                tooltipY,
+                textPaint
+            )
         }
     }
 }

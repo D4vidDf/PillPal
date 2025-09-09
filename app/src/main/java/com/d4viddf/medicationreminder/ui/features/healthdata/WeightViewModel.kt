@@ -16,6 +16,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
 
@@ -119,8 +120,12 @@ class WeightViewModel @Inject constructor(
 
     private fun aggregateForLineChart(records: List<Weight>): List<LineChartPoint> {
         return records.map {
-            val hour = it.time.atZone(ZoneId.systemDefault()).hour
-            LineChartPoint(x = hour.toFloat(), y = it.weightKilograms.toFloat())
+            val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+            LineChartPoint(
+                x = zonedDateTime.hour.toFloat(),
+                y = it.weightKilograms.toFloat(),
+                label = zonedDateTime.hour.toString()
+            )
         }
     }
 
@@ -136,11 +141,16 @@ class WeightViewModel @Inject constructor(
     private fun aggregateByDayOfWeek(records: List<Weight>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek.value } // 1-7 for Monday-Sunday
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).dayOfWeek }
             .map { (day, dayRecords) ->
                 val min = dayRecords.minOf { it.weightKilograms }.toFloat()
                 val max = dayRecords.maxOf { it.weightKilograms }.toFloat()
-                RangeChartPoint(x = day.toFloat(), min = min, max = max)
+                RangeChartPoint(
+                    x = day.value.toFloat(),
+                    min = min,
+                    max = max,
+                    label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
             }
     }
 
@@ -151,18 +161,28 @@ class WeightViewModel @Inject constructor(
             .map { (day, dayRecords) ->
                 val min = dayRecords.minOf { it.weightKilograms }.toFloat()
                 val max = dayRecords.maxOf { it.weightKilograms }.toFloat()
-                RangeChartPoint(x = day.toFloat(), min = min, max = max)
+                RangeChartPoint(
+                    x = day.toFloat(),
+                    min = min,
+                    max = max,
+                    label = day.toString()
+                )
             }
     }
 
     private fun aggregateByMonth(records: List<Weight>): List<RangeChartPoint> {
         if (records.isEmpty()) return emptyList()
         return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).monthValue } // 1-12
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
             .map { (month, monthRecords) ->
                 val min = monthRecords.minOf { it.weightKilograms }.toFloat()
                 val max = monthRecords.maxOf { it.weightKilograms }.toFloat()
-                RangeChartPoint(x = month.toFloat(), min = min, max = max)
+                RangeChartPoint(
+                    x = month.value.toFloat(),
+                    min = min,
+                    max = max,
+                    label = month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
             }
     }
 

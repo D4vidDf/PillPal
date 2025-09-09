@@ -37,6 +37,18 @@ fun LineChart(
                 val currentX = ((dataPoint.x - minX) / (maxX - minX)) * size.width
                 val currentY = size.height - ((dataPoint.y - minY) / (maxY - minY)) * size.height
 
+                // Draw X-axis label
+                drawContext.canvas.nativeCanvas.drawText(
+                    dataPoint.label,
+                    currentX,
+                    size.height - 20f,
+                    android.graphics.Paint().apply {
+                        color = onBackgroundColor.toArgb()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        textSize = 12.sp.toPx()
+                    }
+                )
+
                 if (index == 0) {
                     path.moveTo(currentX, currentY)
                 } else {
