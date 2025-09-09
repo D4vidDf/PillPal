@@ -11,6 +11,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun LineChart(
@@ -23,6 +26,7 @@ fun LineChart(
     yAxisRange: ClosedFloatingPointRange<Float>? = null
 ) {
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
+    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     Canvas(modifier = modifier.fillMaxSize()) {
         if (data.size > 1) {
