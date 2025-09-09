@@ -122,7 +122,7 @@ fun RangeBarChart(
         }
 
         data.forEachIndexed { index, dataPoint ->
-            val xPos = chartAreaStartX + xStep * (data.indexOf(dataPoint) + 1)
+            val xPos = chartAreaStartX + xStep * (dataPoint.x)
             val yMinPos = chartAreaHeight - ((dataPoint.min - minY) / (maxY - minY)) * chartAreaHeight
             val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
 

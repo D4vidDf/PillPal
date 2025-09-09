@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import kotlin.math.roundToInt
+
 @Composable
 fun LineChart(
     data: List<LineChartPoint>,
@@ -26,13 +28,40 @@ fun LineChart(
     lineColor: Color = MaterialTheme.colorScheme.primary,
     pointColor: Color = MaterialTheme.colorScheme.secondary,
     goal: Float? = null,
-    yAxisRange: ClosedFloatingPointRange<Float>? = null
+    yAxisRange: ClosedFloatingPointRange<Float>? = null,
+    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() }
 ) {
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     Canvas(modifier = modifier.fillMaxSize()) {
-        val xStep = size.width / (labels.size + 1)
+        val yAxisAreaWidth = 120f
+        val xAxisAreaHeight = 60f
+        val chartAreaHeight = size.height - xAxisAreaHeight
+        val chartAreaWidth = size.width - yAxisAreaWidth
+        val chartAreaStartX = 0f
+
+        // Draw Y-axis labels
+        val yAxisLabelPaint = android.graphics.Paint().apply {
+            color = onBackgroundColor.toArgb()
+            textAlign = android.graphics.Paint.Align.RIGHT
+            textSize = 12.sp.toPx()
+        }
+        if (data.isNotEmpty() && maxY > minY) {
+            val numLabels = 3
+            for (i in 0..numLabels) {
+                val value = minY + (maxY - minY) * i / numLabels
+                val y = chartAreaHeight - ((value - minY) / (maxY - minY)) * chartAreaHeight
+                drawContext.canvas.nativeCanvas.drawText(
+                    yAxisLabelFormatter(value),
+                    size.width - 20f,
+                    y,
+                    yAxisLabelPaint
+                )
+            }
+        }
+
+        val xStep = chartAreaWidth / (labels.size + 1)
         labels.forEachIndexed { index, label ->
             val xPos = xStep * (index + 1)
             drawContext.canvas.nativeCanvas.drawText(
