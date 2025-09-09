@@ -25,13 +25,15 @@ fun LineChart(
     labels: List<String>,
     modifier: Modifier = Modifier,
     showPoints: Boolean = false,
+    showLine: Boolean = true,
+    showGradient: Boolean = true,
     lineColor: Color = MaterialTheme.colorScheme.primary,
     pointColor: Color = MaterialTheme.colorScheme.secondary,
     goal: Float? = null,
     yAxisRange: ClosedFloatingPointRange<Float>? = null,
     yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() }
 ) {
-    val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange)
+    val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange, labels)
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     Canvas(modifier = modifier.fillMaxSize()) {
@@ -47,7 +49,7 @@ fun LineChart(
             textAlign = android.graphics.Paint.Align.RIGHT
             textSize = 12.sp.toPx()
         }
-        if (data.isNotEmpty() && maxY > minY) {
+        if (maxY > minY) {
             val numLabels = 3
             for (i in 0..numLabels) {
                 val value = minY + (maxY - minY) * i / numLabels
@@ -61,9 +63,9 @@ fun LineChart(
             }
         }
 
-        val xStep = chartAreaWidth / (labels.size + 1)
+        val xStep = if (labels.size > 1) chartAreaWidth / (labels.size - 1) else 0f
         labels.forEachIndexed { index, label ->
-            val xPos = xStep * (index + 1)
+            val xPos = chartAreaStartX + xStep * index
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 xPos,
@@ -76,7 +78,7 @@ fun LineChart(
             )
         }
 
-        if (data.size > 1) {
+        if (data.size > 1 && showLine) {
             val path = Path()
             val gradientBrush = Brush.verticalGradient(
                 colors = listOf(lineColor.copy(alpha = 0.5f), Color.Transparent),
@@ -101,11 +103,14 @@ fun LineChart(
                 style = Stroke(width = 5f, cap = StrokeCap.Round)
             )
 
-            // Fill area under the line
-            path.lineTo(chartAreaWidth, chartAreaHeight)
-            path.lineTo(chartAreaStartX, chartAreaHeight)
-            path.close()
-            drawPath(path, brush = gradientBrush)
+            if (showGradient) {
+                val lastX = chartAreaStartX + ((data.last().x - minX) / (maxX - minX)) * chartAreaWidth
+                val firstX = chartAreaStartX + ((data.first().x - minX) / (maxX - minX)) * chartAreaWidth
+                path.lineTo(lastX, chartAreaHeight)
+                path.lineTo(firstX, chartAreaHeight)
+                path.close()
+                drawPath(path, brush = gradientBrush)
+            }
         }
 
         // Draw goal line
@@ -140,15 +145,19 @@ fun LineChart(
 
 private fun getChartBounds(
     data: List<LineChartPoint>,
-    yAxisRange: ClosedFloatingPointRange<Float>? = null
+    yAxisRange: ClosedFloatingPointRange<Float>? = null,
+    labels: List<String>
 ): List<Float> {
-    if (data.isEmpty()) return listOf(0f, 0f, 0f, 0f)
+    if (labels.isEmpty()) return listOf(0f, 0f, 0f, 0f)
 
-    val minX = data.minOf { it.x }
-    val maxX = data.maxOf { it.x }
+    val minX = 0f
+    val maxX = (labels.size - 1).toFloat()
 
-    val minY = yAxisRange?.start ?: data.minOf { it.y }
-    val maxY = yAxisRange?.endInclusive ?: data.maxOf { it.y }
+    val minYValue = data.minOfOrNull { it.y } ?: 0f
+    val maxYValue = data.maxOfOrNull { it.y } ?: 0f
+
+    val minY = yAxisRange?.start ?: minYValue
+    val maxY = yAxisRange?.endInclusive ?: maxYValue
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f

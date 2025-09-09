@@ -31,7 +31,9 @@ data class WeightChartData(
 data class WeightUiState(
     val chartData: WeightChartData = WeightChartData(),
     val weightLogs: List<WeightLogItem> = emptyList(),
-    val yAxisRange: ClosedFloatingPointRange<Float> = 0f..100f
+    val yAxisRange: ClosedFloatingPointRange<Float> = 0f..100f,
+    val currentWeight: Float = 0f,
+    val weightProgress: Float = 0f
 )
 
 data class WeightLogItem(
@@ -47,6 +49,9 @@ class WeightViewModel @Inject constructor(
 
     private val _weightGoal = MutableStateFlow(0f)
     val weightGoal: StateFlow<Float> = _weightGoal.asStateFlow()
+
+    private val _averageWeight = MutableStateFlow(0f)
+    val averageWeight: StateFlow<Float> = _averageWeight.asStateFlow()
 
     private val _weightUiState = MutableStateFlow(WeightUiState())
     val weightUiState: StateFlow<WeightUiState> = _weightUiState.asStateFlow()
@@ -122,10 +127,17 @@ class WeightViewModel @Inject constructor(
                     val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: 0f
                     val yMax = if (maxWeight > 100f) (maxWeight + 10) else 100f
 
+                    val currentWeight = records.maxByOrNull { it.time }?.weightKilograms?.toFloat() ?: 0f
+                    val progress = if (weightGoal.value > 0) currentWeight / weightGoal.value else 0f
+
+                    _averageWeight.value = if (records.isNotEmpty()) records.map { it.weightKilograms }.average().toFloat() else 0f
+
                     _weightUiState.value = WeightUiState(
                         chartData = chartData,
                         weightLogs = weightLogs,
-                        yAxisRange = 0f..yMax
+                        yAxisRange = 0f..yMax,
+                        currentWeight = currentWeight,
+                        weightProgress = progress
                     )
                 }
         }
@@ -168,7 +180,7 @@ class WeightViewModel @Inject constructor(
             }
 
         val labels = (0..6).map {
-            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
         }
 
         val data = (0..6).mapNotNull {
@@ -234,7 +246,7 @@ class WeightViewModel @Inject constructor(
             }
 
         val labels = (0..11).map {
-            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
         }
 
         val data = (0..11).mapNotNull {

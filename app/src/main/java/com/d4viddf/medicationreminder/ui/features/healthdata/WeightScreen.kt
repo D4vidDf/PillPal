@@ -1,11 +1,8 @@
 package com.d4viddf.medicationreminder.ui.features.healthdata
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -14,15 +11,16 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
@@ -43,6 +41,7 @@ fun WeightScreen(
     val dateRangeText by viewModel.dateRangeText.collectAsState()
     val isNextEnabled by viewModel.isNextEnabled.collectAsState()
     val weightGoal by viewModel.weightGoal.collectAsState()
+    val averageWeight by viewModel.averageWeight.collectAsState()
 
     Scaffold(
         topBar = {
@@ -109,38 +108,117 @@ fun WeightScreen(
                 widthSizeClass = widthSizeClass
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LineChart(
-                data = weightUiState.chartData.lineChartData,
-                labels = weightUiState.chartData.labels,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(horizontal = 16.dp),
-                showPoints = true,
-                goal = weightGoal,
-                yAxisRange = weightUiState.yAxisRange
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.history),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
-                    com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                        index = index,
-                        size = weightUiState.weightLogs.size,
-                        date = weightEntry.date.toLocalDate(),
-                        value = "${weightEntry.weight} kg",
-                        onClick = { /* No-op */ }
+            if (timeRange != TimeRange.DAY) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
+                                append(String.format("%.1f", averageWeight))
+                            }
+                            withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                                append(" kg (average)")
+                            }
+                        }
                     )
                 }
+            }
+
+            when (timeRange) {
+                TimeRange.DAY -> {
+                    DayView(weightUiState = weightUiState, weightGoal = weightGoal)
+                }
+                TimeRange.WEEK, TimeRange.MONTH -> {
+                    LineChart(
+                        data = weightUiState.chartData.lineChartData,
+                        labels = weightUiState.chartData.labels,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 16.dp),
+                        showLine = false,
+                        showPoints = true,
+                        goal = weightGoal,
+                        yAxisRange = weightUiState.yAxisRange
+                    )
+                }
+                TimeRange.YEAR -> {
+                    LineChart(
+                        data = weightUiState.chartData.lineChartData,
+                        labels = weightUiState.chartData.labels,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 16.dp),
+                        showLine = true,
+                        showPoints = true,
+                        showGradient = false,
+                        goal = weightGoal,
+                        yAxisRange = weightUiState.yAxisRange
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DayView(weightUiState: WeightUiState, weightGoal: Float) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = String.format("%.1f", weightUiState.currentWeight),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(text = "kg")
+            }
+            Box(contentAlignment = Alignment.Center) {
+                val animatedProgress by animateFloatAsState(
+                    targetValue = weightUiState.weightProgress,
+                    animationSpec = tween(durationMillis = 1000),
+                    label = "WeightProgressAnimation"
+                )
+                CircularProgressIndicator(
+                    progress = { animatedProgress },
+                    modifier = Modifier.size(100.dp),
+                    strokeWidth = 8.dp
+                )
+                Text(
+                    text = "${(weightUiState.weightProgress * 100).toInt()}%",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = String.format("%.1f", weightGoal),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(text = "Goal")
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = stringResource(R.string.history),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(weightUiState.weightLogs) { weightEntry ->
+                com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                    date = weightEntry.date.toLocalDate(),
+                    value = "${String.format("%.1f", weightEntry.weight)} kg",
+                    onClick = { /* No-op */ }
+                )
             }
         }
     }
