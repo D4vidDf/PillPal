@@ -128,7 +128,11 @@ fun WeightScreen(
 
             when (timeRange) {
                 TimeRange.DAY -> {
-                    DayView(weightUiState = weightUiState, weightGoal = weightGoal)
+                    DayView(
+                        modifier = Modifier.weight(1f),
+                        weightUiState = weightUiState,
+                        weightGoal = weightGoal
+                    )
                 }
                 TimeRange.WEEK, TimeRange.MONTH -> {
                     LineChart(
@@ -165,8 +169,12 @@ fun WeightScreen(
 }
 
 @Composable
-private fun DayView(weightUiState: WeightUiState, weightGoal: Float) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+private fun DayView(
+    modifier: Modifier = Modifier,
+    weightUiState: WeightUiState,
+    weightGoal: Float
+) {
+    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,

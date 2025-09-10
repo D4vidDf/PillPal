@@ -120,7 +120,7 @@ fun BodyTemperatureScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).weight(1f)) {
                 itemsIndexed(temperatureUiState.temperatureLogs) { index, tempEntry ->
                     com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
                         index = index,
