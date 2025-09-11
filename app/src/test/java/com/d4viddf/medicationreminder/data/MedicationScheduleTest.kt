@@ -5,6 +5,7 @@ import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.data.model.getFormattedSchedule
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -65,7 +66,6 @@ class MedicationScheduleTest {
         assertEquals("Daily at N/A", schedule.getFormattedSchedule())
     }
 
-import java.time.DayOfWeek
 
     @Test
     fun testGetFormattedSchedule_weekly_validData() {
