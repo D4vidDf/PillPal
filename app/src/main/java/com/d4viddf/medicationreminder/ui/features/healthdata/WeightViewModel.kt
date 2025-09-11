@@ -190,7 +190,7 @@ class WeightViewModel @Inject constructor(
             } else {
                 val avg = weekData[date] ?: 0f
                 LineChartPoint(
-                    x = date.dayOfWeek.value.toFloat(),
+                    x = it.toFloat(),
                     y = avg,
                     label = ""
                 )
@@ -225,7 +225,7 @@ class WeightViewModel @Inject constructor(
             } else {
                 val avg = monthData[date] ?: 0f
                 LineChartPoint(
-                    x = date.dayOfMonth.toFloat(),
+                    x = it.toFloat(),
                     y = avg,
                     label = ""
                 )
@@ -256,7 +256,7 @@ class WeightViewModel @Inject constructor(
             } else {
                 val avg = yearData[date.month] ?: 0f
                 LineChartPoint(
-                    x = date.month.value.toFloat(),
+                    x = it.toFloat(),
                     y = avg,
                     label = ""
                 )

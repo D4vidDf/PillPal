@@ -173,7 +173,7 @@ class BodyTemperatureViewModel @Inject constructor(
             val date = startOfWeek.plusDays(it.toLong())
             val (min, max) = weekData[date] ?: (0f to 0f)
             RangeChartPoint(
-                x = date.dayOfWeek.value.toFloat(),
+                x = it.toFloat(),
                 min = min,
                 max = max,
                 label = ""
@@ -203,7 +203,7 @@ class BodyTemperatureViewModel @Inject constructor(
             val date = startOfMonth.plusDays(it.toLong())
             val (min, max) = monthData[date] ?: (0f to 0f)
             RangeChartPoint(
-                x = date.dayOfMonth.toFloat(),
+                x = it.toFloat(),
                 min = min,
                 max = max,
                 label = ""
@@ -229,7 +229,7 @@ class BodyTemperatureViewModel @Inject constructor(
             val date = startOfYear.plusMonths(it.toLong())
             val (min, max) = yearData[date.month] ?: (0f to 0f)
             RangeChartPoint(
-                x = date.month.value.toFloat(),
+                x = it.toFloat(),
                 min = min,
                 max = max,
                 label = ""
