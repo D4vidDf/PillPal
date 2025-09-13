@@ -190,13 +190,18 @@ private fun getChartBounds(
     data: List<RangeChartPoint>,
     yAxisRange: ClosedFloatingPointRange<Float>? = null
 ): List<Float> {
-    if (data.isEmpty()) return listOf(0f, 0f, 0f, 0f)
+    if (data.isEmpty()) return listOf(0f, 0f, 30f, 45f) // Default range for temperature
 
     val minX = 0f
     val maxX = data.size.toFloat()
 
-    val minY = yAxisRange?.start ?: data.minOf { it.min }
-    val maxY = yAxisRange?.endInclusive ?: data.maxOf { it.max }
+    var minY = yAxisRange?.start ?: data.minOfOrNull { it.min } ?: 30f
+    var maxY = yAxisRange?.endInclusive ?: data.maxOfOrNull { it.max } ?: 45f
+
+    if (minY == maxY) {
+        minY -= 5f
+        maxY += 5f
+    }
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f

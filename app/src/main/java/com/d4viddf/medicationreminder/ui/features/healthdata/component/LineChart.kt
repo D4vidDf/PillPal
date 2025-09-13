@@ -156,8 +156,13 @@ private fun getChartBounds(
     val minYValue = data.minOfOrNull { it.y } ?: 0f
     val maxYValue = data.maxOfOrNull { it.y } ?: 0f
 
-    val minY = yAxisRange?.start ?: minYValue
-    val maxY = yAxisRange?.endInclusive ?: maxYValue
+    var minY = yAxisRange?.start ?: minYValue
+    var maxY = yAxisRange?.endInclusive ?: maxYValue
+
+    if (minY == maxY) {
+        minY -= 5f
+        maxY += 5f
+    }
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f
