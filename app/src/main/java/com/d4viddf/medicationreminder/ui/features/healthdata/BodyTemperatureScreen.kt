@@ -65,9 +65,15 @@ fun BodyTemperatureScreen(
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     if (showBottomSheet) {
+        LaunchedEffect(sheetState) {
+            scope.launch {
+                sheetState.expand()
+            }
+        }
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            modifier = Modifier.fillMaxSize()
         ) {
             MoreInfoBottomSheet(
                 title = stringResource(id = R.string.about_body_temperature),
@@ -119,8 +125,8 @@ fun BodyTemperatureScreen(
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+                .fillMaxSize(),
+            contentPadding = paddingValues
         ) {
             item {
                 PrimaryTabRow(selectedTabIndex = timeRange.ordinal) {

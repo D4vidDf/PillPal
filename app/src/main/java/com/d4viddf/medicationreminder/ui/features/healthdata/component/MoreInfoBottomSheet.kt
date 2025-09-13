@@ -38,9 +38,11 @@ fun MoreInfoBottomSheet(
 ) {
     val expandedStates = remember { mutableStateListOf<Boolean>().apply { addAll(List(items.size) { false }) } }
 
-    LazyColumn(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         item {
             Text(
                 text = title,

@@ -39,9 +39,10 @@ fun LineChart(
     Canvas(modifier = modifier.fillMaxSize()) {
         val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
+        val chartPadding = 16.dp.toPx()
         val chartAreaHeight = size.height - xAxisAreaHeight
-        val chartAreaWidth = size.width - yAxisAreaWidth
-        val chartAreaStartX = 0f
+        val chartAreaWidth = size.width - yAxisAreaWidth - (2 * chartPadding)
+        val chartAreaStartX = chartPadding
 
         // Draw Y-axis labels
         val yAxisLabelPaint = android.graphics.Paint().apply {

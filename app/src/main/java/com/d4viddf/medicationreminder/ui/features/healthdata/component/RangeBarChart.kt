@@ -72,9 +72,10 @@ fun RangeBarChart(
     ) {
         val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
+        val chartPadding = 16.dp.toPx()
         val chartAreaHeight = size.height - xAxisAreaHeight
-        val chartAreaWidth = size.width - yAxisAreaWidth
-        val chartAreaStartX = 0f
+        val chartAreaWidth = size.width - yAxisAreaWidth - (2 * chartPadding)
+        val chartAreaStartX = chartPadding
 
         // Draw Y-axis labels
         val yAxisLabelPaint = android.graphics.Paint().apply {
@@ -129,7 +130,7 @@ fun RangeBarChart(
         }
 
         data.forEachIndexed { index, dataPoint ->
-            val xPos = chartAreaStartX + xStep * (dataPoint.x)
+            val xPos = chartAreaStartX + xStep * (index + 1)
             val yMinPos = chartAreaHeight - ((dataPoint.min - minY) / (maxY - minY)) * chartAreaHeight
             val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
 

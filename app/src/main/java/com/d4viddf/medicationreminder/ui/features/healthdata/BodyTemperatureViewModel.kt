@@ -54,7 +54,7 @@ class BodyTemperatureViewModel @Inject constructor(
     private val _temperatureUiState = MutableStateFlow(TemperatureUiState())
     val temperatureUiState: StateFlow<TemperatureUiState> = _temperatureUiState.asStateFlow()
 
-    private val _timeRange = MutableStateFlow(TimeRange.WEEK)
+    private val _timeRange = MutableStateFlow(TimeRange.DAY)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
