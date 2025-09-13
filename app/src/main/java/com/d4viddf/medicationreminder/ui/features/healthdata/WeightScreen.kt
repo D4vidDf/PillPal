@@ -77,9 +77,9 @@ fun WeightScreen(
     val weightGoal by viewModel.weightGoal.collectAsState()
     val averageWeight by viewModel.averageWeight.collectAsState()
 
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -211,47 +211,80 @@ fun WeightScreen(
                     }
                 }
 
-                when (timeRange) {
-                    TimeRange.DAY -> {
-                        DayView(
-                            modifier = Modifier,
-                            weightUiState = weightUiState,
-                            weightGoal = weightGoal
-                        )
+                if (timeRange == TimeRange.DAY) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = String.format("%.1f", weightUiState.currentWeight),
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(text = "kg")
+                        }
+                        Box(contentAlignment = Alignment.Center) {
+                            val animatedProgress by animateFloatAsState(
+                                targetValue = weightUiState.weightProgress,
+                                animationSpec = tween(durationMillis = 1000),
+                                label = "WeightProgressAnimation"
+                            )
+                            CircularProgressIndicator(
+                                progress = { animatedProgress },
+                                modifier = Modifier.size(100.dp),
+                                strokeWidth = 8.dp
+                            )
+                            Text(
+                                text = "${(weightUiState.weightProgress * 100).toInt()}%",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = String.format("%.1f", weightGoal),
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(text = "Goal")
+                        }
                     }
-
-                    TimeRange.WEEK, TimeRange.MONTH -> {
-                        LineChart(
-                            data = weightUiState.chartData.lineChartData,
-                            labels = weightUiState.chartData.labels,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .padding(horizontal = 16.dp),
-                            showLine = false,
-                            showPoints = true,
-                            goal = weightGoal,
-                            yAxisRange = weightUiState.yAxisRange
-                        )
-                    }
-
-                    TimeRange.YEAR -> {
-                        LineChart(
-                            data = weightUiState.chartData.lineChartData,
-                            labels = weightUiState.chartData.labels,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .padding(horizontal = 16.dp),
-                            showLine = true,
-                            showPoints = true,
-                            showGradient = false,
-                            goal = weightGoal,
-                            yAxisRange = weightUiState.yAxisRange
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Text(
+                        text = stringResource(R.string.history),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
+                    )
+                } else {
+                    LineChart(
+                        data = weightUiState.chartData.lineChartData,
+                        labels = weightUiState.chartData.labels,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        showLine = timeRange == TimeRange.YEAR,
+                        showPoints = true,
+                        showGradient = false,
+                        goal = weightGoal,
+                        yAxisRange = weightUiState.yAxisRange
+                    )
                 }
             }
+
+            itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
+                com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                    index = index,
+                    size = weightUiState.weightLogs.size,
+                    date = weightEntry.date.toLocalDate(),
+                    value = "${String.format("%.1f", weightEntry.weight)} kg",
+                    onClick = { /* No-op */ }
+                )
+            }
+
             item {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                 AboutHealthDataItem(
@@ -263,74 +296,7 @@ fun WeightScreen(
                         }
                     }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DayView(
-    modifier: Modifier = Modifier,
-    weightUiState: WeightUiState,
-    weightGoal: Float
-) {
-    Column(modifier = modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = String.format("%.1f", weightUiState.currentWeight),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(text = "kg")
-            }
-            Box(contentAlignment = Alignment.Center) {
-                val animatedProgress by animateFloatAsState(
-                    targetValue = weightUiState.weightProgress,
-                    animationSpec = tween(durationMillis = 1000),
-                    label = "WeightProgressAnimation"
-                )
-                CircularProgressIndicator(
-                    progress = { animatedProgress },
-                    modifier = Modifier.size(100.dp),
-                    strokeWidth = 8.dp
-                )
-                Text(
-                    text = "${(weightUiState.weightProgress * 100).toInt()}%",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = String.format("%.1f", weightGoal),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(text = "Goal")
-            }
-        }
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(
-            text = stringResource(R.string.history),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
-                com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                    index = index,
-                    size = weightUiState.weightLogs.size,
-                    date = weightEntry.date.toLocalDate(),
-                    value = "${String.format("%.1f", weightEntry.weight)} kg",
-                    onClick = { /* No-op */ }
-                )
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }

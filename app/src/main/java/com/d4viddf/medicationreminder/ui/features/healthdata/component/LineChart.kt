@@ -76,6 +76,13 @@ fun LineChart(
                     textSize = 12.sp.toPx()
                 }
             )
+            // Draw guide line
+            drawLine(
+                color = onBackgroundColor,
+                start = Offset(xPos, size.height - xAxisAreaHeight),
+                end = Offset(xPos, size.height - xAxisAreaHeight - 10f),
+                strokeWidth = 2f
+            )
         }
 
         if (data.size > 1 && showLine) {

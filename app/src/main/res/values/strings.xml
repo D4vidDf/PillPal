@@ -556,7 +556,7 @@
     <string name="what_can_affect_body_temp_title">What can affect body temperature?</string>
     <string name="what_can_affect_body_temp_content">Body temperature can be affected by various factors, such as age, activities, hormones, time of day, illness and the menstrual cycle.</string>
     <string name="how_is_body_temp_measured_title">How is body temperature measured?</string>
-    <string name="how_is_body_temp_measured_content">Body temperature can be checked with a thermometer. You can record your results manually on Fitbit or sync them from a compatible device.</string>
+    <string name="how_is_body_temp_measured_content">Body temperature can be checked with a thermometer. You can record your results manually or sync them from a compatible device.</string>
     <string name="about_weight_info_title">About weight</string>
     <string name="what_is_bmi_title">What is BMI?</string>
     <string name="what_is_bmi_content">The body mass index (BMI) is the relationship between your weight and height.</string>

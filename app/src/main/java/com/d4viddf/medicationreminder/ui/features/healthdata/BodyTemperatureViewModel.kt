@@ -151,7 +151,7 @@ class BodyTemperatureViewModel @Inject constructor(
                 label = "" // Labels are now separate
             )
         }
-        val labels = (0..23).map { it.toString() }
+        val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
         return TemperatureChartData(lineChartData = data, labels = labels)
     }
 

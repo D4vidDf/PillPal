@@ -119,6 +119,13 @@ fun RangeBarChart(
                 size.height - 20f,
                 yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
             )
+            // Draw guide line
+            drawLine(
+                color = onBackgroundColor,
+                start = Offset(xPos, size.height - xAxisAreaHeight),
+                end = Offset(xPos, size.height - xAxisAreaHeight - 10f),
+                strokeWidth = 2f
+            )
         }
 
         data.forEachIndexed { index, dataPoint ->

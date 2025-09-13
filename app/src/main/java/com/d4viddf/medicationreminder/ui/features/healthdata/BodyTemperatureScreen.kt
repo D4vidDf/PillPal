@@ -60,9 +60,9 @@ fun BodyTemperatureScreen(
     val dateRangeText by viewModel.dateRangeText.collectAsState()
     val isNextEnabled by viewModel.isNextEnabled.collectAsState()
 
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -167,8 +167,7 @@ fun BodyTemperatureScreen(
                                 labels = temperatureUiState.chartData.labels,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(200.dp)
-                                    .padding(horizontal = 16.dp),
+                                    .height(200.dp),
                                 showPoints = true,
                                 showGradient = false,
                                 yAxisRange = temperatureUiState.yAxisRange
@@ -181,8 +180,7 @@ fun BodyTemperatureScreen(
                                 labels = temperatureUiState.chartData.labels,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(200.dp)
-                                    .padding(horizontal = 16.dp),
+                                    .height(200.dp),
                                 yAxisRange = temperatureUiState.yAxisRange,
                                 onBarSelected = { viewModel.onBarSelected(it) }
                             )
@@ -226,6 +224,7 @@ fun BodyTemperatureScreen(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(16.dp)
                 )
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
