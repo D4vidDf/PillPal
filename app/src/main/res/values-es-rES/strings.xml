@@ -496,5 +496,10 @@
     <string name="health_connect_settings">Ajustes de Health Connect</string>
     <string name="data">Datos</string>
     <string name="water">Agua</string>
+    <string name="weight_tracker">Peso</string>
+    <string name="history">Historial</string>
+    <string name="goal_template">Objetivo: %s</string>
+    <string name="body_temperature_tracker">Temperatura Corporal</string>
     <string name="configure_water">Configurar agua</string>
+    <string name="configure_weight">Configurar peso</string>
 </resources>

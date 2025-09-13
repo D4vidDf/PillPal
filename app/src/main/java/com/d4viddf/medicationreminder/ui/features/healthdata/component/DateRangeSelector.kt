@@ -21,13 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.DateRangeText
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun DateRangeSelector(
-    dateRange: String,
+    dateRange: DateRangeText?,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
     isNextEnabled: Boolean,
@@ -49,8 +51,13 @@ fun DateRangeSelector(
                     contentDescription = "Previous"
                 )
             }
+            val text = when (dateRange) {
+                is DateRangeText.StringResource -> stringResource(id = dateRange.resId)
+                is DateRangeText.FormattedString -> dateRange.text
+                null -> ""
+            }
             Text(
-                text = dateRange,
+                text = text,
                 modifier = Modifier
                     .weight(1f)
                     .clickable(onClick = onDateRangeClick),
@@ -81,8 +88,13 @@ fun DateRangeSelector(
                     )
                 }
             }
+            val text = when (dateRange) {
+                is DateRangeText.StringResource -> stringResource(id = dateRange.resId)
+                is DateRangeText.FormattedString -> dateRange.text
+                null -> ""
+            }
             Text(
-                text = dateRange,
+                text = text,
                 modifier = Modifier
                     .clickable(onClick = onDateRangeClick)
                     .padding(start = 16.dp),
@@ -100,7 +112,7 @@ fun DateRangeSelector(
 fun DateRangeSelectorPreviewCompact() {
     AppTheme {
         DateRangeSelector(
-            dateRange = "Today",
+            dateRange = DateRangeText.FormattedString("Today"),
             onPreviousClick = {},
             onNextClick = {},
             isNextEnabled = false,
@@ -115,7 +127,7 @@ fun DateRangeSelectorPreviewCompact() {
 fun DateRangeSelectorPreviewMedium() {
     AppTheme {
         DateRangeSelector(
-            dateRange = "This Week",
+            dateRange = DateRangeText.FormattedString("This Week"),
             onPreviousClick = {},
             onNextClick = {},
             isNextEnabled = true,

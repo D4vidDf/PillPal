@@ -62,6 +62,7 @@ import com.d4viddf.medicationreminder.ui.features.common.charts.YAxisPosition
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.HealthChart
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.ChartType
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.DateRangeText
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.Dimensions
@@ -98,13 +99,6 @@ fun WaterIntakeScreen(
     val headerTotalIntake by viewModel.headerTotalIntake.collectAsState()
     val weekFields = WeekFields.of(Locale.getDefault())
     val today = LocalDate.now()
-    val dateText = when (dateRangeText) {
-        "this_week" -> stringResource(id = R.string.this_week)
-        "this_month" -> stringResource(id = R.string.this_month)
-        "today" -> stringResource(id = R.string.today)
-        "yesterday" -> stringResource(id = R.string.yesterday)
-        else -> dateRangeText
-    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -168,7 +162,7 @@ fun WaterIntakeScreen(
                         }
                     }
                     DateRangeSelector(
-                        dateRange = dateText,
+                        dateRange = dateRangeText,
                         onPreviousClick = viewModel::onPreviousClick,
                         onNextClick = viewModel::onNextClick,
                         isNextEnabled = isNextEnabled,
@@ -220,9 +214,8 @@ fun WaterIntakeScreen(
 
                 item {
                     if (waterIntakeByType.isNotEmpty()) {
-                        Text(
-                            text = dateText,
-                            style = MaterialTheme.typography.bodyLarge,
+                        DateRangeTextDisplay(
+                            dateRangeText = dateRangeText,
                             modifier = Modifier.padding(
                                 start = Dimensions.PaddingLarge,
                                 top = Dimensions.PaddingLarge,
@@ -337,10 +330,7 @@ fun WaterIntakeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = dateText,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        DateRangeTextDisplay(dateRangeText = dateRangeText)
                         if (timeRange == TimeRange.MONTH || timeRange == TimeRange.YEAR) {
                             Text(
                                 text = stringResource(id = R.string.average),
@@ -444,4 +434,21 @@ private fun RecordDateText(timeRange: TimeRange, recordDate: LocalDate, today: L
         else -> ""
     }
     Text(text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+}
+
+@Composable
+private fun DateRangeTextDisplay(
+    dateRangeText: DateRangeText?,
+    modifier: Modifier = Modifier
+) {
+    val text = when (dateRangeText) {
+        is DateRangeText.StringResource -> stringResource(id = dateRangeText.resId)
+        is DateRangeText.FormattedString -> dateRangeText.text
+        null -> ""
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = modifier
+    )
 }

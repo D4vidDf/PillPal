@@ -2,58 +2,79 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChartPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeChartPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.DateRangeText
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.WeekFields
+import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
+
+data class TemperatureChartData(
+    val lineChartData: List<LineChartPoint> = emptyList(),
+    val rangeChartData: List<RangeChartPoint> = emptyList(),
+    val labels: List<String> = emptyList()
+)
+
+data class TemperatureUiState(
+    val chartData: TemperatureChartData = TemperatureChartData(),
+    val temperatureLogs: List<TemperatureLogItem> = emptyList(),
+    val yAxisRange: ClosedFloatingPointRange<Float> = 36f..40f
+)
+
+data class TemperatureLogItem(
+    val temperature: Double,
+    val date: ZonedDateTime
+)
 
 @HiltViewModel
 class BodyTemperatureViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository
 ) : ViewModel() {
 
-    private val _bodyTemperatureRecords = MutableStateFlow<List<BodyTemperature>>(emptyList())
-    val bodyTemperatureRecords: StateFlow<List<BodyTemperature>> = _bodyTemperatureRecords.asStateFlow()
+    private val _selectedBar = MutableStateFlow<RangeChartPoint?>(null)
+    val selectedBar: StateFlow<RangeChartPoint?> = _selectedBar.asStateFlow()
 
-    private val _aggregatedBodyTemperatureRecords = MutableStateFlow<List<Pair<Instant, Double>>>(emptyList())
-    val aggregatedBodyTemperatureRecords: StateFlow<List<Pair<Instant, Double>>> = _aggregatedBodyTemperatureRecords.asStateFlow()
+    fun onBarSelected(bar: RangeChartPoint?) {
+        _selectedBar.value = bar
+    }
+
+    private val _temperatureUiState = MutableStateFlow(TemperatureUiState())
+    val temperatureUiState: StateFlow<TemperatureUiState> = _temperatureUiState.asStateFlow()
+
+    private val _timeRange = MutableStateFlow(TimeRange.WEEK)
+    val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
-    private val _timeRange = MutableStateFlow(TimeRange.DAY)
-    val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
-
-    private val _dateRangeText = MutableStateFlow("")
-    val dateRangeText: StateFlow<String> = _dateRangeText.asStateFlow()
-
-    private val _startTime = MutableStateFlow(Instant.now())
-    val startTime: StateFlow<Instant> = _startTime.asStateFlow()
-
-    private val _endTime = MutableStateFlow(Instant.now())
-    val endTime: StateFlow<Instant> = _endTime.asStateFlow()
+    private val _dateRangeText = MutableStateFlow<DateRangeText?>(null)
+    val dateRangeText: StateFlow<DateRangeText?> = _dateRangeText.asStateFlow()
 
     private val _isNextEnabled = MutableStateFlow(false)
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
 
     init {
+        updateDateAndButtonStates()
         fetchBodyTemperatureRecords()
     }
 
     fun setTimeRange(timeRange: TimeRange) {
         _timeRange.value = timeRange
         _selectedDate.value = LocalDate.now()
+        updateDateAndButtonStates()
         fetchBodyTemperatureRecords()
     }
 
@@ -64,6 +85,7 @@ class BodyTemperatureViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
+        updateDateAndButtonStates()
         fetchBodyTemperatureRecords()
     }
 
@@ -74,93 +96,192 @@ class BodyTemperatureViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.plusYears(1)
         }
-        if (nextDate.isAfter(LocalDate.now())) return
-        _selectedDate.value = nextDate
-        fetchBodyTemperatureRecords()
-    }
-
-    fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
-        _timeRange.value = newTimeRange
-        _selectedDate.value = newDate
-        fetchBodyTemperatureRecords()
+        if (!nextDate.isAfter(LocalDate.now())) {
+            _selectedDate.value = nextDate
+            updateDateAndButtonStates()
+            fetchBodyTemperatureRecords()
+        }
     }
 
     private fun fetchBodyTemperatureRecords() {
         viewModelScope.launch {
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
-            _startTime.value = start
-            _endTime.value = end
             healthDataRepository.getBodyTemperatureBetween(start, end)
                 .collect { records ->
-                    _bodyTemperatureRecords.value = records
-                    aggregateRecords(records)
-                }
-            updateDateRangeText()
+                    val chartData = aggregateDataForChart(records)
 
-            val nextDate = when (_timeRange.value) {
-                TimeRange.DAY -> _selectedDate.value.plusDays(1)
-                TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
-                TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
-                TimeRange.YEAR -> _selectedDate.value.plusYears(1)
-            }
-            _isNextEnabled.value = !nextDate.isAfter(LocalDate.now())
+                    val temperatureLogs = records.map {
+                        TemperatureLogItem(
+                            temperature = it.temperatureCelsius,
+                            date = it.time.atZone(ZoneId.systemDefault())
+                        )
+                    }.sortedByDescending { it.date }
+
+                    val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: 0f
+                    val yMax = if (maxTemp > 40f) {
+                        if (maxTemp % 2 == 0f) maxTemp else maxTemp.toInt() + 1f
+                    } else {
+                        40f
+                    }
+
+                    _temperatureUiState.value = TemperatureUiState(
+                        chartData = chartData,
+                        temperatureLogs = temperatureLogs,
+                        yAxisRange = 34f..yMax
+                    )
+                }
         }
     }
 
-    private fun aggregateRecords(records: List<BodyTemperature>) {
-        _aggregatedBodyTemperatureRecords.value = when (_timeRange.value) {
-            TimeRange.DAY -> records.map { it.time to it.temperatureCelsius }
-            TimeRange.WEEK -> aggregateByDay(records)
-            TimeRange.MONTH -> aggregateByWeek(records)
+    private fun aggregateDataForChart(records: List<BodyTemperature>): TemperatureChartData {
+        return when (_timeRange.value) {
+            TimeRange.DAY -> aggregateByHour(records)
+            TimeRange.WEEK -> aggregateByDayOfWeek(records)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records)
             TimeRange.YEAR -> aggregateByMonth(records)
         }
     }
 
-    private fun aggregateByDay(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
-        return records
+    private fun aggregateByHour(records: List<BodyTemperature>): TemperatureChartData {
+        val data = records.map {
+            val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+            LineChartPoint(
+                x = zonedDateTime.hour.toFloat(),
+                y = it.temperatureCelsius.toFloat(),
+                label = "" // Labels are now separate
+            )
+        }
+        val labels = (0..23).map { it.toString() }
+        return TemperatureChartData(lineChartData = data, labels = labels)
+    }
+
+    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): TemperatureChartData {
+        val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
+        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
+
+        val weekData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
-            .map { (date, records) ->
-                val average = records.map { it.temperatureCelsius }.average()
-                date.atStartOfDay(ZoneId.systemDefault()).toInstant() to average
+            .mapValues { (_, dayRecords) ->
+                dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
+
+        val labels = (0..6).map {
+            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+
+        val data = (0..6).map {
+            val date = startOfWeek.plusDays(it.toLong())
+            val (min, max) = weekData[date] ?: (0f to 0f)
+            RangeChartPoint(
+                x = it.toFloat(),
+                min = min,
+                max = max,
+                label = ""
+            )
+        }
+        return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
-    private fun aggregateByWeek(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
-        val weekFields = WeekFields.of(Locale.getDefault())
-        return records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).get(weekFields.weekOfWeekBasedYear()) }
-            .map { (_, records) ->
-                val average = records.map { it.temperatureCelsius }.average()
-                records.first().time to average
+    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): TemperatureChartData {
+        val startOfMonth = _selectedDate.value.withDayOfMonth(1)
+        val daysInMonth = _selectedDate.value.lengthOfMonth()
+
+        val monthData = records
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .mapValues { (_, dayRecords) ->
+                dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
+
+        val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
+
+        val labels = (0 until daysInMonth).map {
+            val day = it + 1
+            if (day in labelsToShow) day.toString() else ""
+        }
+
+        val data = (0 until daysInMonth).map {
+            val date = startOfMonth.plusDays(it.toLong())
+            val (min, max) = monthData[date] ?: (0f to 0f)
+            RangeChartPoint(
+                x = it.toFloat(),
+                min = min,
+                max = max,
+                label = ""
+            )
+        }
+        return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
-    private fun aggregateByMonth(records: List<BodyTemperature>): List<Pair<Instant, Double>> {
-        return records
+    private fun aggregateByMonth(records: List<BodyTemperature>): TemperatureChartData {
+        val startOfYear = _selectedDate.value.withDayOfYear(1)
+
+        val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .map { (_, records) ->
-                val average = records.map { it.temperatureCelsius }.average()
-                records.first().time to average
+            .mapValues { (_, monthRecords) ->
+                monthRecords.minOf { it.temperatureCelsius }.toFloat() to monthRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
+
+        val labels = (0..11).map {
+            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+
+        val data = (0..11).map {
+            val date = startOfYear.plusMonths(it.toLong())
+            val (min, max) = yearData[date.month] ?: (0f to 0f)
+            RangeChartPoint(
+                x = it.toFloat(),
+                min = min,
+                max = max,
+                label = ""
+            )
+        }
+        return TemperatureChartData(rangeChartData = data, labels = labels)
+    }
+
+    private fun updateDateAndButtonStates() {
+        updateDateRangeText()
+        updateNextButtonState()
+    }
+
+    private fun updateNextButtonState() {
+        val nextDate = when (_timeRange.value) {
+            TimeRange.DAY -> _selectedDate.value.plusDays(1)
+            TimeRange.WEEK -> _selectedDate.value.plusWeeks(1)
+            TimeRange.MONTH -> _selectedDate.value.plusMonths(1)
+            TimeRange.YEAR -> _selectedDate.value.plusYears(1)
+        }
+        _isNextEnabled.value = !nextDate.isAfter(LocalDate.now())
     }
 
     private fun updateDateRangeText() {
         val today = LocalDate.now()
         val yesterday = today.minusDays(1)
+        val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
 
         _dateRangeText.value = when (_timeRange.value) {
             TimeRange.DAY -> when (_selectedDate.value) {
-                today -> "Today"
-                yesterday -> "Yesterday"
-                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+                today -> DateRangeText.StringResource(R.string.today)
+                yesterday -> DateRangeText.StringResource(R.string.yesterday)
+                else -> DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
             }
             TimeRange.WEEK -> {
-                val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
-                val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
-                "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
+                    DateRangeText.StringResource(R.string.this_week)
+                } else {
+                    val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
+                    val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
+                    val formattedString = "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                    DateRangeText.FormattedString(formattedString)
+                }
             }
-            TimeRange.MONTH -> _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
-            TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy"))
+            TimeRange.MONTH -> {
+                if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
+                    DateRangeText.StringResource(R.string.this_month)
+                } else {
+                    DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy")))
+                }
+            }
+            TimeRange.YEAR -> DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy")))
         }
     }
 }

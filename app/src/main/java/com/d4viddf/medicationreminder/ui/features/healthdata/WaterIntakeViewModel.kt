@@ -3,9 +3,11 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.features.common.charts.ChartDataPoint
+import com.d4viddf.medicationreminder.ui.features.healthdata.util.DateRangeText
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,8 +51,8 @@ class WaterIntakeViewModel @Inject constructor(
     private val _timeRange = MutableStateFlow(TimeRange.DAY)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
-    private val _dateRangeText = MutableStateFlow("")
-    val dateRangeText: StateFlow<String> = _dateRangeText.asStateFlow()
+    private val _dateRangeText = MutableStateFlow<DateRangeText?>(null)
+    val dateRangeText: StateFlow<DateRangeText?> = _dateRangeText.asStateFlow()
 
     private val _startTime = MutableStateFlow(Instant.now())
     val startTime: StateFlow<Instant> = _startTime.asStateFlow()
@@ -324,33 +326,32 @@ class WaterIntakeViewModel @Inject constructor(
     private fun updateDateRangeText() {
         val today = LocalDate.now()
         val yesterday = today.minusDays(1)
-        val weekFields = WeekFields.of(Locale.getDefault())
-        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
-        val endOfWeek = startOfWeek.plusDays(6)
+        val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
 
         _dateRangeText.value = when (_timeRange.value) {
             TimeRange.DAY -> when (_selectedDate.value) {
-                today -> "today"
-                yesterday -> "yesterday"
-                else -> _selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault()))
+                today -> DateRangeText.StringResource(R.string.today)
+                yesterday -> DateRangeText.StringResource(R.string.yesterday)
+                else -> DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
             }
-
             TimeRange.WEEK -> {
                 if (_selectedDate.value.with(weekFields.dayOfWeek(), 1) == today.with(weekFields.dayOfWeek(), 1)) {
-                    "this_week"
+                    DateRangeText.StringResource(R.string.this_week)
                 } else {
-                    "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))}"
+                    val startOfWeek = _selectedDate.value.with(java.time.DayOfWeek.MONDAY)
+                    val endOfWeek = _selectedDate.value.with(java.time.DayOfWeek.SUNDAY)
+                    val formattedString = "${startOfWeek.format(DateTimeFormatter.ofPattern("d MMM"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
+                    DateRangeText.FormattedString(formattedString)
                 }
             }
-
             TimeRange.MONTH -> {
                 if (_selectedDate.value.month == today.month && _selectedDate.value.year == today.year) {
-                    "this_month"
+                    DateRangeText.StringResource(R.string.this_month)
                 } else {
-                    _selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM", Locale.getDefault()))
+                    DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("MMMM yyyy")))
                 }
             }
-            TimeRange.YEAR -> _selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy", Locale.getDefault()))
+            TimeRange.YEAR -> DateRangeText.FormattedString(_selectedDate.value.format(DateTimeFormatter.ofPattern("yyyy")))
         }
     }
 

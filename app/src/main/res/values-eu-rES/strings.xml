@@ -473,4 +473,8 @@
 
     <string name="ml_at_day">ml egunean</string>
     <string name="set_objective">Helburua Ezarri</string>
+    <string name="weight_tracker">Pisua</string>
+    <string name="history">Historia</string>
+    <string name="goal_template">Helburua: %s</string>
+    <string name="body_temperature_tracker">Gorputzeko Tenperatura</string>
 </resources>

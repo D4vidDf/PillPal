@@ -315,8 +315,10 @@ internal fun HomeScreenContent(
                                         onAddMedication = { navController.navigate(Screen.AddMedicationChoice.route) }
                                     )
                                     // This logic is key: if we have meds but no upcoming doses, show the "all done" card.
-                                    nextDoseGroup.isEmpty() && hasRegisteredMedications && (todayProgressState as? UiItemState.Success)?.data?.second ?: 0 > 0 -> NoMoreSchedulesTodayCard()
-                                    nextDoseGroup.isEmpty() && hasRegisteredMedications && (todayProgressState as? UiItemState.Success)?.data?.second ?: 0 == 0 -> NoScheduleTodayCard()
+                                    nextDoseGroup.isEmpty() && hasRegisteredMedications && ((todayProgressState as? UiItemState.Success)?.data?.second
+                                        ?: 0) > 0 -> NoMoreSchedulesTodayCard()
+                                    nextDoseGroup.isEmpty() && hasRegisteredMedications && ((todayProgressState as? UiItemState.Success)?.data?.second
+                                        ?: 0) == 0 -> NoScheduleTodayCard()
                                     else -> {
                                         val carouselState =
                                             rememberCarouselState { nextDoseGroup.size }
@@ -331,6 +333,7 @@ internal fun HomeScreenContent(
                                             val item = nextDoseGroup[itemIndex]
                                             NextDoseCard(
                                                 item = item,
+                                                modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge),
                                                 onNavigateToDetails = { medicationId ->
                                                     navController.navigate(
                                                         Screen.MedicationDetails.createRoute(
@@ -343,7 +346,6 @@ internal fun HomeScreenContent(
                                     }
                                 }
                             }
-
                             is UiItemState.Error -> {
                                 // TODO: Show error state for the dose card
                             }
