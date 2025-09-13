@@ -346,7 +346,6 @@ internal fun HomeScreenContent(
                                     }
                                 }
                             }
-
                             is UiItemState.Error -> {
                                 // TODO: Show error state for the dose card
                             }
