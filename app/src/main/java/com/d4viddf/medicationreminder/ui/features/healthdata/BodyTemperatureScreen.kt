@@ -205,8 +205,7 @@ fun BodyTemperatureScreen(
                     size = temperatureUiState.temperatureLogs.size,
                     date = tempEntry.date.toLocalDate(),
                     value = "${tempEntry.temperature}°C",
-                    onClick = { /* No-op */ },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    onClick = { /* No-op */ }
                 )
             }
 
