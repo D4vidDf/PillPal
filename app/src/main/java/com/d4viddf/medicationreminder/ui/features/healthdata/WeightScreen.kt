@@ -187,7 +187,7 @@ fun WeightScreen(
                                 .fillMaxWidth()
                                 .height(200.dp)
                                 .padding(horizontal = 16.dp),
-                            showLine = timeRange == TimeRange.YEAR,
+                            showLine = true,
                             showPoints = true,
                             showGradient = false,
                             goal = weightGoal,
