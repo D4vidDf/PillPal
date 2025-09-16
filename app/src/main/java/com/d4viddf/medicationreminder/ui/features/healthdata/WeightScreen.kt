@@ -158,7 +158,7 @@ fun WeightScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = stringResource(id = R.string.no_data),
+                                text = stringResource(id = R.string.no_weight_data),
                                 style = MaterialTheme.typography.headlineSmall
                             )
                             weightUiState.lastWeightLog?.let {

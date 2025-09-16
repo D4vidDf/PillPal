@@ -97,21 +97,32 @@ fun WeightGoalScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-                BasicTextField(
-                    value = weightGoalValue,
-                    onValueChange = viewModel::onWeightGoalValueChange,
-                    textStyle = (if (isTablet) {
-                        MaterialTheme.typography.displayLarge.copy(fontSize = 96.sp)
-                    } else {
-                        MaterialTheme.typography.displayLarge
-                    }).copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = NumberVisualTransformation(suffix = " kg"),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Baseline
+                ) {
+                    BasicTextField(
+                        value = weightGoalValue,
+                        onValueChange = viewModel::onWeightGoalValueChange,
+                        textStyle = (if (isTablet) {
+                            MaterialTheme.typography.displayLarge.copy(fontSize = 96.sp)
+                        } else {
+                            MaterialTheme.typography.displayLarge
+                        }).copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = NumberVisualTransformation(),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "kg",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
                 Text(
                     text = stringResource(id = R.string.goal),
                     style = MaterialTheme.typography.bodyLarge
