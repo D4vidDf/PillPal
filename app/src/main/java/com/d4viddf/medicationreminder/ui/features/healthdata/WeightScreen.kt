@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,14 +26,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.AboutHealthDataItem
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChart
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoBottomSheet
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoItem
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 
-import com.d4viddf.medicationreminder.ui.features.healthdata.component.AboutHealthDataItem
-import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoBottomSheet
-import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoItem
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

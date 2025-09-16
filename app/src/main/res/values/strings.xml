@@ -545,4 +545,28 @@
     <string name="body_temperature_tracker">Body Temperature</string>
     <string name="configure_water">Configure water</string>
     <string name="configure_weight">Configure weight</string>
+
+    <string name="more_information">More information</string>
+    <string name="about_weight">About weight</string>
+    <string name="about_weight_description">It\'s normal for your weight to fluctuate due to aspects such as what you eat, when you go to the bathroom and your hydration.</string>
+    <string name="about_body_temperature">About body temperature</string>
+    <string name="about_body_temperature_description">Body temperature refers to the temperature of the body as measured by a thermometer. The body works to maintain body temperature within a small range.</string>
+    <string name="what_does_body_temp_mean_title">What does "body temperature" mean?</string>
+    <string name="what_does_body_temp_mean_content">Body temperature refers to the temperature of the body as measured by a thermometer. The body works to maintain body temperature within a small range. According to the World Health Organization, normal body temperature ranges from 36.5 to 37 °C. But each person is different.</string>
+    <string name="what_can_affect_body_temp_title">What can affect body temperature?</string>
+    <string name="what_can_affect_body_temp_content">Body temperature can be affected by various factors, such as age, activities, hormones, time of day, illness and the menstrual cycle.</string>
+    <string name="how_is_body_temp_measured_title">How is body temperature measured?</string>
+    <string name="how_is_body_temp_measured_content">Body temperature can be checked with a thermometer. You can record your results manually or sync them from a compatible device.</string>
+    <string name="about_weight_info_title">About weight</string>
+    <string name="what_is_bmi_title">What is BMI?</string>
+    <string name="what_is_bmi_content">The body mass index (BMI) is the relationship between your weight and height.</string>
+    <string name="what_is_body_fat_title">What is body fat?</string>
+    <string name="what_is_body_fat_content">Body fat percentage refers to the proportion of your body weight that is fat.</string>
+    <string name="what_is_lean_mass_title">What is lean mass?</string>
+    <string name="what_is_lean_mass_content">Lean mass is made up of muscles, organs, bones, and body water.</string>
+    <string name="differences_between_body_and_skin_temp_title">Differences between body temperature and skin temperature variation</string>
+    <string name="differences_between_body_and_skin_temp_content">Body temperature is measured with a thermometer and reflects the temperature inside the body. The variation of the cutaneous temperature is the fluctuation of the temperature of the skin taken in the wrist while you sleep.</string>
+    <string name="disclaimer_body_temp">This function is not intended to diagnose or monitor serious diseases or medical conditions. Check with your healthcare provider if you have questions about your health or what your body temperature readings in general mean.</string>
+    <string name="no_data">No data</string>
+    <string name="no_temperatures_recorded">No temperatures have been recorded</string>
 </resources>
