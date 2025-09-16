@@ -87,14 +87,14 @@ class WeightViewModel @Inject constructor(
             val (start, end) = timeRange.getStartAndEndTimes(selectedDate)
             healthDataRepository.getWeightBetween(start, end)
                 .combine(healthDataRepository.getLatestWeight()) { records, latestWeight ->
-                    processWeightData(records, latestWeight, timeRange)
+                    processWeightData(records, latestWeight, timeRange, selectedDate)
                 }.collect {
                     _weightUiState.value = it
                 }
         }
     }
 
-    private fun processWeightData(records: List<Weight>, latestWeight: Weight?, timeRange: TimeRange): WeightUiState {
+    private fun processWeightData(records: List<Weight>, latestWeight: Weight?, timeRange: TimeRange, selectedDate: LocalDate): WeightUiState {
         val weightLogs = records.map {
             WeightLogItem(
                 weight = it.weightKilograms,
@@ -102,13 +102,18 @@ class WeightViewModel @Inject constructor(
             )
         }.sortedByDescending { it.date }
 
-        val chartData = aggregateDataForChart(records, timeRange)
-        val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: 0f
+        val chartData = if (records.isEmpty() && latestWeight != null) {
+            createChartDataForLastRecord(latestWeight, timeRange, selectedDate)
+        } else {
+            aggregateDataForChart(records, timeRange, selectedDate)
+        }
+
+        val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: (latestWeight?.weightKilograms?.toFloat() ?: 0f)
         val yMax = if (maxWeight > 100f) (maxWeight + 10) else 100f
 
         val currentWeight = records.maxByOrNull { it.time }?.weightKilograms?.toFloat() ?: 0f
         val progress = if (weightGoal.value > 0) currentWeight / weightGoal.value else 0f
-        _averageWeight.value = if (records.isNotEmpty()) records.map { it.weightKilograms }.average().toFloat() else 0f
+        _averageWeight.value = if (records.isNotEmpty()) records.map { it.weightKilograms }.average().toFloat() else (latestWeight?.weightKilograms?.toFloat() ?: 0f)
 
         val lastWeightLog = latestWeight?.let {
             WeightLogItem(
@@ -153,17 +158,59 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateDataForChart(records: List<Weight>, timeRange: TimeRange): WeightChartData {
+    private fun createChartDataForLastRecord(record: Weight, timeRange: TimeRange, selectedDate: LocalDate): WeightChartData {
+        val lastWeight = record.weightKilograms.toFloat()
         return when (timeRange) {
-            TimeRange.DAY -> aggregateByHour(records)
-            TimeRange.WEEK -> aggregateByDayOfWeek(records)
-            TimeRange.MONTH -> aggregateByDayOfMonth(records)
-            TimeRange.YEAR -> aggregateByMonth(records)
+            TimeRange.WEEK -> {
+                val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
+                val startOfWeek = selectedDate.with(weekFields.dayOfWeek(), 1)
+                val labels = (0..6).map {
+                    startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
+                }
+                val data = (0..6).map {
+                    val date = startOfWeek.plusDays(it.toLong())
+                    if (date.isAfter(LocalDate.now())) {
+                        LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
+                    } else {
+                        LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
+                    }
+                }
+                WeightChartData(lineChartData = data, labels = labels)
+            }
+            TimeRange.MONTH -> {
+                val startOfMonth = selectedDate.withDayOfMonth(1)
+                val daysInMonth = selectedDate.lengthOfMonth()
+                val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
+                val labels = (0 until daysInMonth).map {
+                    val day = it + 1
+                    if (day in labelsToShow) day.toString() else ""
+                }
+                val data = (0 until daysInMonth).map {
+                    val date = startOfMonth.plusDays(it.toLong())
+                    if (date.isAfter(LocalDate.now())) {
+                        LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
+                    } else {
+                        LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
+                    }
+                }
+                WeightChartData(lineChartData = data, labels = labels)
+            }
+            else -> WeightChartData()
         }
     }
 
-    private fun aggregateByHour(records: List<Weight>): WeightChartData {
+    private fun aggregateDataForChart(records: List<Weight>, timeRange: TimeRange, selectedDate: LocalDate): WeightChartData {
+        return when (timeRange) {
+            TimeRange.DAY -> aggregateByHour(records, selectedDate)
+            TimeRange.WEEK -> aggregateByDayOfWeek(records, selectedDate)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records, selectedDate)
+            TimeRange.YEAR -> aggregateByMonth(records, selectedDate)
+        }
+    }
+
+    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
         val data = records
+            .filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate }
             .sortedBy { it.time }
             .map {
                 val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
@@ -177,132 +224,56 @@ class WeightViewModel @Inject constructor(
         return WeightChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfWeek(records: List<Weight>): WeightChartData {
+    private fun aggregateByDayOfWeek(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
-        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
+        val startOfWeek = selectedDate.with(weekFields.dayOfWeek(), 1)
 
-        val weekData = records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
-            .mapValues { (_, dayRecords) ->
-                dayRecords.map { it.weightKilograms }.average().toFloat()
+        val data = records
+            .map {
+                val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+                val dayOfWeek = zonedDateTime.dayOfWeek.value - 1
+                LineChartPoint(x = dayOfWeek.toFloat(), y = it.weightKilograms.toFloat(), label = "")
             }
 
         val labels = (0..6).map {
             startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
         }
 
-        val firstRecordDate = records.minOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
-        var lastKnownWeight = 0f
-        var firstRecordFound = false
-
-        val data = (0..6).map {
-            val date = startOfWeek.plusDays(it.toLong())
-            if (firstRecordDate != null && date.isBefore(firstRecordDate)) {
-                return@map LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
-            }
-
-            val avg = weekData[date]
-            if (avg != null) {
-                if (!firstRecordFound) {
-                    firstRecordFound = true
-                }
-                lastKnownWeight = avg
-                LineChartPoint(x = it.toFloat(), y = avg, label = "")
-            } else {
-                if (!firstRecordFound) {
-                    LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
-                } else {
-                    LineChartPoint(x = it.toFloat(), y = lastKnownWeight, label = "", showPoint = false)
-                }
-            }
-        }
-        return WeightChartData(lineChartData = data.filter{it.y != -1f || !it.showPoint}, labels = labels)
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfMonth(records: List<Weight>): WeightChartData {
-        val startOfMonth = _selectedDate.value.withDayOfMonth(1)
-        val daysInMonth = _selectedDate.value.lengthOfMonth()
-
-        val monthData = records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
-            .mapValues { (_, dayRecords) ->
-                dayRecords.map { it.weightKilograms }.average().toFloat()
+    private fun aggregateByDayOfMonth(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
+        val data = records
+            .map {
+                val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+                val dayOfMonth = zonedDateTime.dayOfMonth - 1
+                LineChartPoint(x = dayOfMonth.toFloat(), y = it.weightKilograms.toFloat(), label = "")
             }
 
+        val daysInMonth = selectedDate.lengthOfMonth()
         val labelsToShow = listOf(1, 5, 10, 15, 20, 25, daysInMonth).toSet()
-
         val labels = (0 until daysInMonth).map {
             val day = it + 1
             if (day in labelsToShow) day.toString() else ""
         }
 
-        val firstRecordDate = records.minOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
-        var lastKnownWeight = 0f
-        var firstRecordFound = false
-
-        val data = (0 until daysInMonth).map {
-            val date = startOfMonth.plusDays(it.toLong())
-            if (firstRecordDate != null && date.isBefore(firstRecordDate)) {
-                return@map LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
-            }
-
-            val avg = monthData[date]
-            if (avg != null) {
-                if (!firstRecordFound) {
-                    firstRecordFound = true
-                }
-                lastKnownWeight = avg
-                LineChartPoint(x = it.toFloat(), y = avg, label = "")
-            } else {
-                if (!firstRecordFound) {
-                    LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
-                } else {
-                    LineChartPoint(x = it.toFloat(), y = lastKnownWeight, label = "", showPoint = false)
-                }
-            }
-        }
-        return WeightChartData(lineChartData = data.filter{it.y != -1f || !it.showPoint}, labels = labels)
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByMonth(records: List<Weight>): WeightChartData {
-        val startOfYear = _selectedDate.value.withDayOfYear(1)
-
-        val yearData = records
-            .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
-            .mapValues { (_, monthRecords) ->
-                monthRecords.map { it.weightKilograms }.average().toFloat()
+    private fun aggregateByMonth(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
+        val startOfYear = selectedDate.withDayOfYear(1)
+        val data = records
+            .map {
+                val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+                val month = zonedDateTime.monthValue - 1
+                LineChartPoint(x = month.toFloat(), y = it.weightKilograms.toFloat(), label = "")
             }
 
         val labels = (0..11).map {
             startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
         }
 
-        val firstRecordDate = records.minOfOrNull { it.time }?.atZone(ZoneId.systemDefault())?.toLocalDate()
-        var lastKnownWeight = 0f
-        var firstRecordFound = false
-
-        val data = (0..11).map {
-            val date = startOfYear.plusMonths(it.toLong())
-            if (firstRecordDate != null && date.withDayOfMonth(1).isBefore(firstRecordDate.withDayOfMonth(1))) {
-                return@map LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
-            }
-
-            val avg = yearData[date.month]
-            if (avg != null) {
-                if (!firstRecordFound) {
-                    firstRecordFound = true
-                }
-                lastKnownWeight = avg
-                LineChartPoint(x = it.toFloat(), y = avg, label = "")
-            } else {
-                if (!firstRecordFound) {
-                    LineChartPoint(x = it.toFloat(), y = -1f, label = "", showPoint = false)
-                } else {
-                    LineChartPoint(x = it.toFloat(), y = lastKnownWeight, label = "", showPoint = false)
-                }
-            }
-        }
-        return WeightChartData(lineChartData = data.filter{it.y != -1f || !it.showPoint}, labels = labels)
+        return WeightChartData(lineChartData = data, labels = labels)
     }
 
     private fun updateDateAndButtonStates() {
