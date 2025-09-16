@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -80,24 +81,21 @@ class WeightViewModel @Inject constructor(
 
     private fun observeWeightData() {
         viewModelScope.launch {
-            combine(
-                timeRange,
-                selectedDate
-            ) { timeRange, selectedDate ->
+            combine(timeRange, selectedDate) { timeRange, selectedDate ->
                 Pair(timeRange, selectedDate)
-            }.collect { (timeRange, selectedDate) ->
+            }.flatMapLatest { (timeRange, selectedDate) ->
                 val (start, end) = timeRange.getStartAndEndTimes(selectedDate)
                 healthDataRepository.getWeightBetween(start, end)
                     .combine(healthDataRepository.getLatestWeight()) { records, latestWeight ->
-                        processWeightData(records, latestWeight)
-                    }.collect {
-                        _weightUiState.value = it
+                        processWeightData(records, latestWeight, timeRange)
                     }
+            }.collect {
+                _weightUiState.value = it
             }
         }
     }
 
-    private fun processWeightData(records: List<Weight>, latestWeight: Weight?): WeightUiState {
+    private fun processWeightData(records: List<Weight>, latestWeight: Weight?, timeRange: TimeRange): WeightUiState {
         val weightLogs = records.map {
             WeightLogItem(
                 weight = it.weightKilograms,
@@ -105,7 +103,7 @@ class WeightViewModel @Inject constructor(
             )
         }.sortedByDescending { it.date }
 
-        val chartData = aggregateDataForChart(records)
+        val chartData = aggregateDataForChart(records, timeRange)
         val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: 0f
         val yMax = if (maxWeight > 100f) (maxWeight + 10) else 100f
 
@@ -142,6 +140,7 @@ class WeightViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
+        updateDateAndButtonStates()
     }
 
     fun onNextClick() {
@@ -153,11 +152,12 @@ class WeightViewModel @Inject constructor(
         }
         if (!nextDate.isAfter(LocalDate.now())) {
             _selectedDate.value = nextDate
+            updateDateAndButtonStates()
         }
     }
 
-    private fun aggregateDataForChart(records: List<Weight>): WeightChartData {
-        return when (_timeRange.value) {
+    private fun aggregateDataForChart(records: List<Weight>, timeRange: TimeRange): WeightChartData {
+        return when (timeRange) {
             TimeRange.DAY -> aggregateByHour(records.filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == _selectedDate.value })
             TimeRange.WEEK -> aggregateByDayOfWeek(records)
             TimeRange.MONTH -> aggregateByDayOfMonth(records)
