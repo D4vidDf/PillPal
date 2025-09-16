@@ -33,7 +33,8 @@ data class WeightUiState(
     val weightLogs: List<WeightLogItem> = emptyList(),
     val yAxisRange: ClosedFloatingPointRange<Float> = 0f..100f,
     val currentWeight: Float = 0f,
-    val weightProgress: Float = 0f
+    val weightProgress: Float = 0f,
+    val lastWeightLog: WeightLogItem? = null
 )
 
 data class WeightLogItem(
@@ -115,16 +116,39 @@ class WeightViewModel @Inject constructor(
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getWeightBetween(start, end)
                 .collect { records ->
-                    val chartData = aggregateDataForChart(records)
+                    var lastWeightLog: WeightLogItem? = null
+                    healthDataRepository.getLatestWeight().collect{
+                        lastWeightLog = it?.let {
+                            WeightLogItem(
+                                weight = it.weightKilograms,
+                                date = it.time.atZone(ZoneId.systemDefault())
+                            )
+                        }
+                    }
 
-                    val weightLogs = records.map {
-                        WeightLogItem(
-                            weight = it.weightKilograms,
-                            date = it.time.atZone(ZoneId.systemDefault())
-                        )
-                    }.sortedByDescending { it.date }
+                    val chartData: WeightChartData
+                    val weightLogs: List<WeightLogItem>
 
-                    val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: 0f
+                    if (records.isEmpty()) {
+                        val latestWeight = lastWeightLog
+                        if (latestWeight != null) {
+                            chartData = createChartDataForLastRecord(latestWeight)
+                            weightLogs = emptyList()
+                        } else {
+                            chartData = WeightChartData()
+                            weightLogs = emptyList()
+                        }
+                    } else {
+                        chartData = aggregateDataForChart(records)
+                        weightLogs = records.map {
+                            WeightLogItem(
+                                weight = it.weightKilograms,
+                                date = it.time.atZone(ZoneId.systemDefault())
+                            )
+                        }.sortedByDescending { it.date }
+                    }
+
+                    val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: (lastWeightLog?.weight?.toFloat() ?: 0f)
                     val yMax = if (maxWeight > 100f) (maxWeight + 10) else 100f
 
                     val currentWeight = records.maxByOrNull { it.time }?.weightKilograms?.toFloat() ?: 0f
@@ -137,9 +161,41 @@ class WeightViewModel @Inject constructor(
                         weightLogs = weightLogs,
                         yAxisRange = 0f..yMax,
                         currentWeight = currentWeight,
-                        weightProgress = progress
+                        weightProgress = progress,
+                        lastWeightLog = lastWeightLog
                     )
                 }
+        }
+    }
+
+    private fun createChartDataForLastRecord(lastWeightLog: WeightLogItem): WeightChartData {
+        val today = LocalDate.now()
+        val recordDate = lastWeightLog.date.toLocalDate()
+
+        return when (_timeRange.value) {
+            TimeRange.DAY -> {
+                if (recordDate == today) {
+                    aggregateByHour(listOf(Weight(weightKilograms = lastWeightLog.weight, time = lastWeightLog.date.toInstant())))
+                } else {
+                    WeightChartData(
+                        lineChartData = listOf(LineChartPoint(x = today.atStartOfDay().hour.toFloat(), y = lastWeightLog.weight.toFloat(), label = "")),
+                        labels = (0..23).map { it.toString() }
+                    )
+                }
+            }
+            TimeRange.WEEK -> {
+                val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
+                val startOfWeek = today.with(weekFields.dayOfWeek(), 1)
+                val dayOfWeek = today.dayOfWeek.value - 1 // Monday is 0
+                val labels = (0..6).map {
+                    startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
+                }
+                WeightChartData(
+                    lineChartData = listOf(LineChartPoint(x = dayOfWeek.toFloat(), y = lastWeightLog.weight.toFloat(), label = "")),
+                    labels = labels
+                )
+            }
+            else -> WeightChartData()
         }
     }
 

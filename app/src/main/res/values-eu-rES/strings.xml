@@ -477,4 +477,18 @@
     <string name="history">Historia</string>
     <string name="goal_template">Helburua: %s</string>
     <string name="body_temperature_tracker">Gorputzeko Tenperatura</string>
+    <string name="maintain_weight">Pisua Mantendu</string>
+    <string name="goal">Helburua</string>
+    <string name="last_recorded_weight">Azken pisua erregistratuta: %1$s kg %2$s(e)an</string>
+    <string name="no_weight_data_recorded">Oraindik ez da pisu daturik erregistratu.</string>
+    <string name="about_body_temperature">Gorputzaren tenperaturari buruz</string>
+    <string name="about_body_temperature_description">Gorputzaren tenperatura termometro batez neurtutako gorputzaren tenperaturari dagokio. Gorputzak tenperatura tarte txiki baten barruan mantentzeko lan egiten du.</string>
+    <string name="what_does_body_temp_mean_title">Zer esan nahi du \"gorputzaren tenperatura\"k?</string>
+    <string name="what_does_body_temp_mean_content">Gorputzaren tenperatura termometro batez neurtutako gorputzaren tenperaturari dagokio. Gorputzak tenperatura tarte txiki baten barruan mantentzeko lan egiten du. Osasunaren Mundu Erakundearen arabera, gorputzaren tenperatura normala 36,5 eta 37 °C artean dago. Baina pertsona bakoitza desberdina da.</string>
+    <string name="what_can_affect_body_temp_title">Zerk eragin dezake gorputzaren tenperaturan?</string>
+    <string name="what_can_affect_body_temp_content">Gorputzaren tenperaturan hainbat faktorek eragin dezakete, hala nola adinak, jarduerek, hormonek, eguneko orduak, gaixotasunek eta hilekoaren zikloak.</string>
+    <string name="how_is_body_temp_measured_title">Nola neurtzen da gorputzaren tenperatura?</string>
+    <string name="how_is_body_temp_measured_content">Gorputzaren tenperatura termometro batekin egiazta daiteke. Zure emaitzak eskuz erregistratu edo gailu bateragarri batetik sinkroniza ditzakezu.</string>
+    <string name="disclaimer_body_temp">Funtzio hau ez da gaixotasun larriak edo egoera medikoak diagnostikatzeko edo kontrolatzeko pentsatuta. Kontsultatu zure osasun-hornitzailearekin zure osasunari buruzko galderarik baduzu edo zure gorputz-tenperaturaren irakurketek, oro har, zer esan nahi duten jakiteko.</string>
+    <string name="no_temperatures_recorded">Ez da tenperaturarik erregistratu</string>
 </resources>

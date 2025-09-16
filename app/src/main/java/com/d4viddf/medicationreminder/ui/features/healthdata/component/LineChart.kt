@@ -161,5 +161,5 @@ private fun getChartBounds(
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f
-    return listOf(minX, maxX, minY - yPadding, maxY + yPadding)
+    return listOf(minX, maxX, maxOf(0f, minY - yPadding), maxY + yPadding)
 }

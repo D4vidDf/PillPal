@@ -477,4 +477,18 @@
     <string name="history">Historial</string>
     <string name="goal_template">Objectiu: %s</string>
     <string name="body_temperature_tracker">Temperatura Corporal</string>
+    <string name="maintain_weight">Mantenir Pes</string>
+    <string name="goal">Objectiu</string>
+    <string name="last_recorded_weight">Últim pes registrat: %1$s kg el %2$s</string>
+    <string name="no_weight_data_recorded">Encara no s\'han registrat dades de pes.</string>
+    <string name="about_body_temperature">Sobre la temperatura corporal</string>
+    <string name="about_body_temperature_description">La temperatura corporal es refereix a la temperatura del cos mesurada amb un termòmetre. El cos treballa per mantenir la temperatura corporal dins d\'un rang petit.</string>
+    <string name="what_does_body_temp_mean_title">Què significa \"temperatura corporal\"?</string>
+    <string name="what_does_body_temp_mean_content">La temperatura corporal es refereix a la temperatura del cos mesurada amb un termòmetre. El cos treballa per mantenir la temperatura corporal dins d\'un rang petit. Segons l\'Organització Mundial de la Salut, la temperatura corporal normal oscil·la entre 36,5 i 37 °C. Però cada persona és diferent.</string>
+    <string name="what_can_affect_body_temp_title">Què pot afectar la temperatura corporal?</string>
+    <string name="what_can_affect_body_temp_content">La temperatura corporal pot veure\'s afectada per diversos factors, com l\'edat, les activitats, les hormones, l\'hora del dia, les malalties i el cicle menstrual.</string>
+    <string name="how_is_body_temp_measured_title">Com es mesura la temperatura corporal?</string>
+    <string name="how_is_body_temp_measured_content">La temperatura corporal es pot comprovar amb un termòmetre. Podeu registrar els vostres resultats manualment o sincronitzar-los des d\'un dispositiu compatible.</string>
+    <string name="disclaimer_body_temp">Aquesta funció no està destinada a diagnosticar o controlar malalties greus o afeccions mèdiques. Consulteu el vostre metge si teniu preguntes sobre la vostra salut o què signifiquen en general les vostres lectures de temperatura corporal.</string>
+    <string name="no_temperatures_recorded">No s\'han registrat temperatures</string>
 </resources>

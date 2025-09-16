@@ -114,7 +114,7 @@ fun NutritionWeightSettingsScreen(
                     GoalCard(
                         title = stringResource(R.string.weight_goal),
                         goal = "$weightGoalValue kg",
-                        onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
+                        onClick = { navController.navigate(Screen.WeightGoal.route) },
                         modifier = Modifier.weight(1f)
                     )
                     GoalCard(
@@ -126,12 +126,13 @@ fun NutritionWeightSettingsScreen(
                 }
             } else {
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     GoalCard(
                         title = stringResource(R.string.weight_goal),
                         goal = "$weightGoalValue kg",
-                        onClick = { /* navController.navigate(Screen.WeightGoal.route) */ },
+                        onClick = { navController.navigate(Screen.WeightGoal.route) },
                         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
                     )
                     GoalCard(
@@ -172,31 +173,43 @@ fun NutritionWeightSettingsScreen(
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-            Card(
-                modifier = Modifier.clickable {
-                    showNutritionDataDialog.value = true
-                },
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.delete_nutrition_data),
-                    modifier = Modifier
-                        .padding(Dimensions.PaddingLarge)
-                        .fillMaxWidth()
-                )
-            }
-            Card(
-                modifier = Modifier.clickable {
-                    showWeightDataDialog.value = true
-                },
-                shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.delete_weight_data),
-                    modifier = Modifier
-                        .padding(Dimensions.PaddingLarge)
-                        .fillMaxWidth()
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Card(
+                    modifier = Modifier.clickable {
+                        showNutritionDataDialog.value = true
+                    },
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 0.dp,
+                        bottomEnd = 0.dp
+                    )
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.delete_nutrition_data),
+                        modifier = Modifier
+                            .padding(Dimensions.PaddingLarge)
+                            .fillMaxWidth()
+                    )
+                }
+                Card(
+                    modifier = Modifier.clickable {
+                        showWeightDataDialog.value = true
+                    },
+                    shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 12.dp,
+                        bottomEnd = 12.dp
+                    )
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.delete_weight_data),
+                        modifier = Modifier
+                            .padding(Dimensions.PaddingLarge)
+                            .fillMaxWidth()
+                    )
+                }
             }
         }
     }

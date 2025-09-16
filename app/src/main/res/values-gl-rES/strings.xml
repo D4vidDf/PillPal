@@ -477,4 +477,18 @@
     <string name="history">Historial</string>
     <string name="goal_template">Obxectivo: %s</string>
     <string name="body_temperature_tracker">Temperatura Corporal</string>
+    <string name="maintain_weight">Manter Peso</string>
+    <string name="goal">Obxectivo</string>
+    <string name="last_recorded_weight">Último peso rexistrado: %1$s kg o %2$s</string>
+    <string name="no_weight_data_recorded">Aínda non se rexistraron datos de peso.</string>
+    <string name="about_body_temperature">Sobre a temperatura corporal</string>
+    <string name="about_body_temperature_description">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno.</string>
+    <string name="what_does_body_temp_mean_title">Que significa \"temperatura corporal\"?</string>
+    <string name="what_does_body_temp_mean_content">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno. Segundo a Organización Mundial da Saúde, a temperatura corporal normal oscila entre 36,5 e 37 °C. Pero cada persoa é diferente.</string>
+    <string name="what_can_affect_body_temp_title">Que pode afectar á temperatura corporal?</string>
+    <string name="what_can_affect_body_temp_content">A temperatura corporal pode verse afectada por varios factores, como a idade, as actividades, as hormonas, a hora do día, as enfermidades e o ciclo menstrual.</string>
+    <string name="how_is_body_temp_measured_title">Como se mide a temperatura corporal?</string>
+    <string name="how_is_body_temp_measured_content">A temperatura corporal pódese comprobar cun termómetro. Podes rexistrar os teus resultados manualmente ou sincronizalos desde un dispositivo compatible.</string>
+    <string name="disclaimer_body_temp">Esta función non está destinada a diagnosticar ou controlar enfermidades graves ou afeccións médicas. Consulte co seu médico se ten dúbidas sobre a súa saúde ou o que significan en xeral as súas lecturas de temperatura corporal.</string>
+    <string name="no_temperatures_recorded">Non se rexistraron temperaturas</string>
 </resources>
