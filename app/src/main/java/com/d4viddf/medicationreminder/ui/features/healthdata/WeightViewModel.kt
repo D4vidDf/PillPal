@@ -115,24 +115,23 @@ class WeightViewModel @Inject constructor(
         viewModelScope.launch {
             val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
             healthDataRepository.getWeightBetween(start, end)
-                .collect { records ->
-                    var lastWeightLog: WeightLogItem? = null
-                    healthDataRepository.getLatestWeight().collect{
-                        lastWeightLog = it?.let {
-                            WeightLogItem(
-                                weight = it.weightKilograms,
-                                date = it.time.atZone(ZoneId.systemDefault())
-                            )
-                        }
+                .combine(healthDataRepository.getLatestWeight()) { records, latestWeight ->
+                    Pair(records, latestWeight)
+                }
+                .collect { (records, latestWeight) ->
+                    val lastWeightLog = latestWeight?.let {
+                        WeightLogItem(
+                            weight = it.weightKilograms,
+                            date = it.time.atZone(ZoneId.systemDefault())
+                        )
                     }
 
                     val chartData: WeightChartData
                     val weightLogs: List<WeightLogItem>
 
                     if (records.isEmpty()) {
-                        val latestWeight = lastWeightLog
-                        if (latestWeight != null) {
-                            chartData = createChartDataForLastRecord(latestWeight)
+                        if (lastWeightLog != null) {
+                            chartData = createChartDataForSingleRecord(lastWeightLog, _timeRange.value)
                             weightLogs = emptyList()
                         } else {
                             chartData = WeightChartData()
@@ -168,32 +167,23 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    private fun createChartDataForLastRecord(lastWeightLog: WeightLogItem): WeightChartData {
+    private fun createChartDataForSingleRecord(record: WeightLogItem, timeRange: TimeRange): WeightChartData {
         val today = LocalDate.now()
-        val recordDate = lastWeightLog.date.toLocalDate()
-
-        return when (_timeRange.value) {
+        return when (timeRange) {
             TimeRange.DAY -> {
-                if (recordDate == today) {
-                    aggregateByHour(listOf(Weight(weightKilograms = lastWeightLog.weight, time = lastWeightLog.date.toInstant())))
-                } else {
-                    WeightChartData(
-                        lineChartData = listOf(LineChartPoint(x = today.atStartOfDay().hour.toFloat(), y = lastWeightLog.weight.toFloat(), label = "")),
-                        labels = (0..23).map { it.toString() }
-                    )
-                }
+                val point = LineChartPoint(x = record.date.hour.toFloat(), y = record.weight.toFloat(), label = "")
+                val labels = (0..23).map { it.toString() }
+                WeightChartData(lineChartData = listOf(point), labels = labels)
             }
             TimeRange.WEEK -> {
                 val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
                 val startOfWeek = today.with(weekFields.dayOfWeek(), 1)
-                val dayOfWeek = today.dayOfWeek.value - 1 // Monday is 0
+                val dayOfWeek = record.date.dayOfWeek.value - 1
+                val point = LineChartPoint(x = dayOfWeek.toFloat(), y = record.weight.toFloat(), label = "")
                 val labels = (0..6).map {
                     startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
                 }
-                WeightChartData(
-                    lineChartData = listOf(LineChartPoint(x = dayOfWeek.toFloat(), y = lastWeightLog.weight.toFloat(), label = "")),
-                    labels = labels
-                )
+                WeightChartData(lineChartData = listOf(point), labels = labels)
             }
             else -> WeightChartData()
         }
