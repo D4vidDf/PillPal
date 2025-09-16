@@ -72,10 +72,9 @@ fun RangeBarChart(
     ) {
         val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
-        val chartPadding = 16.dp.toPx()
         val chartAreaHeight = size.height - xAxisAreaHeight
-        val chartAreaWidth = size.width - yAxisAreaWidth - (2 * chartPadding)
-        val chartAreaStartX = chartPadding
+        val chartAreaWidth = size.width - yAxisAreaWidth
+        val chartAreaStartX = 0f
 
         // Draw Y-axis labels
         val yAxisLabelPaint = android.graphics.Paint().apply {
@@ -120,17 +119,10 @@ fun RangeBarChart(
                 size.height - 20f,
                 yAxisLabelPaint.apply { textAlign = android.graphics.Paint.Align.CENTER }
             )
-            // Draw guide line
-            drawLine(
-                color = onBackgroundColor,
-                start = Offset(xPos, size.height - xAxisAreaHeight),
-                end = Offset(xPos, size.height - xAxisAreaHeight - 10f),
-                strokeWidth = 2f
-            )
         }
 
         data.forEachIndexed { index, dataPoint ->
-            val xPos = chartAreaStartX + xStep * (index + 1)
+            val xPos = chartAreaStartX + xStep * (dataPoint.x)
             val yMinPos = chartAreaHeight - ((dataPoint.min - minY) / (maxY - minY)) * chartAreaHeight
             val yMaxPos = chartAreaHeight - ((dataPoint.max - minY) / (maxY - minY)) * chartAreaHeight
 
@@ -198,18 +190,13 @@ private fun getChartBounds(
     data: List<RangeChartPoint>,
     yAxisRange: ClosedFloatingPointRange<Float>? = null
 ): List<Float> {
-    if (data.isEmpty()) return listOf(0f, 0f, 30f, 45f) // Default range for temperature
+    if (data.isEmpty()) return listOf(0f, 0f, 0f, 0f)
 
     val minX = 0f
     val maxX = data.size.toFloat()
 
-    var minY = yAxisRange?.start ?: data.minOfOrNull { it.min } ?: 30f
-    var maxY = yAxisRange?.endInclusive ?: data.maxOfOrNull { it.max } ?: 45f
-
-    if (minY == maxY) {
-        minY -= 5f
-        maxY += 5f
-    }
+    val minY = yAxisRange?.start ?: data.minOf { it.min }
+    val maxY = yAxisRange?.endInclusive ?: data.maxOf { it.max }
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f

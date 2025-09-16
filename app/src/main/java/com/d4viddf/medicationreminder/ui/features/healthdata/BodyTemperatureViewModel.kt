@@ -54,7 +54,7 @@ class BodyTemperatureViewModel @Inject constructor(
     private val _temperatureUiState = MutableStateFlow(TemperatureUiState())
     val temperatureUiState: StateFlow<TemperatureUiState> = _temperatureUiState.asStateFlow()
 
-    private val _timeRange = MutableStateFlow(TimeRange.DAY)
+    private val _timeRange = MutableStateFlow(TimeRange.WEEK)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -151,7 +151,7 @@ class BodyTemperatureViewModel @Inject constructor(
                 label = "" // Labels are now separate
             )
         }
-        val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
+        val labels = (0..23).map { it.toString() }
         return TemperatureChartData(lineChartData = data, labels = labels)
     }
 

@@ -39,10 +39,9 @@ fun LineChart(
     Canvas(modifier = modifier.fillMaxSize()) {
         val yAxisAreaWidth = 120f
         val xAxisAreaHeight = 60f
-        val chartPadding = 16.dp.toPx()
         val chartAreaHeight = size.height - xAxisAreaHeight
-        val chartAreaWidth = size.width - yAxisAreaWidth - (2 * chartPadding)
-        val chartAreaStartX = chartPadding
+        val chartAreaWidth = size.width - yAxisAreaWidth
+        val chartAreaStartX = 0f
 
         // Draw Y-axis labels
         val yAxisLabelPaint = android.graphics.Paint().apply {
@@ -76,13 +75,6 @@ fun LineChart(
                     textAlign = android.graphics.Paint.Align.CENTER
                     textSize = 12.sp.toPx()
                 }
-            )
-            // Draw guide line
-            drawLine(
-                color = onBackgroundColor,
-                start = Offset(xPos, size.height - xAxisAreaHeight),
-                end = Offset(xPos, size.height - xAxisAreaHeight - 10f),
-                strokeWidth = 2f
             )
         }
 
@@ -164,13 +156,8 @@ private fun getChartBounds(
     val minYValue = data.minOfOrNull { it.y } ?: 0f
     val maxYValue = data.maxOfOrNull { it.y } ?: 0f
 
-    var minY = yAxisRange?.start ?: minYValue
-    var maxY = yAxisRange?.endInclusive ?: maxYValue
-
-    if (minY == maxY) {
-        minY -= 5f
-        maxY += 5f
-    }
+    val minY = yAxisRange?.start ?: minYValue
+    val maxY = yAxisRange?.endInclusive ?: maxYValue
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f

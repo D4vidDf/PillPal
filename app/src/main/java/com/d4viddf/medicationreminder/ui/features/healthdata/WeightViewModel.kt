@@ -56,7 +56,7 @@ class WeightViewModel @Inject constructor(
     private val _weightUiState = MutableStateFlow(WeightUiState())
     val weightUiState: StateFlow<WeightUiState> = _weightUiState.asStateFlow()
 
-    private val _timeRange = MutableStateFlow(TimeRange.DAY)
+    private val _timeRange = MutableStateFlow(TimeRange.WEEK)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
