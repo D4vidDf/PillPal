@@ -93,14 +93,17 @@ fun LineChart(
                 endY = chartAreaHeight
             )
 
-            data.forEachIndexed { index, dataPoint ->
-                val currentX = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
-                val currentY = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
-
-                if (index == 0) {
-                    path.moveTo(currentX, currentY)
-                } else {
-                    path.lineTo(currentX, currentY)
+            var lastValidPoint: LineChartPoint? = null
+            data.forEach { dataPoint ->
+                if (dataPoint.y != -1f) {
+                    val currentX = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
+                    val currentY = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
+                    if (lastValidPoint == null) {
+                        path.moveTo(currentX, currentY)
+                    } else {
+                        path.lineTo(currentX, currentY)
+                    }
+                    lastValidPoint = dataPoint
                 }
             }
 
@@ -160,8 +163,9 @@ private fun getChartBounds(
     val minX = 0f
     val maxX = (labels.size - 1).toFloat()
 
-    val minYValue = data.minOfOrNull { it.y } ?: 0f
-    val maxYValue = data.maxOfOrNull { it.y } ?: 0f
+    val validData = data.filter { it.y != -1f }
+    val minYValue = validData.minOfOrNull { it.y } ?: 0f
+    val maxYValue = validData.maxOfOrNull { it.y } ?: 0f
 
     val minY = yAxisRange?.start ?: minYValue
     val maxY = yAxisRange?.endInclusive ?: maxYValue

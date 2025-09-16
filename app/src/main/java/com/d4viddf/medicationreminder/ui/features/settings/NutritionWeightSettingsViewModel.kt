@@ -82,7 +82,6 @@ class NutritionWeightSettingsViewModel @Inject constructor(
     fun deleteNutritionData() {
         viewModelScope.launch {
             healthDataRepository.deleteAllWaterIntake()
-            userPreferencesRepository.deleteWaterIntakeGoal()
         }
     }
 
@@ -90,6 +89,8 @@ class NutritionWeightSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             healthDataRepository.deleteAllWeight()
             userPreferencesRepository.deleteWeightGoal()
+            _weightGoalValue.value = ""
+            _weightGoalType.value = "lose"
         }
     }
 }
