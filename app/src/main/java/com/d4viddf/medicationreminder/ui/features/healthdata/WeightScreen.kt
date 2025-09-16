@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,10 +26,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.AboutHealthDataItem
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.DateRangeSelector
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.LineChart
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoBottomSheet
+import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoItem
 import com.d4viddf.medicationreminder.ui.features.healthdata.util.TimeRange
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +49,35 @@ fun WeightScreen(
     val isNextEnabled by viewModel.isNextEnabled.collectAsState()
     val weightGoal by viewModel.weightGoal.collectAsState()
     val averageWeight by viewModel.averageWeight.collectAsState()
+
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            MoreInfoBottomSheet(
+                title = stringResource(id = R.string.about_weight_info_title),
+                items = listOf(
+                    MoreInfoItem(
+                        title = stringResource(id = R.string.what_is_bmi_title),
+                        content = stringResource(id = R.string.what_is_bmi_content)
+                    ),
+                    MoreInfoItem(
+                        title = stringResource(id = R.string.what_is_body_fat_title),
+                        content = stringResource(id = R.string.what_is_body_fat_content)
+                    ),
+                    MoreInfoItem(
+                        title = stringResource(id = R.string.what_is_lean_mass_title),
+                        content = stringResource(id = R.string.what_is_lean_mass_content)
+                    )
+                )
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -109,60 +144,117 @@ fun WeightScreen(
                 widthSizeClass = widthSizeClass
             )
 
-            if (timeRange != TimeRange.DAY) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
-                                append(String.format("%.1f", averageWeight))
-                            }
-                            withStyle(style = SpanStyle(fontSize = 16.sp)) {
-                                append(" kg (average)")
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+                item {
+                    if (weightUiState.chartData.lineChartData.isEmpty() && timeRange != TimeRange.DAY) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.no_data),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Text(
+                                text = stringResource(id = R.string.no_weight_data),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    } else if (timeRange != TimeRange.DAY) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
+                                        append(String.format("%.1f", averageWeight))
+                                    }
+                                    withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                                        append(" kg (average)")
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                if (timeRange == TimeRange.DAY) {
+                    item {
+                        DayView(
+                            weightUiState = weightUiState,
+                            weightGoal = weightGoal
+                        )
+                    }
+                    item {
+                        Text(
+                            text = stringResource(R.string.history),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
+                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                            index = index,
+                            size = weightUiState.weightLogs.size,
+                            date = weightEntry.date.toLocalDate(),
+                            value = "${String.format("%.1f", weightEntry.weight)} kg",
+                            onClick = { /* No-op */ }
+                        )
+                    }
+                } else {
+                    item {
+                        LineChart(
+                            data = weightUiState.chartData.lineChartData,
+                            labels = weightUiState.chartData.labels,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(horizontal = 16.dp),
+                            showLine = timeRange == TimeRange.YEAR,
+                            showPoints = true,
+                            showGradient = false,
+                            goal = weightGoal,
+                            yAxisRange = weightUiState.yAxisRange
+                        )
+                    }
+                    item {
+                        Text(
+                            text = stringResource(R.string.history),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
+                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                            index = index,
+                            size = weightUiState.weightLogs.size,
+                            date = weightEntry.date.toLocalDate(),
+                            value = "${String.format("%.1f", weightEntry.weight)} kg",
+                            onClick = { /* No-op */ }
+                        )
+                    }
+                }
+
+                item {
+                    AboutHealthDataItem(
+                        title = stringResource(id = R.string.about_weight),
+                        description = stringResource(id = R.string.about_weight_description),
+                        onMoreInfoClick = {
+                            scope.launch {
+                                showBottomSheet = true
                             }
                         }
                     )
-                }
-            }
-
-            when (timeRange) {
-                TimeRange.DAY -> {
-                    DayView(
-                        modifier = Modifier.weight(1f),
-                        weightUiState = weightUiState,
-                        weightGoal = weightGoal
-                    )
-                }
-                TimeRange.WEEK, TimeRange.MONTH -> {
-                    LineChart(
-                        data = weightUiState.chartData.lineChartData,
-                        labels = weightUiState.chartData.labels,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(horizontal = 16.dp),
-                        showLine = false,
-                        showPoints = true,
-                        goal = weightGoal,
-                        yAxisRange = weightUiState.yAxisRange
-                    )
-                }
-                TimeRange.YEAR -> {
-                    LineChart(
-                        data = weightUiState.chartData.lineChartData,
-                        labels = weightUiState.chartData.labels,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(horizontal = 16.dp),
-                        showLine = true,
-                        showPoints = true,
-                        showGradient = false,
-                        goal = weightGoal,
-                        yAxisRange = weightUiState.yAxisRange
-                    )
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
@@ -171,11 +263,10 @@ fun WeightScreen(
 
 @Composable
 private fun DayView(
-    modifier: Modifier = Modifier,
     weightUiState: WeightUiState,
     weightGoal: Float
 ) {
-    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.padding(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -216,21 +307,5 @@ private fun DayView(
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
-        Text(
-            text = stringResource(R.string.history),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
-                com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                    index = index,
-                    size = weightUiState.weightLogs.size,
-                    date = weightEntry.date.toLocalDate(),
-                    value = "${String.format("%.1f", weightEntry.weight)} kg",
-                    onClick = { /* No-op */ }
-                )
-            }
-        }
     }
 }
