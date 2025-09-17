@@ -163,43 +163,38 @@ fun BodyTemperatureScreen(
                             )
                         }
                         else -> {
-                            temperatureUiState.periodTemperatureRange?.let {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalAlignment = Alignment.Start
-                                ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                temperatureUiState.periodTemperatureRange?.let {
                                     Text(
                                         text = "${String.format("%.1f", it.first)}°C - ${String.format("%.1f", it.second)}°C",
                                         style = MaterialTheme.typography.headlineLarge
                                     )
+                                } ?: run {
+                                    Text(
+                                        text = stringResource(id = R.string.no_data),
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.no_temperatures_recorded),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
-                                com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
-                                    data = temperatureUiState.chartData.rangeChartData,
-                                    labels = temperatureUiState.chartData.labels,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp)
-                                        .padding(horizontal = 16.dp),
-                                    yAxisRange = temperatureUiState.yAxisRange,
-                                    onBarSelected = { viewModel.onBarSelected(it) }
-                                )
-                            } ?: Column(
+                            }
+                            com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
+                                data = temperatureUiState.chartData.rangeChartData,
+                                labels = temperatureUiState.chartData.labels,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.no_data),
-                                    style = MaterialTheme.typography.headlineSmall
-                                )
-                                Text(
-                                    text = stringResource(id = R.string.no_temperatures_recorded),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
+                                    .height(200.dp)
+                                    .padding(horizontal = 16.dp),
+                                yAxisRange = temperatureUiState.yAxisRange,
+                                onBarSelected = { viewModel.onBarSelected(it) }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
