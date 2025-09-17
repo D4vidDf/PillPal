@@ -32,7 +32,8 @@ data class TemperatureChartData(
 data class TemperatureUiState(
     val chartData: TemperatureChartData = TemperatureChartData(),
     val temperatureLogs: List<TemperatureLogItem> = emptyList(),
-    val yAxisRange: ClosedFloatingPointRange<Float> = 36f..40f
+    val yAxisRange: ClosedFloatingPointRange<Float> = 36f..40f,
+    val currentTemperature: Float? = null
 )
 
 data class TemperatureLogItem(
@@ -102,11 +103,13 @@ class BodyTemperatureViewModel @Inject constructor(
         } else {
             40f
         }
+        val currentTemperature = records.maxByOrNull { it.time }?.temperatureCelsius?.toFloat() ?: latestTemperature?.temperatureCelsius?.toFloat()
         updateDateAndButtonStates()
         return TemperatureUiState(
             chartData = chartData,
             temperatureLogs = temperatureLogs,
-            yAxisRange = 34f..yMax
+            yAxisRange = 34f..yMax,
+            currentTemperature = currentTemperature
         )
     }
 

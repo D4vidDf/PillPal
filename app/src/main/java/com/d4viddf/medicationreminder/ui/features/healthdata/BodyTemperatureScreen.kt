@@ -134,41 +134,40 @@ fun BodyTemperatureScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    if (temperatureUiState.chartData.lineChartData.isEmpty() && temperatureUiState.chartData.rangeChartData.isEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        temperatureUiState.currentTemperature?.let {
                             Text(
-                                text = stringResource(id = R.string.no_data),
-                                style = MaterialTheme.typography.headlineSmall
+                                text = "${String.format("%.1f", it)}°C",
+                                style = MaterialTheme.typography.headlineLarge
                             )
-                            Text(
-                                text = stringResource(id = R.string.no_temperatures_recorded),
-                                style = MaterialTheme.typography.bodyMedium
+                        } ?: Text(
+                            text = stringResource(id = R.string.no_data),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                    when (timeRange) {
+                        TimeRange.DAY -> {
+                            LineChart(
+                                data = temperatureUiState.chartData.lineChartData,
+                                labels = temperatureUiState.chartData.labels,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .padding(horizontal = 16.dp),
+                                showPoints = true,
+                                showGradient = false,
+                                yAxisRange = temperatureUiState.yAxisRange,
+                                showVerticalLines = true
                             )
                         }
-                    } else {
-                        when (timeRange) {
-                            TimeRange.DAY -> {
-                                LineChart(
-                                    data = temperatureUiState.chartData.lineChartData,
-                                    labels = temperatureUiState.chartData.labels,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp)
-                                        .padding(horizontal = 16.dp),
-                                    showPoints = true,
-                                    showGradient = false,
-                                    yAxisRange = temperatureUiState.yAxisRange,
-                                    showVerticalLines = true
-                                )
-                            }
 
-                            else -> {
+                        else -> {
+                            if (temperatureUiState.chartData.rangeChartData.isNotEmpty()) {
                                 com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
                                     data = temperatureUiState.chartData.rangeChartData,
                                     labels = temperatureUiState.chartData.labels,
