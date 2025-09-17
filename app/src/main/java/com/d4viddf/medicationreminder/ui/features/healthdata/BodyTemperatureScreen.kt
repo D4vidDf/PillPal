@@ -134,24 +134,21 @@ fun BodyTemperatureScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        temperatureUiState.currentTemperature?.let {
-                            Text(
-                                text = "${String.format("%.1f", it)}°C",
-                                style = MaterialTheme.typography.headlineLarge
-                            )
-                        } ?: Text(
-                            text = stringResource(id = R.string.no_data),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                    }
                     when (timeRange) {
                         TimeRange.DAY -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                temperatureUiState.dayViewTemperature?.let {
+                                    Text(
+                                        text = "${String.format("%.1f", it)}°C",
+                                        style = MaterialTheme.typography.headlineLarge
+                                    )
+                                }
+                            }
                             LineChart(
                                 data = temperatureUiState.chartData.lineChartData,
                                 labels = temperatureUiState.chartData.labels,
@@ -165,9 +162,19 @@ fun BodyTemperatureScreen(
                                 showVerticalLines = true
                             )
                         }
-
                         else -> {
-                            if (temperatureUiState.chartData.rangeChartData.isNotEmpty()) {
+                            temperatureUiState.periodTemperatureRange?.let {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    Text(
+                                        text = "${String.format("%.1f", it.first)}°C - ${String.format("%.1f", it.second)}°C",
+                                        style = MaterialTheme.typography.headlineLarge
+                                    )
+                                }
                                 com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
                                     data = temperatureUiState.chartData.rangeChartData,
                                     labels = temperatureUiState.chartData.labels,
@@ -178,17 +185,31 @@ fun BodyTemperatureScreen(
                                     yAxisRange = temperatureUiState.yAxisRange,
                                     onBarSelected = { viewModel.onBarSelected(it) }
                                 )
+                            } ?: Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.no_data),
+                                    style = MaterialTheme.typography.headlineSmall
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.no_temperatures_recorded),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = stringResource(R.string.history),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                    if (temperatureUiState.temperatureLogs.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.history),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
 
                 itemsIndexed(temperatureUiState.temperatureLogs) { index, tempEntry ->

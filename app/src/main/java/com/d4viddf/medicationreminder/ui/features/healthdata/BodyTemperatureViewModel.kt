@@ -33,7 +33,8 @@ data class TemperatureUiState(
     val chartData: TemperatureChartData = TemperatureChartData(),
     val temperatureLogs: List<TemperatureLogItem> = emptyList(),
     val yAxisRange: ClosedFloatingPointRange<Float> = 36f..40f,
-    val currentTemperature: Float? = null
+    val dayViewTemperature: Float? = null,
+    val periodTemperatureRange: Pair<Float, Float>? = null
 )
 
 data class TemperatureLogItem(
@@ -97,19 +98,36 @@ class BodyTemperatureViewModel @Inject constructor(
         }.sortedByDescending { it.date }
 
         val chartData = aggregateDataForChart(records, latestTemperature, timeRange, selectedDate)
+
+        var dayViewTemperature: Float? = null
+        var periodTemperatureRange: Pair<Float, Float>? = null
+
+        if (records.isNotEmpty()) {
+            when (timeRange) {
+                TimeRange.DAY -> {
+                    dayViewTemperature = records.maxByOrNull { it.time }?.temperatureCelsius?.toFloat()
+                }
+                else -> {
+                    val minTemp = records.minOf { it.temperatureCelsius }.toFloat()
+                    val maxTemp = records.maxOf { it.temperatureCelsius }.toFloat()
+                    periodTemperatureRange = Pair(minTemp, maxTemp)
+                }
+            }
+        }
+
         val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: (latestTemperature?.temperatureCelsius?.toFloat() ?: 0f)
         val yMax = if (maxTemp > 40f) {
             if (maxTemp % 2 == 0f) maxTemp else maxTemp.toInt() + 1f
         } else {
             40f
         }
-        val currentTemperature = records.maxByOrNull { it.time }?.temperatureCelsius?.toFloat() ?: latestTemperature?.temperatureCelsius?.toFloat()
         updateDateAndButtonStates()
         return TemperatureUiState(
             chartData = chartData,
             temperatureLogs = temperatureLogs,
             yAxisRange = 34f..yMax,
-            currentTemperature = currentTemperature
+            dayViewTemperature = dayViewTemperature,
+            periodTemperatureRange = periodTemperatureRange
         )
     }
 
