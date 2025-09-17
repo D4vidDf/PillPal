@@ -57,7 +57,7 @@ class WeightViewModel @Inject constructor(
     private val _weightUiState = MutableStateFlow(WeightUiState())
     val weightUiState: StateFlow<WeightUiState> = _weightUiState.asStateFlow()
 
-    private val _timeRange = MutableStateFlow(TimeRange.WEEK)
+    private val _timeRange = MutableStateFlow(TimeRange.DAY)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -155,14 +155,25 @@ class WeightViewModel @Inject constructor(
 
     private fun aggregateDataForChart(records: List<Weight>, latestWeightBefore: Weight?, timeRange: TimeRange, selectedDate: LocalDate): WeightChartData {
         return when (timeRange) {
-            TimeRange.DAY -> aggregateByHour(records, selectedDate)
+            TimeRange.DAY -> aggregateByHour(records, selectedDate, latestWeightBefore)
             TimeRange.WEEK -> aggregateByDayOfWeek(records, selectedDate, latestWeightBefore)
             TimeRange.MONTH -> aggregateByDayOfMonth(records, selectedDate, latestWeightBefore)
             TimeRange.YEAR -> aggregateByMonth(records, selectedDate, latestWeightBefore)
         }
     }
 
-    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
+    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate, latestWeightBefore: Weight?): WeightChartData {
+        if (records.isEmpty()) {
+            val lastWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
+            if (lastWeight > 0f) {
+                val data = (0..23).map {
+                    LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
+                }
+                val labels = (0..23).map { it.toString() }
+                return WeightChartData(lineChartData = data, labels = labels)
+            }
+        }
+
         val data = records
             .filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate }
             .sortedBy { it.time }
