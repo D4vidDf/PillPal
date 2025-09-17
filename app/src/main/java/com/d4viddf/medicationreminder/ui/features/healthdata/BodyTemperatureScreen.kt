@@ -147,6 +147,15 @@ fun BodyTemperatureScreen(
                                         text = "${String.format("%.1f", it)}°C",
                                         style = MaterialTheme.typography.headlineLarge
                                     )
+                                } ?: run {
+                                    Text(
+                                        text = stringResource(id = R.string.no_data),
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.no_temperatures_recorded),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
                             }
                             LineChart(
