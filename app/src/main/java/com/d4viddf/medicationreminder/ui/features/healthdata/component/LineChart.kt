@@ -1,12 +1,5 @@
 package com.d4viddf.medicationreminder.ui.features.healthdata.component
 
-data class LineChartPoint(
-    val x: Float,
-    val y: Float,
-    val label: String,
-    val showPoint: Boolean = true
-)
-
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
