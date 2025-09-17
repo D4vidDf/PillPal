@@ -187,7 +187,7 @@ fun WeightScreen(
                                 .fillMaxWidth()
                                 .height(200.dp)
                                 .padding(horizontal = 16.dp),
-                            showLine = true,
+                            showLine = weightUiState.chartData.lineChartData.size > 1,
                             showPoints = true,
                             showGradient = false,
                             goal = weightGoal,

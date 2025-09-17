@@ -154,26 +154,28 @@ class WeightViewModel @Inject constructor(
     }
 
     private fun aggregateDataForChart(records: List<Weight>, latestWeightBefore: Weight?, timeRange: TimeRange, selectedDate: LocalDate): WeightChartData {
+        if (records.isEmpty() && latestWeightBefore != null) {
+            val lastWeight = latestWeightBefore.weightKilograms.toFloat()
+            return when (timeRange) {
+                TimeRange.DAY -> {
+                    val data = (0..23).map {
+                        LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
+                    }
+                    val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
+                    WeightChartData(lineChartData = data, labels = labels)
+                }
+                else -> WeightChartData()
+            }
+        }
         return when (timeRange) {
-            TimeRange.DAY -> aggregateByHour(records, selectedDate, latestWeightBefore)
+            TimeRange.DAY -> aggregateByHour(records, selectedDate)
             TimeRange.WEEK -> aggregateByDayOfWeek(records, selectedDate, latestWeightBefore)
             TimeRange.MONTH -> aggregateByDayOfMonth(records, selectedDate, latestWeightBefore)
             TimeRange.YEAR -> aggregateByMonth(records, selectedDate, latestWeightBefore)
         }
     }
 
-    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate, latestWeightBefore: Weight?): WeightChartData {
-        if (records.isEmpty()) {
-            val lastWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
-            if (lastWeight > 0f) {
-                val data = (0..23).map {
-                    LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
-                }
-                val labels = (0..23).map { it.toString() }
-                return WeightChartData(lineChartData = data, labels = labels)
-            }
-        }
-
+    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
         val data = records
             .filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate }
             .sortedBy { it.time }
@@ -185,7 +187,7 @@ class WeightViewModel @Inject constructor(
                     label = ""
                 )
             }
-        val labels = (0..23).map { it.toString() }
+        val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
         return WeightChartData(lineChartData = data, labels = labels)
     }
 

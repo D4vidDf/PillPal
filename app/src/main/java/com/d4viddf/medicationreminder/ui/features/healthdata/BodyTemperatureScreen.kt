@@ -193,13 +193,15 @@ fun BodyTemperatureScreen(
                 }
 
                 itemsIndexed(temperatureUiState.temperatureLogs) { index, tempEntry ->
-                    com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                        index = index,
-                        size = temperatureUiState.temperatureLogs.size,
-                        date = tempEntry.date.toLocalDate(),
-                        value = "${tempEntry.temperature}°C",
-                        onClick = { /* No-op */ }
-                    )
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                            index = index,
+                            size = temperatureUiState.temperatureLogs.size,
+                            date = tempEntry.date.toLocalDate(),
+                            value = "${tempEntry.temperature}°C",
+                            onClick = { /* No-op */ }
+                        )
+                    }
                 }
 
                 item {

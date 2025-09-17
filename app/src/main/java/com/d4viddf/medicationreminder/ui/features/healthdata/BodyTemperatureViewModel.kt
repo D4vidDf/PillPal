@@ -146,15 +146,6 @@ class BodyTemperatureViewModel @Inject constructor(
     }
 
     private fun aggregateByHour(records: List<BodyTemperature>, latestTemperature: BodyTemperature?, selectedDate: LocalDate): TemperatureChartData {
-        if (records.isEmpty() && latestTemperature != null) {
-            val lastTemp = latestTemperature.temperatureCelsius.toFloat()
-            val data = (0..23).map {
-                LineChartPoint(x = it.toFloat(), y = lastTemp, label = "", showPoint = false)
-            }
-            val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
-            return TemperatureChartData(lineChartData = data, labels = labels)
-        }
-
         val data = records
             .filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate }
             .sortedBy { it.time }
