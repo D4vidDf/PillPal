@@ -163,7 +163,8 @@ fun BodyTemperatureScreen(
                                         .padding(horizontal = 16.dp),
                                     showPoints = true,
                                     showGradient = false,
-                                    yAxisRange = temperatureUiState.yAxisRange
+                                    yAxisRange = temperatureUiState.yAxisRange,
+                                    showVerticalLines = true
                                 )
                             }
 

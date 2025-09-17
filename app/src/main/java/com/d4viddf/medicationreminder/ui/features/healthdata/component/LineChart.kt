@@ -1,6 +1,11 @@
 package com.d4viddf.medicationreminder.ui.features.healthdata.component
 
-
+data class LineChartPoint(
+    val x: Float,
+    val y: Float,
+    val label: String,
+    val showPoint: Boolean = true
+)
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +38,8 @@ fun LineChart(
     pointColor: Color = MaterialTheme.colorScheme.secondary,
     goal: Float? = null,
     yAxisRange: ClosedFloatingPointRange<Float>? = null,
-    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() }
+    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() },
+    showVerticalLines: Boolean = false
 ) {
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange, labels)
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
@@ -68,6 +74,15 @@ fun LineChart(
         val xStep = if (labels.size > 1) chartAreaWidth / (labels.size - 1) else 0f
         labels.forEachIndexed { index, label ->
             val xPos = chartAreaStartX + xStep * index
+            if (showVerticalLines) {
+                drawLine(
+                    color = onBackgroundColor.copy(alpha = 0.5f),
+                    start = Offset(xPos, 0f),
+                    end = Offset(xPos, chartAreaHeight),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                )
+            }
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 xPos,

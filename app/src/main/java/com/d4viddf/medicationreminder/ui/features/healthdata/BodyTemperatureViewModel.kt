@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -54,7 +55,7 @@ class BodyTemperatureViewModel @Inject constructor(
     private val _temperatureUiState = MutableStateFlow(TemperatureUiState())
     val temperatureUiState: StateFlow<TemperatureUiState> = _temperatureUiState.asStateFlow()
 
-    private val _timeRange = MutableStateFlow(TimeRange.WEEK)
+    private val _timeRange = MutableStateFlow(TimeRange.DAY)
     val timeRange: StateFlow<TimeRange> = _timeRange.asStateFlow()
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -67,15 +68,51 @@ class BodyTemperatureViewModel @Inject constructor(
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            combine(timeRange, selectedDate) { timeRange, selectedDate ->
+                fetchBodyTemperatureRecords(timeRange, selectedDate)
+            }.collect{}
+        }
+    }
+
+    private fun fetchBodyTemperatureRecords(timeRange: TimeRange, selectedDate: LocalDate) {
+        viewModelScope.launch {
+            val (start, end) = timeRange.getStartAndEndTimes(selectedDate)
+            healthDataRepository.getBodyTemperatureBetween(start, end)
+                .combine(healthDataRepository.getLatestBodyTemperature()) { records, latestTemperature ->
+                    processBodyTemperatureData(records, latestTemperature, timeRange, selectedDate)
+                }.collect {
+                    _temperatureUiState.value = it
+                }
+        }
+    }
+
+    private fun processBodyTemperatureData(records: List<BodyTemperature>, latestTemperature: BodyTemperature?, timeRange: TimeRange, selectedDate: LocalDate): TemperatureUiState {
+        val temperatureLogs = records.map {
+            TemperatureLogItem(
+                temperature = it.temperatureCelsius,
+                date = it.time.atZone(ZoneId.systemDefault())
+            )
+        }.sortedByDescending { it.date }
+
+        val chartData = aggregateDataForChart(records, latestTemperature, timeRange, selectedDate)
+        val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: (latestTemperature?.temperatureCelsius?.toFloat() ?: 0f)
+        val yMax = if (maxTemp > 40f) {
+            if (maxTemp % 2 == 0f) maxTemp else maxTemp.toInt() + 1f
+        } else {
+            40f
+        }
         updateDateAndButtonStates()
-        fetchBodyTemperatureRecords()
+        return TemperatureUiState(
+            chartData = chartData,
+            temperatureLogs = temperatureLogs,
+            yAxisRange = 34f..yMax
+        )
     }
 
     fun setTimeRange(timeRange: TimeRange) {
         _timeRange.value = timeRange
         _selectedDate.value = LocalDate.now()
-        updateDateAndButtonStates()
-        fetchBodyTemperatureRecords()
     }
 
     fun onPreviousClick() {
@@ -85,8 +122,6 @@ class BodyTemperatureViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
-        updateDateAndButtonStates()
-        fetchBodyTemperatureRecords()
     }
 
     fun onNextClick() {
@@ -98,66 +133,46 @@ class BodyTemperatureViewModel @Inject constructor(
         }
         if (!nextDate.isAfter(LocalDate.now())) {
             _selectedDate.value = nextDate
-            updateDateAndButtonStates()
-            fetchBodyTemperatureRecords()
         }
     }
 
-    private fun fetchBodyTemperatureRecords() {
-        viewModelScope.launch {
-            val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
-            healthDataRepository.getBodyTemperatureBetween(start, end)
-                .collect { records ->
-                    val chartData = aggregateDataForChart(records)
-
-                    val temperatureLogs = records.map {
-                        TemperatureLogItem(
-                            temperature = it.temperatureCelsius,
-                            date = it.time.atZone(ZoneId.systemDefault())
-                        )
-                    }.sortedByDescending { it.date }
-
-                    val maxTemp = records.maxOfOrNull { it.temperatureCelsius }?.toFloat() ?: 0f
-                    val yMax = if (maxTemp > 40f) {
-                        if (maxTemp % 2 == 0f) maxTemp else maxTemp.toInt() + 1f
-                    } else {
-                        40f
-                    }
-
-                    _temperatureUiState.value = TemperatureUiState(
-                        chartData = chartData,
-                        temperatureLogs = temperatureLogs,
-                        yAxisRange = 34f..yMax
-                    )
-                }
+    private fun aggregateDataForChart(records: List<BodyTemperature>, latestTemperature: BodyTemperature?, timeRange: TimeRange, selectedDate: LocalDate): TemperatureChartData {
+        return when (timeRange) {
+            TimeRange.DAY -> aggregateByHour(records, latestTemperature, selectedDate)
+            TimeRange.WEEK -> aggregateByDayOfWeek(records, selectedDate)
+            TimeRange.MONTH -> aggregateByDayOfMonth(records, selectedDate)
+            TimeRange.YEAR -> aggregateByMonth(records, selectedDate)
         }
     }
 
-    private fun aggregateDataForChart(records: List<BodyTemperature>): TemperatureChartData {
-        return when (_timeRange.value) {
-            TimeRange.DAY -> aggregateByHour(records)
-            TimeRange.WEEK -> aggregateByDayOfWeek(records)
-            TimeRange.MONTH -> aggregateByDayOfMonth(records)
-            TimeRange.YEAR -> aggregateByMonth(records)
+    private fun aggregateByHour(records: List<BodyTemperature>, latestTemperature: BodyTemperature?, selectedDate: LocalDate): TemperatureChartData {
+        if (records.isEmpty() && latestTemperature != null) {
+            val lastTemp = latestTemperature.temperatureCelsius.toFloat()
+            val data = (0..23).map {
+                LineChartPoint(x = it.toFloat(), y = lastTemp, label = "", showPoint = false)
+            }
+            val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
+            return TemperatureChartData(lineChartData = data, labels = labels)
         }
-    }
 
-    private fun aggregateByHour(records: List<BodyTemperature>): TemperatureChartData {
-        val data = records.map {
-            val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
-            LineChartPoint(
-                x = zonedDateTime.hour.toFloat(),
-                y = it.temperatureCelsius.toFloat(),
-                label = "" // Labels are now separate
-            )
-        }
-        val labels = (0..23).map { it.toString() }
+        val data = records
+            .filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate }
+            .sortedBy { it.time }
+            .map {
+                val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
+                LineChartPoint(
+                    x = zonedDateTime.hour.toFloat(),
+                    y = it.temperatureCelsius.toFloat(),
+                    label = ""
+                )
+            }
+        val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
         return TemperatureChartData(lineChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfWeek(records: List<BodyTemperature>): TemperatureChartData {
+    private fun aggregateByDayOfWeek(records: List<BodyTemperature>, selectedDate: LocalDate): TemperatureChartData {
         val weekFields = java.time.temporal.WeekFields.of(Locale.getDefault())
-        val startOfWeek = _selectedDate.value.with(weekFields.dayOfWeek(), 1)
+        val startOfWeek = selectedDate.with(weekFields.dayOfWeek(), 1)
 
         val weekData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
@@ -182,9 +197,9 @@ class BodyTemperatureViewModel @Inject constructor(
         return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
-    private fun aggregateByDayOfMonth(records: List<BodyTemperature>): TemperatureChartData {
-        val startOfMonth = _selectedDate.value.withDayOfMonth(1)
-        val daysInMonth = _selectedDate.value.lengthOfMonth()
+    private fun aggregateByDayOfMonth(records: List<BodyTemperature>, selectedDate: LocalDate): TemperatureChartData {
+        val startOfMonth = selectedDate.withDayOfMonth(1)
+        val daysInMonth = selectedDate.lengthOfMonth()
 
         val monthData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
@@ -212,8 +227,8 @@ class BodyTemperatureViewModel @Inject constructor(
         return TemperatureChartData(rangeChartData = data, labels = labels)
     }
 
-    private fun aggregateByMonth(records: List<BodyTemperature>): TemperatureChartData {
-        val startOfYear = _selectedDate.value.withDayOfYear(1)
+    private fun aggregateByMonth(records: List<BodyTemperature>, selectedDate: LocalDate): TemperatureChartData {
+        val startOfYear = selectedDate.withDayOfYear(1)
 
         val yearData = records
             .groupBy { it.time.atZone(ZoneId.systemDefault()).month }
