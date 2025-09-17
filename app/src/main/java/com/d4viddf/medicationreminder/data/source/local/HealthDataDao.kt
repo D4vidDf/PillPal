@@ -36,6 +36,9 @@ interface HealthDataDao {
     @Query("SELECT * FROM weight_records WHERE time BETWEEN :startTime AND :endTime ORDER BY time DESC")
     fun getWeightBetween(startTime: Instant, endTime: Instant): Flow<List<Weight>>
 
+    @Query("SELECT * FROM weight_records WHERE time < :date ORDER BY time DESC LIMIT 1")
+    fun getLatestWeightBefore(date: Instant): Flow<Weight?>
+
     @Query("DELETE FROM weight_records")
     suspend fun deleteAllWeight()
 

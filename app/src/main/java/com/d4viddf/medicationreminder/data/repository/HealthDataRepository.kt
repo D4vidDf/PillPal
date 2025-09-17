@@ -25,6 +25,8 @@ class HealthDataRepository @Inject constructor(
     fun getWeightBetween(startTime: Instant, endTime: Instant): Flow<List<Weight>> =
         healthDataDao.getWeightBetween(startTime, endTime)
 
+    fun getLatestWeightBefore(date: Instant): Flow<Weight?> = healthDataDao.getLatestWeightBefore(date)
+
     fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> =
         healthDataDao.getWaterIntakeBetween(startTime, endTime)
 
