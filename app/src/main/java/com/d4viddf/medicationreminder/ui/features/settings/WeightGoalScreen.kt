@@ -100,7 +100,7 @@ fun WeightGoalScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.Baseline
+                    verticalAlignment = Alignment.Bottom
                 ) {
                     BasicTextField(
                         value = weightGoalValue,
