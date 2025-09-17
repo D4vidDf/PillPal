@@ -149,8 +149,8 @@ fun WeightScreen(
                     .fillMaxSize()
                     .weight(1f)
             ) {
-                item {
-                    if (timeRange != TimeRange.DAY) {
+                if (timeRange != TimeRange.DAY) {
+                    item {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()

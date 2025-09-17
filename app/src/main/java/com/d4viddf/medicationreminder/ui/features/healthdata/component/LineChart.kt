@@ -70,10 +70,9 @@ fun LineChart(
             if (showVerticalLines) {
                 drawLine(
                     color = onBackgroundColor.copy(alpha = 0.5f),
-                    start = Offset(xPos, 0f),
+                    start = Offset(xPos, chartAreaHeight - 8.dp.toPx()),
                     end = Offset(xPos, chartAreaHeight),
-                    strokeWidth = 1.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                    strokeWidth = 1.dp.toPx()
                 )
             }
             drawContext.canvas.nativeCanvas.drawText(
