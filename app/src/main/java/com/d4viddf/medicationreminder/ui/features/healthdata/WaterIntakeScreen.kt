@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
@@ -72,6 +73,10 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.roundToInt
+import androidx.compose.material3.Button
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -80,6 +85,20 @@ fun WaterIntakeScreen(
     widthSizeClass: WindowWidthSizeClass,
     viewModel: WaterIntakeViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
+    val hasPermissions by viewModel.hasPermissions.collectAsState()
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        viewModel.healthConnectManager.requestPermissionsActivityContract()
+    ) { grantedPermissions ->
+        if (grantedPermissions.isNotEmpty()) {
+            viewModel.updatePermissionsStatus(true)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.checkPermissions()
+    }
     val chartData by viewModel.chartData.collectAsState()
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
@@ -130,6 +149,15 @@ fun WaterIntakeScreen(
                                 showMenu = false
                             }
                         )
+                        if (viewModel.healthConnectManager.healthConnectCompatible.value && !hasPermissions) {
+                            DropdownMenuItem(
+                                text = { Text("Connect to Health Connect") },
+                                onClick = {
+                                    permissionLauncher.launch(viewModel.healthConnectManager.PERMISSIONS)
+                                    showMenu = false
+                                }
+                            )
+                        }
                     }
                 }
             )

@@ -36,6 +36,8 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 import kotlinx.coroutines.launch
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeightScreen(
@@ -43,6 +45,21 @@ fun WeightScreen(
     widthSizeClass: WindowWidthSizeClass,
     viewModel: WeightViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
+    val hasPermissions by viewModel.hasPermissions.collectAsState()
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        viewModel.healthConnectManager.requestPermissionsActivityContract()
+    ) { grantedPermissions ->
+        if (grantedPermissions.isNotEmpty()) {
+            viewModel.updatePermissionsStatus(true)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.checkPermissions()
+    }
+
     val weightUiState by viewModel.weightUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
@@ -107,6 +124,15 @@ fun WeightScreen(
                                 showMenu = false
                             }
                         )
+                        if (viewModel.healthConnectManager.healthConnectCompatible.value && !hasPermissions) {
+                            DropdownMenuItem(
+                                text = { Text("Connect to Health Connect") },
+                                onClick = {
+                                    permissionLauncher.launch(viewModel.healthConnectManager.PERMISSIONS)
+                                    showMenu = false
+                                }
+                            )
+                        }
                     }
                 }
             )

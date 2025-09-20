@@ -153,4 +153,7 @@ dependencies {
 
     // Coroutines support for Play Services Tasks (for .await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
+
+    // Health Connect
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha02")
 }

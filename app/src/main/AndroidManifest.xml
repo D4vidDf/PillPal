@@ -23,6 +23,14 @@
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.WRITE_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_WEIGHT" />
+    <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
+    <uses-permission android:name="android.permission.health.READ_HYDRATION" />
+    <uses-permission android:name="android.permission.health.WRITE_HYDRATION" />
+    <uses-permission android:name="android.permission.health.READ_BODY_TEMPERATURE" />
+    <uses-permission android:name="android.permission.health.WRITE_BODY_TEMPERATURE" />
 
     <application
         android:name=".MedicationReminderApplication"
@@ -58,6 +66,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="medicationreminder" android:host="medication" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.health.connect.action.ACTION_VIEW_HEALTH_DATA" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 

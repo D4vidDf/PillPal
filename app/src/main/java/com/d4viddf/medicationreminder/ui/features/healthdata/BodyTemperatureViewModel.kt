@@ -43,9 +43,12 @@ data class TemperatureLogItem(
     val date: ZonedDateTime
 )
 
+import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
+
 @HiltViewModel
 class BodyTemperatureViewModel @Inject constructor(
-    private val healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     private val _selectedBar = MutableStateFlow<RangeChartPoint?>(null)
@@ -70,6 +73,9 @@ class BodyTemperatureViewModel @Inject constructor(
     private val _isNextEnabled = MutableStateFlow(false)
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
 
+    private val _hasPermissions = MutableStateFlow(false)
+    val hasPermissions: StateFlow<Boolean> = _hasPermissions.asStateFlow()
+
     init {
         viewModelScope.launch {
             combine(timeRange, selectedDate) { timeRange, selectedDate ->
@@ -78,10 +84,23 @@ class BodyTemperatureViewModel @Inject constructor(
         }
     }
 
+    fun checkPermissions() {
+        viewModelScope.launch {
+            _hasPermissions.value = healthConnectManager.hasAllPermissions()
+        }
+    }
+
+    fun updatePermissionsStatus(granted: Boolean) {
+        _hasPermissions.value = granted
+        if (granted) {
+            fetchBodyTemperatureRecords(timeRange.value, selectedDate.value)
+        }
+    }
+
     private fun fetchBodyTemperatureRecords(timeRange: TimeRange, selectedDate: LocalDate) {
         viewModelScope.launch {
             val (start, end) = timeRange.getStartAndEndTimes(selectedDate)
-            healthDataRepository.getBodyTemperatureBetween(start, end)
+            healthDataRepository.getBodyTemperatureBetween(start, end, hasPermissions.value)
                 .combine(healthDataRepository.getLatestBodyTemperature()) { records, latestTemperature ->
                     processBodyTemperatureData(records, latestTemperature, timeRange, selectedDate)
                 }.collect {

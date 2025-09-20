@@ -25,10 +25,13 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
 
+import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
+
 @HiltViewModel
 class WaterIntakeViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     private val _waterIntakeRecords = MutableStateFlow<List<WaterIntake>>(emptyList())
@@ -100,6 +103,9 @@ class WaterIntakeViewModel @Inject constructor(
     private val _headerTotalIntake = MutableStateFlow(0.0)
     val headerTotalIntake: StateFlow<Double> = _headerTotalIntake.asStateFlow()
 
+    private val _hasPermissions = MutableStateFlow(false)
+    val hasPermissions: StateFlow<Boolean> = _hasPermissions.asStateFlow()
+
     init {
         viewModelScope.launch {
             userPreferencesRepository.waterIntakeGoalFlow.collect {
@@ -108,6 +114,19 @@ class WaterIntakeViewModel @Inject constructor(
         }
         updateDateAndButtonStates()
         fetchWaterIntakeRecords()
+    }
+
+    fun checkPermissions() {
+        viewModelScope.launch {
+            _hasPermissions.value = healthConnectManager.hasAllPermissions()
+        }
+    }
+
+    fun updatePermissionsStatus(granted: Boolean) {
+        _hasPermissions.value = granted
+        if (granted) {
+            fetchWaterIntakeRecords()
+        }
     }
 
     fun onBarSelected(bar: Pair<Instant, Double>?) {
@@ -168,7 +187,7 @@ class WaterIntakeViewModel @Inject constructor(
             _startTime.value = start
             _endTime.value = end
 
-            healthDataRepository.getWaterIntakeBetween(start, end)
+            healthDataRepository.getWaterIntakeBetween(start, end, hasPermissions.value)
                 .collect { allRecordsInRange ->
                     when (_timeRange.value) {
                         TimeRange.DAY -> loadChartDataForDay(_selectedDate.value, allRecordsInRange)

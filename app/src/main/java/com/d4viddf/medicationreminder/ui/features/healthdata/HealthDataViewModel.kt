@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.features.healthdata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HealthDataViewModel @Inject constructor(
-    private val healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository,
+    val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     val waterPresets = healthDataRepository.getWaterPresets()
