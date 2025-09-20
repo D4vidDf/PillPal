@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
+import java.time.DayOfWeek
 
 data class WeightChartData(
     val lineChartData: List<LineChartPoint> = emptyList(),
@@ -201,8 +202,18 @@ class WeightViewModel @Inject constructor(
                 dayRecords.map { it.weightKilograms }.average().toFloat()
             }
 
+        val dayOfWeekInitials = mapOf(
+            DayOfWeek.MONDAY to "l",
+            DayOfWeek.TUESDAY to "m",
+            DayOfWeek.WEDNESDAY to "x",
+            DayOfWeek.THURSDAY to "j",
+            DayOfWeek.FRIDAY to "v",
+            DayOfWeek.SATURDAY to "s",
+            DayOfWeek.SUNDAY to "d"
+        )
         val labels = (0..6).map {
-            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
+            val day = startOfWeek.plusDays(it.toLong()).dayOfWeek
+            dayOfWeekInitials[day] ?: ""
         }
 
         var lastKnownWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f

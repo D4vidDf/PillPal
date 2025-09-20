@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
+import java.time.DayOfWeek
 
 data class TemperatureChartData(
     val lineChartData: List<LineChartPoint> = emptyList(),
@@ -192,8 +193,18 @@ class BodyTemperatureViewModel @Inject constructor(
                 dayRecords.minOf { it.temperatureCelsius }.toFloat() to dayRecords.maxOf { it.temperatureCelsius }.toFloat()
             }
 
+        val dayOfWeekInitials = mapOf(
+            DayOfWeek.MONDAY to "l",
+            DayOfWeek.TUESDAY to "m",
+            DayOfWeek.WEDNESDAY to "x",
+            DayOfWeek.THURSDAY to "j",
+            DayOfWeek.FRIDAY to "v",
+            DayOfWeek.SATURDAY to "s",
+            DayOfWeek.SUNDAY to "d"
+        )
         val labels = (0..6).map {
-            startOfWeek.plusDays(it.toLong()).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            val day = startOfWeek.plusDays(it.toLong()).dayOfWeek
+            dayOfWeekInitials[day] ?: ""
         }
 
         val data = (0..6).map {
@@ -249,7 +260,7 @@ class BodyTemperatureViewModel @Inject constructor(
             }
 
         val labels = (0..11).map {
-            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
         }
 
         val data = (0..11).map {
