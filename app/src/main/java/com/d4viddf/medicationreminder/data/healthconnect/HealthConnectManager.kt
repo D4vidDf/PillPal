@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.data.healthconnect
 
 import android.content.Context
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.compose.runtime.mutableStateOf
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
@@ -16,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.time.Instant
+import android.content.pm.PackageManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,6 +25,17 @@ import javax.inject.Singleton
 class HealthConnectManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    val healthConnectCompatible = mutableStateOf(false)
+    init {
+        healthConnectCompatible.value = isHealthConnectAppInstalled()
+    }
+
+    fun isHealthConnectAppInstalled(): Boolean {
+        val providerPackageName = "com.google.android.apps.healthdata"
+        val status = HealthConnectClient.sdkStatus(context, providerPackageName)
+        return status != HealthConnectClient.SDK_UNAVAILABLE
+    }
+
     private val healthConnectClient: HealthConnectClient by lazy {
         HealthConnectClient.getOrCreate(context)
     }
@@ -48,6 +61,10 @@ class HealthConnectManager @Inject constructor(
 
     fun getPermissions(): Set<String> {
         return PERMISSIONS.map { it.toString() }.toSet()
+    }
+
+    suspend fun revokeAllPermissions() {
+        healthConnectClient.permissionController.revokeAllPermissions()
     }
 
     suspend fun writeWaterIntake(record: WaterIntake) {
@@ -108,7 +125,7 @@ class HealthConnectManager @Inject constructor(
                     volumeMilliliters = it.volume.inMilliliters,
                     sourceApp = it.metadata.dataOrigin.packageName
                 )
-            } ?: emptyList())
+            })
         } else {
             emit(emptyList())
         }
@@ -127,7 +144,7 @@ class HealthConnectManager @Inject constructor(
                     weightKilograms = it.weight.inKilograms,
                     sourceApp = it.metadata.dataOrigin.packageName
                 )
-            } ?: emptyList())
+            })
         } else {
             emit(emptyList())
         }
@@ -147,7 +164,7 @@ class HealthConnectManager @Inject constructor(
                     measurementLocation = it.measurementLocation,
                     sourceApp = it.metadata.dataOrigin.packageName
                 )
-            } ?: emptyList())
+            })
         } else {
             emit(emptyList())
         }
@@ -168,7 +185,7 @@ class HealthConnectManager @Inject constructor(
                         sourceApp = heartRateRecord.metadata.dataOrigin.packageName
                     )
                 }
-            } ?: emptyList())
+            })
         } else {
             emit(emptyList())
         }

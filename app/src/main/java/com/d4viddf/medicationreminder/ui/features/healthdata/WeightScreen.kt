@@ -56,17 +56,6 @@ fun WeightScreen(
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        healthDataViewModel.healthConnectManager.requestPermissionsActivityContract()
-    ) { }
-
-    LaunchedEffect(Unit) {
-        scope.launch {
-            if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
-                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
-            }
-        }
-    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -114,23 +103,6 @@ fun WeightScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        var hasPermissions by remember { mutableStateOf(true) }
-
-                        LaunchedEffect(Unit) {
-                            hasPermissions = healthDataViewModel.healthConnectManager.hasAllPermissions()
-                        }
-
-                        if (!hasPermissions) {
-                            DropdownMenuItem(
-                                text = { Text(text = "Connect to Health Connect") },
-                                onClick = {
-                                    scope.launch {
-                                        permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
-                                    }
-                                    showMenu = false
-                                }
-                            )
-                        }
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = R.string.configure_weight)) },
                             onClick = {

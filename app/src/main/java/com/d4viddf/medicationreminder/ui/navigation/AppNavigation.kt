@@ -118,6 +118,7 @@ sealed class Screen(val route: String) {
     object WaterIntakeGoal : Screen("waterIntakeGoal")
     object WeightGoal : Screen("weightGoal")
     object HeartRate : Screen("heartRate")
+    object HealthConnectSettings : Screen("healthConnectSettings")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -438,6 +439,9 @@ fun AppNavigation(
             }
             composable(Screen.HeartRate.route) {
                 com.d4viddf.medicationreminder.ui.features.healthdata.HeartRateScreen(navController = navController)
+            }
+            composable(Screen.HealthConnectSettings.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(navController = navController)
             }
         }
     }

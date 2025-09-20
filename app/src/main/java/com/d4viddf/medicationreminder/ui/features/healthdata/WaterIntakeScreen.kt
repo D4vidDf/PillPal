@@ -105,18 +105,6 @@ fun WaterIntakeScreen(
     val weekFields = WeekFields.of(Locale.getDefault())
     val today = LocalDate.now()
 
-    val scope = rememberCoroutineScope()
-    val permissionLauncher = rememberLauncherForActivityResult(
-        healthDataViewModel.healthConnectManager.requestPermissionsActivityContract()
-    ) { }
-
-    LaunchedEffect(Unit) {
-        scope.launch {
-            if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
-                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -142,23 +130,6 @@ fun WaterIntakeScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        var hasPermissions by remember { mutableStateOf(true) }
-
-                        LaunchedEffect(Unit) {
-                            hasPermissions = healthDataViewModel.healthConnectManager.hasAllPermissions()
-                        }
-
-                        if (!hasPermissions) {
-                            DropdownMenuItem(
-                                text = { Text(text = "Connect to Health Connect") },
-                                onClick = {
-                                    scope.launch {
-                                        permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
-                                    }
-                                    showMenu = false
-                                }
-                            )
-                        }
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = R.string.configure_water)) },
                             onClick = {

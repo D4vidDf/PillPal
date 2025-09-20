@@ -58,17 +58,6 @@ fun BodyTemperatureScreen(
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        healthDataViewModel.healthConnectManager.requestPermissionsActivityContract()
-    ) { }
-
-    LaunchedEffect(Unit) {
-        scope.launch {
-            if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
-                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
-            }
-        }
-    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -109,22 +98,7 @@ fun BodyTemperatureScreen(
                     }
                 },
                 actions = {
-                    val scope = rememberCoroutineScope()
-                    var hasPermissions by remember { mutableStateOf(true) }
-
-                    LaunchedEffect(Unit) {
-                        hasPermissions = healthDataViewModel.healthConnectManager.hasAllPermissions()
-                    }
-
-                    if (!hasPermissions) {
-                        Button(onClick = {
-                            scope.launch {
-                                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
-                            }
-                        }) {
-                            Text(text = "Connect")
-                        }
-                    }
+                    // No actions for now
                 }
             )
         },

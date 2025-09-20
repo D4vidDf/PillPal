@@ -46,6 +46,7 @@ object SettingsDestinations {
     const val GENERAL = "settings_general"
     const val SOUND = "settings_sound"
     const val DEVELOPER = "settings_developer"
+    const val HEALTH_CONNECT = "settings_health_connect"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +89,7 @@ fun ResponsiveSettingsScaffold(
                         onNavigateToSound = { selectedCategoryRoute = SettingsDestinations.SOUND },
                         onNavigateToDeveloper = { selectedCategoryRoute = SettingsDestinations.DEVELOPER },
                         onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) },
+                        onNavigateToHealthConnect = { selectedCategoryRoute = SettingsDestinations.HEALTH_CONNECT },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -98,6 +100,7 @@ fun ResponsiveSettingsScaffold(
                         SettingsDestinations.GENERAL -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // No showTopAppBar, onNavigateBack is {}
                         SettingsDestinations.SOUND -> SoundSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
                         SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
+                        SettingsDestinations.HEALTH_CONNECT -> com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(navController = navController)
                         else -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // Fallback, though selectedCategoryRoute is non-null
                     }
                 }
@@ -122,6 +125,9 @@ fun ResponsiveSettingsScaffold(
                 SettingsDestinations.DEVELOPER -> {
                     updateTopBarActions(R.string.settings_category_developer) { localSettingsNavController.popBackStack() }
                 }
+                SettingsDestinations.HEALTH_CONNECT -> {
+                    updateTopBarActions(R.string.health_connect_settings) { localSettingsNavController.popBackStack() }
+                }
             }
         }
 
@@ -135,7 +141,8 @@ fun ResponsiveSettingsScaffold(
                     onNavigateToGeneral = { localSettingsNavController.navigate(SettingsDestinations.GENERAL) },
                     onNavigateToSound = { localSettingsNavController.navigate(SettingsDestinations.SOUND) },
                     onNavigateToDeveloper = { localSettingsNavController.navigate(SettingsDestinations.DEVELOPER) },
-                    onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) }
+                    onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) },
+                    onNavigateToHealthConnect = { localSettingsNavController.navigate(SettingsDestinations.HEALTH_CONNECT) }
                 )
             }
             composable(SettingsDestinations.GENERAL) {
@@ -156,6 +163,8 @@ fun ResponsiveSettingsScaffold(
                     viewModel = settingsViewModel
                     )
                 }
+            composable(SettingsDestinations.HEALTH_CONNECT) {
+                com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(navController = navController)
             }
         }
     }
