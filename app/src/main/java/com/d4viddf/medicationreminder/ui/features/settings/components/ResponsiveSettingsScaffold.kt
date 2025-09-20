@@ -161,8 +161,8 @@ fun ResponsiveSettingsScaffold(
                 DeveloperSettingsScreen(
                     onNavigateBack = { localSettingsNavController.popBackStack() },
                     viewModel = settingsViewModel
-                    )
-                }
+                )
+            }
             composable(SettingsDestinations.HEALTH_CONNECT) {
                 com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(navController = navController)
             }

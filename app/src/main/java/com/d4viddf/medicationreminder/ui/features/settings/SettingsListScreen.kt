@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -65,7 +67,7 @@ fun SettingsListScreen(
         ),
         SettingsCategory(
             title = stringResource(R.string.health_connect_settings),
-            icon = painterResource(id = R.drawable.ic_health_connect),
+            icon = Icons.Default.Favorite,
             onClick = onNavigateToHealthConnect,
             contentDescription = stringResource(R.string.health_connect_settings)
         ),

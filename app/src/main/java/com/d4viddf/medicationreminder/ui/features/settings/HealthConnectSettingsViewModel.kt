@@ -20,7 +20,7 @@ sealed class HealthConnectSettingsUiState {
 
 @HiltViewModel
 class HealthConnectSettingsViewModel @Inject constructor(
-    private val healthConnectManager: HealthConnectManager
+    val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     private val _uiState = mutableStateOf<HealthConnectSettingsUiState>(HealthConnectSettingsUiState.Loading)
