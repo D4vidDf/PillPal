@@ -31,7 +31,8 @@ fun LineChart(
     pointColor: Color = MaterialTheme.colorScheme.secondary,
     goal: Float? = null,
     yAxisRange: ClosedFloatingPointRange<Float>? = null,
-    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() }
+    yAxisLabelFormatter: (Float) -> String = { it.roundToInt().toString() },
+    showVerticalLines: Boolean = false
 ) {
     val (minX, maxX, minY, maxY) = getChartBounds(data, yAxisRange, labels)
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
@@ -66,6 +67,14 @@ fun LineChart(
         val xStep = if (labels.size > 1) chartAreaWidth / (labels.size - 1) else 0f
         labels.forEachIndexed { index, label ->
             val xPos = chartAreaStartX + xStep * index
+            if (showVerticalLines) {
+                drawLine(
+                    color = onBackgroundColor.copy(alpha = 0.5f),
+                    start = Offset(xPos, chartAreaHeight - 8.dp.toPx()),
+                    end = Offset(xPos, chartAreaHeight),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 xPos,
@@ -86,14 +95,17 @@ fun LineChart(
                 endY = chartAreaHeight
             )
 
-            data.forEachIndexed { index, dataPoint ->
-                val currentX = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
-                val currentY = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
-
-                if (index == 0) {
-                    path.moveTo(currentX, currentY)
-                } else {
-                    path.lineTo(currentX, currentY)
+            var lastValidPoint: LineChartPoint? = null
+            data.forEach { dataPoint ->
+                if (dataPoint.y != -1f) {
+                    val currentX = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
+                    val currentY = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
+                    if (lastValidPoint == null) {
+                        path.moveTo(currentX, currentY)
+                    } else {
+                        path.lineTo(currentX, currentY)
+                    }
+                    lastValidPoint = dataPoint
                 }
             }
 
@@ -128,8 +140,8 @@ fun LineChart(
         }
 
         if (showPoints) {
-            data.forEachIndexed { index, dataPoint ->
-                if (index == 0 || data[index - 1].y != dataPoint.y) {
+            data.forEach { dataPoint ->
+                if (dataPoint.showPoint) {
                     val x = chartAreaStartX + ((dataPoint.x - minX) / (maxX - minX)) * chartAreaWidth
                     val y = chartAreaHeight - ((dataPoint.y - minY) / (maxY - minY)) * chartAreaHeight
                     drawCircle(
@@ -153,13 +165,14 @@ private fun getChartBounds(
     val minX = 0f
     val maxX = (labels.size - 1).toFloat()
 
-    val minYValue = data.minOfOrNull { it.y } ?: 0f
-    val maxYValue = data.maxOfOrNull { it.y } ?: 0f
+    val validData = data.filter { it.y != -1f }
+    val minYValue = validData.minOfOrNull { it.y } ?: 0f
+    val maxYValue = validData.maxOfOrNull { it.y } ?: 0f
 
     val minY = yAxisRange?.start ?: minYValue
     val maxY = yAxisRange?.endInclusive ?: maxYValue
 
     // Add some padding to the Y-axis to prevent points from touching the edges
     val yPadding = (maxY - minY) * 0.1f
-    return listOf(minX, maxX, minY - yPadding, maxY + yPadding)
+    return listOf(minX, maxX, maxOf(0f, minY - yPadding), maxY + yPadding)
 }

@@ -502,4 +502,18 @@
     <string name="body_temperature_tracker">Temperatura Corporal</string>
     <string name="configure_water">Configurar agua</string>
     <string name="configure_weight">Configurar peso</string>
+    <string name="maintain_weight">Mantener Peso</string>
+    <string name="goal">Objetivo</string>
+    <string name="last_recorded_weight">Último peso registrado: %1$s kg el %2$s</string>
+    <string name="no_weight_data_recorded">Aún no se han registrado datos de peso.</string>
+    <string name="about_body_temperature">Acerca de la temperatura corporal</string>
+    <string name="about_body_temperature_description">La temperatura corporal se refiere a la temperatura del cuerpo medida con un termómetro. El cuerpo trabaja para mantener la temperatura corporal dentro de un rango pequeño.</string>
+    <string name="what_does_body_temp_mean_title">¿Qué significa \"temperatura corporal\"?</string>
+    <string name="what_does_body_temp_mean_content">La temperatura corporal se refiere a la temperatura del cuerpo medida con un termómetro. El cuerpo trabaja para mantener la temperatura corporal dentro de un rango pequeño. Según la Organización Mundial de la Salud, la temperatura corporal normal oscila entre 36,5 y 37 °C. Pero cada persona es diferente.</string>
+    <string name="what_can_affect_body_temp_title">¿Qué puede afectar la temperatura corporal?</string>
+    <string name="what_can_affect_body_temp_content">La temperatura corporal puede verse afectada por varios factores, como la edad, las actividades, las hormonas, la hora del día, las enfermedades y el ciclo menstrual.</string>
+    <string name="how_is_body_temp_measured_title">¿Cómo se mide la temperatura corporal?</string>
+    <string name="how_is_body_temp_measured_content">La temperatura corporal se puede comprobar con un termómetro. Puede registrar sus resultados manualmente o sincronizarlos desde un dispositivo compatible.</string>
+    <string name="disclaimer_body_temp">Esta función no está destinada a diagnosticar o controlar enfermedades graves o afecciones médicas. Consulte a su proveedor de atención médica si tiene preguntas sobre su salud o qué significan en general sus lecturas de temperatura corporal.</string>
+    <string name="no_temperatures_recorded">No se han registrado temperaturas</string>
 </resources>

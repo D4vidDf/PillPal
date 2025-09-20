@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.healthdata
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -134,71 +135,98 @@ fun BodyTemperatureScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    if (temperatureUiState.chartData.lineChartData.isEmpty() && temperatureUiState.chartData.rangeChartData.isEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.no_data),
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Text(
-                                text = stringResource(id = R.string.no_temperatures_recorded),
-                                style = MaterialTheme.typography.bodyMedium
+                    when (timeRange) {
+                        TimeRange.DAY -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                temperatureUiState.dayViewTemperature?.let {
+                                    Text(
+                                        text = "${String.format("%.1f", it)}°C",
+                                        style = MaterialTheme.typography.headlineLarge
+                                    )
+                                } ?: run {
+                                    Text(
+                                        text = stringResource(id = R.string.no_data),
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.no_temperatures_recorded),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                            LineChart(
+                                data = temperatureUiState.chartData.lineChartData,
+                                labels = temperatureUiState.chartData.labels,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .padding(horizontal = 16.dp),
+                                showPoints = true,
+                                showGradient = false,
+                                yAxisRange = temperatureUiState.yAxisRange,
+                                showVerticalLines = true
                             )
                         }
-                    } else {
-                        when (timeRange) {
-                            TimeRange.DAY -> {
-                                LineChart(
-                                    data = temperatureUiState.chartData.lineChartData,
-                                    labels = temperatureUiState.chartData.labels,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp)
-                                        .padding(horizontal = 16.dp),
-                                    showPoints = true,
-                                    showGradient = false,
-                                    yAxisRange = temperatureUiState.yAxisRange
-                                )
+                        else -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                temperatureUiState.periodTemperatureRange?.let {
+                                    Text(
+                                        text = "${String.format("%.1f", it.first)}°C - ${String.format("%.1f", it.second)}°C",
+                                        style = MaterialTheme.typography.headlineLarge
+                                    )
+                                } ?: run {
+                                    Text(
+                                        text = stringResource(id = R.string.no_data),
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.no_temperatures_recorded),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
-
-                            else -> {
-                                com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
-                                    data = temperatureUiState.chartData.rangeChartData,
-                                    labels = temperatureUiState.chartData.labels,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp)
-                                        .padding(horizontal = 16.dp),
-                                    yAxisRange = temperatureUiState.yAxisRange,
-                                    onBarSelected = { viewModel.onBarSelected(it) }
-                                )
-                            }
+                            com.d4viddf.medicationreminder.ui.features.healthdata.component.RangeBarChart(
+                                data = temperatureUiState.chartData.rangeChartData,
+                                labels = temperatureUiState.chartData.labels,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .padding(horizontal = 16.dp),
+                                yAxisRange = temperatureUiState.yAxisRange,
+                                onBarSelected = { viewModel.onBarSelected(it) }
+                            )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = stringResource(R.string.history),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                    if (temperatureUiState.temperatureLogs.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.history),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
 
                 itemsIndexed(temperatureUiState.temperatureLogs) { index, tempEntry ->
-                    com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                        index = index,
-                        size = temperatureUiState.temperatureLogs.size,
-                        date = tempEntry.date.toLocalDate(),
-                        value = "${tempEntry.temperature}°C",
-                        onClick = { /* No-op */ }
-                    )
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                            index = index,
+                            size = temperatureUiState.temperatureLogs.size,
+                            date = tempEntry.date.toLocalDate(),
+                            value = "${tempEntry.temperature}°C",
+                            onClick = { /* No-op */ }
+                        )
+                    }
                 }
 
                 item {

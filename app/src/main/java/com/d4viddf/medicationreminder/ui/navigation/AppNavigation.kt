@@ -116,6 +116,7 @@ sealed class Screen(val route: String) {
     object ManageWaterPresets : Screen("manageWaterPresets")
     object NutritionWeightSettings : Screen("nutritionWeightSettings")
     object WaterIntakeGoal : Screen("waterIntakeGoal")
+    object WeightGoal : Screen("weightGoal")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -430,6 +431,9 @@ fun AppNavigation(
             }
             composable(Screen.WaterIntakeGoal.route) {
                 WaterIntakeGoalScreen(navController = navController)
+            }
+            composable(Screen.WeightGoal.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.WeightGoalScreen(navController = navController)
             }
         }
     }

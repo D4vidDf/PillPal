@@ -149,29 +149,13 @@ fun WeightScreen(
                     .fillMaxSize()
                     .weight(1f)
             ) {
-                item {
-                    if (weightUiState.chartData.lineChartData.isEmpty() && timeRange != TimeRange.DAY) {
+                if (timeRange != TimeRange.DAY) {
+                    item {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.no_data),
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Text(
-                                text = stringResource(id = R.string.no_weight_data),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    } else if (timeRange != TimeRange.DAY) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.Start
                         ) {
                             Text(
                                 buildAnnotatedString {
@@ -194,22 +178,6 @@ fun WeightScreen(
                             weightGoal = weightGoal
                         )
                     }
-                    item {
-                        Text(
-                            text = stringResource(R.string.history),
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                    itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
-                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                            index = index,
-                            size = weightUiState.weightLogs.size,
-                            date = weightEntry.date.toLocalDate(),
-                            value = "${String.format("%.1f", weightEntry.weight)} kg",
-                            onClick = { /* No-op */ }
-                        )
-                    }
                 } else {
                     item {
                         LineChart(
@@ -219,13 +187,43 @@ fun WeightScreen(
                                 .fillMaxWidth()
                                 .height(200.dp)
                                 .padding(horizontal = 16.dp),
-                            showLine = timeRange == TimeRange.YEAR,
+                            showLine = weightUiState.chartData.lineChartData.size > 1,
                             showPoints = true,
                             showGradient = false,
                             goal = weightGoal,
                             yAxisRange = weightUiState.yAxisRange
                         )
                     }
+                }
+
+                if (weightUiState.weightLogs.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.no_weight_data),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            weightUiState.lastWeightLog?.let {
+                                Text(
+                                    text = stringResource(
+                                        id = R.string.last_recorded_weight,
+                                        String.format("%.1f", it.weight),
+                                        it.date.toLocalDate().toString()
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            } ?: Text(
+                                text = stringResource(id = R.string.no_weight_data_recorded),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                } else {
                     item {
                         Text(
                             text = stringResource(R.string.history),
@@ -234,13 +232,15 @@ fun WeightScreen(
                         )
                     }
                     itemsIndexed(weightUiState.weightLogs) { index, weightEntry ->
-                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
-                            index = index,
-                            size = weightUiState.weightLogs.size,
-                            date = weightEntry.date.toLocalDate(),
-                            value = "${String.format("%.1f", weightEntry.weight)} kg",
-                            onClick = { /* No-op */ }
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                                index = index,
+                                size = weightUiState.weightLogs.size,
+                                date = weightEntry.date.toLocalDate(),
+                                value = "${String.format("%.1f", weightEntry.weight)} kg",
+                                onClick = { /* No-op */ }
+                            )
+                        }
                     }
                 }
 

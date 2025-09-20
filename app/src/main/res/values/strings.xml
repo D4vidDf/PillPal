@@ -465,6 +465,8 @@
     <string name="bottom_sheet_log_weight">Weight</string>
     <string name="personalize_home_title">Personalize Home</string>
     <string name="no_weight_data">No weight registered</string>
+    <string name="last_recorded_weight">Last recorded weight: %1$s kg on %2$s</string>
+    <string name="no_weight_data_recorded">No weight data recorded yet.</string>
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
     <string name="no_missed_schedules">No missed doses! You\'re on track</string>
@@ -523,8 +525,10 @@
 
     <string name="weight_goal">Weight Goal</string>
     <string name="lose_weight">Lose Weight</string>
+    <string name="maintain_weight">Maintain Weight</string>
     <string name="gain_weight">Gain Weight</string>
     <string name="weight_goal_kg">Goal (kg)</string>
+    <string name="goal">Goal</string>
 
     <string name="ml_at_day">ml at day</string>
     <string name="set_objective">Set Objective</string>
