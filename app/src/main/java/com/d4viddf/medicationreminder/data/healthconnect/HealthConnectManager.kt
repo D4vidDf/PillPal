@@ -25,14 +25,14 @@ class HealthConnectManager @Inject constructor(
 ) {
     private val providerPackageName = "com.google.android.apps.healthdata"
     private val healthConnectClient: HealthConnectClient? by lazy {
-        if (HealthConnectClient.getSdkStatus(context, providerPackageName) == HealthConnectClient.SDK_UNAVAILABLE) {
+        if (HealthConnectClient.sdkStatus(context, providerPackageName) == HealthConnectClient.SDK_UNAVAILABLE) {
             null
         } else {
             HealthConnectClient.getOrCreate(context)
         }
     }
 
-    val healthConnectCompatible = mutableStateOf(HealthConnectClient.getSdkStatus(context, providerPackageName) != HealthConnectClient.SDK_UNAVAILABLE)
+    val healthConnectCompatible = mutableStateOf(HealthConnectClient.sdkStatus(context, providerPackageName) != HealthConnectClient.SDK_UNAVAILABLE)
 
     val PERMISSIONS = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class),
@@ -46,12 +46,17 @@ class HealthConnectManager @Inject constructor(
     )
 
     suspend fun hasAllPermissions(): Boolean {
-        return healthConnectClient?.permissionController?.getGrantedPermissions(PERMISSIONS)
-            ?.containsAll(PERMISSIONS) == true
+        return healthConnectClient?.permissionController?.getGrantedPermissions()
+            ?.containsAll(PERMISSIONS.map { it.toString() }) == true
     }
 
     fun requestPermissionsActivityContract(): ActivityResultContract<Set<String>, Set<String>> {
-        return HealthPermission.createRequestPermissionResultContract()
+        return healthConnectClient?.permissionController?.createRequestPermissionResultContract()
+            ?: HealthPermission.createRequestPermissionResultContract()
+    }
+
+    fun getPermissions(): Set<String> {
+        return PERMISSIONS.map { it.toString() }.toSet()
     }
 
     suspend fun writeWaterIntake(record: WaterIntake) {
@@ -78,8 +83,7 @@ class HealthConnectManager @Inject constructor(
         val temperatureRecord = BodyTemperatureRecord(
             time = record.time,
             zoneOffset = null,
-            temperature = androidx.health.connect.client.units.Temperature.celsius(record.temperatureCelsius),
-            measurementLocation = BodyTemperatureRecord.MEASUREMENT_LOCATION_UNKNOWN
+            temperature = androidx.health.connect.client.units.Temperature.celsius(record.temperatureCelsius)
         )
         healthConnectClient?.insertRecords(listOf(temperatureRecord))
     }

@@ -78,7 +78,8 @@ import kotlin.math.roundToInt
 fun WaterIntakeScreen(
     navController: NavController,
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: WaterIntakeViewModel = hiltViewModel()
+    viewModel: WaterIntakeViewModel = hiltViewModel(),
+    healthDataViewModel: HealthDataViewModel = hiltViewModel()
 ) {
     val chartData by viewModel.chartData.collectAsState()
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
@@ -99,6 +100,20 @@ fun WaterIntakeScreen(
     val headerTotalIntake by viewModel.headerTotalIntake.collectAsState()
     val weekFields = WeekFields.of(Locale.getDefault())
     val today = LocalDate.now()
+
+    val scope = rememberCoroutineScope()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        healthDataViewModel.healthConnectManager.requestPermissionsActivityContract()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -123,6 +138,15 @@ fun WaterIntakeScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
+                        if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                            DropdownMenuItem(
+                                text = { Text(text = "Connect to Health Connect") },
+                                onClick = {
+                                    permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                                    showMenu = false
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = R.string.configure_water)) },
                             onClick = {

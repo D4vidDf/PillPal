@@ -44,7 +44,8 @@ import kotlinx.coroutines.launch
 fun BodyTemperatureScreen(
     navController: NavController,
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: BodyTemperatureViewModel = hiltViewModel()
+    viewModel: BodyTemperatureViewModel = hiltViewModel(),
+    healthDataViewModel: HealthDataViewModel = hiltViewModel()
 ) {
     val temperatureUiState by viewModel.temperatureUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
@@ -54,6 +55,18 @@ fun BodyTemperatureScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        healthDataViewModel.healthConnectManager.requestPermissionsActivityContract()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+            }
+        }
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -91,6 +104,13 @@ fun BodyTemperatureScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    }
+                },
+                actions = {
+                    if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                        Button(onClick = { permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions()) }) {
+                            Text(text = "Connect")
+                        }
                     }
                 }
             )

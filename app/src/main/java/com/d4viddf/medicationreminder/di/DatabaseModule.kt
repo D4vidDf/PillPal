@@ -108,7 +108,7 @@ object DatabaseModule {
                     }
                 }
             })
-            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10) // Added MIGRATION_9_10
+            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_7_8, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10) // Added MIGRATION_7_8 and MIGRATION_9_10
             .fallbackToDestructiveMigration(false) // Added this line
             .build()
     }

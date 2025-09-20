@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
+import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
@@ -81,7 +82,4 @@ interface HealthDataDao {
 
     @Query("SELECT * FROM heart_rate WHERE time BETWEEN :startTime AND :endTime ORDER BY time DESC")
     fun getHeartRateBetween(startTime: Instant, endTime: Instant): Flow<List<HeartRate>>
-
-    @Query("DELETE FROM heart_rate")
-    suspend fun deleteAllHeartRate()
 }

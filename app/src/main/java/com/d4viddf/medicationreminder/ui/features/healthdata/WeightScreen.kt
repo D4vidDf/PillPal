@@ -41,7 +41,8 @@ import kotlinx.coroutines.launch
 fun WeightScreen(
     navController: NavController,
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: WeightViewModel = hiltViewModel()
+    viewModel: WeightViewModel = hiltViewModel(),
+    healthDataViewModel: HealthDataViewModel = hiltViewModel()
 ) {
     val weightUiState by viewModel.weightUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
@@ -53,6 +54,18 @@ fun WeightScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        healthDataViewModel.healthConnectManager.requestPermissionsActivityContract()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+            }
+        }
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -100,6 +113,15 @@ fun WeightScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
+                        if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                            DropdownMenuItem(
+                                text = { Text(text = "Connect to Health Connect") },
+                                onClick = {
+                                    permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                                    showMenu = false
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = R.string.configure_weight)) },
                             onClick = {

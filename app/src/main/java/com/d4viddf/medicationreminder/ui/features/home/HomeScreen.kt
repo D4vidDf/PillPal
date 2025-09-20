@@ -72,6 +72,7 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
+import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
 import com.d4viddf.medicationreminder.ui.common.model.UiItemState
@@ -183,7 +184,7 @@ internal fun HomeScreenContent(
     latestWeightState: UiItemState<Weight?>,
     latestTemperatureState: UiItemState<BodyTemperature?>,
     waterIntakeTodayState: UiItemState<Double?>,
-    heartRateState: UiItemState<String?>,
+    heartRateState: UiItemState<com.d4viddf.medicationreminder.data.model.healthdata.HeartRate?>,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController,
@@ -463,7 +464,8 @@ internal fun HomeScreenContent(
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
                                                     is UiItemState.Success -> HeartRateCard(
-                                                        heartRate = state.data
+                                                        heartRate = state.data?.beatsPerMinute?.toString(),
+                                                        onClick = { navController.navigate(Screen.HeartRate.route) }
                                                     )
 
                                                     is UiItemState.Error -> {}
@@ -724,7 +726,7 @@ private fun HomeScreenNormalPreview() {
             latestWeightState = UiItemState.Success(Weight(1, Instant.now(), 85.5)),
             latestTemperatureState = UiItemState.Success(BodyTemperature(1, Instant.now(), 36.8)),
             waterIntakeTodayState = UiItemState.Success(1250.0),
-            heartRateState = UiItemState.Success("68 bpm"),
+            heartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 68)),
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -782,7 +784,7 @@ private fun HomeScreenNoMoreDosesPreview() {
             latestWeightState = UiItemState.Success(Weight(1, Instant.now(), 85.5)),
             latestTemperatureState = UiItemState.Success(null),
             waterIntakeTodayState = UiItemState.Success(750.0),
-            heartRateState = UiItemState.Success("72 bpm"),
+            heartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 72)),
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
