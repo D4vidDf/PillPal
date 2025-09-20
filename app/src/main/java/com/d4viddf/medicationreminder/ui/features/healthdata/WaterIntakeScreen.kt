@@ -37,12 +37,16 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -138,11 +142,19 @@ fun WaterIntakeScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                        var hasPermissions by remember { mutableStateOf(true) }
+
+                        LaunchedEffect(Unit) {
+                            hasPermissions = healthDataViewModel.healthConnectManager.hasAllPermissions()
+                        }
+
+                        if (!hasPermissions) {
                             DropdownMenuItem(
                                 text = { Text(text = "Connect to Health Connect") },
                                 onClick = {
-                                    permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                                    scope.launch {
+                                        permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                                    }
                                     showMenu = false
                                 }
                             )

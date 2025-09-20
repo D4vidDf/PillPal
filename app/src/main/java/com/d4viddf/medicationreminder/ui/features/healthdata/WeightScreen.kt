@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
@@ -113,11 +114,19 @@ fun WeightScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
+                        var hasPermissions by remember { mutableStateOf(true) }
+
+                        LaunchedEffect(Unit) {
+                            hasPermissions = healthDataViewModel.healthConnectManager.hasAllPermissions()
+                        }
+
+                        if (!hasPermissions) {
                             DropdownMenuItem(
                                 text = { Text(text = "Connect to Health Connect") },
                                 onClick = {
-                                    permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                                    scope.launch {
+                                        permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                                    }
                                     showMenu = false
                                 }
                             )

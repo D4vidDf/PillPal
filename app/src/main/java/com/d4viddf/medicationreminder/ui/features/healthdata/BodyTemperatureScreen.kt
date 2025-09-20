@@ -15,7 +15,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -107,8 +109,19 @@ fun BodyTemperatureScreen(
                     }
                 },
                 actions = {
-                    if (!healthDataViewModel.healthConnectManager.hasAllPermissions()) {
-                        Button(onClick = { permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions()) }) {
+                    val scope = rememberCoroutineScope()
+                    var hasPermissions by remember { mutableStateOf(true) }
+
+                    LaunchedEffect(Unit) {
+                        hasPermissions = healthDataViewModel.healthConnectManager.hasAllPermissions()
+                    }
+
+                    if (!hasPermissions) {
+                        Button(onClick = {
+                            scope.launch {
+                                permissionLauncher.launch(healthDataViewModel.healthConnectManager.getPermissions())
+                            }
+                        }) {
                             Text(text = "Connect")
                         }
                     }

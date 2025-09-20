@@ -2,8 +2,8 @@ package com.d4viddf.medicationreminder.data.healthconnect
 
 import android.content.Context
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.compose.runtime.mutableStateOf
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -23,16 +23,9 @@ import javax.inject.Singleton
 class HealthConnectManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val providerPackageName = "com.google.android.apps.healthdata"
-    private val healthConnectClient: HealthConnectClient? by lazy {
-        if (HealthConnectClient.sdkStatus(context, providerPackageName) == HealthConnectClient.SDK_UNAVAILABLE) {
-            null
-        } else {
-            HealthConnectClient.getOrCreate(context)
-        }
+    private val healthConnectClient: HealthConnectClient by lazy {
+        HealthConnectClient.getOrCreate(context)
     }
-
-    val healthConnectCompatible = mutableStateOf(HealthConnectClient.sdkStatus(context, providerPackageName) != HealthConnectClient.SDK_UNAVAILABLE)
 
     val PERMISSIONS = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class),
@@ -46,13 +39,11 @@ class HealthConnectManager @Inject constructor(
     )
 
     suspend fun hasAllPermissions(): Boolean {
-        return healthConnectClient?.permissionController?.getGrantedPermissions()
-            ?.containsAll(PERMISSIONS.map { it.toString() }) == true
+        return healthConnectClient.permissionController.getGrantedPermissions().containsAll(PERMISSIONS)
     }
 
     fun requestPermissionsActivityContract(): ActivityResultContract<Set<String>, Set<String>> {
-        return healthConnectClient?.permissionController?.createRequestPermissionResultContract()
-            ?: HealthPermission.createRequestPermissionResultContract()
+        return PermissionController.createRequestPermissionResultContract()
     }
 
     fun getPermissions(): Set<String> {
@@ -67,7 +58,7 @@ class HealthConnectManager @Inject constructor(
             endZoneOffset = null,
             volume = androidx.health.connect.client.units.Volume.milliliters(record.volumeMilliliters)
         )
-        healthConnectClient?.insertRecords(listOf(hydrationRecord))
+        healthConnectClient.insertRecords(listOf(hydrationRecord))
     }
 
     suspend fun writeWeight(record: Weight) {
@@ -76,7 +67,7 @@ class HealthConnectManager @Inject constructor(
             zoneOffset = null,
             weight = androidx.health.connect.client.units.Mass.kilograms(record.weightKilograms)
         )
-        healthConnectClient?.insertRecords(listOf(weightRecord))
+        healthConnectClient.insertRecords(listOf(weightRecord))
     }
 
     suspend fun writeBodyTemperature(record: BodyTemperature) {
@@ -85,7 +76,7 @@ class HealthConnectManager @Inject constructor(
             zoneOffset = null,
             temperature = androidx.health.connect.client.units.Temperature.celsius(record.temperatureCelsius)
         )
-        healthConnectClient?.insertRecords(listOf(temperatureRecord))
+        healthConnectClient.insertRecords(listOf(temperatureRecord))
     }
 
     suspend fun writeHeartRate(record: HeartRate) {
@@ -101,7 +92,7 @@ class HealthConnectManager @Inject constructor(
                 )
             )
         )
-        healthConnectClient?.insertRecords(listOf(heartRateRecord))
+        healthConnectClient.insertRecords(listOf(heartRateRecord))
     }
 
     fun getWaterIntake(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> = flow {
@@ -110,8 +101,8 @@ class HealthConnectManager @Inject constructor(
                 recordType = HydrationRecord::class,
                 timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
             )
-            val response = healthConnectClient?.readRecords(request)
-            emit(response?.records?.map {
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.map {
                 WaterIntake(
                     time = it.startTime,
                     volumeMilliliters = it.volume.inMilliliters,
@@ -129,8 +120,8 @@ class HealthConnectManager @Inject constructor(
                 recordType = WeightRecord::class,
                 timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
             )
-            val response = healthConnectClient?.readRecords(request)
-            emit(response?.records?.map {
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.map {
                 Weight(
                     time = it.time,
                     weightKilograms = it.weight.inKilograms,
@@ -148,8 +139,8 @@ class HealthConnectManager @Inject constructor(
                 recordType = BodyTemperatureRecord::class,
                 timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
             )
-            val response = healthConnectClient?.readRecords(request)
-            emit(response?.records?.map {
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.map {
                 BodyTemperature(
                     time = it.time,
                     temperatureCelsius = it.temperature.inCelsius,
@@ -168,8 +159,8 @@ class HealthConnectManager @Inject constructor(
                 recordType = HeartRateRecord::class,
                 timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
             )
-            val response = healthConnectClient?.readRecords(request)
-            emit(response?.records?.flatMap { heartRateRecord ->
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.flatMap { heartRateRecord ->
                 heartRateRecord.samples.map { sample ->
                     HeartRate(
                         time = sample.time,
