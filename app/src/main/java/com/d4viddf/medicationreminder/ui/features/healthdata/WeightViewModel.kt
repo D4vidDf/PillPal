@@ -43,13 +43,10 @@ data class WeightLogItem(
     val date: ZonedDateTime
 )
 
-import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
-
 @HiltViewModel
 class WeightViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val healthConnectManager: HealthConnectManager
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _weightGoal = MutableStateFlow(0f)
@@ -73,9 +70,6 @@ class WeightViewModel @Inject constructor(
     private val _isNextEnabled = MutableStateFlow(false)
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled.asStateFlow()
 
-    private val _hasPermissions = MutableStateFlow(false)
-    val hasPermissions: StateFlow<Boolean> = _hasPermissions.asStateFlow()
-
     init {
         viewModelScope.launch {
             userPreferencesRepository.weightGoalValueFlow.collect { goal ->
@@ -89,23 +83,10 @@ class WeightViewModel @Inject constructor(
         }
     }
 
-    fun checkPermissions() {
-        viewModelScope.launch {
-            _hasPermissions.value = healthConnectManager.hasAllPermissions()
-        }
-    }
-
-    fun updatePermissionsStatus(granted: Boolean) {
-        _hasPermissions.value = granted
-        if (granted) {
-            fetchWeightRecords(timeRange.value, selectedDate.value)
-        }
-    }
-
     private fun fetchWeightRecords(timeRange: TimeRange, selectedDate: LocalDate) {
         viewModelScope.launch {
             val (start, end) = timeRange.getStartAndEndTimes(selectedDate)
-            healthDataRepository.getWeightBetween(start, end, hasPermissions.value)
+            healthDataRepository.getWeightBetween(start, end)
                 .combine(healthDataRepository.getLatestWeightBefore(start)) { records, latestWeightBefore ->
                     processWeightData(records, latestWeightBefore, timeRange, selectedDate)
                 }.collect {

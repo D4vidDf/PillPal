@@ -39,8 +39,6 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoB
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoItem
 import kotlinx.coroutines.launch
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BodyTemperatureScreen(
@@ -48,21 +46,6 @@ fun BodyTemperatureScreen(
     widthSizeClass: WindowWidthSizeClass,
     viewModel: BodyTemperatureViewModel = hiltViewModel()
 ) {
-    val scope = rememberCoroutineScope()
-    val hasPermissions by viewModel.hasPermissions.collectAsState()
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        viewModel.healthConnectManager.requestPermissionsActivityContract()
-    ) { grantedPermissions ->
-        if (grantedPermissions.isNotEmpty()) {
-            viewModel.updatePermissionsStatus(true)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.checkPermissions()
-    }
-
     val temperatureUiState by viewModel.temperatureUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
     val dateRangeText by viewModel.dateRangeText.collectAsState()
@@ -108,15 +91,6 @@ fun BodyTemperatureScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                actions = {
-                    if (viewModel.healthConnectManager.healthConnectCompatible.value && !hasPermissions) {
-                        Button(onClick = {
-                            permissionLauncher.launch(viewModel.healthConnectManager.PERMISSIONS)
-                        }) {
-                            Text("Connect")
-                        }
                     }
                 }
             )

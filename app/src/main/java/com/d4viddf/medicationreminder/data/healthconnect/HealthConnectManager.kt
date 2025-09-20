@@ -23,15 +23,16 @@ import javax.inject.Singleton
 class HealthConnectManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private val providerPackageName = "com.google.android.apps.healthdata"
     private val healthConnectClient: HealthConnectClient? by lazy {
-        if (HealthConnectClient.isProviderAvailable(context)) {
-            HealthConnectClient.getOrCreate(context)
-        } else {
+        if (HealthConnectClient.getSdkStatus(context, providerPackageName) == HealthConnectClient.SDK_UNAVAILABLE) {
             null
+        } else {
+            HealthConnectClient.getOrCreate(context)
         }
     }
 
-    val healthConnectCompatible = mutableStateOf(HealthConnectClient.isProviderAvailable(context))
+    val healthConnectCompatible = mutableStateOf(HealthConnectClient.getSdkStatus(context, providerPackageName) != HealthConnectClient.SDK_UNAVAILABLE)
 
     val PERMISSIONS = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class),
@@ -45,12 +46,12 @@ class HealthConnectManager @Inject constructor(
     )
 
     suspend fun hasAllPermissions(): Boolean {
-        return healthConnectClient?.permissionController?.getGrantedPermissions()
+        return healthConnectClient?.permissionController?.getGrantedPermissions(PERMISSIONS)
             ?.containsAll(PERMISSIONS) == true
     }
 
     fun requestPermissionsActivityContract(): ActivityResultContract<Set<String>, Set<String>> {
-        return HealthConnectClient.getGrantedPermissionContract()
+        return HealthPermission.createRequestPermissionResultContract()
     }
 
     suspend fun writeWaterIntake(record: WaterIntake) {
@@ -78,7 +79,7 @@ class HealthConnectManager @Inject constructor(
             time = record.time,
             zoneOffset = null,
             temperature = androidx.health.connect.client.units.Temperature.celsius(record.temperatureCelsius),
-            measurementLocation = record.measurementLocation ?: BodyTemperatureRecord.MEASUREMENT_LOCATION_UNKNOWN
+            measurementLocation = BodyTemperatureRecord.MEASUREMENT_LOCATION_UNKNOWN
         )
         healthConnectClient?.insertRecords(listOf(temperatureRecord))
     }

@@ -72,12 +72,11 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
-import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
 import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
-import com.d4viddf.medicationreminder.ui.features.home.components.cards.HealthStatCard
+import com.d4viddf.medicationreminder.ui.features.home.components.cards.HeartRateCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.MissedRemindersCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.NextDoseTimeCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.SectionHeader
@@ -184,7 +183,7 @@ internal fun HomeScreenContent(
     latestWeightState: UiItemState<Weight?>,
     latestTemperatureState: UiItemState<BodyTemperature?>,
     waterIntakeTodayState: UiItemState<Double?>,
-    heartRateState: UiItemState<Pair<HeartRate?, Float>>,
+    heartRateState: UiItemState<String?>,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController,
@@ -463,17 +462,10 @@ internal fun HomeScreenContent(
                                             ) { state ->
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                    is UiItemState.Success -> {
-                                                        val (heartRate, progress) = state.data
-                                                        HealthStatCard(
-                                                            title = "Heart Rate",
-                                                            value = heartRate?.beatsPerMinute?.toString() ?: "-",
-                                                            goal = "100",
-                                                            progress = progress,
-                                                            icon = painterResource(id = R.drawable.cardio_load),
-                                                            onClick = { navController.navigate(Screen.HeartRate.route) }
-                                                        )
-                                                    }
+                                                    is UiItemState.Success -> HeartRateCard(
+                                                        heartRate = state.data
+                                                    )
+
                                                     is UiItemState.Error -> {}
                                                 }
                                             }

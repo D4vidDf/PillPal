@@ -184,12 +184,10 @@ class HomeViewModel @Inject constructor(
             .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val heartRate: StateFlow<UiItemState<Pair<com.d4viddf.medicationreminder.data.model.healthdata.HeartRate?, Float>>> = healthDataRepository.getLatestHeartRate()
-        .map { heartRate ->
-            val progress = heartRate?.let { it.beatsPerMinute / 100f } ?: 0f
-            UiItemState.Success(Pair(heartRate, progress)) as UiItemState<Pair<com.d4viddf.medicationreminder.data.model.healthdata.HeartRate?, Float>>
-        }
-        .onStart { emit(UiItemState.Loading) }
+    val heartRate: StateFlow<UiItemState<String?>> = flow {
+        delay(1500) // Simulate network delay
+        emit(UiItemState.Success("46-97") as UiItemState<String?>)
+    }.onStart { emit(UiItemState.Loading) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
     // --- User Actions ---

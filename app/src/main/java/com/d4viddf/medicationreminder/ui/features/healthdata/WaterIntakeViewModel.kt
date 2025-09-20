@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.features.common.charts.ChartDataPoint
@@ -13,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.Instant
@@ -25,13 +27,11 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
 
-import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
-
 @HiltViewModel
 class WaterIntakeViewModel @Inject constructor(
     private val healthDataRepository: HealthDataRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val healthConnectManager: HealthConnectManager
+    val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     private val _waterIntakeRecords = MutableStateFlow<List<WaterIntake>>(emptyList())
@@ -112,8 +112,11 @@ class WaterIntakeViewModel @Inject constructor(
                 _dailyGoal.value = it.toDouble()
             }
         }
-        updateDateAndButtonStates()
-        fetchWaterIntakeRecords()
+        viewModelScope.launch {
+            combine(timeRange, selectedDate, hasPermissions) { timeRange, selectedDate, _ ->
+                fetchWaterIntakeRecords(timeRange, selectedDate)
+            }.collect{}
+        }
     }
 
     fun checkPermissions() {
@@ -124,9 +127,6 @@ class WaterIntakeViewModel @Inject constructor(
 
     fun updatePermissionsStatus(granted: Boolean) {
         _hasPermissions.value = granted
-        if (granted) {
-            fetchWaterIntakeRecords()
-        }
     }
 
     fun onBarSelected(bar: Pair<Instant, Double>?) {
@@ -140,8 +140,6 @@ class WaterIntakeViewModel @Inject constructor(
     fun setTimeRange(timeRange: TimeRange) {
         _timeRange.value = timeRange
         _selectedDate.value = LocalDate.now()
-        updateDateAndButtonStates()
-        fetchWaterIntakeRecords()
     }
 
     fun onPreviousClick() {
@@ -151,8 +149,6 @@ class WaterIntakeViewModel @Inject constructor(
             TimeRange.MONTH -> _selectedDate.value.minusMonths(1)
             TimeRange.YEAR -> _selectedDate.value.minusYears(1)
         }
-        updateDateAndButtonStates()
-        fetchWaterIntakeRecords()
     }
 
     fun onNextClick() {
@@ -164,46 +160,35 @@ class WaterIntakeViewModel @Inject constructor(
         }
         if (!nextDate.isAfter(LocalDate.now())) {
             _selectedDate.value = nextDate
-            updateDateAndButtonStates()
-            fetchWaterIntakeRecords()
         }
     }
 
     fun onHistoryItemClick(newTimeRange: TimeRange, newDate: LocalDate) {
         _timeRange.value = newTimeRange
         _selectedDate.value = newDate
-        updateDateAndButtonStates()
-        fetchWaterIntakeRecords()
     }
 
-    private fun updateDateAndButtonStates() {
-        updateDateRangeText()
-        updateNextButtonState()
-    }
-
-    fun fetchWaterIntakeRecords() {
+    private fun fetchWaterIntakeRecords(timeRange: TimeRange, selectedDate: LocalDate) {
         viewModelScope.launch {
-            val (start, end) = _timeRange.value.getStartAndEndTimes(_selectedDate.value)
+            updateDateAndButtonStates()
+            val (start, end) = timeRange.getStartAndEndTimes(selectedDate)
             _startTime.value = start
             _endTime.value = end
 
             healthDataRepository.getWaterIntakeBetween(start, end, hasPermissions.value)
                 .collect { allRecordsInRange ->
-                    when (_timeRange.value) {
-                        TimeRange.DAY -> loadChartDataForDay(_selectedDate.value, allRecordsInRange)
-                        TimeRange.WEEK -> loadChartDataForWeek(_selectedDate.value, allRecordsInRange)
-                        TimeRange.MONTH -> loadChartDataForMonth(_selectedDate.value, allRecordsInRange)
-                        TimeRange.YEAR -> loadChartDataForYear(_selectedDate.value, allRecordsInRange)
-                        else -> {
-                            _chartData.value = emptyList()
-                        }
+                    when (timeRange) {
+                        TimeRange.DAY -> loadChartDataForDay(selectedDate, allRecordsInRange)
+                        TimeRange.WEEK -> loadChartDataForWeek(selectedDate, allRecordsInRange)
+                        TimeRange.MONTH -> loadChartDataForMonth(selectedDate, allRecordsInRange)
+                        TimeRange.YEAR -> loadChartDataForYear(selectedDate, allRecordsInRange)
                     }
 
-                    val (aggregatedRecords, yMax) = when (_timeRange.value) {
+                    val (aggregatedRecords, yMax) = when (timeRange) {
                         TimeRange.DAY -> {
                             val dayRecords = allRecordsInRange.filter {
                                 it.time.atZone(ZoneId.systemDefault())
-                                    .toLocalDate() == _selectedDate.value
+                                    .toLocalDate() == selectedDate
                             }
                             _waterIntakeRecords.value = dayRecords
                             _totalWaterIntake.value = dayRecords.sumOf { it.volumeMilliliters }
@@ -264,6 +249,11 @@ class WaterIntakeViewModel @Inject constructor(
                             .count()
                 }
         }
+    }
+
+    private fun updateDateAndButtonStates() {
+        updateDateRangeText()
+        updateNextButtonState()
     }
 
     private fun updateNextButtonState() {
