@@ -156,16 +156,13 @@ class WeightViewModel @Inject constructor(
 
     private fun aggregateDataForChart(records: List<Weight>, latestWeightBefore: Weight?, timeRange: TimeRange, selectedDate: LocalDate): WeightChartData {
         if (records.isEmpty() && latestWeightBefore != null) {
-            val lastWeight = latestWeightBefore.weightKilograms.toFloat()
-            return when (timeRange) {
-                TimeRange.DAY -> {
-                    val data = (0..23).map {
-                        LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
-                    }
-                    val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
-                    WeightChartData(lineChartData = data, labels = labels)
+            if (timeRange == TimeRange.DAY) {
+                val lastWeight = latestWeightBefore.weightKilograms.toFloat()
+                val data = (0..23).map {
+                    LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
                 }
-                else -> WeightChartData()
+                val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
+                return WeightChartData(lineChartData = data, labels = labels)
             }
         }
         return when (timeRange) {
