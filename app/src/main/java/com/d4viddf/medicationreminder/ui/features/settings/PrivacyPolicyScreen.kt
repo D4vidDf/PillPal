@@ -1,9 +1,17 @@
 package com.d4viddf.medicationreminder.ui.features.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -54,6 +63,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
 
 @Composable
 fun PrivacyPolicyText() {
+    val context = LocalContext.current
     val annotatedString = buildAnnotatedString {
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
             append(stringResource(id = R.string.privacy_policy_title))
@@ -196,20 +206,48 @@ fun PrivacyPolicyText() {
         append("\n\n")
         append(stringResource(id = R.string.privacy_policy_section_8_item_1))
         append("\n\n")
-
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-            append(stringResource(id = R.string.privacy_policy_section_9_title))
-            append("\n\n")
-        }
-        append(stringResource(id = R.string.privacy_policy_section_9_intro))
-        append("\n")
-        append(" - ")
-        append(stringResource(id = R.string.privacy_policy_section_9_item_1))
-        append("\n")
-        append(" - ")
-        append(stringResource(id = R.string.privacy_policy_section_9_item_2))
     }
-    Text(text = annotatedString)
+    Column {
+        Text(text = annotatedString)
+        Spacer(modifier = Modifier.height(16.dp))
+        with(buildAnnotatedString {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(stringResource(id = R.string.privacy_policy_section_9_title))
+                append("\n\n")
+            }
+            append(stringResource(id = R.string.privacy_policy_section_9_intro))
+        }) {
+            Text(text = this)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = { openEmail(context) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = stringResource(id = R.string.privacy_policy_contact_email_button))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { openWebsite(context) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = stringResource(id = R.string.privacy_policy_contact_website_button))
+        }
+    }
+}
+
+private fun openEmail(context: Context) {
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:d4viddf@d4viddf.com")
+    }
+    context.startActivity(intent)
+}
+
+private fun openWebsite(context: Context) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse("https://d4viddf.github.io/privacy/")
+    }
+    context.startActivity(intent)
 }
 
 @Preview(showBackground = true)

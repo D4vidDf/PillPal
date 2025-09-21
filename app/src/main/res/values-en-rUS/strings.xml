@@ -598,6 +598,6 @@
     <string name="privacy_policy_section_8_item_1">You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</string>
     <string name="privacy_policy_section_9_title">9. Contact</string>
     <string name="privacy_policy_section_9_intro">If you have any questions about this Privacy Policy, you can contact us through:</string>
-    <string name="privacy_policy_section_9_item_1">Email: d4viddf@d4viddf.com</string>
-    <string name="privacy_policy_section_9_item_2">Website: d4viddf.com (through the contact form or any other means indicated there)</string>
+    <string name="privacy_policy_contact_email_button">Contact via Email</string>
+    <string name="privacy_policy_contact_website_button">Visit Website</string>
 </resources>

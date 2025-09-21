@@ -627,6 +627,6 @@
     <string name="privacy_policy_section_8_item_1">Se te aconseja revisar esta Política de Privacidad periódicamente para cualquier cambio. Los cambios a esta Política de Privacidad son efectivos cuando se publican en esta página.</string>
     <string name="privacy_policy_section_9_title">9. Contacto</string>
     <string name="privacy_policy_section_9_intro">Si tienes alguna pregunta sobre esta Política de Privacidad, puedes contactarnos a través de:</string>
-    <string name="privacy_policy_section_9_item_1">Correo electrónico: d4viddf@d4viddf.com</string>
-    <string name="privacy_policy_section_9_item_2">Sitio web: d4viddf.com (a través del formulario de contacto o cualquier otro medio que se indique allí)</string>
+    <string name="privacy_policy_contact_email_button">Contactar por correo electrónico</string>
+    <string name="privacy_policy_contact_website_button">Visitar sitio web</string>
 </resources>
