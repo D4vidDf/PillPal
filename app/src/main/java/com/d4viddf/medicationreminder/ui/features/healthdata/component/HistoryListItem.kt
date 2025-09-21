@@ -21,6 +21,7 @@ fun HistoryListItem(
     size: Int,
     date: LocalDate,
     value: String,
+    sourceApp: String?,
     onClick: () -> Unit
 ) {
     val shape = when {
@@ -42,10 +43,18 @@ fun HistoryListItem(
                 .fillMaxWidth()
                 .padding(Dimensions.PaddingLarge)
         ) {
-            Text(
-                text = date.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault())),
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = date.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault()))
+                )
+                if (sourceApp != null && sourceApp != "com.d4viddf.medicationreminder") {
+                    Text(
+                        text = "from $sourceApp",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Text(text = value)
         }
     }

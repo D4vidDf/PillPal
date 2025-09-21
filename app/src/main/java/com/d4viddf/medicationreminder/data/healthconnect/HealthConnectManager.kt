@@ -32,7 +32,7 @@ class HealthConnectManager @Inject constructor(
 
     fun isHealthConnectAppInstalled(): Boolean {
         val providerPackageName = "com.google.android.apps.healthdata"
-        val status = HealthConnectClient.getSdkStatus(context, providerPackageName)
+        val status = HealthConnectClient.sdkStatus(context, providerPackageName)
         return status != HealthConnectClient.SDK_UNAVAILABLE
     }
 

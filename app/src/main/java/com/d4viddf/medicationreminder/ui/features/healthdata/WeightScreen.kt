@@ -241,6 +241,7 @@ fun WeightScreen(
                                 size = weightUiState.weightLogs.size,
                                 date = weightEntry.date.toLocalDate(),
                                 value = "${String.format("%.1f", weightEntry.weight)} kg",
+                                sourceApp = weightEntry.sourceApp,
                                 onClick = { /* No-op */ }
                             )
                         }

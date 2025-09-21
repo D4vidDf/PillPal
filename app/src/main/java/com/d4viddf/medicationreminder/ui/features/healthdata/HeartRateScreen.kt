@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,8 +69,15 @@ fun HeartRateScreen(
                 Text(text = stringResource(R.string.no_heart_rate_data))
             } else {
                 LazyColumn {
-                    items(heartRateData) { record ->
-                        Text(text = "BPM: ${record.beatsPerMinute}, Time: ${record.time}")
+                    itemsIndexed(heartRateData) { index, record ->
+                        com.d4viddf.medicationreminder.ui.features.healthdata.component.HistoryListItem(
+                            index = index,
+                            size = heartRateData.size,
+                            date = record.time.atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+                            value = "${record.beatsPerMinute} BPM",
+                            sourceApp = record.sourceApp,
+                            onClick = { /* No-op */ }
+                        )
                     }
                 }
             }

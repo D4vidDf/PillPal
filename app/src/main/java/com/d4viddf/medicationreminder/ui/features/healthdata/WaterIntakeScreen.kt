@@ -256,7 +256,16 @@ fun WaterIntakeScreen(
                                 .padding(Dimensions.PaddingLarge),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = "${records.size} ${type ?: stringResource(id = R.string.water_intake_custom_quantity)} ")
+                            Column {
+                                Text(text = "${records.size} ${type ?: stringResource(id = R.string.water_intake_custom_quantity)} ")
+                                if (records.any { it.sourceApp != null && it.sourceApp != "com.d4viddf.medicationreminder" }) {
+                                    Text(
+                                        text = "from ${records.first { it.sourceApp != null }.sourceApp}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                             Text(text = "${formatNumber(records.sumOf { it.volumeMilliliters }.toInt())} ml")
                         }
                     }
