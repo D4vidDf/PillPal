@@ -116,7 +116,8 @@ class WeightViewModel @Inject constructor(
         val lastWeightLog = latestWeightBefore?.let {
             WeightLogItem(
                 weight = it.weightKilograms,
-                date = it.time.atZone(ZoneId.systemDefault())
+                date = it.time.atZone(ZoneId.systemDefault()),
+                sourceApp = it.sourceApp
             )
         }
         updateDateAndButtonStates()
