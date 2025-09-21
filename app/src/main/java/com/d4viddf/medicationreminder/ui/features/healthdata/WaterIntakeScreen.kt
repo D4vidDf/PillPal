@@ -37,12 +37,16 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -78,7 +82,8 @@ import kotlin.math.roundToInt
 fun WaterIntakeScreen(
     navController: NavController,
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: WaterIntakeViewModel = hiltViewModel()
+    viewModel: WaterIntakeViewModel = hiltViewModel(),
+    healthDataViewModel: HealthDataViewModel = hiltViewModel()
 ) {
     val chartData by viewModel.chartData.collectAsState()
     val aggregatedWaterIntakeRecords by viewModel.aggregatedWaterIntakeRecords.collectAsState()
@@ -99,6 +104,8 @@ fun WaterIntakeScreen(
     val headerTotalIntake by viewModel.headerTotalIntake.collectAsState()
     val weekFields = WeekFields.of(Locale.getDefault())
     val today = LocalDate.now()
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -249,7 +256,16 @@ fun WaterIntakeScreen(
                                 .padding(Dimensions.PaddingLarge),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = "${records.size} ${type ?: stringResource(id = R.string.water_intake_custom_quantity)} ")
+                            Column {
+                                Text(text = "${records.size} ${type ?: stringResource(id = R.string.water_intake_custom_quantity)} ")
+                                if (records.any { it.sourceApp != null && it.sourceApp != "com.d4viddf.medicationreminder" }) {
+                                    Text(
+                                        text = "from ${records.first { it.sourceApp != null }.sourceApp}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                             Text(text = "${formatNumber(records.sumOf { it.volumeMilliliters }.toInt())} ml")
                         }
                     }

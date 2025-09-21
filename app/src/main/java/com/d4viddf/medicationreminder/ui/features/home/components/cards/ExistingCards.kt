@@ -19,10 +19,11 @@ import java.time.format.FormatStyle
 @Composable
 fun HeartRateCard(
     heartRate: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

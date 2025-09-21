@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -39,6 +41,7 @@ fun SettingsListScreen(
     onNavigateToSound: () -> Unit,
     onNavigateToDeveloper: () -> Unit,
     onNavigateToConnectedDevices: () -> Unit,
+    onNavigateToHealthConnect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current // Used for string resources
@@ -61,6 +64,12 @@ fun SettingsListScreen(
             icon = painterResource(id = R.drawable.ic_rounded_devices_wearables_24),
             onClick = onNavigateToConnectedDevices,
             contentDescription = stringResource(id = R.string.settings_category_connected_devices_cd)
+        ),
+        SettingsCategory(
+            title = stringResource(R.string.health_connect_settings),
+            icon = Icons.Default.Favorite,
+            onClick = onNavigateToHealthConnect,
+            contentDescription = stringResource(R.string.health_connect_settings)
         ),
         SettingsCategory(
             title = stringResource(id = R.string.settings_category_developer), // Assume R.string.settings_category_developer = "Developer Options"
@@ -147,6 +156,7 @@ fun SettingsListScreenPreview() {
                 onNavigateToSound = {},
                 onNavigateToDeveloper = {},
                 onNavigateToConnectedDevices = {},
+                onNavigateToHealthConnect = {}
             )
         }
     }

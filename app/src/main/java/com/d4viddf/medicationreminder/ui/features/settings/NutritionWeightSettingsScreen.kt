@@ -154,7 +154,7 @@ fun NutritionWeightSettingsScreen(
             Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
             Card(
                 modifier = Modifier.clickable {
-                    // TODO: Navigate to Health Connect settings
+                    navController.navigate(Screen.HealthConnectSettings.route)
                 }
             ) {
                 Text(

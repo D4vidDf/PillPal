@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
@@ -41,7 +42,8 @@ import kotlinx.coroutines.launch
 fun WeightScreen(
     navController: NavController,
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: WeightViewModel = hiltViewModel()
+    viewModel: WeightViewModel = hiltViewModel(),
+    healthDataViewModel: HealthDataViewModel = hiltViewModel()
 ) {
     val weightUiState by viewModel.weightUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
@@ -53,6 +55,7 @@ fun WeightScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -238,6 +241,7 @@ fun WeightScreen(
                                 size = weightUiState.weightLogs.size,
                                 date = weightEntry.date.toLocalDate(),
                                 value = "${String.format("%.1f", weightEntry.weight)} kg",
+                                sourceApp = weightEntry.sourceApp,
                                 onClick = { /* No-op */ }
                             )
                         }

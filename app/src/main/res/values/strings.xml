@@ -573,4 +573,5 @@
     <string name="disclaimer_body_temp">This function is not intended to diagnose or monitor serious diseases or medical conditions. Check with your healthcare provider if you have questions about your health or what your body temperature readings in general mean.</string>
     <string name="no_data">No data</string>
     <string name="no_temperatures_recorded">No temperatures have been recorded</string>
+    <string name="heart_rate_tracker">Heart Rate</string>
 </resources>

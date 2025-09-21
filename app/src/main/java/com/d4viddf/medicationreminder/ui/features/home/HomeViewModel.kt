@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
+import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
@@ -184,10 +185,9 @@ class HomeViewModel @Inject constructor(
             .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val heartRate: StateFlow<UiItemState<String?>> = flow {
-        delay(1500) // Simulate network delay
-        emit(UiItemState.Success("46-97") as UiItemState<String?>)
-    }.onStart { emit(UiItemState.Loading) }
+    val heartRate: StateFlow<UiItemState<HeartRate?>> = healthDataRepository.getLatestHeartRate()
+        .map { UiItemState.Success(it) as UiItemState<HeartRate?> }
+        .onStart { emit(UiItemState.Loading) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
     // --- User Actions ---

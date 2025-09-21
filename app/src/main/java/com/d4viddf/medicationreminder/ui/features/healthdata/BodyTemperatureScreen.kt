@@ -15,7 +15,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +46,8 @@ import kotlinx.coroutines.launch
 fun BodyTemperatureScreen(
     navController: NavController,
     widthSizeClass: WindowWidthSizeClass,
-    viewModel: BodyTemperatureViewModel = hiltViewModel()
+    viewModel: BodyTemperatureViewModel = hiltViewModel(),
+    healthDataViewModel: HealthDataViewModel = hiltViewModel()
 ) {
     val temperatureUiState by viewModel.temperatureUiState.collectAsState()
     val timeRange by viewModel.timeRange.collectAsState()
@@ -54,6 +57,7 @@ fun BodyTemperatureScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -92,6 +96,9 @@ fun BodyTemperatureScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
+                },
+                actions = {
+                    // No actions for now
                 }
             )
         },
@@ -224,6 +231,7 @@ fun BodyTemperatureScreen(
                             size = temperatureUiState.temperatureLogs.size,
                             date = tempEntry.date.toLocalDate(),
                             value = "${tempEntry.temperature}°C",
+                            sourceApp = tempEntry.sourceApp,
                             onClick = { /* No-op */ }
                         )
                     }
