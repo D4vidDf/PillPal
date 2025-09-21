@@ -117,6 +117,7 @@ class HealthConnectManager @Inject constructor(
             )
         )
         healthConnectClient.insertRecords(listOf(heartRateRecord))
+        }
     }
 
     fun getWaterIntake(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> = flow {
