@@ -40,7 +40,8 @@ data class TemperatureUiState(
 
 data class TemperatureLogItem(
     val temperature: Double,
-    val date: ZonedDateTime
+    val date: ZonedDateTime,
+    val sourceApp: String?
 )
 
 @HiltViewModel
@@ -94,7 +95,8 @@ class BodyTemperatureViewModel @Inject constructor(
         val temperatureLogs = records.map {
             TemperatureLogItem(
                 temperature = it.temperatureCelsius,
-                date = it.time.atZone(ZoneId.systemDefault())
+                date = it.time.atZone(ZoneId.systemDefault()),
+                sourceApp = it.sourceApp
             )
         }.sortedByDescending { it.date }
 
