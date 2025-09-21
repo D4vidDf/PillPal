@@ -68,36 +68,43 @@ class HealthConnectManager @Inject constructor(
     }
 
     suspend fun writeWaterIntake(record: WaterIntake) {
-        val hydrationRecord = HydrationRecord(
-            startTime = record.time,
-            startZoneOffset = null,
-            endTime = record.time,
-            endZoneOffset = null,
-            volume = androidx.health.connect.client.units.Volume.milliliters(record.volumeMilliliters)
-        )
-        healthConnectClient.insertRecords(listOf(hydrationRecord))
+        if (hasAllPermissions()) {
+            val hydrationRecord = HydrationRecord(
+                startTime = record.time,
+                startZoneOffset = null,
+                endTime = record.time,
+                endZoneOffset = null,
+                volume = androidx.health.connect.client.units.Volume.milliliters(record.volumeMilliliters)
+            )
+            healthConnectClient.insertRecords(listOf(hydrationRecord))
+        }
     }
 
     suspend fun writeWeight(record: Weight) {
-        val weightRecord = WeightRecord(
-            time = record.time,
-            zoneOffset = null,
-            weight = androidx.health.connect.client.units.Mass.kilograms(record.weightKilograms)
-        )
-        healthConnectClient.insertRecords(listOf(weightRecord))
+        if (hasAllPermissions()) {
+            val weightRecord = WeightRecord(
+                time = record.time,
+                zoneOffset = null,
+                weight = androidx.health.connect.client.units.Mass.kilograms(record.weightKilograms)
+            )
+            healthConnectClient.insertRecords(listOf(weightRecord))
+        }
     }
 
     suspend fun writeBodyTemperature(record: BodyTemperature) {
-        val temperatureRecord = BodyTemperatureRecord(
-            time = record.time,
-            zoneOffset = null,
-            temperature = androidx.health.connect.client.units.Temperature.celsius(record.temperatureCelsius)
-        )
-        healthConnectClient.insertRecords(listOf(temperatureRecord))
+        if (hasAllPermissions()) {
+            val temperatureRecord = BodyTemperatureRecord(
+                time = record.time,
+                zoneOffset = null,
+                temperature = androidx.health.connect.client.units.Temperature.celsius(record.temperatureCelsius)
+            )
+            healthConnectClient.insertRecords(listOf(temperatureRecord))
+        }
     }
 
     suspend fun writeHeartRate(record: HeartRate) {
-        val heartRateRecord = HeartRateRecord(
+        if (hasAllPermissions()) {
+            val heartRateRecord = HeartRateRecord(
             startTime = record.time,
             startZoneOffset = null,
             endTime = record.time,
@@ -110,6 +117,7 @@ class HealthConnectManager @Inject constructor(
             )
         )
         healthConnectClient.insertRecords(listOf(heartRateRecord))
+        }
     }
 
     fun getWaterIntake(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> = flow {
