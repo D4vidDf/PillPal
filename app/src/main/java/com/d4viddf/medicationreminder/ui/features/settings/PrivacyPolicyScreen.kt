@@ -13,9 +13,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButtonShapes
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,9 +34,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import androidx.core.net.toUri
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PrivacyPolicyScreen(onBack: () -> Unit) {
     Scaffold(
@@ -40,11 +45,12 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.privacy_policy_title)) },
                 navigationIcon = {
-                    FilledIconButton(onClick = onBack) {
+                    FilledTonalIconButton (onClick = onBack, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -66,10 +72,6 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
 fun PrivacyPolicyText() {
     val context = LocalContext.current
     val annotatedString = buildAnnotatedString {
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-            append(stringResource(id = R.string.privacy_policy_title))
-            append("\n\n")
-        }
         append(stringResource(id = R.string.privacy_policy_last_updated))
         append("\n\n")
         append(stringResource(id = R.string.privacy_policy_welcome))
@@ -239,14 +241,14 @@ fun PrivacyPolicyText() {
 
 private fun openEmail(context: Context) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.parse("mailto:d4viddf@d4viddf.com")
+        data = "mailto:d4viddf@d4viddf.com".toUri()
     }
     context.startActivity(intent)
 }
 
 private fun openWebsite(context: Context) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse("https://d4viddf.github.io/privacy/")
+        data = "https://d4viddf.github.io/privacy/".toUri()
     }
     context.startActivity(intent)
 }
@@ -254,7 +256,7 @@ private fun openWebsite(context: Context) {
 @Preview(showBackground = true)
 @Composable
 fun PrivacyPolicyScreenPreview() {
-    MedicationReminderTheme {
+    AppTheme {
         PrivacyPolicyScreen(onBack = {})
     }
 }

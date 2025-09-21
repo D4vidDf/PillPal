@@ -163,7 +163,9 @@ fun SettingsListScreenPreview() {
                 onNavigateToSound = {},
                 onNavigateToDeveloper = {},
                 onNavigateToConnectedDevices = {},
-                onNavigateToHealthConnect = {}
+                onNavigateToHealthConnect = {},
+                onNavigateToPrivacyPolicy = { },
+                modifier = Modifier
             )
         }
     }
