@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,7 +20,7 @@ import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeItem
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonalizeHomeScreen(
     onNavigateBack: () -> Unit,
@@ -31,13 +32,13 @@ fun PersonalizeHomeScreen(
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.personalize_home_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.rounded_arrow_back_ios_new_24),
-                            contentDescription = stringResource(R.string.navigate_back)
-                        )
-                    }
+                navigationIcon = {FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back)
+                    )
+
+                }
                 }
             )
         }

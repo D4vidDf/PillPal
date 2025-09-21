@@ -12,14 +12,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
-import com.d4viddf.medicationreminder.ui.theme.MedicationReminderTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 class PermissionsRationaleActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MedicationReminderTheme {
+            AppTheme {
                 Scaffold(
                     topBar = {
                         TopAppBar(

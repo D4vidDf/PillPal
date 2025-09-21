@@ -41,7 +41,7 @@ import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoB
 import com.d4viddf.medicationreminder.ui.features.healthdata.component.MoreInfoItem
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BodyTemperatureScreen(
     navController: NavController,
@@ -92,10 +92,13 @@ fun BodyTemperatureScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.body_temperature_tracker)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
+                navigationIcon = {FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back)
+                    )
+
+                }
                 },
                 actions = {
                     // No actions for now

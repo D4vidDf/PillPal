@@ -28,9 +28,12 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -94,10 +97,13 @@ fun LogWaterScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Log Water Intake") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
+                navigationIcon = {FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back)
+                    )
+
+                }
                 },
                 actions = {
                     IconButton(onClick = { showMenu = !showMenu }) {

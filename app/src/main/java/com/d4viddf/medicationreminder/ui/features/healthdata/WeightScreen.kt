@@ -37,7 +37,7 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WeightScreen(
     navController: NavController,
@@ -86,10 +86,13 @@ fun WeightScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.weight_tracker)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
+                navigationIcon = {FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back)
+                    )
+
+                }
                 },
                 actions = {
                     var showMenu by remember { mutableStateOf(false) }

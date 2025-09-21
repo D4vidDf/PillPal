@@ -47,6 +47,7 @@ object SettingsDestinations {
     const val SOUND = "settings_sound"
     const val DEVELOPER = "settings_developer"
     const val HEALTH_CONNECT = "settings_health_connect"
+    const val PRIVACY_POLICY = "settings_privacy_policy"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,6 +99,9 @@ fun ResponsiveSettingsScaffold(
                         onNavigateToHealthConnect = {
                             selectedCategoryRoute = SettingsDestinations.HEALTH_CONNECT
                         },
+                        onNavigateToPrivacyPolicy = {
+                            selectedCategoryRoute = SettingsDestinations.PRIVACY_POLICY
+                        },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -121,6 +125,10 @@ fun ResponsiveSettingsScaffold(
 
                         SettingsDestinations.HEALTH_CONNECT -> com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(
                             navController = navController
+                        )
+
+                        SettingsDestinations.PRIVACY_POLICY -> com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(
+                            onBack = {}
                         )
 
                         else -> GeneralSettingsScreen(
@@ -157,6 +165,10 @@ fun ResponsiveSettingsScaffold(
                 SettingsDestinations.HEALTH_CONNECT -> {
                     updateTopBarActions(R.string.health_connect_settings) { localSettingsNavController.popBackStack() }
                 }
+
+                SettingsDestinations.PRIVACY_POLICY -> {
+                    updateTopBarActions(R.string.privacy_policy_title) { localSettingsNavController.popBackStack() }
+                }
             }
         }
 
@@ -178,6 +190,11 @@ fun ResponsiveSettingsScaffold(
                     onNavigateToHealthConnect = {
                         localSettingsNavController.navigate(
                             SettingsDestinations.HEALTH_CONNECT
+                        )
+                    },
+                    onNavigateToPrivacyPolicy = {
+                        localSettingsNavController.navigate(
+                            SettingsDestinations.PRIVACY_POLICY
                         )
                     }
                 )
@@ -203,6 +220,11 @@ fun ResponsiveSettingsScaffold(
             composable(SettingsDestinations.HEALTH_CONNECT) {
                 com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(
                     navController = navController
+                )
+            }
+            composable(SettingsDestinations.PRIVACY_POLICY) {
+                com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(
+                    onBack = { localSettingsNavController.popBackStack() }
                 )
             }
         }

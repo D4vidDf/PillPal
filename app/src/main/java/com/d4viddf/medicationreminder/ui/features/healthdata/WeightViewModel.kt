@@ -40,7 +40,8 @@ data class WeightUiState(
 
 data class WeightLogItem(
     val weight: Double,
-    val date: ZonedDateTime
+    val date: ZonedDateTime,
+    val sourceApp: String?
 )
 
 @HiltViewModel
@@ -99,7 +100,8 @@ class WeightViewModel @Inject constructor(
         val weightLogs = records.map {
             WeightLogItem(
                 weight = it.weightKilograms,
-                date = it.time.atZone(ZoneId.systemDefault())
+                date = it.time.atZone(ZoneId.systemDefault()),
+                sourceApp = it.sourceApp
             )
         }.sortedByDescending { it.date }
 
@@ -114,7 +116,8 @@ class WeightViewModel @Inject constructor(
         val lastWeightLog = latestWeightBefore?.let {
             WeightLogItem(
                 weight = it.weightKilograms,
-                date = it.time.atZone(ZoneId.systemDefault())
+                date = it.time.atZone(ZoneId.systemDefault()),
+                sourceApp = it.sourceApp
             )
         }
         updateDateAndButtonStates()
