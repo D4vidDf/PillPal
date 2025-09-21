@@ -90,6 +90,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.features.settings.PrivacyPolicyActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PRIVACY_POLICY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity-alias
             android:name="ViewPermissionUsageActivity"
             android:exported="true"

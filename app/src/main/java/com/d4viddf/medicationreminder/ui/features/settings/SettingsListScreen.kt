@@ -42,6 +42,7 @@ fun SettingsListScreen(
     onNavigateToDeveloper: () -> Unit,
     onNavigateToConnectedDevices: () -> Unit,
     onNavigateToHealthConnect: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current // Used for string resources
@@ -76,6 +77,12 @@ fun SettingsListScreen(
             icon = painterResource(id = R.drawable.rounded_build_24),
             onClick = onNavigateToDeveloper,
             contentDescription = stringResource(id = R.string.settings_category_developer_cd) // Assume cd exists
+        ),
+        SettingsCategory(
+            title = stringResource(id = R.string.privacy_policy_title),
+            icon = painterResource(id = R.drawable.health_and_safety_24px),
+            onClick = onNavigateToPrivacyPolicy,
+            contentDescription = stringResource(id = R.string.privacy_policy_title)
         )
     )
 

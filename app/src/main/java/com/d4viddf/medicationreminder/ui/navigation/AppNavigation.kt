@@ -119,6 +119,7 @@ sealed class Screen(val route: String) {
     object WeightGoal : Screen("weightGoal")
     object HeartRate : Screen("heartRate")
     object HealthConnectSettings : Screen("healthConnectSettings")
+    object PrivacyPolicy : Screen("privacyPolicy")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -442,6 +443,9 @@ fun AppNavigation(
             }
             composable(Screen.HealthConnectSettings.route) {
                 com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(navController = navController)
+            }
+            composable(Screen.PrivacyPolicy.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(onBack = { navController.popBackStack() })
             }
         }
     }
