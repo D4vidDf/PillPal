@@ -491,4 +491,26 @@
     <string name="how_is_body_temp_measured_content">Gorputzaren tenperatura termometro batekin egiazta daiteke. Zure emaitzak eskuz erregistratu edo gailu bateragarri batetik sinkroniza ditzakezu.</string>
     <string name="disclaimer_body_temp">Funtzio hau ez da gaixotasun larriak edo egoera medikoak diagnostikatzeko edo kontrolatzeko pentsatuta. Kontsultatu zure osasun-hornitzailearekin zure osasunari buruzko galderarik baduzu edo zure gorputz-tenperaturaren irakurketek, oro har, zer esan nahi duten jakiteko.</string>
     <string name="no_temperatures_recorded">Ez da tenperaturarik erregistratu</string>
+
+    <string name="health_connect_today_title">Health Connect PillPal-en</string>
+    <string name="health_connect_today_description">Health Connect-eko datuak erakusten</string>
+    <string name="health_connect_manage_data_title">Kudeatu datuak eta sarbidea</string>
+    <string name="health_connect_manage_data_description">Berrikusi baimenak eta ezabatu Health Connect-eko datuak</string>
+    <string name="health_connect_get_help_title">Laguntza lortu</string>
+    <string name="health_connect_get_help_description">Health Connect-ekin sinkronizatzeari eta ohiko arazoei buruzko informazio gehiago</string>
+    <string name="health_connect_disconnect">Deskonektatu Health Connect</string>
+
+    <string name="salud_conectada_en_hoy_description">Onartutako datu motetarako, Health Connect-eko datuak Gaur fitxan erakustea hauta dezakezu</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Erakutsi Fitbit-eko datuak soilik</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Zure Fitbit gailuetako datuak eta aplikazio horren funtzioak soilik ikusiko dituzu</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Erakutsi Health Connect-eko datuak</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Onartutako datu motetarako, Fitbit eta Health Connect-eko datuak ikusiko dituzu</string>
+    <string name="que_datos_se_mostraran_title">Zein datu erakutsiko dira</string>
+    <string name="que_datos_se_mostraran_description_1">Fitbit-i datuak irakurtzeko baimena ematen badiozu, Gaur fitxak Health Connect-eko datu hauek erakuts diezazkizuke:</string>
+    <string name="dato_frecuencia_cardiaca">Bihotz-maiztasuna</string>
+    <string name="dato_ingesta_de_agua">Ur-sarrera</string>
+    <string name="dato_peso">Pisua</string>
+    <string name="dato_temperatura_corporal">Gorputz-tenperatura</string>
+    <string name="que_datos_se_mostraran_description_2">Gaur fitxan Health Connect-eko datuak erakustea hautatzen baduzu, baliteke datu mota hauek zure Fitbit gailuan agertzen denarekin bat ez etortzea.</string>
+    <string name="que_datos_se_mostraran_description_3">Puntuazioek, txapek eta sailkapen-taulek zure Fitbit gailuetako eta funtzioetako datuak soilik erabiltzen jarraituko dute.</string>
 </resources>

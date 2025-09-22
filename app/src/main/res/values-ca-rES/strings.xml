@@ -491,4 +491,26 @@
     <string name="how_is_body_temp_measured_content">La temperatura corporal es pot comprovar amb un termòmetre. Podeu registrar els vostres resultats manualment o sincronitzar-los des d\'un dispositiu compatible.</string>
     <string name="disclaimer_body_temp">Aquesta funció no està destinada a diagnosticar o controlar malalties greus o afeccions mèdiques. Consulteu el vostre metge si teniu preguntes sobre la vostra salut o què signifiquen en general les vostres lectures de temperatura corporal.</string>
     <string name="no_temperatures_recorded">No s\'han registrat temperatures</string>
+
+    <string name="health_connect_today_title">Salut connectada a PillPal</string>
+    <string name="health_connect_today_description">Mostrant dades de Salut connectada</string>
+    <string name="health_connect_manage_data_title">Gestiona les dades i l\'accés</string>
+    <string name="health_connect_manage_data_description">Revisa els permisos i elimina les dades de Salut connectada</string>
+    <string name="health_connect_get_help_title">Obtén ajuda</string>
+    <string name="health_connect_get_help_description">Més informació sobre la sincronització amb Salut connectada i com solucionar problemes habituals</string>
+    <string name="health_connect_disconnect">Desconnecta Salut connectada</string>
+
+    <string name="salud_conectada_en_hoy_description">Per als tipus de dades admesos, pots triar que es mostrin dades de Salut connectada a la pestanya Avui</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Mostra només les dades de Fitbit</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Només veuràs les dades dels teus dispositius Fitbit i les funcions d\'aquesta aplicació</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Mostra les dades de Salut connectada</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Veuràs dades tant de Fitbit com de Salut connectada dels tipus de dades admesos</string>
+    <string name="que_datos_se_mostraran_title">Quines dades es mostraran</string>
+    <string name="que_datos_se_mostraran_description_1">Si dones permís a Fitbit per llegir dades, la pestanya Avui podrà mostrar-te les següents dades de Salut connectada:</string>
+    <string name="dato_frecuencia_cardiaca">Freqüència cardíaca</string>
+    <string name="dato_ingesta_de_agua">Ingesta d\'aigua</string>
+    <string name="dato_peso">Pes</string>
+    <string name="dato_temperatura_corporal">Temperatura corporal</string>
+    <string name="que_datos_se_mostraran_description_2">Si tries mostrar dades de Salut connectada a la pestanya Avui, és possible que aquests tipus de dades deixin de coincidir amb els que apareixen al teu dispositiu Fitbit.</string>
+    <string name="que_datos_se_mostraran_description_3">Les puntuacions, insígnies i taules de classificació continuaran utilitzant només les dades dels teus dispositius i funcions de Fitbit.</string>
 </resources>
