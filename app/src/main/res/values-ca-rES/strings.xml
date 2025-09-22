@@ -493,6 +493,10 @@
     <string name="no_temperatures_recorded">No s\'han registrat temperatures</string>
 
     <string name="health_connect_today_title">Salut connectada a PillPal</string>
+    <string name="health_connect_today_show_all_data_title">Mostra totes les dades</string>
+    <string name="health_connect_today_show_all_data_description">Mostra totes les dades de Salut connectada a PillPal</string>
+    <string name="health_connect_today_dont_show_data_title">No mostris les dades</string>
+    <string name="health_connect_today_dont_show_data_description">PillPal continuarà desant dades a Salut connectada, però no es mostraran a l\'aplicació</string>
     <string name="health_connect_today_description">Mostrant dades de Salut connectada</string>
     <string name="health_connect_manage_data_title">Gestiona les dades i l\'accés</string>
     <string name="health_connect_manage_data_description">Revisa els permisos i elimina les dades de Salut connectada</string>

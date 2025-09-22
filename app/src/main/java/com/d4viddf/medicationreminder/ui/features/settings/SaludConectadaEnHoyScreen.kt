@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
@@ -55,96 +55,105 @@ fun SaludConectadaEnHoyScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(Dimensions.PaddingMedium)
         ) {
-            Text(
-                text = stringResource(id = R.string.salud_conectada_en_hoy_description),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 1.dp)
-                    .clickable { viewModel.onShowHealthConnectDataChange(false) },
-                shape = RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    RadioButton(
-                        selected = !showHealthConnectData,
-                        onClick = { viewModel.onShowHealthConnectDataChange(false) }
-                    )
-                    Column(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title))
-                        Text(
-                            text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
+            item {
+                Text(
+                    text = stringResource(id = R.string.salud_conectada_en_hoy_description),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
             }
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 1.dp)
-                    .clickable { viewModel.onShowHealthConnectDataChange(true) },
-                shape = RoundedCornerShape(bottomStart = Dimensions.PaddingMedium, bottomEnd = Dimensions.PaddingMedium)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+
+            item {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(vertical = Dimensions.PaddingExtraSmall)
+                        .clickable { viewModel.onShowHealthConnectDataChange(false) },
+                    shape = RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
                 ) {
-                    RadioButton(
-                        selected = showHealthConnectData,
-                        onClick = { viewModel.onShowHealthConnectDataChange(true) }
-                    )
-                    Column(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title))
-                        Text(
-                            text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description),
-                            style = MaterialTheme.typography.bodySmall
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)
+                    ) {
+                        RadioButton(
+                            selected = !showHealthConnectData,
+                            onClick = { viewModel.onShowHealthConnectDataChange(false) }
                         )
+                        Column(modifier = Modifier.padding(start = Dimensions.PaddingMedium)) {
+                            Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title))
+                            Text(
+                                text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(id = R.string.que_datos_se_mostraran_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(id = R.string.que_datos_se_mostraran_description_1),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "• ${stringResource(id = R.string.dato_frecuencia_cardiaca)}")
-            Text(text = "• ${stringResource(id = R.string.dato_ingesta_de_agua)}")
-            Text(text = "• ${stringResource(id = R.string.dato_peso)}")
-            Text(text = "• ${stringResource(id = R.string.dato_temperatura_corporal)}")
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(id = R.string.que_datos_se_mostraran_description_2),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(id = R.string.que_datos_se_mostraran_description_3),
-                style = MaterialTheme.typography.bodyLarge
-            )
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Dimensions.PaddingExtraSmall)
+                        .clickable { viewModel.onShowHealthConnectDataChange(true) },
+                    shape = RoundedCornerShape(bottomStart = Dimensions.PaddingMedium, bottomEnd = Dimensions.PaddingMedium)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)
+                    ) {
+                        RadioButton(
+                            selected = showHealthConnectData,
+                            onClick = { viewModel.onShowHealthConnectDataChange(true) }
+                        )
+                        Column(modifier = Modifier.padding(start = Dimensions.PaddingMedium)) {
+                            Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title))
+                            Text(
+                                text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                Text(
+                    text = stringResource(id = R.string.que_datos_se_mostraran_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
+                Text(
+                    text = stringResource(id = R.string.que_datos_se_mostraran_description_1),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
+                Text(text = "• ${stringResource(id = R.string.dato_frecuencia_cardiaca)}")
+                Text(text = "• ${stringResource(id = R.string.dato_ingesta_de_agua)}")
+                Text(text = "• ${stringResource(id = R.string.dato_peso)}")
+                Text(text = "• ${stringResource(id = R.string.dato_temperatura_corporal)}")
+                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                Text(
+                    text = stringResource(id = R.string.que_datos_se_mostraran_description_2),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                Text(
+                    text = stringResource(id = R.string.que_datos_se_mostraran_description_3),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
     }
 }

@@ -493,6 +493,10 @@
     <string name="no_temperatures_recorded">Ez da tenperaturarik erregistratu</string>
 
     <string name="health_connect_today_title">Health Connect PillPal-en</string>
+    <string name="health_connect_today_show_all_data_title">Erakutsi datu guztiak</string>
+    <string name="health_connect_today_show_all_data_description">Erakutsi Health Connect-eko datu guztiak PillPal-en</string>
+    <string name="health_connect_today_dont_show_data_title">Ez erakutsi datuak</string>
+    <string name="health_connect_today_dont_show_data_description">PillPal-ek Health Connect-en datuak gordetzen jarraituko du, baina ez dira aplikazioan erakutsiko</string>
     <string name="health_connect_today_description">Health Connect-eko datuak erakusten</string>
     <string name="health_connect_manage_data_title">Kudeatu datuak eta sarbidea</string>
     <string name="health_connect_manage_data_description">Berrikusi baimenak eta ezabatu Health Connect-eko datuak</string>
