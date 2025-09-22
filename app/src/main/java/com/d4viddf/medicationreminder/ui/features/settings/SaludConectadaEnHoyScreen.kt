@@ -84,7 +84,7 @@ fun SaludConectadaEnHoyScreen(
                             .padding(Dimensions.PaddingMedium)
                     ) {
 
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title),
                                 style = MaterialTheme.typography.titleSmall,
@@ -117,7 +117,7 @@ fun SaludConectadaEnHoyScreen(
                             .padding(Dimensions.PaddingMedium)
                     ) {
 
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title),
                                 style = MaterialTheme.typography.titleSmall,
