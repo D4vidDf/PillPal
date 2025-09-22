@@ -1,6 +1,5 @@
 package com.d4viddf.medicationreminder.ui.features.settings
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -34,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +60,25 @@ fun HealthConnectSettingsScreen(
 ) {
     val uiState by viewModel.uiState
     var showInfoCard by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        viewModel.healthConnectManager.requestPermissionsActivityContract()
+    ) {
+        scope.launch {
+            viewModel.updatePermissionStatus()
+        }
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.LaunchPermissionRequest -> {
+                    permissionLauncher.launch(event.permissions)
+                }
+            }
+        }
+    }
 
     val scrollState = rememberScrollState()
     Scaffold(
@@ -92,16 +112,6 @@ fun HealthConnectSettingsScreen(
                     Text(text = "Health Connect is not available on this device.")
                 }
                 is HealthConnectSettingsUiState.Available -> {
-                    val context = LocalContext.current
-                    val scope = rememberCoroutineScope()
-                    val permissionLauncher = rememberLauncherForActivityResult(
-                        viewModel.healthConnectManager.requestPermissionsActivityContract()
-                    ) {
-                        scope.launch {
-                            viewModel.updatePermissionStatus()
-                        }
-                    }
-
                     Image(
                         painter = painterResource(id = R.drawable.health_connect_logo),
                         contentDescription = "Health Connect Logo",
@@ -140,11 +150,7 @@ fun HealthConnectSettingsScreen(
                                             Text(text = stringResource(id = R.string.close))
                                         }
                                         TextButton(onClick = {
-                                            if (viewModel.healthConnectManager.isHealthConnectAppInstalled()) {
-                                                permissionLauncher.launch(viewModel.healthConnectManager.getPermissions())
-                                            } else {
-                                                Toast.makeText(context, "Please install the Health Connect app", Toast.LENGTH_SHORT).show()
-                                            }
+                                            viewModel.onEvent(HealthConnectEvent.RequestPermissions)
                                         }) {
                                             Text(text = stringResource(id = R.string.health_connect_review_permissions))
                                         }
@@ -164,13 +170,13 @@ fun HealthConnectSettingsScreen(
                     Text(
                         text = stringResource(id = R.string.health_connect_information_description_1),
                         style = MaterialTheme.typography.bodyMedium,
-                         modifier = Modifier.align(Alignment.Start)
+                        modifier = Modifier.align(Alignment.Start)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = stringResource(id = R.string.health_connect_information_description_2),
                         style = MaterialTheme.typography.bodyMedium,
-                         modifier = Modifier.align(Alignment.Start)
+                        modifier = Modifier.align(Alignment.Start)
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -205,7 +211,7 @@ fun HealthConnectSettingsScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        onClick = { viewModel.disconnect() },
+                        onClick = { viewModel.onEvent(HealthConnectEvent.Disconnect) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(text = stringResource(id = R.string.health_connect_disconnect))

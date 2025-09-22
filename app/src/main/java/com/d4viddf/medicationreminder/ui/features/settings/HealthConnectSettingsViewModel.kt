@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +20,15 @@ sealed class HealthConnectSettingsUiState {
     ) : HealthConnectSettingsUiState()
 }
 
+sealed class HealthConnectEvent {
+    object RequestPermissions : HealthConnectEvent()
+    object Disconnect : HealthConnectEvent()
+}
+
+sealed class UiEvent {
+    data class LaunchPermissionRequest(val permissions: Set<String>) : UiEvent()
+}
+
 @HiltViewModel
 class HealthConnectSettingsViewModel @Inject constructor(
     val healthConnectManager: HealthConnectManager
@@ -26,8 +37,24 @@ class HealthConnectSettingsViewModel @Inject constructor(
     private val _uiState = mutableStateOf<HealthConnectSettingsUiState>(HealthConnectSettingsUiState.Loading)
     val uiState: State<HealthConnectSettingsUiState> = _uiState
 
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
+
     init {
         checkAvailability()
+    }
+
+    fun onEvent(event: HealthConnectEvent) {
+        when (event) {
+            is HealthConnectEvent.RequestPermissions -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(UiEvent.LaunchPermissionRequest(healthConnectManager.getPermissions()))
+                }
+            }
+            is HealthConnectEvent.Disconnect -> {
+                disconnect()
+            }
+        }
     }
 
     private fun checkAvailability() {
@@ -48,7 +75,7 @@ class HealthConnectSettingsViewModel @Inject constructor(
         }
     }
 
-    fun disconnect() {
+    private fun disconnect() {
         viewModelScope.launch {
             healthConnectManager.revokeAllPermissions()
             updatePermissionStatus()
@@ -61,7 +88,7 @@ class HealthConnectSettingsViewModel @Inject constructor(
     }
 
     fun openHealthConnectFaq(context: android.content.Context) {
-        val uri = android.net.Uri.parse("https://support.google.com/android/answer/12944888")
+        val uri = android.net.Uri.parse("https://support.google.com/android/answer/12201227?hl=en")
         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
         context.startActivity(intent)
     }
