@@ -54,4 +54,16 @@ class HealthConnectSettingsViewModel @Inject constructor(
             updatePermissionStatus()
         }
     }
+
+    fun openHealthConnectDataManagement(context: android.content.Context) {
+        val intent = android.content.Intent(android.health.connect.HealthConnectManager.ACTION_MANAGE_HEALTH_PERMISSIONS)
+        intent.putExtra(android.content.Intent.EXTRA_PACKAGE_NAME, context.packageName)
+        context.startActivity(intent)
+    }
+
+    fun openHealthConnectFaq(context: android.content.Context) {
+        val uri = android.net.Uri.parse("https://support.google.com/android/answer/12944888")
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+        context.startActivity(intent)
+    }
 }
