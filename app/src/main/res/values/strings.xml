@@ -638,7 +638,11 @@
     <string name="health_connect_information_description_1">The data you allow Pillpal to read from Health Connect will be available in the Pillpal app, but not on your devices.</string>
     <string name="health_connect_information_description_2">If you allow Pillpal to write a type of data in Health Connect, that data will be stored in Health Connect and will be available to your other applications.</string>
     <string name="health_connect_settings_title">Settings</string>
-    <string name="health_connect_today_title">Health Connect in Today</string>
+    <string name="health_connect_today_title">Health Connect in PillPal</string>
+    <string name="health_connect_today_show_all_data_title">Show all data</string>
+    <string name="health_connect_today_show_all_data_description">Show all data from Health Connect in PillPal</string>
+    <string name="health_connect_today_dont_show_data_title">Don\'t show data</string>
+    <string name="health_connect_today_dont_show_data_description">PillPal will continue to save data to Health Connect, but it will not be displayed in the app</string>
     <string name="health_connect_today_description">Showing Health Connect data</string>
     <string name="health_connect_manage_data_title">Manage data and access</string>
     <string name="health_connect_manage_data_description">Review permissions and delete Health Connect data</string>
