@@ -65,7 +65,7 @@ fun SaludConectadaEnHoyScreen(
             item {
                 Text(
                     text = stringResource(id = R.string.salud_conectada_en_hoy_description),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
             }
@@ -82,18 +82,17 @@ fun SaludConectadaEnHoyScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Dimensions.PaddingMedium)
+                            .padding(horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)
                     ) {
 
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(vertical = Dimensions.PaddingMedium)
                         ) {
                             Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title),fontWeight = FontWeight.Bold)
                             Text(
                                 text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                         RadioButton(
@@ -116,18 +115,17 @@ fun SaludConectadaEnHoyScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Dimensions.PaddingMedium)
+                            .padding(horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)
                     ) {
 
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(vertical = Dimensions.PaddingMedium)
                         ) {
                             Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title), fontWeight = FontWeight.Bold)
                             Text(
                                 text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                         RadioButton(
@@ -148,22 +146,22 @@ fun SaludConectadaEnHoyScreen(
                 Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
                 Text(
                     text = stringResource(id = R.string.que_datos_se_mostraran_description_1),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
-                Text(text = "• ${stringResource(id = R.string.dato_frecuencia_cardiaca)}")
-                Text(text = "• ${stringResource(id = R.string.dato_ingesta_de_agua)}")
-                Text(text = "• ${stringResource(id = R.string.dato_peso)}")
-                Text(text = "• ${stringResource(id = R.string.dato_temperatura_corporal)}")
+                Text(text = "• ${stringResource(id = R.string.dato_frecuencia_cardiaca)}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "• ${stringResource(id = R.string.dato_ingesta_de_agua)}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "• ${stringResource(id = R.string.dato_peso)}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "• ${stringResource(id = R.string.dato_temperatura_corporal)}", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                 Text(
                     text = stringResource(id = R.string.que_datos_se_mostraran_description_2),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
                  Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                 Text(
                     text = stringResource(id = R.string.que_datos_se_mostraran_description_3),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
