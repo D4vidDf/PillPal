@@ -268,7 +268,7 @@ fun DisconnectDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = "Disconnect Health Connect") },
-        text = { Text(text = "Are you sure you want to disconnect from Health Connect?") },
+        text = { Text(text = "Are you sure you want to disconnect from Health Connect? The permissions will be revoked after you close the app.") },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text("Confirm")
