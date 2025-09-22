@@ -492,6 +492,11 @@
     <string name="disclaimer_body_temp">Funtzio hau ez da gaixotasun larriak edo egoera medikoak diagnostikatzeko edo kontrolatzeko pentsatuta. Kontsultatu zure osasun-hornitzailearekin zure osasunari buruzko galderarik baduzu edo zure gorputz-tenperaturaren irakurketek, oro har, zer esan nahi duten jakiteko.</string>
     <string name="no_temperatures_recorded">Ez da tenperaturarik erregistratu</string>
 
+    <!-- Salud Conectada En Hoy Screen -->
+    <string name="salud_conectada_en_hoy_intro">Aukeratu Osasun konektatuko zein datu ikusi nahi dituzun app-ean.</string>
+    <string name="salud_conectada_en_hoy_data_title">Honako datu hauek erakutsiko dira:</string>
+    <string name="salud_conectada_en_hoy_data_list">  • Bihotz-maiztasuna\n  • Ur-hartzea\n  • Pisua\n  • Gorputz-tenperatura</string>
+
     <!-- Health Connect Settings -->
     <string name="health_connect_title">Atera etekin handiagoa Osasun konektatuari</string>
     <string name="health_connect_description">Datu guztiak ikusteko, eman baimena Pillpal-i datuak irakurri eta erregistratzeko. Pillpal-ek zure beste aplikazioetako datuak erakutsiko ditu eta aplikazio horiek Pillpal-en datuak atzitu ahal izango dituzte.</string>

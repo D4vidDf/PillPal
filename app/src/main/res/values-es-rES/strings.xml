@@ -537,6 +537,11 @@
     <string name="health_connect_get_help_description">Más información sobre la sincronización con Salud conectada y cómo solucionar problemas habituales</string>
     <string name="health_connect_disconnect">Desconectar Salud conectada</string>
 
+    <!-- Salud Conectada En Hoy Screen -->
+    <string name="salud_conectada_en_hoy_intro">Elige qué datos de Salud conectada quieres ver en la app.</string>
+    <string name="salud_conectada_en_hoy_data_title">Se mostrarán los siguientes datos:</string>
+    <string name="salud_conectada_en_hoy_data_list">  • Frecuencia cardíaca\n  • Ingesta de agua\n  • Peso\n  • Temperatura corporal</string>
+
     <!-- Health Connect Disconnect Dialog -->
     <string name="health_connect_disconnect_dialog_title">Abre Salud conectada para terminar la desconexión</string>
     <string name="health_connect_disconnect_dialog_message">PillPal seguirá teniendo permisos en Salud conectada a menos que los desactives. Abre Salud conectada para eliminar los permisos de PillPal.</string>

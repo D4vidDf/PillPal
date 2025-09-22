@@ -492,6 +492,11 @@
     <string name="disclaimer_body_temp">Esta función non está destinada a diagnosticar ou controlar enfermidades graves ou afeccións médicas. Consulte co seu médico se ten dúbidas sobre a súa saúde ou o que significan en xeral as súas lecturas de temperatura corporal.</string>
     <string name="no_temperatures_recorded">Non se rexistraron temperaturas</string>
 
+    <!-- Salud Conectada En Hoy Screen -->
+    <string name="salud_conectada_en_hoy_intro">Elixe que datos de Saúde conectada queres ver na app.</string>
+    <string name="salud_conectada_en_hoy_data_title">Mostraranse os seguintes datos:</string>
+    <string name="salud_conectada_en_hoy_data_list">  • Frecuencia cardíaca\n  • Inxesta de auga\n  • Peso\n  • Temperatura corporal</string>
+
     <!-- Health Connect Settings -->
     <string name="health_connect_title">Saca máis partido a Saúde conectada</string>
     <string name="health_connect_description">Para poder ver todos os datos, dálle permiso a Pillpal para que lea e rexistre datos. Pillpal mostrará os datos das túas outras aplicacións e esas aplicacións poderán acceder aos datos de Pillpal.</string>

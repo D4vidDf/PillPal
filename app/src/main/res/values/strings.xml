@@ -650,6 +650,11 @@
     <string name="health_connect_get_help_description">More information about syncing with Health Connect and common issues</string>
     <string name="health_connect_disconnect">Disconnect Health Connect</string>
 
+    <!-- Salud Conectada En Hoy Screen -->
+    <string name="salud_conectada_en_hoy_intro">Choose what data from Health Connect you want to see in the app.</string>
+    <string name="salud_conectada_en_hoy_data_title">The following data will be shown:</string>
+    <string name="salud_conectada_en_hoy_data_list">  • Heart rate\n  • Water intake\n  • Weight\n  • Body temperature</string>
+
     <!-- Health Connect Disconnect Dialog -->
     <string name="health_connect_disconnect_dialog_title">Open Health Connect to complete disconnection</string>
     <string name="health_connect_disconnect_dialog_message">PillPal will still have permissions in Health Connect unless you disable them. Open Health Connect to remove PillPal\'s permissions.</string>
