@@ -25,12 +25,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.theme.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,8 +70,9 @@ fun SaludConectadaEnHoyScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .clickable { viewModel.onShowHealthConnectDataChange(false) }
+                    .padding(vertical = 1.dp)
+                    .clickable { viewModel.onShowHealthConnectDataChange(false) },
+                shape = RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -95,8 +96,9 @@ fun SaludConectadaEnHoyScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
-                    .clickable { viewModel.onShowHealthConnectDataChange(true) }
+                    .padding(vertical = 1.dp)
+                    .clickable { viewModel.onShowHealthConnectDataChange(true) },
+                shape = RoundedCornerShape(bottomStart = Dimensions.PaddingMedium, bottomEnd = Dimensions.PaddingMedium)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

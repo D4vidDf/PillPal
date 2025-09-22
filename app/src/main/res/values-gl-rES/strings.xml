@@ -500,17 +500,17 @@
     <string name="health_connect_get_help_description">Máis información sobre a sincronización con Saúde conectada e como solucionar problemas comúns</string>
     <string name="health_connect_disconnect">Desconectar Saúde conectada</string>
 
-    <string name="salud_conectada_en_hoy_description">Para os tipos de datos admitidos, podes escoller que se mostren os datos de Saúde conectada na pestana Hoxe</string>
-    <string name="mostrar_solo_datos_de_fitbit_title">Amosar só os datos de Fitbit</string>
-    <string name="mostrar_solo_datos_de_fitbit_description">Só verás datos dos teus dispositivos Fitbit e as funcións desa aplicación</string>
+    <string name="salud_conectada_en_hoy_description">Para os tipos de datos admitidos, podes escoller que se mostren os datos de Saúde conectada na app</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Amosar só os datos de PillPal</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Só verás datos dos teus dispositivos PillPal e as funcións desa aplicación</string>
     <string name="mostrar_datos_de_salud_conectada_title">Amosar datos de Saúde conectada</string>
-    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de Fitbit como de Saúde conectada para os tipos de datos admitidos</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de PillPal como de Saúde conectada para os tipos de datos admitidos</string>
     <string name="que_datos_se_mostraran_title">Que datos se amosarán</string>
-    <string name="que_datos_se_mostraran_description_1">Se lle dás permiso a Fitbit para ler datos, a pestana Hoxe poderá amosarche os seguintes datos de Saúde conectada:</string>
+    <string name="que_datos_se_mostraran_description_1">Se lle dás permiso a PillPal para ler datos, a app poderá amosarche os seguintes datos de Saúde conectada:</string>
     <string name="dato_frecuencia_cardiaca">Frecuencia cardíaca</string>
     <string name="dato_ingesta_de_agua">Consumo de auga</string>
     <string name="dato_peso">Peso</string>
     <string name="dato_temperatura_corporal">Temperatura corporal</string>
-    <string name="que_datos_se_mostraran_description_2">Se escolles amosar os datos de Saúde conectada na pestana Hoxe, é posible que estes tipos de datos deixen de coincidir cos que aparecen no teu dispositivo Fitbit.</string>
-    <string name="que_datos_se_mostraran_description_3">As puntuacións, insignias e táboas de clasificación seguirán usando só os datos dos teus dispositivos e funcións de Fitbit.</string>
+    <string name="que_datos_se_mostraran_description_2">Se escolles amosar os datos de Saúde conectada na app, é posible que estes tipos de datos deixen de coincidir cos que aparecen no teu dispositivo PillPal.</string>
+    <string name="que_datos_se_mostraran_description_3">As puntuacións, insignias e táboas de clasificación seguirán usando só os datos dos teus dispositivos e funcións de PillPal.</string>
 </resources>

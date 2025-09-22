@@ -630,14 +630,6 @@
     <string name="privacy_policy_contact_email_button">Contactar por correo electrónico</string>
     <string name="privacy_policy_contact_website_button">Visitar sitio web</string>
 
-    <!-- Health Connect Settings -->
-    <string name="health_connect_title">Make the most of Health Connect</string>
-    <string name="health_connect_description">To see all your data, give Pillpal permission to read and write data. Pillpal will display data from your other apps, and those apps will be able to access data from Pillpal.</string>
-    <string name="health_connect_review_permissions">Review permissions</string>
-    <string name="health_connect_information_title">Information</string>
-    <string name="health_connect_information_description_1">The data you allow Pillpal to read from Health Connect will be available in the Pillpal app, but not on your devices.</string>
-    <string name="health_connect_information_description_2">If you allow Pillpal to write a type of data in Health Connect, that data will be stored in Health Connect and will be available to your other applications.</string>
-    <string name="health_connect_settings_title">Settings</string>
     <string name="health_connect_today_title">Salud conectada en PillPal</string>
     <string name="health_connect_today_description">Mostrando datos de Salud conectada</string>
     <string name="health_connect_manage_data_title">Gestionar datos y acceso</string>
@@ -646,17 +638,17 @@
     <string name="health_connect_get_help_description">Más información sobre la sincronización con Salud conectada y cómo solucionar problemas habituales</string>
     <string name="health_connect_disconnect">Desconectar Salud conectada</string>
 
-    <string name="salud_conectada_en_hoy_description">Para los tipos de datos admitidos, puedes elegir que se muestren datos de Salud conectada en la pestaña Hoy</string>
-    <string name="mostrar_solo_datos_de_fitbit_title">Mostrar solo datos de Fitbit</string>
-    <string name="mostrar_solo_datos_de_fitbit_description">Solo verás datos de tus dispositivos Fitbit y las funciones de dicha aplicación</string>
+    <string name="salud_conectada_en_hoy_description">Para los tipos de datos admitidos, puedes elegir que se muestren datos de Salud conectada en la app</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Mostrar solo datos de PillPal</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Solo verás datos de tus dispositivos PillPal y las funciones de dicha aplicación</string>
     <string name="mostrar_datos_de_salud_conectada_title">Mostrar datos de Salud conectada</string>
-    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de Fitbit como de Salud conectada de los tipos de datos admitidos</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de PillPal como de Salud conectada de los tipos de datos admitidos</string>
     <string name="que_datos_se_mostraran_title">Qué datos se mostrarán</string>
-    <string name="que_datos_se_mostraran_description_1">Si das permiso a Fitbit para leer datos, la pestaña Hoy podrá mostrarte los siguientes datos de Salud conectada:</string>
+    <string name="que_datos_se_mostraran_description_1">Si das permiso a PillPal para leer datos, la app podrá mostrarte los siguientes datos de Salud conectada:</string>
     <string name="dato_frecuencia_cardiaca">Frecuencia cardiaca</string>
     <string name="dato_ingesta_de_agua">Ingesta de agua</string>
     <string name="dato_peso">Peso</string>
     <string name="dato_temperatura_corporal">Temperatura corporal</string>
-    <string name="que_datos_se_mostraran_description_2">Si eliges mostrar datos de Salud conectada en la pestaña Hoy, es posible que estos tipos de datos dejen de coincidir con los que aparecen en tu dispositivo Fitbit.</string>
-    <string name="que_datos_se_mostraran_description_3">Las puntuaciones, insignias y tablas de clasificación seguirán usando solo los datos de tus dispositivos y funciones de Fitbit.</string>
+    <string name="que_datos_se_mostraran_description_2">Si eliges mostrar datos de Salud conectada en la app, es posible que estos tipos de datos dejen de coincidir con los que aparecen en tu dispositivo PillPal.</string>
+    <string name="que_datos_se_mostraran_description_3">Las puntuaciones, insignias y tablas de clasificación seguirán usando solo los datos de tus dispositivos y funciones de PillPal.</string>
 </resources>
