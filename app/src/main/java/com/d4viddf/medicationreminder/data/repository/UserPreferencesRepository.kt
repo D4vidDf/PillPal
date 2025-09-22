@@ -38,6 +38,7 @@ class UserPreferencesRepository @Inject constructor(
         val WEIGHT_GOAL_VALUE = floatPreferencesKey("weight_goal_value")
         // --- NEW KEY FOR HOME LAYOUT ---
         val HOME_LAYOUT_CONFIG = stringPreferencesKey("home_layout_config")
+        val SHOW_HEALTH_CONNECT_DATA = booleanPreferencesKey("show_health_connect_data")
     }
 
     val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
@@ -157,6 +158,17 @@ class UserPreferencesRepository @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences.remove(PreferencesKeys.WEIGHT_GOAL_TYPE)
             preferences.remove(PreferencesKeys.WEIGHT_GOAL_VALUE)
+        }
+    }
+
+    val showHealthConnectDataFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.SHOW_HEALTH_CONNECT_DATA] ?: true
+        }
+
+    suspend fun setShowHealthConnectData(show: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SHOW_HEALTH_CONNECT_DATA] = show
         }
     }
 }

@@ -120,6 +120,7 @@ sealed class Screen(val route: String) {
     object HeartRate : Screen("heartRate")
     object HealthConnectSettings : Screen("healthConnectSettings")
     object PrivacyPolicy : Screen("privacyPolicy")
+    object SaludConectadaEnHoy : Screen("salud_conectada_en_hoy")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -446,6 +447,9 @@ fun AppNavigation(
             }
             composable(Screen.PrivacyPolicy.route) {
                 com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.SaludConectadaEnHoy.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.SaludConectadaEnHoyScreen(navController = navController)
             }
         }
     }
