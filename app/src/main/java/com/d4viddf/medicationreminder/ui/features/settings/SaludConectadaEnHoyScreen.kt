@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
@@ -59,21 +60,21 @@ fun SaludConectadaEnHoyScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(Dimensions.PaddingMedium)
+                .padding(Dimensions.PaddingScreen)
         ) {
             item {
                 Text(
                     text = stringResource(id = R.string.salud_conectada_en_hoy_description),
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
             }
 
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = Dimensions.PaddingExtraSmall)
+                        .padding(vertical = Dimensions.PaddingSmall)
                         .clickable { viewModel.onShowHealthConnectDataChange(false) },
                     shape = RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
                 ) {
@@ -81,19 +82,24 @@ fun SaludConectadaEnHoyScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)
+                            .padding(horizontal = Dimensions.PaddingMedium)
                     ) {
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = Dimensions.PaddingMedium)
+                        ) {
+                            Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title),fontWeight = FontWeight.Bold)
+                            Text(
+                                text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                         RadioButton(
                             selected = !showHealthConnectData,
                             onClick = { viewModel.onShowHealthConnectDataChange(false) }
                         )
-                        Column(modifier = Modifier.padding(start = Dimensions.PaddingMedium)) {
-                            Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title))
-                            Text(
-                                text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
                     }
                 }
             }
@@ -102,7 +108,7 @@ fun SaludConectadaEnHoyScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = Dimensions.PaddingExtraSmall)
+                        .padding(vertical = Dimensions.PaddingSmall)
                         .clickable { viewModel.onShowHealthConnectDataChange(true) },
                     shape = RoundedCornerShape(bottomStart = Dimensions.PaddingMedium, bottomEnd = Dimensions.PaddingMedium)
                 ) {
@@ -110,30 +116,36 @@ fun SaludConectadaEnHoyScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)
+                            .padding(horizontal = Dimensions.PaddingMedium)
                     ) {
-                        RadioButton(
-                            selected = showHealthConnectData,
-                            onClick = { viewModel.onShowHealthConnectDataChange(true) }
-                        )
-                        Column(modifier = Modifier.padding(start = Dimensions.PaddingMedium)) {
-                            Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title))
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = Dimensions.PaddingMedium)
+                        ) {
+                            Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title), fontWeight = FontWeight.Bold)
                             Text(
                                 text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description),
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
+                        RadioButton(
+                                selected = showHealthConnectData,
+                        onClick = { viewModel.onShowHealthConnectDataChange(true) }
+                        )
                     }
                 }
             }
 
             item {
-                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
                 Text(
                     text = stringResource(id = R.string.que_datos_se_mostraran_title),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
+                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
                 Text(
                     text = stringResource(id = R.string.que_datos_se_mostraran_description_1),
                     style = MaterialTheme.typography.bodyLarge
@@ -148,7 +160,7 @@ fun SaludConectadaEnHoyScreen(
                     text = stringResource(id = R.string.que_datos_se_mostraran_description_2),
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                 Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                 Text(
                     text = stringResource(id = R.string.que_datos_se_mostraran_description_3),
                     style = MaterialTheme.typography.bodyLarge
