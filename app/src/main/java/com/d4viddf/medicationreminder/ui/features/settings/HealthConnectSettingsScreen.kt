@@ -71,20 +71,14 @@ fun HealthConnectSettingsScreen(
         }
     }
 
-    val managePermissionsLauncher = rememberLauncherForActivityResult(
-        contract = ManageHealthPermissionsContract()
-    ) {
-        // No result to handle.
-    }
-
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.LaunchPermissionRequest -> {
                     permissionLauncher.launch(event.permissions)
                 }
-                is UiEvent.LaunchManagePermissions -> {
-                    managePermissionsLauncher.launch(event.packageName)
+                is UiEvent.OpenHealthConnectSettings -> {
+                    viewModel.openHealthConnectDataManagement(context)
                 }
             }
         }

@@ -30,7 +30,7 @@ sealed class HealthConnectEvent {
 
 sealed class UiEvent {
     data class LaunchPermissionRequest(val permissions: Set<String>) : UiEvent()
-    data class LaunchManagePermissions(val packageName: String) : UiEvent()
+    object OpenHealthConnectSettings : UiEvent()
 }
 
 @HiltViewModel
@@ -54,7 +54,7 @@ class HealthConnectSettingsViewModel @Inject constructor(
             is HealthConnectEvent.RequestPermissions -> {
                 viewModelScope.launch {
                     if (healthConnectManager.hasAllPermissions()) {
-                        _eventFlow.emit(UiEvent.LaunchManagePermissions(context.packageName))
+                        _eventFlow.emit(UiEvent.OpenHealthConnectSettings)
                     } else {
                         _eventFlow.emit(UiEvent.LaunchPermissionRequest(healthConnectManager.getPermissions()))
                     }
