@@ -3,20 +3,15 @@ package com.d4viddf.medicationreminder.ui.features.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,11 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.theme.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,113 +50,54 @@ fun SaludConectadaEnHoyScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(Dimensions.PaddingScreen)
+                .padding(16.dp)
         ) {
-            item {
-                Text(
-                    text = stringResource(id = R.string.salud_conectada_en_hoy_description),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-            }
+            OptionCard(
+                title = stringResource(id = R.string.health_connect_today_show_all_data_title),
+                description = stringResource(id = R.string.health_connect_today_show_all_data_description),
+                selected = showHealthConnectData,
+                onClick = { viewModel.onShowHealthConnectDataChange(true) }
+            )
+            OptionCard(
+                title = stringResource(id = R.string.health_connect_today_dont_show_data_title),
+                description = stringResource(id = R.string.health_connect_today_dont_show_data_description),
+                selected = !showHealthConnectData,
+                onClick = { viewModel.onShowHealthConnectDataChange(false) }
+            )
+        }
+    }
+}
 
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Dimensions.PaddingSmall)
-                        .clickable { viewModel.onShowHealthConnectDataChange(false) },
-                    shape = RoundedCornerShape(topStart = Dimensions.PaddingMedium, topEnd = Dimensions.PaddingMedium)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)
-                    ) {
-
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
-                            Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title),fontWeight = FontWeight.Bold)
-                            Text(
-                                text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        RadioButton(
-                            selected = !showHealthConnectData,
-                            onClick = { viewModel.onShowHealthConnectDataChange(false) }
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Dimensions.PaddingSmall)
-                        .clickable { viewModel.onShowHealthConnectDataChange(true) },
-                    shape = RoundedCornerShape(bottomStart = Dimensions.PaddingMedium, bottomEnd = Dimensions.PaddingMedium)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)
-                    ) {
-
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
-                            Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title), fontWeight = FontWeight.Bold)
-                            Text(
-                                text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        RadioButton(
-                                selected = showHealthConnectData,
-                        onClick = { viewModel.onShowHealthConnectDataChange(true) }
-                        )
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-                Text(
-                    text = stringResource(id = R.string.que_datos_se_mostraran_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-                Text(
-                    text = stringResource(id = R.string.que_datos_se_mostraran_description_1),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
-                Text(text = "• ${stringResource(id = R.string.dato_frecuencia_cardiaca)}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "• ${stringResource(id = R.string.dato_ingesta_de_agua)}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "• ${stringResource(id = R.string.dato_peso)}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "• ${stringResource(id = R.string.dato_temperatura_corporal)}", style = MaterialTheme.typography.bodySmall)
-                Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-                Text(
-                    text = stringResource(id = R.string.que_datos_se_mostraran_description_2),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                 Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-                Text(
-                    text = stringResource(id = R.string.que_datos_se_mostraran_description_3),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+@Composable
+fun OptionCard(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = onClick
+            )
+            Column(modifier = Modifier.padding(start = 16.dp)) {
+                Text(text = title)
+                Text(text = description)
             }
         }
     }

@@ -197,7 +197,7 @@
     <string name="calendar_screen_title">Calendar</string>
     <string name="profile_screen_title">Profile</string>
     <string name="select_medication_placeholder">Select a medication to view details</string>
-    <string name="less_than_a_minute">less than a minute</string>
+    <string name="less_than_a_minute">menos de un minuto</string>
 
     <string name="notification_title_time_for">Time for your %1$s!</string>
     <string name="notification_text_take_dosage">Take %1$s.</string>
@@ -218,8 +218,7 @@
 
     <string name="prereminder_title_medication">%1$s</string>
     <string name="prereminder_text_in_about_hour">Reminder in about an hour</string>
-    <string name="prereminder_text_in_approx_minutes_plural">Reminder in ~%1$d minutes</string>
-    <string name="prereminder_text_in_approx_minutes_singular">Reminder in ~%1$d minute</string>
+    <string name="prereminder_text_in_approx_minutes_plural">Reminder in ~%1$d minutes</string> <string name="prereminder_text_in_approx_minutes_singular">Reminder in ~%1$d minute</string>
     <string name="prereminder_text_approx_minutes_left_plural">Approx. %1$d minutes left</string>
     <string name="prereminder_text_approx_minutes_left_singular">Approx. %1$d minute left</string>
     <string name="prereminder_text_coming_up_plural">Coming up: %1$d min!</string>
@@ -601,34 +600,4 @@
     <string name="privacy_policy_section_9_intro">If you have any questions about this Privacy Policy, you can contact us through:</string>
     <string name="privacy_policy_contact_email_button">Contact via Email</string>
     <string name="privacy_policy_contact_website_button">Visit Website</string>
-
-    <string name="health_connect_today_title">Health Connect in PillPal</string>
-    <string name="health_connect_today_description">Showing Health Connect data</string>
-    <string name="health_connect_manage_data_title">Manage data and access</string>
-    <string name="health_connect_manage_data_description">Review permissions and delete Health Connect data</string>
-    <string name="health_connect_get_help_title">Get help</string>
-    <string name="health_connect_get_help_description">More information about syncing with Health Connect and common issues</string>
-    <string name="health_connect_disconnect">Disconnect Health Connect</string>
-
-    <string name="health_connect_title">Make the most of Health Connect</string>
-    <string name="health_connect_description">To see all your data, give Pillpal permission to read and write data. Pillpal will display data from your other apps, and those apps will be able to access data from Pillpal.</string>
-    <string name="health_connect_review_permissions">Review permissions</string>
-    <string name="health_connect_information_title">Information</string>
-    <string name="health_connect_information_description_1">The data you allow Pillpal to read from Health Connect will be available in the Pillpal app, but not on your devices.</string>
-    <string name="health_connect_information_description_2">If you allow Pillpal to write a type of data in Health Connect, that data will be stored in Health Connect and will be available to your other applications.</string>
-    <string name="health_connect_settings_title">Settings</string>
-
-    <string name="salud_conectada_en_hoy_description">For admitted data types, you can choose to have Health Connect data displayed in the app</string>
-    <string name="mostrar_solo_datos_de_fitbit_title">Show PillPal data only</string>
-    <string name="mostrar_solo_datos_de_fitbit_description">You will only see data from your PillPal devices and the features of that application</string>
-    <string name="mostrar_datos_de_salud_conectada_title">Show Health Connect data</string>
-    <string name="mostrar_datos_de_salud_conectada_description">You will see data from both PillPal and Health Connect for admitted data types</string>
-    <string name="que_datos_se_mostraran_title">What data will be displayed</string>
-    <string name="que_datos_se_mostraran_description_1">If you give PillPal permission to read data, the app can show you the following Health Connect data:</string>
-    <string name="dato_frecuencia_cardiaca">Heart rate</string>
-    <string name="dato_ingesta_de_agua">Water intake</string>
-    <string name="dato_peso">Weight</string>
-    <string name="dato_temperatura_corporal">Body temperature</string>
-    <string name="que_datos_se_mostraran_description_2">If you choose to display Health Connect data in the app, these data types may no longer match what appears on your PillPal device.</string>
-    <string name="que_datos_se_mostraran_description_3">Scores, badges, and leaderboards will continue to use only data from your PillPal devices and features.</string>
 </resources>

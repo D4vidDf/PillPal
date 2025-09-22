@@ -630,37 +630,29 @@
     <string name="privacy_policy_contact_email_button">Contactar por correo electrónico</string>
     <string name="privacy_policy_contact_website_button">Visitar sitio web</string>
 
-    <string name="health_connect_today_title">Salud conectada en PillPal</string>
-    <string name="health_connect_today_show_all_data_title">Mostrar todos los datos</string>
-    <string name="health_connect_today_show_all_data_description">Mostrar todos los datos de Salud conectada en PillPal</string>
-    <string name="health_connect_today_dont_show_data_title">No mostrar datos</string>
-    <string name="health_connect_today_dont_show_data_description">PillPal continuará guardando datos en Salud conectada, pero no se mostrarán en la aplicación</string>
-    <string name="health_connect_today_description">Mostrando datos de Salud conectada</string>
-    <string name="health_connect_manage_data_title">Gestionar datos y acceso</string>
-    <string name="health_connect_manage_data_description">Revisa los permisos y elimina los datos de Salud conectada</string>
-    <string name="health_connect_get_help_title">Obtener ayuda</string>
-    <string name="health_connect_get_help_description">Más información sobre la sincronización con Salud conectada y cómo solucionar problemas habituales</string>
-    <string name="health_connect_disconnect">Desconectar Salud conectada</string>
+    <!-- Health Connect Settings -->
+    <string name="health_connect_title">Make the most of Health Connect</string>
+    <string name="health_connect_description">To see all your data, give Pillpal permission to read and write data. Pillpal will display data from your other apps, and those apps will be able to access data from Pillpal.</string>
+    <string name="health_connect_review_permissions">Review permissions</string>
+    <string name="health_connect_information_title">Information</string>
+    <string name="health_connect_information_description_1">The data you allow Pillpal to read from Health Connect will be available in the Pillpal app, but not on your devices.</string>
+    <string name="health_connect_information_description_2">If you allow Pillpal to write a type of data in Health Connect, that data will be stored in Health Connect and will be available to your other applications.</string>
+    <string name="health_connect_settings_title">Settings</string>
+    <string name="health_connect_today_title">Health Connect in PillPal</string>
+    <string name="health_connect_today_show_all_data_title">Show all data</string>
+    <string name="health_connect_today_show_all_data_description">Show all data from Health Connect in PillPal</string>
+    <string name="health_connect_today_dont_show_data_title">Don\'t show data</string>
+    <string name="health_connect_today_dont_show_data_description">PillPal will continue to save data to Health Connect, but it will not be displayed in the app</string>
+    <string name="health_connect_today_description">Showing Health Connect data</string>
+    <string name="health_connect_manage_data_title">Manage data and access</string>
+    <string name="health_connect_manage_data_description">Review permissions and delete Health Connect data</string>
+    <string name="health_connect_get_help_title">Get help</string>
+    <string name="health_connect_get_help_description">More information about syncing with Health Connect and common issues</string>
+    <string name="health_connect_disconnect">Disconnect Health Connect</string>
 
-    <string name="health_connect_title">Saca más partido a Salud conectada</string>
-    <string name="health_connect_description">Para poder ver todos los datos, dale permiso a Pillpal para que lea y registre datos. Pillpal mostrará los datos de tus otras aplicaciones y esas aplicaciones podrán acceder a los datos de Pillpal.</string>
-    <string name="health_connect_review_permissions">Revisar permisos</string>
-    <string name="health_connect_information_title">Información</string>
-    <string name="health_connect_information_description_1">Los datos que permitas que Pillpal lea de Salud conectada estarán disponibles en la aplicación Pillpal, pero no en tus dispositivos.</string>
-    <string name="health_connect_information_description_2">Si permites que Pillpal registre un tipo de datos en Salud conectada, esos datos se almacenarán en Salud conectada y estarán disponibles para tus otras aplicaciones.</string>
-    <string name="health_connect_settings_title">Ajustes</string>
-
-    <string name="salud_conectada_en_hoy_description">Para los tipos de datos admitidos, puedes elegir que se muestren datos de Salud conectada en la app</string>
-    <string name="mostrar_solo_datos_de_fitbit_title">Mostrar solo datos de PillPal</string>
-    <string name="mostrar_solo_datos_de_fitbit_description">Solo verás datos de tus dispositivos PillPal y las funciones de dicha aplicación</string>
-    <string name="mostrar_datos_de_salud_conectada_title">Mostrar datos de Salud conectada</string>
-    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de PillPal como de Salud conectada de los tipos de datos admitidos</string>
-    <string name="que_datos_se_mostraran_title">Qué datos se mostrarán</string>
-    <string name="que_datos_se_mostraran_description_1">Si das permiso a PillPal para leer datos, la app podrá mostrarte los siguientes datos de Salud conectada:</string>
-    <string name="dato_frecuencia_cardiaca">Frecuencia cardiaca</string>
-    <string name="dato_ingesta_de_agua">Ingesta de agua</string>
-    <string name="dato_peso">Peso</string>
-    <string name="dato_temperatura_corporal">Temperatura corporal</string>
-    <string name="que_datos_se_mostraran_description_2">Si eliges mostrar datos de Salud conectada en la app, es posible que estos tipos de datos dejen de coincidir con los que aparecen en tu dispositivo PillPal.</string>
-    <string name="que_datos_se_mostraran_description_3">Las puntuaciones, insignias y tablas de clasificación seguirán usando solo los datos de tus dispositivos y funciones de PillPal.</string>
+    <!-- Health Connect Disconnect Dialog -->
+    <string name="health_connect_disconnect_dialog_title">Open Health Connect to complete disconnection</string>
+    <string name="health_connect_disconnect_dialog_message">PillPal will still have permissions in Health Connect unless you disable them. Open Health Connect to remove PillPal\'s permissions.</string>
+    <string name="health_connect_disconnect_dialog_go_back_button">Go back</string>
+    <string name="health_connect_disconnect_dialog_open_settings_button">Open settings</string>
 </resources>

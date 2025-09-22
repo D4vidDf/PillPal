@@ -492,10 +492,18 @@
     <string name="disclaimer_body_temp">Aquesta funció no està destinada a diagnosticar o controlar malalties greus o afeccions mèdiques. Consulteu el vostre metge si teniu preguntes sobre la vostra salut o què signifiquen en general les vostres lectures de temperatura corporal.</string>
     <string name="no_temperatures_recorded">No s\'han registrat temperatures</string>
 
+    <!-- Health Connect Settings -->
+    <string name="health_connect_title">Treu més partit a Salut connectada</string>
+    <string name="health_connect_description">Per poder veure totes les dades, dona permís a Pillpal per a llegir i registrar dades. Pillpal mostrarà les dades de les teves altres aplicacions i aquestes aplicacions podran accedir a les dades de Pillpal.</string>
+    <string name="health_connect_review_permissions">Revisa els permisos</string>
+    <string name="health_connect_information_title">Informació</string>
+    <string name="health_connect_information_description_1">Les dades que permetis que Pillpal llegeixi de Salut connectada estaran disponibles a l\'aplicació Pillpal, però no als teus dispositius.</string>
+    <string name="health_connect_information_description_2">Si permets que Pillpal registri un tipus de dades a Salut connectada, aquestes dades es desaran a Salut connectada i estaran disponibles per a les teves altres aplicacions.</string>
+    <string name="health_connect_settings_title">Configuració</string>
     <string name="health_connect_today_title">Salut connectada a PillPal</string>
     <string name="health_connect_today_show_all_data_title">Mostra totes les dades</string>
     <string name="health_connect_today_show_all_data_description">Mostra totes les dades de Salut connectada a PillPal</string>
-    <string name="health_connect_today_dont_show_data_title">No mostris les dades</string>
+    <string name="health_connect_today_dont_show_data_title">No mostris dades</string>
     <string name="health_connect_today_dont_show_data_description">PillPal continuarà desant dades a Salut connectada, però no es mostraran a l\'aplicació</string>
     <string name="health_connect_today_description">Mostrant dades de Salut connectada</string>
     <string name="health_connect_manage_data_title">Gestiona les dades i l\'accés</string>
@@ -504,25 +512,9 @@
     <string name="health_connect_get_help_description">Més informació sobre la sincronització amb Salut connectada i com solucionar problemes habituals</string>
     <string name="health_connect_disconnect">Desconnecta Salut connectada</string>
 
-    <string name="health_connect_title">Treu el màxim partit de Salut connectada</string>
-    <string name="health_connect_description">Per poder veure totes les dades, dona permís a Pillpal per llegir i registrar dades. Pillpal mostrarà les dades de les teves altres aplicacions i aquestes aplicacions podran accedir a les dades de Pillpal.</string>
-    <string name="health_connect_review_permissions">Revisa els permisos</string>
-    <string name="health_connect_information_title">Informació</string>
-    <string name="health_connect_information_description_1">Les dades que permetis que Pillpal llegeixi de Salut connectada estaran disponibles a l\'aplicació Pillpal, però no als teus dispositius.</string>
-    <string name="health_connect_information_description_2">Si permets que Pillpal registri un tipus de dades a Salut connectada, aquestes dades s\'emmagatzemaran a Salut connectada i estaran disponibles per a les teves altres aplicacions.</string>
-    <string name="health_connect_settings_title">Configuració</string>
-
-    <string name="salud_conectada_en_hoy_description">Per als tipus de dades admesos, pots triar que es mostrin dades de Salut connectada a l\'app</string>
-    <string name="mostrar_solo_datos_de_fitbit_title">Mostra només les dades de PillPal</string>
-    <string name="mostrar_solo_datos_de_fitbit_description">Només veuràs les dades dels teus dispositius PillPal i les funcions d\'aquesta aplicació</string>
-    <string name="mostrar_datos_de_salud_conectada_title">Mostra les dades de Salut connectada</string>
-    <string name="mostrar_datos_de_salud_conectada_description">Veuràs dades tant de PillPal com de Salut connectada dels tipus de dades admesos</string>
-    <string name="que_datos_se_mostraran_title">Quines dades es mostraran</string>
-    <string name="que_datos_se_mostraran_description_1">Si dones permís a PillPal per llegir dades, l\'app podrà mostrar-te les següents dades de Salut connectada:</string>
-    <string name="dato_frecuencia_cardiaca">Freqüència cardíaca</string>
-    <string name="dato_ingesta_de_agua">Ingesta d\'aigua</string>
-    <string name="dato_peso">Pes</string>
-    <string name="dato_temperatura_corporal">Temperatura corporal</string>
-    <string name="que_datos_se_mostraran_description_2">Si tries mostrar dades de Salut connectada a l\'app, és possible que aquests tipus de dades deixin de coincidir amb els que apareixen al teu dispositiu PillPal.</string>
-    <string name="que_datos_se_mostraran_description_3">Les puntuacions, insígnies i taules de classificació continuaran utilitzant només les dades dels teus dispositius i funcions de PillPal.</string>
+    <!-- Health Connect Disconnect Dialog -->
+    <string name="health_connect_disconnect_dialog_title">Obre Salut connectada per a finalitzar la desconnexió</string>
+    <string name="health_connect_disconnect_dialog_message">PillPal continuarà tenint permisos a Salut connectada tret que els desactivis. Obre Salut connectada per a eliminar els permisos de PillPal.</string>
+    <string name="health_connect_disconnect_dialog_go_back_button">Enrere</string>
+    <string name="health_connect_disconnect_dialog_open_settings_button">Obre la configuració</string>
 </resources>
