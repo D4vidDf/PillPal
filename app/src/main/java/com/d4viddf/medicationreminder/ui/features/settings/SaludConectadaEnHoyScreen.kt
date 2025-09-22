@@ -3,8 +3,10 @@ package com.d4viddf.medicationreminder.ui.features.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -56,6 +59,20 @@ fun SaludConectadaEnHoyScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            Text(
+                text = "Choose what data from Health Connect you want to see in the app.",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Text(
+                text = "The following data will be shown:",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "  • Heart rate\n  • Water intake\n  • Weight\n  • Body temperature"
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             OptionCard(
                 title = stringResource(id = R.string.health_connect_today_show_all_data_title),
                 description = stringResource(id = R.string.health_connect_today_show_all_data_description),
@@ -96,8 +113,12 @@ fun OptionCard(
                 onClick = onClick
             )
             Column(modifier = Modifier.padding(start = 16.dp)) {
-                Text(text = title)
-                Text(text = description)
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
