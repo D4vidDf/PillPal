@@ -19,13 +19,16 @@ sealed class HealthConnectSettingsUiState {
     object NotAvailable : HealthConnectSettingsUiState()
     data class Available(
         val isConnected: Boolean,
-        val permissions: Map<String, Boolean>
+        val permissions: Map<String, Boolean>,
+        val showDisconnectDialog: Boolean = false
     ) : HealthConnectSettingsUiState()
 }
 
 sealed class HealthConnectEvent {
     object RequestPermissions : HealthConnectEvent()
-    object Disconnect : HealthConnectEvent()
+    object ShowDisconnectDialog : HealthConnectEvent()
+    object DismissDisconnectDialog : HealthConnectEvent()
+    object OpenHealthConnectSettings : HealthConnectEvent()
 }
 
 sealed class UiEvent {
@@ -60,8 +63,20 @@ class HealthConnectSettingsViewModel @Inject constructor(
                     }
                 }
             }
-            is HealthConnectEvent.Disconnect -> {
-                disconnect()
+            is HealthConnectEvent.ShowDisconnectDialog -> {
+                (_uiState.value as? HealthConnectSettingsUiState.Available)?.let {
+                    _uiState.value = it.copy(showDisconnectDialog = true)
+                }
+            }
+            is HealthConnectEvent.DismissDisconnectDialog -> {
+                (_uiState.value as? HealthConnectSettingsUiState.Available)?.let {
+                    _uiState.value = it.copy(showDisconnectDialog = false)
+                }
+            }
+            is HealthConnectEvent.OpenHealthConnectSettings -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(UiEvent.OpenHealthConnectSettings)
+                }
             }
         }
     }
@@ -81,13 +96,6 @@ class HealthConnectSettingsViewModel @Inject constructor(
             val isConnected = healthConnectManager.hasAllPermissions()
             val permissions = healthConnectManager.getPermissions().associateWith { isConnected }
             _uiState.value = HealthConnectSettingsUiState.Available(isConnected, permissions)
-        }
-    }
-
-    private fun disconnect() {
-        viewModelScope.launch {
-            healthConnectManager.revokeAllPermissions()
-            updatePermissionStatus()
         }
     }
 

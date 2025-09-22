@@ -491,4 +491,48 @@
     <string name="how_is_body_temp_measured_content">A temperatura corporal pódese comprobar cun termómetro. Podes rexistrar os teus resultados manualmente ou sincronizalos desde un dispositivo compatible.</string>
     <string name="disclaimer_body_temp">Esta función non está destinada a diagnosticar ou controlar enfermidades graves ou afeccións médicas. Consulte co seu médico se ten dúbidas sobre a súa saúde ou o que significan en xeral as súas lecturas de temperatura corporal.</string>
     <string name="no_temperatures_recorded">Non se rexistraron temperaturas</string>
+
+    <!-- Salud Conectada En Hoy Screen -->
+    <string name="salud_conectada_en_hoy_intro">Elixe que datos de Saúde conectada queres ver na app.</string>
+    <string name="salud_conectada_en_hoy_data_title">Mostraranse os seguintes datos:</string>
+    <string name="salud_conectada_en_hoy_data_list">  • Frecuencia cardíaca\n  • Inxesta de auga\n  • Peso\n  • Temperatura corporal</string>
+
+    <string name="health_connect_today_title">Saúde conectada en PillPal</string>
+    <string name="health_connect_today_show_all_data_title">Amosar todos os datos</string>
+    <string name="health_connect_today_show_all_data_description">Amosar todos os datos de Saúde conectada en PillPal</string>
+    <string name="health_connect_today_dont_show_data_title">Non amosar datos</string>
+    <string name="health_connect_today_dont_show_data_description">PillPal continuará a gardar datos en Saúde conectada, pero non se amosarán na aplicación</string>
+    <string name="health_connect_today_description">Amosando datos de Saúde conectada</string>
+    <string name="health_connect_manage_data_title">Xestionar datos e acceso</string>
+    <string name="health_connect_manage_data_description">Revisa os permisos e elimina os datos de Saúde conectada</string>
+    <string name="health_connect_get_help_title">Obter axuda</string>
+    <string name="health_connect_get_help_description">Máis información sobre a sincronización con Saúde conectada e como solucionar problemas comúns</string>
+    <string name="health_connect_disconnect">Desconectar Saúde conectada</string>
+
+    <string name="health_connect_title">Aproveita ao máximo Saúde conectada</string>
+    <string name="health_connect_description">Para ver todos os teus datos, dálle permiso a Pillpal para ler e escribir datos. Pillpal amosará datos das túas outras aplicacións e esas aplicacións poderán acceder aos datos de Pillpal.</string>
+    <string name="health_connect_review_permissions">Revisar permisos</string>
+    <string name="health_connect_information_title">Información</string>
+    <string name="health_connect_information_description_1">Os datos que permitas que Pillpal lea de Saúde conectada estarán dispoñibles na aplicación Pillpal, pero non nos teus dispositivos.</string>
+    <string name="health_connect_information_description_2">Se permites que Pillpal escriba un tipo de datos en Saúde conectada, eses datos gardaranse en Saúde conectada e estarán dispoñibles para as túas outras aplicacións.</string>
+    <string name="health_connect_settings_title">Axustes</string>
+
+    <string name="salud_conectada_en_hoy_description">Para os tipos de datos admitidos, podes escoller que se mostren os datos de Saúde conectada na app</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Amosar só os datos de PillPal</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Só verás datos dos teus dispositivos PillPal e as funcións desa aplicación</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Amosar datos de Saúde conectada</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de PillPal como de Saúde conectada para os tipos de datos admitidos</string>
+    <string name="que_datos_se_mostraran_title">Que datos se amosarán</string>
+    <string name="que_datos_se_mostraran_description_1">Se lle dás permiso a PillPal para ler datos, a app poderá amosarche os seguintes datos de Saúde conectada:</string>
+    <string name="dato_frecuencia_cardiaca">Frecuencia cardíaca</string>
+    <string name="dato_ingesta_de_agua">Consumo de auga</string>
+    <string name="dato_peso">Peso</string>
+    <string name="dato_temperatura_corporal">Temperatura corporal</string>
+    <string name="que_datos_se_mostraran_description_2">Se escolles amosar os datos de Saúde conectada na app, é posible que estes tipos de datos deixen de coincidir cos que aparecen no teu dispositivo PillPal.</string>
+    <string name="que_datos_se_mostraran_description_3">As puntuacións, insignias e táboas de clasificación seguirán usando só os datos dos teus dispositivos e funcións de PillPal.</string>
+    <!-- Health Connect Disconnect Dialog -->
+    <string name="health_connect_disconnect_dialog_title">Abre Saúde conectada para rematar a desconexión</string>
+    <string name="health_connect_disconnect_dialog_message">PillPal seguirá tendo permisos en Saúde conectada a menos que os desactives. Abre Saúde conectada para eliminar os permisos de PillPal.</string>
+    <string name="health_connect_disconnect_dialog_go_back_button">Volver</string>
+    <string name="health_connect_disconnect_dialog_open_settings_button">Abrir axustes</string>
 </resources>

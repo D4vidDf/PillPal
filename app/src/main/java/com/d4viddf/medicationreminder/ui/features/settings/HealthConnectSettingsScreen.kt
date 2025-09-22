@@ -61,7 +61,6 @@ fun HealthConnectSettingsScreen(
 ) {
     val uiState by viewModel.uiState
     var showInfoCard by remember { mutableStateOf(true) }
-    var showDisconnectDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -86,13 +85,13 @@ fun HealthConnectSettingsScreen(
         }
     }
 
-    if (showDisconnectDialog) {
+    if (uiState is HealthConnectSettingsUiState.Available && (uiState as HealthConnectSettingsUiState.Available).showDisconnectDialog) {
         DisconnectDialog(
             onConfirm = {
-                viewModel.onEvent(HealthConnectEvent.Disconnect)
-                showDisconnectDialog = false
+                viewModel.onEvent(HealthConnectEvent.OpenHealthConnectSettings)
+                viewModel.onEvent(HealthConnectEvent.DismissDisconnectDialog)
             },
-            onDismiss = { showDisconnectDialog = false }
+            onDismiss = { viewModel.onEvent(HealthConnectEvent.DismissDisconnectDialog) }
         )
     }
 
@@ -227,7 +226,7 @@ fun HealthConnectSettingsScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        onClick = { showDisconnectDialog = true },
+                        onClick = { viewModel.onEvent(HealthConnectEvent.ShowDisconnectDialog) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(text = stringResource(id = R.string.health_connect_disconnect))
@@ -267,16 +266,16 @@ fun DisconnectDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Disconnect Health Connect") },
-        text = { Text(text = "Are you sure you want to disconnect from Health Connect? The permissions will be revoked after you close the app.") },
+        title = { Text(text = stringResource(id = R.string.health_connect_disconnect_dialog_title)) },
+        text = { Text(text = stringResource(id = R.string.health_connect_disconnect_dialog_message)) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Confirm")
+                Text(stringResource(id = R.string.health_connect_disconnect_dialog_open_settings_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(id = R.string.health_connect_disconnect_dialog_go_back_button))
             }
         }
     )
