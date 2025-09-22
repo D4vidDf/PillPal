@@ -1,11 +1,14 @@
 package com.d4viddf.medicationreminder.ui.features.settings
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.healthconnect.HealthConnectManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -27,10 +30,12 @@ sealed class HealthConnectEvent {
 
 sealed class UiEvent {
     data class LaunchPermissionRequest(val permissions: Set<String>) : UiEvent()
+    data class LaunchManagePermissions(val packageName: String) : UiEvent()
 }
 
 @HiltViewModel
 class HealthConnectSettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
@@ -48,7 +53,11 @@ class HealthConnectSettingsViewModel @Inject constructor(
         when (event) {
             is HealthConnectEvent.RequestPermissions -> {
                 viewModelScope.launch {
-                    _eventFlow.emit(UiEvent.LaunchPermissionRequest(healthConnectManager.getPermissions()))
+                    if (healthConnectManager.hasAllPermissions()) {
+                        _eventFlow.emit(UiEvent.LaunchManagePermissions(context.packageName))
+                    } else {
+                        _eventFlow.emit(UiEvent.LaunchPermissionRequest(healthConnectManager.getPermissions()))
+                    }
                 }
             }
             is HealthConnectEvent.Disconnect -> {
@@ -82,14 +91,14 @@ class HealthConnectSettingsViewModel @Inject constructor(
         }
     }
 
-    fun openHealthConnectDataManagement(context: android.content.Context) {
-        val intent = android.content.Intent(androidx.health.connect.client.HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
+    fun openHealthConnectDataManagement(context: Context) {
+        val intent = Intent(androidx.health.connect.client.HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
         context.startActivity(intent)
     }
 
-    fun openHealthConnectFaq(context: android.content.Context) {
+    fun openHealthConnectFaq(context: Context) {
         val uri = android.net.Uri.parse("https://support.google.com/android/answer/12201227?hl=en")
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
         context.startActivity(intent)
     }
 }
