@@ -9,6 +9,7 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.source.local.HealthDataDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,7 +17,8 @@ import javax.inject.Singleton
 @Singleton
 class HealthDataRepository @Inject constructor(
     private val healthDataDao: HealthDataDao,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
     // --- READ Functions ---
@@ -25,36 +27,60 @@ class HealthDataRepository @Inject constructor(
     fun getLatestHeartRate(): Flow<HeartRate?> = healthDataDao.getLatestHeartRate()
     fun getTotalWaterIntakeSince(startTime: Long): Flow<Double?> = healthDataDao.getTotalWaterIntakeSince(startTime)
     fun getBodyTemperatureBetween(startTime: Instant, endTime: Instant): Flow<List<BodyTemperature>> {
-        val localData = healthDataDao.getBodyTemperatureBetween(startTime, endTime)
-        val healthConnectData = healthConnectManager.getBodyTemperature(startTime, endTime)
-        return localData.combine(healthConnectData) { local, healthConnect ->
-            (local + healthConnect).distinctBy { it.time }
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getBodyTemperatureBetween(startTime, endTime)
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getBodyTemperature(startTime, endTime)
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    (local + healthConnect).distinctBy { it.time }
+                }
+            } else {
+                localData
+            }
         }
     }
 
     fun getWeightBetween(startTime: Instant, endTime: Instant): Flow<List<Weight>> {
-        val localData = healthDataDao.getWeightBetween(startTime, endTime)
-        val healthConnectData = healthConnectManager.getWeight(startTime, endTime)
-        return localData.combine(healthConnectData) { local, healthConnect ->
-            (local + healthConnect).distinctBy { it.time }
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getWeightBetween(startTime, endTime)
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getWeight(startTime, endTime)
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    (local + healthConnect).distinctBy { it.time }
+                }
+            } else {
+                localData
+            }
         }
     }
 
     fun getLatestWeightBefore(date: Instant): Flow<Weight?> = healthDataDao.getLatestWeightBefore(date)
 
     fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> {
-        val localData = healthDataDao.getWaterIntakeBetween(startTime, endTime)
-        val healthConnectData = healthConnectManager.getWaterIntake(startTime, endTime)
-        return localData.combine(healthConnectData) { local, healthConnect ->
-            (local + healthConnect).distinctBy { it.time }
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getWaterIntakeBetween(startTime, endTime)
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getWaterIntake(startTime, endTime)
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    (local + healthConnect).distinctBy { it.time }
+                }
+            } else {
+                localData
+            }
         }
     }
 
     fun getHeartRateBetween(startTime: Instant, endTime: Instant): Flow<List<HeartRate>> {
-        val localData = healthDataDao.getHeartRateBetween(startTime, endTime)
-        val healthConnectData = healthConnectManager.getHeartRate(startTime, endTime)
-        return localData.combine(healthConnectData) { local, healthConnect ->
-            (local + healthConnect).distinctBy { it.time }
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getHeartRateBetween(startTime, endTime)
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getHeartRate(startTime, endTime)
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    (local + healthConnect).distinctBy { it.time }
+                }
+            } else {
+                localData
+            }
         }
     }
 

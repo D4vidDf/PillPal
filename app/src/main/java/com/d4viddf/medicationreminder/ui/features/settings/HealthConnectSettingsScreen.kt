@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,6 +61,7 @@ fun HealthConnectSettingsScreen(
 ) {
     val uiState by viewModel.uiState
     var showInfoCard by remember { mutableStateOf(true) }
+    var showDisconnectDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -82,6 +84,16 @@ fun HealthConnectSettingsScreen(
                 }
             }
         }
+    }
+
+    if (showDisconnectDialog) {
+        DisconnectDialog(
+            onConfirm = {
+                viewModel.onEvent(HealthConnectEvent.Disconnect)
+                showDisconnectDialog = false
+            },
+            onDismiss = { showDisconnectDialog = false }
+        )
     }
 
     val scrollState = rememberScrollState()
@@ -215,7 +227,7 @@ fun HealthConnectSettingsScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        onClick = { viewModel.onEvent(HealthConnectEvent.Disconnect) },
+                        onClick = { showDisconnectDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(text = stringResource(id = R.string.health_connect_disconnect))
@@ -246,4 +258,26 @@ fun SettingItem(
             Text(text = description, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
         }
     }
+}
+
+@Composable
+fun DisconnectDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Disconnect Health Connect") },
+        text = { Text(text = "Are you sure you want to disconnect from Health Connect?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
