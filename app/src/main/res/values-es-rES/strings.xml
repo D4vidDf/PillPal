@@ -542,6 +542,19 @@
     <string name="salud_conectada_en_hoy_data_title">Se mostrarán los siguientes datos:</string>
     <string name="salud_conectada_en_hoy_data_list">  • Frecuencia cardíaca\n  • Ingesta de agua\n  • Peso\n  • Temperatura corporal</string>
 
+    <string name="salud_conectada_en_hoy_description">Para los tipos de datos admitidos, puedes elegir que se muestren datos de Salud conectada en la app</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Mostrar solo datos de PillPal</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Solo verás datos de tus dispositivos PillPal y las funciones de dicha aplicación</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Mostrar datos de Salud conectada</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Verás datos tanto de PillPal como de Salud conectada de los tipos de datos admitidos</string>
+    <string name="que_datos_se_mostraran_title">Qué datos se mostrarán</string>
+    <string name="que_datos_se_mostraran_description_1">Si das permiso a PillPal para leer datos, la app podrá mostrarte los siguientes datos de Salud conectada:</string>
+    <string name="dato_frecuencia_cardiaca">Frecuencia cardiaca</string>
+    <string name="dato_ingesta_de_agua">Ingesta de agua</string>
+    <string name="dato_peso">Peso</string>
+    <string name="dato_temperatura_corporal">Temperatura corporal</string>
+    <string name="que_datos_se_mostraran_description_2">Si eliges mostrar datos de Salud conectada en la app, es posible que estos tipos de datos dejen de coincidir con los que aparecen en tu dispositivo PillPal.</string>
+    <string name="que_datos_se_mostraran_description_3">Las puntuaciones, insignias y tablas de clasificación seguirán usando solo los datos de tus dispositivos y funciones de PillPal.</string>
     <!-- Health Connect Disconnect Dialog -->
     <string name="health_connect_disconnect_dialog_title">Abre Salud conectada para terminar la desconexión</string>
     <string name="health_connect_disconnect_dialog_message">PillPal seguirá teniendo permisos en Salud conectada a menos que los desactives. Abre Salud conectada para eliminar los permisos de PillPal.</string>

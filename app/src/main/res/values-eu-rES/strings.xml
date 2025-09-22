@@ -497,26 +497,39 @@
     <string name="salud_conectada_en_hoy_data_title">Honako datu hauek erakutsiko dira:</string>
     <string name="salud_conectada_en_hoy_data_list">  • Bihotz-maiztasuna\n  • Ur-hartzea\n  • Pisua\n  • Gorputz-tenperatura</string>
 
-    <!-- Health Connect Settings -->
-    <string name="health_connect_title">Atera etekin handiagoa Osasun konektatuari</string>
-    <string name="health_connect_description">Datu guztiak ikusteko, eman baimena Pillpal-i datuak irakurri eta erregistratzeko. Pillpal-ek zure beste aplikazioetako datuak erakutsiko ditu eta aplikazio horiek Pillpal-en datuak atzitu ahal izango dituzte.</string>
+    <string name="health_connect_today_title">Health Connect PillPal-en</string>
+    <string name="health_connect_today_show_all_data_title">Erakutsi datu guztiak</string>
+    <string name="health_connect_today_show_all_data_description">Erakutsi Health Connect-eko datu guztiak PillPal-en</string>
+    <string name="health_connect_today_dont_show_data_title">Ez erakutsi datuak</string>
+    <string name="health_connect_today_dont_show_data_description">PillPal-ek Health Connect-en datuak gordetzen jarraituko du, baina ez dira aplikazioan erakutsiko</string>
+    <string name="health_connect_today_description">Health Connect-eko datuak erakusten</string>
+    <string name="health_connect_manage_data_title">Kudeatu datuak eta sarbidea</string>
+    <string name="health_connect_manage_data_description">Berrikusi baimenak eta ezabatu Health Connect-eko datuak</string>
+    <string name="health_connect_get_help_title">Laguntza lortu</string>
+    <string name="health_connect_get_help_description">Health Connect-ekin sinkronizatzeari eta ohiko arazoei buruzko informazio gehiago</string>
+    <string name="health_connect_disconnect">Deskonektatu Health Connect</string>
+
+    <string name="health_connect_title">Atera etekin handiena Health Connect-i</string>
+    <string name="health_connect_description">Datu guztiak ikusteko, eman baimena Pillpal-i datuak irakurtzeko eta erregistratzeko. Pillpal-ek zure beste aplikazioetako datuak erakutsiko ditu eta aplikazio horiek Pillpal-eko datuetara sartu ahal izango dira.</string>
     <string name="health_connect_review_permissions">Berrikusi baimenak</string>
     <string name="health_connect_information_title">Informazioa</string>
-    <string name="health_connect_information_description_1">Pillpal-ek Osasun konektatutik irakurtzeko baimena ematen diozun datuak Pillpal aplikazioan egongo dira eskuragarri, baina ez zure gailuetan.</string>
-    <string name="health_connect_information_description_2">Pillpal-ek Osasun konektatuan datu mota bat erregistratzeko baimena ematen badiozu, datu horiek Osasun konektatuan gordeko dira eta zure beste aplikazioetarako eskuragarri egongo dira.</string>
+    <string name="health_connect_information_description_1">Pillpal-ek Health Connect-etik irakurtzeko baimena ematen diozun datuak Pillpal aplikazioan egongo dira eskuragarri, baina ez zure gailuetan.</string>
+    <string name="health_connect_information_description_2">Pillpal-ek Health Connect-en datu mota bat erregistratzeko baimena ematen badiozu, datu horiek Health Connect-en gordeko dira eta zure beste aplikazioetarako eskuragarri egongo dira.</string>
     <string name="health_connect_settings_title">Ezarpenak</string>
-    <string name="health_connect_today_title">Osasun konektatua PillPal-en</string>
-    <string name="health_connect_today_show_all_data_title">Erakutsi datu guztiak</string>
-    <string name="health_connect_today_show_all_data_description">Erakutsi Osasun konektatuko datu guztiak PillPal-en</string>
-    <string name="health_connect_today_dont_show_data_title">Ez erakutsi datuak</string>
-    <string name="health_connect_today_dont_show_data_description">PillPal-ek datuak gordetzen jarraituko du Osasun konektatuan, baina ez dira aplikazioan erakutsiko</string>
-    <string name="health_connect_today_description">Osasun konektatuko datuak erakusten</string>
-    <string name="health_connect_manage_data_title">Kudeatu datuak eta sarbidea</string>
-    <string name="health_connect_manage_data_description">Berrikusi baimenak eta ezabatu Osasun konektatuko datuak</string>
-    <string name="health_connect_get_help_title">Laguntza lortu</string>
-    <string name="health_connect_get_help_description">Osasun konektatuarekin sinkronizatzeari eta ohiko arazoei buruzko informazio gehiago</string>
-    <string name="health_connect_disconnect">Deskonektatu Osasun konektatua</string>
 
+    <string name="salud_conectada_en_hoy_description">Onartutako datu motetarako, Health Connect-eko datuak app-an erakustea hauta dezakezu</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Erakutsi PillPal-eko datuak soilik</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Zure PillPal gailuetako datuak eta aplikazio horren funtzioak soilik ikusiko dituzu</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Erakutsi Health Connect-eko datuak</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Onartutako datu motetarako, PillPal eta Health Connect-eko datuak ikusiko dituzu</string>
+    <string name="que_datos_se_mostraran_title">Zein datu erakutsiko dira</string>
+    <string name="que_datos_se_mostraran_description_1">PillPal-i datuak irakurtzeko baimena ematen badiozu, app-ak Health Connect-eko datu hauek erakuts diezazkizuke:</string>
+    <string name="dato_frecuencia_cardiaca">Bihotz-maiztasuna</string>
+    <string name="dato_ingesta_de_agua">Ur-sarrera</string>
+    <string name="dato_peso">Pisua</string>
+    <string name="dato_temperatura_corporal">Gorputz-tenperatura</string>
+    <string name="que_datos_se_mostraran_description_2">App-an Health Connect-eko datuak erakustea hautatzen baduzu, baliteke datu mota hauek zure PillPal gailuan agertzen denarekin bat ez etortzea.</string>
+    <string name="que_datos_se_mostraran_description_3">Puntuazioek, txapek eta sailkapen-taulek zure PillPal gailuetako eta funtzioetako datuak soilik erabiltzen jarraituko dute.</string>
     <!-- Health Connect Disconnect Dialog -->
     <string name="health_connect_disconnect_dialog_title">Ireki Osasun konektatua deskonexioa amaitzeko</string>
     <string name="health_connect_disconnect_dialog_message">PillPal-ek baimenak izaten jarraituko du Osasun konektatuan, desaktibatzen ez badituzu. Ireki Osasun konektatua PillPal-en baimenak kentzeko.</string>
