@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,8 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,13 +19,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,36 +66,58 @@ fun SaludConectadaEnHoyScreen(
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .clickable { viewModel.onShowHealthConnectDataChange(false) }
             ) {
-                RadioButton(
-                    selected = !showHealthConnectData,
-                    onClick = { viewModel.onShowHealthConnectDataChange(false) }
-                )
-                Column(modifier = Modifier.padding(start = 16.dp)) {
-                    Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title))
-                    Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description), style = MaterialTheme.typography.bodySmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    RadioButton(
+                        selected = !showHealthConnectData,
+                        onClick = { viewModel.onShowHealthConnectDataChange(false) }
+                    )
+                    Column(modifier = Modifier.padding(start = 16.dp)) {
+                        Text(text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_title))
+                        Text(
+                            text = stringResource(id = R.string.mostrar_solo_datos_de_fitbit_description),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                    .clickable { viewModel.onShowHealthConnectDataChange(true) }
             ) {
-                RadioButton(
-                    selected = showHealthConnectData,
-                    onClick = { viewModel.onShowHealthConnectDataChange(true) }
-                )
-                Column(modifier = Modifier.padding(start = 16.dp)) {
-                    Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title))
-                    Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description), style = MaterialTheme.typography.bodySmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    RadioButton(
+                        selected = showHealthConnectData,
+                        onClick = { viewModel.onShowHealthConnectDataChange(true) }
+                    )
+                    Column(modifier = Modifier.padding(start = 16.dp)) {
+                        Text(text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_title))
+                        Text(
+                            text = stringResource(id = R.string.mostrar_datos_de_salud_conectada_description),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(id = R.string.que_datos_se_mostraran_title),
@@ -118,7 +143,6 @@ fun SaludConectadaEnHoyScreen(
                 text = stringResource(id = R.string.que_datos_se_mostraran_description_3),
                 style = MaterialTheme.typography.bodyLarge
             )
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
