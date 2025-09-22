@@ -56,8 +56,7 @@ class HealthConnectSettingsViewModel @Inject constructor(
     }
 
     fun openHealthConnectDataManagement(context: android.content.Context) {
-        val intent = android.content.Intent(android.health.connect.HealthConnectManager.ACTION_MANAGE_HEALTH_PERMISSIONS)
-        intent.putExtra(android.content.Intent.EXTRA_PACKAGE_NAME, context.packageName)
+        val intent = android.content.Intent(androidx.health.connect.client.HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
         context.startActivity(intent)
     }
 
