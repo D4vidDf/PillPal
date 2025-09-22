@@ -638,6 +638,14 @@
     <string name="health_connect_get_help_description">Más información sobre la sincronización con Salud conectada y cómo solucionar problemas habituales</string>
     <string name="health_connect_disconnect">Desconectar Salud conectada</string>
 
+    <string name="health_connect_title">Saca más partido a Salud conectada</string>
+    <string name="health_connect_description">Para poder ver todos los datos, dale permiso a Pillpal para que lea y registre datos. Pillpal mostrará los datos de tus otras aplicaciones y esas aplicaciones podrán acceder a los datos de Pillpal.</string>
+    <string name="health_connect_review_permissions">Revisar permisos</string>
+    <string name="health_connect_information_title">Información</string>
+    <string name="health_connect_information_description_1">Los datos que permitas que Pillpal lea de Salud conectada estarán disponibles en la aplicación Pillpal, pero no en tus dispositivos.</string>
+    <string name="health_connect_information_description_2">Si permites que Pillpal registre un tipo de datos en Salud conectada, esos datos se almacenarán en Salud conectada y estarán disponibles para tus otras aplicaciones.</string>
+    <string name="health_connect_settings_title">Ajustes</string>
+
     <string name="salud_conectada_en_hoy_description">Para los tipos de datos admitidos, puedes elegir que se muestren datos de Salud conectada en la app</string>
     <string name="mostrar_solo_datos_de_fitbit_title">Mostrar solo datos de PillPal</string>
     <string name="mostrar_solo_datos_de_fitbit_description">Solo verás datos de tus dispositivos PillPal y las funciones de dicha aplicación</string>

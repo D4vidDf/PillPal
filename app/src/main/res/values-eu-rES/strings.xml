@@ -500,6 +500,14 @@
     <string name="health_connect_get_help_description">Health Connect-ekin sinkronizatzeari eta ohiko arazoei buruzko informazio gehiago</string>
     <string name="health_connect_disconnect">Deskonektatu Health Connect</string>
 
+    <string name="health_connect_title">Atera etekin handiena Health Connect-i</string>
+    <string name="health_connect_description">Datu guztiak ikusteko, eman baimena Pillpal-i datuak irakurtzeko eta erregistratzeko. Pillpal-ek zure beste aplikazioetako datuak erakutsiko ditu eta aplikazio horiek Pillpal-eko datuetara sartu ahal izango dira.</string>
+    <string name="health_connect_review_permissions">Berrikusi baimenak</string>
+    <string name="health_connect_information_title">Informazioa</string>
+    <string name="health_connect_information_description_1">Pillpal-ek Health Connect-etik irakurtzeko baimena ematen diozun datuak Pillpal aplikazioan egongo dira eskuragarri, baina ez zure gailuetan.</string>
+    <string name="health_connect_information_description_2">Pillpal-ek Health Connect-en datu mota bat erregistratzeko baimena ematen badiozu, datu horiek Health Connect-en gordeko dira eta zure beste aplikazioetarako eskuragarri egongo dira.</string>
+    <string name="health_connect_settings_title">Ezarpenak</string>
+
     <string name="salud_conectada_en_hoy_description">Onartutako datu motetarako, Health Connect-eko datuak app-an erakustea hauta dezakezu</string>
     <string name="mostrar_solo_datos_de_fitbit_title">Erakutsi PillPal-eko datuak soilik</string>
     <string name="mostrar_solo_datos_de_fitbit_description">Zure PillPal gailuetako datuak eta aplikazio horren funtzioak soilik ikusiko dituzu</string>

@@ -610,6 +610,14 @@
     <string name="health_connect_get_help_description">More information about syncing with Health Connect and common issues</string>
     <string name="health_connect_disconnect">Disconnect Health Connect</string>
 
+    <string name="health_connect_title">Make the most of Health Connect</string>
+    <string name="health_connect_description">To see all your data, give Pillpal permission to read and write data. Pillpal will display data from your other apps, and those apps will be able to access data from Pillpal.</string>
+    <string name="health_connect_review_permissions">Review permissions</string>
+    <string name="health_connect_information_title">Information</string>
+    <string name="health_connect_information_description_1">The data you allow Pillpal to read from Health Connect will be available in the Pillpal app, but not on your devices.</string>
+    <string name="health_connect_information_description_2">If you allow Pillpal to write a type of data in Health Connect, that data will be stored in Health Connect and will be available to your other applications.</string>
+    <string name="health_connect_settings_title">Settings</string>
+
     <string name="salud_conectada_en_hoy_description">For admitted data types, you can choose to have Health Connect data displayed in the app</string>
     <string name="mostrar_solo_datos_de_fitbit_title">Show PillPal data only</string>
     <string name="mostrar_solo_datos_de_fitbit_description">You will only see data from your PillPal devices and the features of that application</string>
