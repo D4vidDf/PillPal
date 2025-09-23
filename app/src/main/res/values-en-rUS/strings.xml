@@ -662,4 +662,74 @@
     <string name="move_down">Move Down</string>
     <string name="minutes">minutes</string>
     <string name="seconds">seconds</string>
+
+    <!-- Missing resources added by Agent -->
+    <string name="next_dose_card_cd">Next dose card</string>
+    <string name="today_schedule_item_card_cd">Today\'s schedule item card</string>
+    <string name="today_schedule_item_switch_cd">Toggle medication taken status</string>
+    <string name="switch_state_taken">Taken</string>
+    <string name="switch_state_not_taken">Not taken</string>
+    <string name="home_button_cd_connect_wear_os">Connect Wear OS device</string>
+    <string name="home_button_cd_notifications_unread">Unread notifications</string>
+    <string name="home_button_cd_notifications_read">Notifications read</string>
+    <string name="state_expanded">Expanded</string>
+    <string name="state_collapsed">Collapsed</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="action_expand">Expand</string>
+    <string name="home_section_header_cd">Home section header</string>
+    <string name="cancel">Cancel</string>
+    <string name="all_reminders_header">All Reminders</string>
+    <string name="next_dosage_title">Next Dosage</string>
+    <string name="adherence_title">Adherence</string>
+    <string name="adherence_mock_text">95% on time this week</string>
+    <string name="as_needed_meds_title">\"As Needed\" Medications</string>
+    <string name="no_as_needed_meds">No \"as needed\" doses logged recently.</string>
+    <string name="refill_reminders_title">Refill Reminders</string>
+    <string name="no_refill_reminders">No medications are running low.</string>
+    <string name="blood_pressure_title">Blood Pressure</string>
+    <string name="blood_pressure_mock_text">Latest: 125/82 mmHg</string>
+    <string name="symptom_tracker_title">How are you feeling?</string>
+    <string name="notes_for_doctor_title">Notes for Doctor</string>
+    <string name="show_all_button">Show all</string>
+    <string name="log_bp_button">Log</string>
+    <string name="no_as_needed_meds_configured">No \"as needed\" medications configured.</string>
+    <string name="take_medication_button">Take</string>
+    <string name="health_section_title">Health</string>
+    <string name="heart_rate_title">Heart Rate</string>
+    <string name="heart_rate_unit">ppm</string>
+    <string name="today_label">Today</string>
+    <string name="weight_title">Weight</string>
+    <string name="last_registered_label">Last registered:</string>
+    <string name="progress_section_title">Progress</string>
+    <string name="missed_reminders_title">Missed Reminders</string>
+    <string name="last_missed_label">Last missed:</string>
+    <string name="today_progress_title">Today\\\'s Progress</string>
+    <string name="home_button_cd_watch_not_connected">Watch not connected</string>
+    <string name="home_button_cd_watch_connected">Watch connected</string>
+    <string name="home_button_cd_watch_app_not_installed">Watch connected, app not installed</string>
+    <string name="home_button_cd_watch_connected_settings">Wear OS device connected. Open connection settings.</string>
+    <string name="home_button_cd_watch_disconnected_settings">Wear OS device not connected. Open connection settings.</string>
+    <string name="medication_vault_title" translatable="false">Vault</string>
+    <string name="analysis_screen_title" translatable="false">Analysis</string>
+    <string name="notification_action_snooze" translatable="false">Posponer (10 min)</string>
+    <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
+    <string name="medDetail_history_section_title">History</string>
+    <string name="medDetail_history_navigateToFull_cd">History</string>
+    <string name="medDetail_weekProgress_section_title">Week Progress</string>
+    <string name="medDetail_weekProgress_navigateToFull_cd">View full graph</string>
+    <string name="medDetail_information_section_title">Information</string>
+    <string name="medDetail_graph_weeklyDosesFor_prefix">Weekly doses for</string>
+    <string name="medDetail_graph_thisMedication_fallbackName">this medication</string>
+    <string name="medHistory_screen_title">History</string>
+    <string name="medGraph_screen_title">Statistics</string>
+    <string name="medGraph_weekly_previousWeek_cd">Previous week</string>
+    <string name="medGraph_weekly_nextWeek_cd">Next week</string>
+    <string name="medGraph_yearly_previousYear_cd">Previous year</string>
+    <string name="medGraph_yearly_nextYear_cd">Next year</string>
+    <string name="medGraph_yearPickerDialog_title">Select Year</string>
+    <string name="medGraph_weekly_changeWeek_cd_prefix">Change week, current period:</string>
+    <string name="medGraph_weekly_chart_description_prefix">Weekly doses taken.</string>
+    <string name="medGraph_chart_doses_suffix">doses</string>
+    <string name="medGraph_yearly_changeYear_cd_prefix">Change year, current year:</string>
+    <string name="medGraph_yearly_chart_description_prefix">Yearly doses taken.</string>
 </resources>
