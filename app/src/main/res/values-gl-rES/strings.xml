@@ -518,5 +518,6 @@
     <string name="how_is_body_temp_measured_content">A temperatura corporal pódese comprobar cun termómetro. Podes rexistrar os teus resultats manualmente ou sincronizalos desde un dispositivo compatible.</string>
     <string name="disclaimer_body_temp">Esta función non está destinada a diagnosticar ou controlar enfermidades graves ou afeccións médicas. Consulte co seu médico se ten dúbidas sobre a súa saúde ou o que significan en xeral as súas lecturas de temperatura corporal.</string>
     <string name="no_temperatures_recorded">Non se rexistraron temperaturas</string>
+    <string name="minutes">minutos</string>
     <string name="goals">Obxectivos</string>
 </resources>

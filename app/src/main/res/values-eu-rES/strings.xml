@@ -518,5 +518,6 @@
     <string name="how_is_body_temp_measured_content">Gorputzaren tenperatura termometro batekin egiazta daiteke. Zure emaitzak eskuz erregistratu edo gailu bateragarri batetik sinkroniza ditzakezu.</string>
     <string name="disclaimer_body_temp">Funtzio hau ez da gaixotasun larriak edo egoera medikoak diagnostikatzeko edo kontrolatzeko pentsatuta. Kontsultatu zure osasun-hornitzailearekin zure osasunari buruzko galderarik baduzu edo zure gorputz-tenperaturaren irakurketek, oro har, zer esan nahi duten jakiteko.</string>
     <string name="no_temperatures_recorded">Ez da tenperaturarik erregistratu</string>
+    <string name="minutes">minutu</string>
     <string name="goals">Helburuak</string>
 </resources>
