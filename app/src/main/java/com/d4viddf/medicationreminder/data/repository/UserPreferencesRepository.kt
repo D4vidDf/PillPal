@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.d4viddf.medicationreminder.data.model.ThemeKeys
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -100,9 +101,15 @@ class UserPreferencesRepository @Inject constructor(
             if (jsonString.isNullOrEmpty()) {
                 emptyList() // Return empty list if no config is saved
             } else {
-                // Deserialize the JSON string back into a list of HomeSection objects
-                val type = object : TypeToken<List<HomeSection>>() {}.type
-                gson.fromJson(jsonString, type)
+                try {
+                    // Deserialize the JSON string back into a list of HomeSection objects
+                    val type = object : TypeToken<List<HomeSection>>() {}.type
+                    gson.fromJson(jsonString, type)
+                } catch (e: JsonSyntaxException) {
+                    // If deserialization fails, it's likely due to the old format.
+                    // Return an empty list to force a reset to the default layout.
+                    emptyList()
+                }
             }
         }
 
