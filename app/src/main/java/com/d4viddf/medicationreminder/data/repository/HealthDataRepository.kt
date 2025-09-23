@@ -71,12 +71,14 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
-    fun getTotalWaterIntakeSince(startTime: Long): Flow<Double?> {
+    fun getTotalWaterIntakeSince(startTime: Long): Flow<Pair<Double?, Boolean>> {
         return getWaterIntakeBetween(
             Instant.ofEpochMilli(startTime),
             Instant.now()
         ).map { intakes ->
-            intakes.sumOf { it.volumeMilliliters } / 1000.0
+            val total = intakes.sumOf { it.volumeMilliliters } / 1000.0
+            val fromHealthConnect = intakes.any { it.sourceApp != "com.d4viddf.medicationreminder" }
+            Pair(total, fromHealthConnect)
         }
     }
     fun getBodyTemperatureBetween(startTime: Instant, endTime: Instant): Flow<List<BodyTemperature>> {

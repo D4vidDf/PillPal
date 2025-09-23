@@ -79,7 +79,6 @@ import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.MissedRemindersCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.NewHealthStatCard
-import com.d4viddf.medicationreminder.ui.features.home.components.cards.NewTemperatureCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.NextDoseTimeCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.SectionHeader
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.TodayProgressCard
@@ -128,7 +127,11 @@ fun HomeScreen(
     val latestWeightState by viewModel.latestWeight.collectAsState()
     val latestTemperatureState by viewModel.latestTemperature.collectAsState()
     val waterIntakeTodayState by viewModel.waterIntakeToday.collectAsState()
-    val heartRateState by viewModel.heartRate.collectAsState()
+    val heartRateRangeState by viewModel.heartRateRange.collectAsState()
+    val latestHeartRateState by viewModel.latestHeartRate.collectAsState()
+    val waterIntakeProgress by viewModel.waterIntakeProgress.collectAsState()
+    val weightProgress by viewModel.weightProgress.collectAsState()
+    val heartRateProgress by viewModel.heartRateProgress.collectAsState()
     val isHealthConnectEnabled by viewModel.isHealthConnectEnabled.collectAsState()
 
 
@@ -157,7 +160,11 @@ fun HomeScreen(
         latestWeightState = latestWeightState,
         latestTemperatureState = latestTemperatureState,
         waterIntakeTodayState = waterIntakeTodayState,
-        heartRateState = heartRateState,
+        waterIntakeProgress = waterIntakeProgress,
+        weightProgress = weightProgress,
+        heartRateProgress = heartRateProgress,
+        heartRateRangeState = heartRateRangeState,
+        latestHeartRateState = latestHeartRateState,
         isHealthConnectEnabled = isHealthConnectEnabled,
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
@@ -186,8 +193,12 @@ internal fun HomeScreenContent(
     hasUnreadAlerts: Boolean,
     latestWeightState: UiItemState<Weight?>,
     latestTemperatureState: UiItemState<BodyTemperature?>,
-    waterIntakeTodayState: UiItemState<Double?>,
-    heartRateState: UiItemState<com.d4viddf.medicationreminder.data.model.healthdata.HeartRate?>,
+    waterIntakeTodayState: UiItemState<Pair<Double?, Boolean>>,
+    waterIntakeProgress: Float,
+    weightProgress: Float,
+    heartRateProgress: Float,
+    heartRateRangeState: UiItemState<Pair<Long, Long>?>,
+    latestHeartRateState: UiItemState<HeartRate?>,
     isHealthConnectEnabled: Boolean,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
@@ -462,24 +473,25 @@ internal fun HomeScreenContent(
                                             }
 
                                             "heart_rate" -> Crossfade(
-                                                targetState = heartRateState,
+                                                targetState = heartRateRangeState,
                                                 label = "HeartRateCrossfade"
                                             ) { state ->
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
                                                     is UiItemState.Success -> {
-                                                        val heartRate = state.data
+                                                        val heartRateRange = state.data
+                                                        val latestHeartRate = (latestHeartRateState as? UiItemState.Success)?.data
                                                         NewHealthStatCard(
-                                                            title = "Heart Rate",
-                                                            value = heartRate?.beatsPerMinute?.toString() ?: "-",
-                                                            subtitle = if (heartRate != null) "Last: ${
+                                                            title = stringResource(id = R.string.heart_rate),
+                                                            value = if (heartRateRange != null) "${heartRateRange.first}-${heartRateRange.second} ${stringResource(id = R.string.bpm)}" else "-",
+                                                            subtitle = if (latestHeartRate != null) "${stringResource(id = R.string.last_record)}${
                                                                 DateTimeFormatter.ofLocalizedTime(
                                                                     FormatStyle.SHORT
-                                                                ).format(heartRate.time.atZone(ZoneId.systemDefault()))
-                                                            }" else "No data",
-                                                            progress = (heartRate?.beatsPerMinute?.toFloat() ?: 0f) / 120f,
+                                                                ).format(latestHeartRate.time.atZone(ZoneId.systemDefault()))
+                                                            }" else stringResource(id = R.string.no_data),
+                                                            progress = heartRateProgress,
                                                             icon = painterResource(id = R.drawable.cardio_load),
-                                                            isHealthConnectData = isHealthConnectEnabled && heartRate?.sourceApp != LocalContext.current.packageName,
+                                                            isHealthConnectData = isHealthConnectEnabled && latestHeartRate?.sourceApp != LocalContext.current.packageName,
                                                             onClick = { navController.navigate(Screen.HeartRate.route) }
                                                         )
                                                     }
@@ -496,16 +508,16 @@ internal fun HomeScreenContent(
                                                     is UiItemState.Success -> {
                                                         val weight = state.data
                                                         NewHealthStatCard(
-                                                            title = "Weight",
-                                                            value = if (weight != null) "%.1f kg".format(
+                                                            title = stringResource(id = R.string.weight),
+                                                            value = if (weight != null) "%.1f ${stringResource(id = R.string.kg)}".format(
                                                                 weight.weightKilograms
                                                             ) else "-",
-                                                            subtitle = if (weight != null) "Last: ${
+                                                            subtitle = if (weight != null) "${stringResource(id = R.string.last_record)}${
                                                                 DateTimeFormatter.ofLocalizedDate(
                                                                     FormatStyle.MEDIUM
                                                                 ).format(weight.time.atZone(ZoneId.systemDefault()))
-                                                            }" else "No data",
-                                                            progress = (weight?.weightKilograms?.toFloat() ?: 0f) / 100f,
+                                                            }" else stringResource(id = R.string.no_data),
+                                                            progress = weightProgress,
                                                             icon = painterResource(id = R.drawable.monitor_weight),
                                                             isHealthConnectData = isHealthConnectEnabled && weight?.sourceApp != LocalContext.current.packageName,
                                                             onClick = { navController.navigate(Screen.Weight.route) }
@@ -522,16 +534,18 @@ internal fun HomeScreenContent(
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
                                                     is UiItemState.Success -> {
-                                                        val waterIntake = state.data
+                                                        val waterIntakeData = state.data
+                                                        val waterIntake = waterIntakeData.first
+                                                        val fromHealthConnect = waterIntakeData.second
                                                         NewHealthStatCard(
-                                                            title = "Water",
-                                                            value = if (waterIntake != null) "%.0f ml".format(
+                                                            title = stringResource(id = R.string.water_card_title),
+                                                            value = if (waterIntake != null) "%.0f ${stringResource(id = R.string.ml)}".format(
                                                                 waterIntake * 1000
-                                                            ) else "0 ml",
-                                                            subtitle = "Today",
-                                                            progress = (waterIntake?.toFloat() ?: 0f) / 2.5f, // 2.5L goal
+                                                            ) else "0 ${stringResource(id = R.string.ml)}",
+                                                            subtitle = "${stringResource(id = R.string.today_progress)}${"%.0f".format(waterIntakeProgress * 100)}${stringResource(id = R.string.percentage)}",
+                                                            progress = waterIntakeProgress,
                                                             icon = painterResource(id = R.drawable.ic_med_drops),
-                                                            isHealthConnectData = isHealthConnectEnabled,
+                                                            isHealthConnectData = isHealthConnectEnabled && fromHealthConnect,
                                                             onClick = { navController.navigate(Screen.WaterIntake.route) }
                                                         )
                                                     }
@@ -547,19 +561,21 @@ internal fun HomeScreenContent(
                                                     is UiItemState.Loading -> TemperatureCardSkeleton()
                                                     is UiItemState.Success -> {
                                                         val temperature = state.data
-                                                        NewTemperatureCard(
-                                                            title = "Temperature",
-                                                            value = if (temperature != null) "%.1f°C".format(
+                                                        NewHealthStatCard(
+                                                            title = stringResource(id = R.string.temperature),
+                                                            value = if (temperature != null) "%.1f${stringResource(id = R.string.celsius)}".format(
                                                                 temperature.temperatureCelsius
                                                             ) else "-",
-                                                            subtitle = if (temperature != null) "Last: ${
+                                                            subtitle = if (temperature != null) "${stringResource(id = R.string.last_record)}${
                                                                 DateTimeFormatter.ofLocalizedTime(
                                                                     FormatStyle.SHORT
                                                                 ).format(temperature.time.atZone(ZoneId.systemDefault()))
-                                                            }" else "No data",
+                                                            }" else stringResource(id = R.string.no_data),
+                                                            progress = 0f,
                                                             icon = painterResource(id = R.drawable.health_and_safety_24px),
                                                             isHealthConnectData = isHealthConnectEnabled && temperature?.sourceApp != LocalContext.current.packageName,
-                                                            onClick = { navController.navigate(Screen.BodyTemperature.route) }
+                                                            onClick = { navController.navigate(Screen.BodyTemperature.route) },
+                                                            showProgress = false
                                                         )
                                                     }
                                                     is UiItemState.Error -> {}
@@ -774,8 +790,12 @@ private fun HomeScreenNormalPreview() {
             hasUnreadAlerts = true,
             latestWeightState = UiItemState.Success(Weight(1, Instant.now(), 85.5)),
             latestTemperatureState = UiItemState.Success(BodyTemperature(1, Instant.now(), 36.8)),
-            waterIntakeTodayState = UiItemState.Success(1250.0),
-            heartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 68)),
+            waterIntakeTodayState = UiItemState.Success(Pair(1250.0, true)),
+            heartRateRangeState = UiItemState.Success(Pair(60, 100)),
+            latestHeartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 68)),
+            waterIntakeProgress = 0.5f,
+            weightProgress = 0.8f,
+            heartRateProgress = 0.6f,
             isHealthConnectEnabled = true,
             onRefresh = {},
             onDismissConfirmationDialog = {},
@@ -804,8 +824,12 @@ private fun HomeScreenNoMedicationsPreview() {
             hasUnreadAlerts = false,
             latestWeightState = UiItemState.Success(null),
             latestTemperatureState = UiItemState.Success(null),
-            waterIntakeTodayState = UiItemState.Success(null),
-            heartRateState = UiItemState.Success(null),
+            waterIntakeTodayState = UiItemState.Success(Pair(null, false)),
+            heartRateRangeState = UiItemState.Success(null),
+            latestHeartRateState = UiItemState.Success(null),
+            waterIntakeProgress = 0f,
+            weightProgress = 0f,
+            heartRateProgress = 0f,
             isHealthConnectEnabled = false,
             onRefresh = {},
             onDismissConfirmationDialog = {},
@@ -834,8 +858,12 @@ private fun HomeScreenNoMoreDosesPreview() {
             hasUnreadAlerts = false,
             latestWeightState = UiItemState.Success(Weight(1, Instant.now(), 85.5)),
             latestTemperatureState = UiItemState.Success(null),
-            waterIntakeTodayState = UiItemState.Success(750.0),
-            heartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 72)),
+            waterIntakeTodayState = UiItemState.Success(Pair(750.0, false)),
+            heartRateRangeState = UiItemState.Success(Pair(65, 110)),
+            latestHeartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 72)),
+            waterIntakeProgress = 0.3f,
+            weightProgress = 0.7f,
+            heartRateProgress = 0.5f,
             isHealthConnectEnabled = true,
             onRefresh = {},
             onDismissConfirmationDialog = {},
@@ -865,7 +893,11 @@ private fun HomeScreenLoadingPreview() {
             latestWeightState = UiItemState.Loading,
             latestTemperatureState = UiItemState.Loading,
             waterIntakeTodayState = UiItemState.Loading,
-            heartRateState = UiItemState.Loading,
+            heartRateRangeState = UiItemState.Loading,
+            latestHeartRateState = UiItemState.Loading,
+            waterIntakeProgress = 0f,
+            weightProgress = 0f,
+            heartRateProgress = 0f,
             isHealthConnectEnabled = false,
             onRefresh = {},
             onDismissConfirmationDialog = {},

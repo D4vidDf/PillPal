@@ -39,6 +39,8 @@ class UserPreferencesRepository @Inject constructor(
         // --- NEW KEY FOR HOME LAYOUT ---
         val HOME_LAYOUT_CONFIG = stringPreferencesKey("home_layout_config")
         val SHOW_HEALTH_CONNECT_DATA = booleanPreferencesKey("show_health_connect_data")
+        val HEART_RATE_GOAL_MAX = intPreferencesKey("heart_rate_goal_max")
+        val WEIGHT_GOAL_MAX = intPreferencesKey("weight_goal_max")
     }
 
     val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
@@ -169,6 +171,28 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setShowHealthConnectData(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_HEALTH_CONNECT_DATA] = show
+        }
+    }
+
+    val heartRateGoalMaxFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.HEART_RATE_GOAL_MAX] ?: 120
+        }
+
+    suspend fun setHeartRateGoalMax(goal: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HEART_RATE_GOAL_MAX] = goal
+        }
+    }
+
+    val weightGoalMaxFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_MAX] ?: 100
+        }
+
+    suspend fun setWeightGoalMax(goal: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_MAX] = goal
         }
     }
 }

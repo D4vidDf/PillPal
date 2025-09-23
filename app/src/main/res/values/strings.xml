@@ -673,4 +673,18 @@
     <string name="health_connect_disconnect_dialog_message">PillPal will still have permissions in Health Connect unless you disable them. Open Health Connect to remove PillPal\'s permissions.</string>
     <string name="health_connect_disconnect_dialog_go_back_button">Go back</string>
     <string name="health_connect_disconnect_dialog_open_settings_button">Open settings</string>
+
+    <!-- Health Cards -->
+    <string name="health_connect_data_source">Datos de Health Connect</string>
+    <string name="heart_rate">Frecuencia cardíaca</string>
+    <string name="bpm">ppm</string>
+    <string name="last_record">Último: </string>
+    <string name="weight">Peso</string>
+    <string name="kg">kg</string>
+    <string name="water_card_title">Agua</string>
+    <string name="ml">ml</string>
+    <string name="temperature">Temperatura</string>
+    <string name="celsius">°C</string>
+    <string name="today_progress">Hoy: </string>
+    <string name="percentage">%</string>
 </resources>
