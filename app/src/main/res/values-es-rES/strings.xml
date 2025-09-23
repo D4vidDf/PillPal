@@ -78,7 +78,7 @@
     <string name="dosage_sprays">pulverizaciones</string>
     <string name="dosage_suppositories">supositorios</string>
     <string name="dosage_patches">parches</string>
-    <string name="dosage_wheel_picker_not_available">La selección de dosis para este tipo no está disponible mediante el selector circular. Por favor, introduce manually si es necesario.</string>
+    <string name="dosage_wheel_picker_not_available">La selección de dosis para este tipo no está disponible mediante el selector circular. Por favor, introduzca manualmente si es necesario.</string>
     <string name="dialog_done_button">Hecho</string>
     <string name="dialog_ok_button">Aceptar</string>
     <string name="dialog_cancel_button">Cancelar</string>
