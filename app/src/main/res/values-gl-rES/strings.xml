@@ -484,11 +484,11 @@
     <string name="about_body_temperature">Sobre a temperatura corporal</string>
     <string name="about_body_temperature_description">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno.</string>
     <string name="what_does_body_temp_mean_title">Que significa \"temperatura corporal\"?</string>
-    <string name="what_does_body_temp_mean_content">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno. Segundo a Organización Mundial da Saúde, a temperatura corporal normal oscila entre 36,5 e 37 °C. Pero cada persoa é diferente.</string>
+    <string name="what_does_body_temp_mean_content">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno. Segundo a Organización Mundial da Saúde, a temperatura corporal normal oscila entre 36,5 e 37 °C. Pero cada persoa é diferent.</string>
     <string name="what_can_affect_body_temp_title">Que pode afectar á temperatura corporal?</string>
     <string name="what_can_affect_body_temp_content">A temperatura corporal pode verse afectada por varios factores, como a idade, as actividades, as hormonas, a hora do día, as enfermidades e o ciclo menstrual.</string>
     <string name="how_is_body_temp_measured_title">Como se mide a temperatura corporal?</string>
-    <string name="how_is_body_temp_measured_content">A temperatura corporal pódese comprobar cun termómetro. Podes rexistrar os teus resultados manualmente ou sincronizalos desde un dispositivo compatible.</string>
+    <string name="how_is_body_temp_measured_content">A temperatura corporal pódese comprobar cun termómetro. Podes rexistrar os teus resultats manualmente ou sincronizalos desde un dispositivo compatible.</string>
     <string name="disclaimer_body_temp">Esta función non está destinada a diagnosticar ou controlar enfermidades graves ou afeccións médicas. Consulte co seu médico se ten dúbidas sobre a súa saúde ou o que significan en xeral as súas lecturas de temperatura corporal.</string>
     <string name="no_temperatures_recorded">Non se rexistraron temperaturas</string>
 
@@ -535,4 +535,37 @@
     <string name="health_connect_disconnect_dialog_message">PillPal seguirá tendo permisos en Saúde conectada a menos que os desactives. Abre Saúde conectada para eliminar os permisos de PillPal.</string>
     <string name="health_connect_disconnect_dialog_go_back_button">Volver</string>
     <string name="health_connect_disconnect_dialog_open_settings_button">Abrir axustes</string>
+
+    <!-- Health Cards -->
+    <string name="health_connect_data_source">Datos de Health Connect</string>
+    <string name="heart_rate">Frecuencia cardíaca</string>
+    <string name="bpm">ppm</string>
+    <string name="last_record">Último: </string>
+    <string name="weight">Peso</string>
+    <string name="kg">kg</string>
+    <string name="water_card_title">Auga</string>
+    <string name="ml">ml</string>
+    <string name="temperature">Temperatura</string>
+    <string name="celsius">°C</string>
+    <string name="today_progress">Hoxe: </string>
+    <string name="percentage">%</string>
+
+    <!-- Home Screen Sections and Items -->
+    <string name="home_section_progress">Progreso</string>
+    <string name="home_item_today_progress">Progreso de hoxe</string>
+    <string name="home_item_next_dose">Vindeira dose</string>
+    <string name="home_item_missed_reminders">Recordatorios omitidos</string>
+    <string name="home_section_nutrition">Nutrición</string>
+    <string name="home_item_water_intake">Consumo de auga</string>
+    <string name="home_section_health">Saúde</string>
+    <string name="home_item_heart_rate">Frecuencia cardíaca</string>
+    <string name="home_item_weight">Peso</string>
+    <string name="home_item_temperature">Temperatura</string>
+
+    <!-- Personalize Home Screen -->
+    <string name="move_up">Mover cara arriba</string>
+    <string name="move_down">Mover cara abaixo</string>
+    <string name="minutes">minutos</string>
+    <string name="seconds">segundos</string>
+    <string name="goals">Obxectivos</string>
 </resources>

@@ -535,4 +535,37 @@
     <string name="health_connect_disconnect_dialog_message">PillPal-ek baimenak izaten jarraituko du Osasun konektatuan, desaktibatzen ez badituzu. Ireki Osasun konektatua PillPal-en baimenak kentzeko.</string>
     <string name="health_connect_disconnect_dialog_go_back_button">Itzuli</string>
     <string name="health_connect_disconnect_dialog_open_settings_button">Ireki ezarpenak</string>
+
+    <!-- Health Cards -->
+    <string name="health_connect_data_source">Health Connect-eko datuak</string>
+    <string name="heart_rate">Bihotz-maiztasuna</string>
+    <string name="bpm">ppm</string>
+    <string name="last_record">Azkena: </string>
+    <string name="weight">Pisua</string>
+    <string name="kg">kg</string>
+    <string name="water_card_title">Ura</string>
+    <string name="ml">ml</string>
+    <string name="temperature">Tenperatura</string>
+    <string name="celsius">°C</string>
+    <string name="today_progress">Gaur: </string>
+    <string name="percentage">%</string>
+
+    <!-- Home Screen Sections and Items -->
+    <string name="home_section_progress">Aurrerapena</string>
+    <string name="home_item_today_progress">Gaurko aurrerapena</string>
+    <string name="home_item_next_dose">Hurrengo dosia</string>
+    <string name="home_item_missed_reminders">Ahaztutako abisuak</string>
+    <string name="home_section_nutrition">Elikadura</string>
+    <string name="home_item_water_intake">Ur-kontsumoa</string>
+    <string name="home_section_health">Osasuna</string>
+    <string name="home_item_heart_rate">Bihotz-maiztasuna</string>
+    <string name="home_item_weight">Pisua</string>
+    <string name="home_item_temperature">Tenperatura</string>
+
+    <!-- Personalize Home Screen -->
+    <string name="move_up">Mugitu gora</string>
+    <string name="move_down">Mugitu behera</string>
+    <string name="minutes">minutu</string>
+    <string name="seconds">segundo</string>
+    <string name="goals">Helburuak</string>
 </resources>
