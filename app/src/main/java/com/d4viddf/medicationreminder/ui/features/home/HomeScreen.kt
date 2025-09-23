@@ -556,7 +556,7 @@ internal fun HomeScreenContent(
                                                                     FormatStyle.SHORT
                                                                 ).format(temperature.time)
                                                             }" else "No data",
-                                                            icon = painterResource(id = R.drawable.rounded_thermostat_24),
+                                                            icon = painterResource(id = R.drawable.health_and_safety_24px),
                                                             isHealthConnectData = isHealthConnectEnabled && temperature?.sourceApp != LocalContext.current.packageName,
                                                             onClick = { navController.navigate(Screen.BodyTemperature.route) }
                                                         )
@@ -775,6 +775,7 @@ private fun HomeScreenNormalPreview() {
             latestTemperatureState = UiItemState.Success(BodyTemperature(1, Instant.now(), 36.8)),
             waterIntakeTodayState = UiItemState.Success(1250.0),
             heartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 68)),
+            isHealthConnectEnabled = true,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -804,6 +805,7 @@ private fun HomeScreenNoMedicationsPreview() {
             latestTemperatureState = UiItemState.Success(null),
             waterIntakeTodayState = UiItemState.Success(null),
             heartRateState = UiItemState.Success(null),
+            isHealthConnectEnabled = false,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -833,6 +835,7 @@ private fun HomeScreenNoMoreDosesPreview() {
             latestTemperatureState = UiItemState.Success(null),
             waterIntakeTodayState = UiItemState.Success(750.0),
             heartRateState = UiItemState.Success(HeartRate(1, Instant.now(), 72)),
+            isHealthConnectEnabled = true,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -862,6 +865,7 @@ private fun HomeScreenLoadingPreview() {
             latestTemperatureState = UiItemState.Loading,
             waterIntakeTodayState = UiItemState.Loading,
             heartRateState = UiItemState.Loading,
+            isHealthConnectEnabled = false,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),

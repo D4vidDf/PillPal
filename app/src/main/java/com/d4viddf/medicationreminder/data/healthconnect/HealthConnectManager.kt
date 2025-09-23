@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.time.Instant
 import android.content.pm.PackageManager
-import androidx.health.connect.client.request.ReadRecordsRequest.Builder
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -127,7 +126,6 @@ class HealthConnectManager @Inject constructor(
             val request = ReadRecordsRequest(
                 recordType = WeightRecord::class,
                 timeRangeFilter = TimeRangeFilter.before(Instant.now()),
-                limit = 1,
                 ascendingOrder = false
             )
             val response = healthConnectClient.readRecords(request)
@@ -148,7 +146,6 @@ class HealthConnectManager @Inject constructor(
             val request = ReadRecordsRequest(
                 recordType = BodyTemperatureRecord::class,
                 timeRangeFilter = TimeRangeFilter.before(Instant.now()),
-                limit = 1,
                 ascendingOrder = false
             )
             val response = healthConnectClient.readRecords(request)
@@ -170,7 +167,6 @@ class HealthConnectManager @Inject constructor(
             val request = ReadRecordsRequest(
                 recordType = HeartRateRecord::class,
                 timeRangeFilter = TimeRangeFilter.before(Instant.now()),
-                limit = 1,
                 ascendingOrder = false
             )
             val response = healthConnectClient.readRecords(request)
