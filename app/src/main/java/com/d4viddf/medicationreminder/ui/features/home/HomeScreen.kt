@@ -528,7 +528,7 @@ internal fun HomeScreenContent(
                                                             }" else stringResource(id = R.string.no_data),
                                                             progress = weightProgress,
                                                             icon = painterResource(id = R.drawable.monitor_weight),
-                                                            isHealthConnectData = isHealthConnectEnabled && weight?.sourceApp != LocalContext.current.packageName,
+                                                            isHealthConnectData = isHealthConnectEnabled,
                                                             onClick = { navController.navigate(Screen.Weight.route) }
                                                         )
                                                     }
@@ -556,8 +556,8 @@ internal fun HomeScreenContent(
                                                             },
                                                             subtitle = "${stringResource(id = R.string.today_progress)}${"%.0f".format(waterIntakeProgress * 100)}${stringResource(id = R.string.percentage)}",
                                                             progress = waterIntakeProgress,
-                                                            icon = painterResource(id = R.drawable.ic_med_drops),
-                                                            isHealthConnectData = isHealthConnectEnabled && fromHealthConnect,
+                                                            icon = painterResource(id = R.drawable.water_full),
+                                                            isHealthConnectData = isHealthConnectEnabled,
                                                             onClick = { navController.navigate(Screen.WaterIntake.route) }
                                                         )
                                                     }
@@ -587,8 +587,8 @@ internal fun HomeScreenContent(
                                                                 ).format(temperature.time.atZone(ZoneId.systemDefault()))
                                                             }" else stringResource(id = R.string.no_data),
                                                             progress = 0f,
-                                                            icon = painterResource(id = R.drawable.health_and_safety_24px),
-                                                            isHealthConnectData = isHealthConnectEnabled && temperature?.sourceApp != LocalContext.current.packageName,
+                                                            icon = painterResource(id = R.drawable.thermometer),
+                                                            isHealthConnectData = isHealthConnectEnabled,
                                                             onClick = { navController.navigate(Screen.BodyTemperature.route) },
                                                             showProgress = false
                                                         )

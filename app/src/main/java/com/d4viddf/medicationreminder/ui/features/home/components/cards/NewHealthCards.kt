@@ -111,7 +111,9 @@ fun ValueUnitRow(
         Text(
             text = value,
             style = MaterialTheme.typography.headlineLarge,
-        )
+            fontWeight = FontWeight.Bold,
+
+            )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = unit,

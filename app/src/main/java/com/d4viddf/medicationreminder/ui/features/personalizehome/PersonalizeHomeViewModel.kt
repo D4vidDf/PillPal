@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeItem
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
 import dagger.hilt.android.lifecycle.HiltViewModel
