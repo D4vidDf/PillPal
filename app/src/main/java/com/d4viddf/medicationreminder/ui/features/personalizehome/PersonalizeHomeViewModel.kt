@@ -125,27 +125,52 @@ class PersonalizeHomeViewModel @Inject constructor(
         return listOf(
             HomeSection(
                 id = "progress",
-                name = "Progress",
+                nameRes = R.string.home_section_progress,
                 items = listOf(
-                    HomeItem("today_progress", "Today Progress", isVisible = true),
-                    HomeItem("next_dose", "Next Dose", isVisible = true, displayUnit = "minutes"),
-                    HomeItem("missed_reminders", "Missed Reminders",  isVisible = true)
+                    HomeItem(
+                        id = "today_progress",
+                        nameRes = R.string.home_item_today_progress,
+                        isVisible = true
+                    ),
+                    HomeItem(
+                        id = "next_dose",
+                        nameRes = R.string.home_item_next_dose,
+                        isVisible = true,
+                        displayUnit = "minutes"
+                    ),
+                    HomeItem(
+                        id = "missed_reminders",
+                        nameRes = R.string.home_item_missed_reminders,
+                        isVisible = true
+                    )
                 )
             ),
             HomeSection(
                 id = "nutrition",
-                name = "Nutrition",
+                nameRes = R.string.home_section_nutrition,
                 items = listOf(
-                    HomeItem("water", "Water Intake",  isVisible = true)
+                    HomeItem(
+                        id = "water",
+                        nameRes = R.string.home_item_water_intake,
+                        isVisible = true
+                    )
                 )
             ),
             HomeSection(
                 id = "health",
-                name = "Health",
+                nameRes = R.string.home_section_health,
                 items = listOf(
-                    HomeItem("heart_rate", "Heart Rate",  isVisible = true),
-                    HomeItem("weight", "Weight",  isVisible = true),
-                    HomeItem("temperature", "Temperature", isVisible = true)
+                    HomeItem(
+                        id = "heart_rate",
+                        nameRes = R.string.home_item_heart_rate,
+                        isVisible = true
+                    ),
+                    HomeItem(id = "weight", nameRes = R.string.home_item_weight, isVisible = true),
+                    HomeItem(
+                        id = "temperature",
+                        nameRes = R.string.home_item_temperature,
+                        isVisible = true
+                    )
 
                 )
             )

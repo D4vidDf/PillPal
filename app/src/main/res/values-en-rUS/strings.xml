@@ -644,4 +644,16 @@
     <string name="celsius">°C</string>
     <string name="today_progress">Today: </string>
     <string name="percentage">%</string>
+
+    <!-- Home Screen Sections and Items -->
+    <string name="home_section_progress">Progress</string>
+    <string name="home_item_today_progress">Today Progress</string>
+    <string name="home_item_next_dose">Next Dose</string>
+    <string name="home_item_missed_reminders">Missed Reminders</string>
+    <string name="home_section_nutrition">Nutrition</string>
+    <string name="home_item_water_intake">Water Intake</string>
+    <string name="home_section_health">Health</string>
+    <string name="home_item_heart_rate">Heart Rate</string>
+    <string name="home_item_weight">Weight</string>
+    <string name="home_item_temperature">Temperature</string>
 </resources>

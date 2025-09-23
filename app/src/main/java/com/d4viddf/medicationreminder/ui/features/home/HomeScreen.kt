@@ -412,7 +412,7 @@ internal fun HomeScreenContent(
                                 if (visibleItems.isNotEmpty()) {
                                     item(span = { GridItemSpan(maxLineSpan) }) {
                                         SectionHeader(
-                                            title = section.name,
+                                            title = stringResource(id = section.nameRes),
                                             onEditClick = { navController.navigate(Screen.PersonalizeHome.route) }
                                         )
                                     }
