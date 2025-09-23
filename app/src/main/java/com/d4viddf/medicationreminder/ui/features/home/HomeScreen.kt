@@ -483,7 +483,12 @@ internal fun HomeScreenContent(
                                                         val latestHeartRate = (latestHeartRateState as? UiItemState.Success)?.data
                                                         NewHealthStatCard(
                                                             title = stringResource(id = R.string.heart_rate),
-                                                            value = if (heartRateRange != null) "${heartRateRange.first}-${heartRateRange.second} ${stringResource(id = R.string.bpm)}" else "-",
+                                                            value = {
+                                                                ValueUnitRow(
+                                                                    value = if (heartRateRange != null) "${heartRateRange.first}-${heartRateRange.second}" else "-",
+                                                                    unit = stringResource(id = R.string.bpm)
+                                                                )
+                                                            },
                                                             subtitle = if (latestHeartRate != null) "${stringResource(id = R.string.last_record)}${
                                                                 DateTimeFormatter.ofLocalizedTime(
                                                                     FormatStyle.SHORT
@@ -509,9 +514,12 @@ internal fun HomeScreenContent(
                                                         val weight = state.data
                                                         NewHealthStatCard(
                                                             title = stringResource(id = R.string.weight),
-                                                            value = if (weight != null) "%.1f ${stringResource(id = R.string.kg)}".format(
-                                                                weight.weightKilograms
-                                                            ) else "-",
+                                                            value = {
+                                                                ValueUnitRow(
+                                                                    value = if (weight != null) "%.1f".format(weight.weightKilograms) else "-",
+                                                                    unit = stringResource(id = R.string.kg)
+                                                                )
+                                                            },
                                                             subtitle = if (weight != null) "${stringResource(id = R.string.last_record)}${
                                                                 DateTimeFormatter.ofLocalizedDate(
                                                                     FormatStyle.MEDIUM
@@ -539,9 +547,12 @@ internal fun HomeScreenContent(
                                                         val fromHealthConnect = waterIntakeData.second
                                                         NewHealthStatCard(
                                                             title = stringResource(id = R.string.water_card_title),
-                                                            value = if (waterIntake != null) "%.0f ${stringResource(id = R.string.ml)}".format(
-                                                                waterIntake * 1000
-                                                            ) else "0 ${stringResource(id = R.string.ml)}",
+                                                            value = {
+                                                                ValueUnitRow(
+                                                                    value = if (waterIntake != null) "%.0f".format(waterIntake * 1000) else "0",
+                                                                    unit = stringResource(id = R.string.ml)
+                                                                )
+                                                            },
                                                             subtitle = "${stringResource(id = R.string.today_progress)}${"%.0f".format(waterIntakeProgress * 100)}${stringResource(id = R.string.percentage)}",
                                                             progress = waterIntakeProgress,
                                                             icon = painterResource(id = R.drawable.ic_med_drops),
@@ -563,9 +574,12 @@ internal fun HomeScreenContent(
                                                         val temperature = state.data
                                                         NewHealthStatCard(
                                                             title = stringResource(id = R.string.temperature),
-                                                            value = if (temperature != null) "%.1f${stringResource(id = R.string.celsius)}".format(
-                                                                temperature.temperatureCelsius
-                                                            ) else "-",
+                                                            value = {
+                                                                ValueUnitRow(
+                                                                    value = if (temperature != null) "%.1f".format(temperature.temperatureCelsius) else "-",
+                                                                    unit = stringResource(id = R.string.celsius)
+                                                                )
+                                                            },
                                                             subtitle = if (temperature != null) "${stringResource(id = R.string.last_record)}${
                                                                 DateTimeFormatter.ofLocalizedTime(
                                                                     FormatStyle.SHORT

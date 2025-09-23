@@ -19,7 +19,7 @@ import androidx.compose.material.icons.filled.ArrowForwardIos
 @Composable
 fun NewHealthStatCard(
     title: String,
-    value: String,
+    value: @Composable () -> Unit,
     subtitle: String,
     progress: Float,
     icon: Painter,
@@ -54,11 +54,7 @@ fun NewHealthStatCard(
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                value()
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = subtitle,
@@ -99,6 +95,30 @@ fun NewHealthStatCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ValueUnitRow(
+    value: String,
+    unit: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        modifier = modifier
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineLarge,
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = unit,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
     }
 }
 
