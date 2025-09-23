@@ -409,7 +409,6 @@
     <string name="no_upcoming_doses_today_next_in">No upcoming doses today. Next dose in %1$s.</string>
     <string name="no_upcoming_doses_at_all">No upcoming doses scheduled.</string>
     <string name="time_remaining_days_hours">%1$dd %2$dh</string>
-    <string name="all_reminders_header">All Reminders</string>
     <string name="next_dosage_title">Next Dosage</string>
     <string name="adherence_title">Adherence</string>
     <string name="adherence_mock_text">95% on time this week</string>
