@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.d4viddf.medicationreminder.data.model.ThemeKeys
 import com.d4viddf.medicationreminder.ui.features.personalizehome.model.HomeSection
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,8 @@ class UserPreferencesRepository @Inject constructor(
         // --- NEW KEY FOR HOME LAYOUT ---
         val HOME_LAYOUT_CONFIG = stringPreferencesKey("home_layout_config")
         val SHOW_HEALTH_CONNECT_DATA = booleanPreferencesKey("show_health_connect_data")
+        val HEART_RATE_GOAL_MAX = intPreferencesKey("heart_rate_goal_max")
+        val WEIGHT_GOAL_MAX = intPreferencesKey("weight_goal_max")
     }
 
     val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
@@ -98,9 +101,19 @@ class UserPreferencesRepository @Inject constructor(
             if (jsonString.isNullOrEmpty()) {
                 emptyList() // Return empty list if no config is saved
             } else {
-                // Deserialize the JSON string back into a list of HomeSection objects
-                val type = object : TypeToken<List<HomeSection>>() {}.type
-                gson.fromJson(jsonString, type)
+                try {
+                    val type = object : TypeToken<List<HomeSection>>() {}.type
+                    val sections = gson.fromJson<List<HomeSection>>(jsonString, type)
+                    // Check if any nameRes is 0, which indicates old format
+                    if (sections.any { s -> s.nameRes == 0 || s.items.any { it.nameRes == 0 } }) {
+                        emptyList() // Force reset
+                    } else {
+                        sections
+                    }
+                } catch (e: Exception) {
+                    // If any other error occurs during deserialization, reset to default
+                    emptyList()
+                }
             }
         }
 
@@ -169,6 +182,28 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setShowHealthConnectData(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_HEALTH_CONNECT_DATA] = show
+        }
+    }
+
+    val heartRateGoalMaxFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.HEART_RATE_GOAL_MAX] ?: 120
+        }
+
+    suspend fun setHeartRateGoalMax(goal: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HEART_RATE_GOAL_MAX] = goal
+        }
+    }
+
+    val weightGoalMaxFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_MAX] ?: 100
+        }
+
+    suspend fun setWeightGoalMax(goal: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEIGHT_GOAL_MAX] = goal
         }
     }
 }

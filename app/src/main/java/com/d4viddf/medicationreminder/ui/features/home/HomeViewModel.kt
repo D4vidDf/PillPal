@@ -39,9 +39,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import javax.inject.Inject
@@ -178,17 +180,73 @@ class HomeViewModel @Inject constructor(
             .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val waterIntakeToday: StateFlow<UiItemState<Double?>> =
+    val waterIntakeToday: StateFlow<UiItemState<Pair<Double?, Boolean>>> =
         healthDataRepository.getTotalWaterIntakeSince(
             System.currentTimeMillis() - 24 * 60 * 60 * 1000
-        ).map { UiItemState.Success(it) as UiItemState<Double?> }
+        ).map { UiItemState.Success(it) as UiItemState<Pair<Double?, Boolean>> }
             .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
-    val heartRate: StateFlow<UiItemState<HeartRate?>> = healthDataRepository.getLatestHeartRate()
-        .map { UiItemState.Success(it) as UiItemState<HeartRate?> }
-        .onStart { emit(UiItemState.Loading) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
+    val heartRateRange: StateFlow<UiItemState<Pair<Long, Long>?>> =
+        healthDataRepository.getHeartRateBetween(
+            LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant(),
+            Instant.now()
+        ).map { heartRates ->
+            if (heartRates.isEmpty()) {
+                UiItemState.Success(null)
+            } else {
+                val min = heartRates.minOf { it.beatsPerMinute }
+                val max = heartRates.maxOf { it.beatsPerMinute }
+                UiItemState.Success(Pair(min, max))
+            }
+        }.map { it as UiItemState<Pair<Long, Long>?> }
+            .onStart { emit(UiItemState.Loading) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
+
+    val latestHeartRate: StateFlow<UiItemState<HeartRate?>> =
+        healthDataRepository.getLatestHeartRate()
+            .map { UiItemState.Success(it) as UiItemState<HeartRate?> }
+            .onStart { emit(UiItemState.Loading) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
+
+    val isHealthConnectEnabled: StateFlow<Boolean> = userPreferencesRepository.showHealthConnectDataFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val waterIntakeProgress: StateFlow<Float> =
+        combine(
+            waterIntakeToday,
+            userPreferencesRepository.waterIntakeGoalFlow
+        ) { waterIntakeState, goal ->
+            val intake = (waterIntakeState as? UiItemState.Success)?.data?.first ?: 0.0
+            if (goal > 0) (intake / (goal / 1000.0)).toFloat() else 0f
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val weightProgress: StateFlow<Float> =
+        combine(
+            latestWeight,
+            userPreferencesRepository.weightGoalMaxFlow
+        ) { weightState, goal ->
+            if (weightState is UiItemState.Success) {
+                val weight = weightState.data?.weightKilograms ?: 0.0
+                if (goal > 0) (weight / goal).toFloat() else 0f
+            } else {
+                0f
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val heartRateProgress: StateFlow<Float> =
+        combine(
+            latestHeartRate,
+            userPreferencesRepository.heartRateGoalMaxFlow
+        ) { heartRateState, goal ->
+            if (heartRateState is UiItemState.Success) {
+                val heartRate = heartRateState.data?.beatsPerMinute ?: 0
+                if (goal > 0) (heartRate.toFloat() / goal) else 0f
+            } else {
+                0f
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
 
     // --- User Actions ---
 

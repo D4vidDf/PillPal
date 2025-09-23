@@ -413,7 +413,7 @@
     <string name="blood_pressure_mock_text">Latest: 125/82 mmHg</string>
     <string name="symptom_tracker_title">How are you feeling?</string>
     <string name="notes_for_doctor_title">Notes for Doctor</string>
-    <string name="show_all_button">Show all</string>
+    <string name="show_all_button">Mostrar todo</string>
     <string name="log_bp_button">Log</string>
     <string name="no_as_needed_meds_configured">No \"as needed\" medications configured.</string>
     <string name="take_medication_button">Take</string>
@@ -673,4 +673,36 @@
     <string name="health_connect_disconnect_dialog_message">PillPal will still have permissions in Health Connect unless you disable them. Open Health Connect to remove PillPal\'s permissions.</string>
     <string name="health_connect_disconnect_dialog_go_back_button">Go back</string>
     <string name="health_connect_disconnect_dialog_open_settings_button">Open settings</string>
+
+    <!-- Health Cards -->
+    <string name="health_connect_data_source">Datos de Health Connect</string>
+    <string name="heart_rate">Frecuencia cardíaca</string>
+    <string name="bpm">ppm</string>
+    <string name="last_record">Último: </string>
+    <string name="weight">Peso</string>
+    <string name="kg">kg</string>
+    <string name="water_card_title">Agua</string>
+    <string name="ml">ml</string>
+    <string name="temperature">Temperatura</string>
+    <string name="celsius">°C</string>
+    <string name="today_progress">Hoy: </string>
+    <string name="percentage">%</string>
+
+    <!-- Home Screen Sections and Items -->
+    <string name="home_section_progress">Progreso</string>
+    <string name="home_item_today_progress">Progreso de hoy</string>
+    <string name="home_item_next_dose">Próxima dosis</string>
+    <string name="home_item_missed_reminders">Recordatorios omitidos</string>
+    <string name="home_section_nutrition">Nutrición</string>
+    <string name="home_item_water_intake">Consumo de agua</string>
+    <string name="home_section_health">Salud</string>
+    <string name="home_item_heart_rate">Frecuencia cardíaca</string>
+    <string name="home_item_weight">Peso</string>
+    <string name="home_item_temperature">Temperatura</string>
+
+    <!-- Personalize Home Screen -->
+    <string name="move_up">Mover hacia arriba</string>
+    <string name="move_down">Mover hacia abajo</string>
+    <string name="minutes">minutos</string>
+    <string name="seconds">segundos</string>
 </resources>

@@ -10,6 +10,7 @@ import com.d4viddf.medicationreminder.data.source.local.HealthDataDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,10 +23,64 @@ class HealthDataRepository @Inject constructor(
 ) {
 
     // --- READ Functions ---
-    fun getLatestBodyTemperature(): Flow<BodyTemperature?> = healthDataDao.getLatestBodyTemperature()
-    fun getLatestWeight(): Flow<Weight?> = healthDataDao.getLatestWeight()
-    fun getLatestHeartRate(): Flow<HeartRate?> = healthDataDao.getLatestHeartRate()
-    fun getTotalWaterIntakeSince(startTime: Long): Flow<Double?> = healthDataDao.getTotalWaterIntakeSince(startTime)
+    fun getLatestBodyTemperature(): Flow<BodyTemperature?> {
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getLatestBodyTemperature()
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getLatestBodyTemperature()
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    if (local == null) return@combine healthConnect
+                    if (healthConnect == null) return@combine local
+                    if (local.time.isAfter(healthConnect.time)) local else healthConnect
+                }
+            } else {
+                localData
+            }
+        }
+    }
+
+    fun getLatestWeight(): Flow<Weight?> {
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getLatestWeight()
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getLatestWeight()
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    if (local == null) return@combine healthConnect
+                    if (healthConnect == null) return@combine local
+                    if (local.time.isAfter(healthConnect.time)) local else healthConnect
+                }
+            } else {
+                localData
+            }
+        }
+    }
+
+    fun getLatestHeartRate(): Flow<HeartRate?> {
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getLatestHeartRate()
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getLatestHeartRate()
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    if (local == null) return@combine healthConnect
+                    if (healthConnect == null) return@combine local
+                    if (local.time.isAfter(healthConnect.time)) local else healthConnect
+                }
+            } else {
+                localData
+            }
+        }
+    }
+
+    fun getTotalWaterIntakeSince(startTime: Long): Flow<Pair<Double?, Boolean>> {
+        return getWaterIntakeBetween(
+            Instant.ofEpochMilli(startTime),
+            Instant.now()
+        ).map { intakes ->
+            val total = intakes.sumOf { it.volumeMilliliters } / 1000.0
+            val fromHealthConnect = intakes.any { it.sourceApp != "com.d4viddf.medicationreminder" }
+            Pair(total, fromHealthConnect)
+        }
+    }
     fun getBodyTemperatureBetween(startTime: Instant, endTime: Instant): Flow<List<BodyTemperature>> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getBodyTemperatureBetween(startTime, endTime)

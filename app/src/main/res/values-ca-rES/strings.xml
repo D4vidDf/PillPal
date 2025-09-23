@@ -536,4 +536,37 @@
     <string name="health_connect_disconnect_dialog_message">PillPal continuarà tenint permisos a Salut connectada tret que els desactivis. Obre Salut connectada per a eliminar els permisos de PillPal.</string>
     <string name="health_connect_disconnect_dialog_go_back_button">Enrere</string>
     <string name="health_connect_disconnect_dialog_open_settings_button">Obre la configuració</string>
+
+    <!-- Health Cards -->
+    <string name="health_connect_data_source">Dades de Health Connect</string>
+    <string name="heart_rate">Freqüència cardíaca</string>
+    <string name="bpm">ppm</string>
+    <string name="last_record">Últim: </string>
+    <string name="weight">Pes</string>
+    <string name="kg">kg</string>
+    <string name="water_card_title">Aigua</string>
+    <string name="ml">ml</string>
+    <string name="temperature">Temperatura</string>
+    <string name="celsius">°C</string>
+    <string name="today_progress">Avui: </string>
+    <string name="percentage">%</string>
+
+    <!-- Home Screen Sections and Items -->
+    <string name="home_section_progress">Progrés</string>
+    <string name="home_item_today_progress">Progrés d\'avui</string>
+    <string name="home_item_next_dose">Pròxima dosi</string>
+    <string name="home_item_missed_reminders">Recordatoris omessos</string>
+    <string name="home_section_nutrition">Nutrició</string>
+    <string name="home_item_water_intake">Consum d\'aigua</string>
+    <string name="home_section_health">Salut</string>
+    <string name="home_item_heart_rate">Freqüència cardíaca</string>
+    <string name="home_item_weight">Pes</string>
+    <string name="home_item_temperature">Temperatura</string>
+
+    <!-- Personalize Home Screen -->
+    <string name="move_up">Moure cap amunt</string>
+    <string name="move_down">Moure cap avall</string>
+    <string name="minutes">minuts</string>
+    <string name="seconds">segons</string>
+    <string name="goals">Objectius</string>
 </resources>

@@ -278,4 +278,30 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    val weightGoalMax: StateFlow<Int> = userPreferencesRepository.weightGoalMaxFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 100
+        )
+
+    fun setWeightGoalMax(goal: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setWeightGoalMax(goal)
+        }
+    }
+
+    val heartRateGoalMax: StateFlow<Int> = userPreferencesRepository.heartRateGoalMaxFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 120
+        )
+
+    fun setHeartRateGoalMax(goal: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setHeartRateGoalMax(goal)
+        }
+    }
 }

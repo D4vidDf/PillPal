@@ -75,12 +75,12 @@ private fun SectionItem(
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(text = section.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Text(text = stringResource(id = section.nameRes), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             IconButton(onClick = onMoveUp, enabled = canMoveUp) {
-                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Move Up")
+                Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(id = R.string.move_up))
             }
             IconButton(onClick = onMoveDown, enabled = canMoveDown) {
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Move Down")
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(id = R.string.move_down))
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -109,20 +109,20 @@ private fun HomeItemCard(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = item.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            Text(text = stringResource(id = item.nameRes), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
 
             if (item.id == "next_dose") {
                 Box {
                     TextButton(onClick = { isMenuExpanded = true }) {
-                        Text(text = item.displayUnit ?: "minutes")
+                        Text(text = item.displayUnit ?: stringResource(id = R.string.minutes))
                         Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                     }
                     DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
-                        DropdownMenuItem(text = { Text("minutes") }, onClick = {
+                        DropdownMenuItem(text = { Text(stringResource(id = R.string.minutes)) }, onClick = {
                             onUpdateNextDoseUnit("minutes")
                             isMenuExpanded = false
                         })
-                        DropdownMenuItem(text = { Text("seconds") }, onClick = {
+                        DropdownMenuItem(text = { Text(stringResource(id = R.string.seconds)) }, onClick = {
                             onUpdateNextDoseUnit("seconds")
                             isMenuExpanded = false
                         })

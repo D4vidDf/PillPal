@@ -630,4 +630,36 @@
     <string name="dato_temperatura_corporal">Body temperature</string>
     <string name="que_datos_se_mostraran_description_2">If you choose to display Health Connect data in the app, these data types may no longer match what appears on your PillPal device.</string>
     <string name="que_datos_se_mostraran_description_3">Scores, badges, and leaderboards will continue to use only data from your PillPal devices and features.</string>
+
+    <!-- Health Cards -->
+    <string name="health_connect_data_source">Health Connect data</string>
+    <string name="heart_rate">Heart Rate</string>
+    <string name="bpm">bpm</string>
+    <string name="last_record">Last: </string>
+    <string name="weight">Weight</string>
+    <string name="kg">kg</string>
+    <string name="water_card_title">Water</string>
+    <string name="ml">ml</string>
+    <string name="temperature">Temperature</string>
+    <string name="celsius">°C</string>
+    <string name="today_progress">Today: </string>
+    <string name="percentage">%</string>
+
+    <!-- Home Screen Sections and Items -->
+    <string name="home_section_progress">Progress</string>
+    <string name="home_item_today_progress">Today Progress</string>
+    <string name="home_item_next_dose">Next Dose</string>
+    <string name="home_item_missed_reminders">Missed Reminders</string>
+    <string name="home_section_nutrition">Nutrition</string>
+    <string name="home_item_water_intake">Water Intake</string>
+    <string name="home_section_health">Health</string>
+    <string name="home_item_heart_rate">Heart Rate</string>
+    <string name="home_item_weight">Weight</string>
+    <string name="home_item_temperature">Temperature</string>
+
+    <!-- Personalize Home Screen -->
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+    <string name="minutes">minutes</string>
+    <string name="seconds">seconds</string>
 </resources>
