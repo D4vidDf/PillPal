@@ -102,12 +102,16 @@ class UserPreferencesRepository @Inject constructor(
                 emptyList() // Return empty list if no config is saved
             } else {
                 try {
-                    // Deserialize the JSON string back into a list of HomeSection objects
                     val type = object : TypeToken<List<HomeSection>>() {}.type
-                    gson.fromJson(jsonString, type)
-                } catch (e: JsonSyntaxException) {
-                    // If deserialization fails, it's likely due to the old format.
-                    // Return an empty list to force a reset to the default layout.
+                    val sections = gson.fromJson<List<HomeSection>>(jsonString, type)
+                    // Check if any nameRes is 0, which indicates old format
+                    if (sections.any { s -> s.nameRes == 0 || s.items.any { it.nameRes == 0 } }) {
+                        emptyList() // Force reset
+                    } else {
+                        sections
+                    }
+                } catch (e: Exception) {
+                    // If any other error occurs during deserialization, reset to default
                     emptyList()
                 }
             }
