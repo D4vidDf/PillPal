@@ -32,7 +32,7 @@ class HealthDataRepository @Inject constructor(
             if (showHealthConnectData) {
                 val healthConnectData = healthConnectManager.getBodyTemperature(startTime, endTime)
                 localData.combine(healthConnectData) { local, healthConnect ->
-                    (local + healthConnect).distinctBy { it.time }
+                    (local + healthConnect).distinct()
                 }
             } else {
                 localData
@@ -46,7 +46,7 @@ class HealthDataRepository @Inject constructor(
             if (showHealthConnectData) {
                 val healthConnectData = healthConnectManager.getWeight(startTime, endTime)
                 localData.combine(healthConnectData) { local, healthConnect ->
-                    (local + healthConnect).distinctBy { it.time }
+                    (local + healthConnect).distinct()
                 }
             } else {
                 localData
@@ -62,7 +62,7 @@ class HealthDataRepository @Inject constructor(
             if (showHealthConnectData) {
                 val healthConnectData = healthConnectManager.getWaterIntake(startTime, endTime)
                 localData.combine(healthConnectData) { local, healthConnect ->
-                    (local + healthConnect).distinctBy { it.time }
+                    (local + healthConnect).distinct()
                 }
             } else {
                 localData
@@ -76,7 +76,7 @@ class HealthDataRepository @Inject constructor(
             if (showHealthConnectData) {
                 val healthConnectData = healthConnectManager.getHeartRate(startTime, endTime)
                 localData.combine(healthConnectData) { local, healthConnect ->
-                    (local + healthConnect).distinctBy { it.time }
+                    (local + healthConnect).distinct()
                 }
             } else {
                 localData
