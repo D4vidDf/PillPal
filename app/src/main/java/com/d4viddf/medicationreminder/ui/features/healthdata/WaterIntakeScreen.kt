@@ -46,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -110,6 +111,18 @@ fun WaterIntakeScreen(
     val headerTotalIntake by viewModel.headerTotalIntake.collectAsState()
     val weekFields = WeekFields.of(Locale.getDefault())
     val today = LocalDate.now()
+
+    val waterLogged = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("water_logged")
+        ?.observeAsState()
+
+    LaunchedEffect(waterLogged) {
+        if (waterLogged?.value == true) {
+            viewModel.fetchWaterIntakeRecords()
+            navController.currentBackStackEntry?.savedStateHandle?.remove<Boolean>("water_logged")
+        }
+    }
 
 
     Scaffold(

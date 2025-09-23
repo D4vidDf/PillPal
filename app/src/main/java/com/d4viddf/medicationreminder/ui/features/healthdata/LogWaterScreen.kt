@@ -284,6 +284,7 @@ fun LogWaterScreen(
                             viewModel.logWater(it, logTime, "Custom Qty")
                         }
                     }
+                    navController.previousBackStackEntry?.savedStateHandle?.set("water_logged", true)
                     onNavigateBack()
                 },
                 enabled = isButtonEnabled,

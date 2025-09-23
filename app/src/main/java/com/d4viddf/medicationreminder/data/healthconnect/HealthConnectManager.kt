@@ -72,7 +72,7 @@ class HealthConnectManager @Inject constructor(
             val hydrationRecord = HydrationRecord(
                 startTime = record.time,
                 startZoneOffset = null,
-                endTime = record.time,
+                endTime = record.time.plusSeconds(1),
                 endZoneOffset = null,
                 volume = androidx.health.connect.client.units.Volume.milliliters(record.volumeMilliliters)
             )
@@ -107,7 +107,7 @@ class HealthConnectManager @Inject constructor(
             val heartRateRecord = HeartRateRecord(
             startTime = record.time,
             startZoneOffset = null,
-            endTime = record.time,
+            endTime = record.time.plusSeconds(1),
             endZoneOffset = null,
             samples = listOf(
                 HeartRateRecord.Sample(
