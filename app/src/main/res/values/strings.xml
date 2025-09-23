@@ -699,4 +699,10 @@
     <string name="home_item_heart_rate">Frecuencia cardíaca</string>
     <string name="home_item_weight">Peso</string>
     <string name="home_item_temperature">Temperatura</string>
+
+    <!-- Personalize Home Screen -->
+    <string name="move_up">Mover hacia arriba</string>
+    <string name="move_down">Mover hacia abajo</string>
+    <string name="minutes">minutos</string>
+    <string name="seconds">segundos</string>
 </resources>
