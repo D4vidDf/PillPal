@@ -758,18 +758,18 @@ fun NoMoreSchedulesTodayCard() {
 // region Preview Section
 private val mockHomeLayout = listOf(
     HomeSection(
-        "insights", "Insights", true, items = listOf(
-            HomeItem("today_progress", "Today's Progress", true, "doses"),
-            HomeItem("missed_reminders", "Missed Reminders", true, null)
+        "insights", R.string.home_section_progress, true, items = listOf(
+            HomeItem("today_progress", R.string.home_item_today_progress, true, "doses"),
+            HomeItem("missed_reminders", R.string.home_item_missed_reminders, true, null)
         )
     ),
     HomeSection(
-        "vitals", "Vitals & Measurements", false, items = listOf(
-            HomeItem("next_dose", "Next Dose", true, "minutes"),
-            HomeItem("heart_rate", "Heart Rate", true, null),
-            HomeItem("weight", "Weight", true, null),
-            HomeItem("water", "Water Intake", true, null),
-            HomeItem("temperature", "Temperature", true, null)
+        "vitals", R.string.home_section_health, false, items = listOf(
+            HomeItem("next_dose", R.string.home_item_next_dose, true, "minutes"),
+            HomeItem("heart_rate", R.string.home_item_heart_rate, true, null),
+            HomeItem("weight", R.string.home_item_weight, true, null),
+            HomeItem("water", R.string.home_item_water_intake, true, null),
+            HomeItem("temperature", R.string.home_item_temperature, true, null)
         )
     )
 )
