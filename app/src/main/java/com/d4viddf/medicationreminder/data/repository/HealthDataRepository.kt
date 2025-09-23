@@ -72,8 +72,11 @@ class HealthDataRepository @Inject constructor(
     }
 
     fun getTotalWaterIntakeSince(startTime: Long): Flow<Double?> {
-        return getWaterIntakeBetween(Instant.ofEpochMilli(startTime), Instant.now()).map { intakes ->
-            intakes.sumOf { it.amountLiters }
+        return getWaterIntakeBetween(
+            Instant.ofEpochMilli(startTime),
+            Instant.now()
+        ).map { intakes ->
+            intakes.sumOf { it.volumeMilliliters } / 1000.0
         }
     }
     fun getBodyTemperatureBetween(startTime: Instant, endTime: Instant): Flow<List<BodyTemperature>> {
