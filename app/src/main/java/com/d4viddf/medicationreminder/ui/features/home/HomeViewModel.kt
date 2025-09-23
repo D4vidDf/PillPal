@@ -39,6 +39,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -182,7 +184,7 @@ class HomeViewModel @Inject constructor(
     val waterIntakeToday: StateFlow<UiItemState<Pair<Double?, Boolean>>> =
         healthDataRepository.getTotalWaterIntakeSince(
             System.currentTimeMillis() - 24 * 60 * 60 * 1000
-        ).map { UiItemState.Success(it) }
+        ).map { UiItemState.Success(it) as UiItemState<Pair<Double?, Boolean>> }
             .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
@@ -198,12 +200,13 @@ class HomeViewModel @Inject constructor(
                 val max = heartRates.maxOf { it.beatsPerMinute }
                 UiItemState.Success(Pair(min, max))
             }
-        }.onStart { emit(UiItemState.Loading) }
+        }.map { it as UiItemState<Pair<Long, Long>?> }
+            .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
     val latestHeartRate: StateFlow<UiItemState<HeartRate?>> =
         healthDataRepository.getLatestHeartRate()
-            .map { UiItemState.Success(it) }
+            .map { UiItemState.Success(it) as UiItemState<HeartRate?> }
             .onStart { emit(UiItemState.Loading) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
@@ -224,8 +227,12 @@ class HomeViewModel @Inject constructor(
             latestWeight,
             userPreferencesRepository.weightGoalMaxFlow
         ) { weightState, goal ->
-            val weight = (weightState as? UiItemState.Success)?.data?.weightKilograms ?: 0.0
-            if (goal > 0) (weight / goal).toFloat() else 0f
+            if (weightState is UiItemState.Success) {
+                val weight = weightState.data?.weightKilograms ?: 0.0
+                if (goal > 0) (weight / goal).toFloat() else 0f
+            } else {
+                0f
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
     val heartRateProgress: StateFlow<Float> =
@@ -233,8 +240,12 @@ class HomeViewModel @Inject constructor(
             latestHeartRate,
             userPreferencesRepository.heartRateGoalMaxFlow
         ) { heartRateState, goal ->
-            val heartRate = (heartRateState as? UiItemState.Success)?.data?.beatsPerMinute ?: 0
-            if (goal > 0) (heartRate.toFloat() / goal) else 0f
+            if (heartRateState is UiItemState.Success) {
+                val heartRate = heartRateState.data?.beatsPerMinute ?: 0
+                if (goal > 0) (heartRate.toFloat() / goal) else 0f
+            } else {
+                0f
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
 
