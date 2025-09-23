@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.time.Instant
 import android.content.pm.PackageManager
+import androidx.health.connect.client.request.ReadRecordsRequest.Builder
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -117,6 +119,70 @@ class HealthConnectManager @Inject constructor(
             )
         )
         healthConnectClient.insertRecords(listOf(heartRateRecord))
+        }
+    }
+
+    fun getLatestWeight(): Flow<Weight?> = flow {
+        if (hasAllPermissions()) {
+            val request = ReadRecordsRequest(
+                recordType = WeightRecord::class,
+                timeRangeFilter = TimeRangeFilter.before(Instant.now()),
+                limit = 1,
+                ascendingOrder = false
+            )
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.firstOrNull()?.let {
+                Weight(
+                    time = it.time,
+                    weightKilograms = it.weight.inKilograms,
+                    sourceApp = it.metadata.dataOrigin.packageName
+                )
+            })
+        } else {
+            emit(null)
+        }
+    }
+
+    fun getLatestBodyTemperature(): Flow<BodyTemperature?> = flow {
+        if (hasAllPermissions()) {
+            val request = ReadRecordsRequest(
+                recordType = BodyTemperatureRecord::class,
+                timeRangeFilter = TimeRangeFilter.before(Instant.now()),
+                limit = 1,
+                ascendingOrder = false
+            )
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.firstOrNull()?.let {
+                BodyTemperature(
+                    time = it.time,
+                    temperatureCelsius = it.temperature.inCelsius,
+                    measurementLocation = it.measurementLocation,
+                    sourceApp = it.metadata.dataOrigin.packageName
+                )
+            })
+        } else {
+            emit(null)
+        }
+    }
+
+    fun getLatestHeartRate(): Flow<HeartRate?> = flow {
+        if (hasAllPermissions()) {
+            val request = ReadRecordsRequest(
+                recordType = HeartRateRecord::class,
+                timeRangeFilter = TimeRangeFilter.before(Instant.now()),
+                limit = 1,
+                ascendingOrder = false
+            )
+            val response = healthConnectClient.readRecords(request)
+            emit(response.records.firstOrNull()?.samples?.lastOrNull()?.let {
+                HeartRate(
+                    time = it.time,
+                    beatsPerMinute = it.beatsPerMinute,
+                    sourceApp = response.records.first().metadata.dataOrigin.packageName
+                )
+            })
+        } else {
+            emit(null)
         }
     }
 

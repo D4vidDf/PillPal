@@ -77,14 +77,12 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.ui.common.component.ConfirmationDialog
 import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.home.components.NextDoseCard
-import com.d4viddf.medicationreminder.ui.features.home.components.cards.HeartRateCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.MissedRemindersCard
+import com.d4viddf.medicationreminder.ui.features.home.components.cards.NewHealthStatCard
+import com.d4viddf.medicationreminder.ui.features.home.components.cards.NewTemperatureCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.NextDoseTimeCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.SectionHeader
-import com.d4viddf.medicationreminder.ui.features.home.components.cards.TemperatureCard
 import com.d4viddf.medicationreminder.ui.features.home.components.cards.TodayProgressCard
-import com.d4viddf.medicationreminder.ui.features.home.components.cards.WaterCard
-import com.d4viddf.medicationreminder.ui.features.home.components.cards.WeightCard
 import com.d4viddf.medicationreminder.ui.features.home.components.skeletons.HealthStatCardSkeleton
 import com.d4viddf.medicationreminder.ui.features.home.components.skeletons.MissedRemindersCardSkeleton
 import com.d4viddf.medicationreminder.ui.features.home.components.skeletons.NextDoseCardSkeleton
@@ -103,6 +101,8 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,6 +128,7 @@ fun HomeScreen(
     val latestTemperatureState by viewModel.latestTemperature.collectAsState()
     val waterIntakeTodayState by viewModel.waterIntakeToday.collectAsState()
     val heartRateState by viewModel.heartRate.collectAsState()
+    val isHealthConnectEnabled by viewModel.isHealthConnectEnabled.collectAsState()
 
 
     // A flag to indicate if there are unread alerts (you can wire this to a real data source)
@@ -156,6 +157,7 @@ fun HomeScreen(
         latestTemperatureState = latestTemperatureState,
         waterIntakeTodayState = waterIntakeTodayState,
         heartRateState = heartRateState,
+        isHealthConnectEnabled = isHealthConnectEnabled,
         onRefresh = viewModel::refreshData,
         onDismissConfirmationDialog = viewModel::dismissConfirmationDialog,
         onWatchIconClick = viewModel::handleWatchIconClick,
@@ -185,6 +187,7 @@ internal fun HomeScreenContent(
     latestTemperatureState: UiItemState<BodyTemperature?>,
     waterIntakeTodayState: UiItemState<Double?>,
     heartRateState: UiItemState<com.d4viddf.medicationreminder.data.model.healthdata.HeartRate?>,
+    isHealthConnectEnabled: Boolean,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController,
@@ -463,11 +466,22 @@ internal fun HomeScreenContent(
                                             ) { state ->
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                    is UiItemState.Success -> HeartRateCard(
-                                                        heartRate = state.data?.beatsPerMinute?.toString(),
-                                                        onClick = { navController.navigate(Screen.HeartRate.route) }
-                                                    )
-
+                                                    is UiItemState.Success -> {
+                                                        val heartRate = state.data
+                                                        NewHealthStatCard(
+                                                            title = "Heart Rate",
+                                                            value = heartRate?.beatsPerMinute?.toString() ?: "-",
+                                                            subtitle = if (heartRate != null) "Last: ${
+                                                                DateTimeFormatter.ofLocalizedTime(
+                                                                    FormatStyle.SHORT
+                                                                ).format(heartRate.time)
+                                                            }" else "No data",
+                                                            progress = (heartRate?.beatsPerMinute?.toFloat() ?: 0f) / 120f,
+                                                            icon = painterResource(id = R.drawable.cardio_load),
+                                                            isHealthConnectData = isHealthConnectEnabled && heartRate?.sourceApp != LocalContext.current.packageName,
+                                                            onClick = { navController.navigate(Screen.HeartRate.route) }
+                                                        )
+                                                    }
                                                     is UiItemState.Error -> {}
                                                 }
                                             }
@@ -478,11 +492,24 @@ internal fun HomeScreenContent(
                                             ) { state ->
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                    is UiItemState.Success -> WeightCard(
-                                                        weight = state.data?.weightKilograms?.toString(),
-                                                        onClick = { navController.navigate(Screen.Weight.route) }
-                                                    )
-
+                                                    is UiItemState.Success -> {
+                                                        val weight = state.data
+                                                        NewHealthStatCard(
+                                                            title = "Weight",
+                                                            value = if (weight != null) "%.1f kg".format(
+                                                                weight.weightKilograms
+                                                            ) else "-",
+                                                            subtitle = if (weight != null) "Last: ${
+                                                                DateTimeFormatter.ofLocalizedDate(
+                                                                    FormatStyle.MEDIUM
+                                                                ).format(weight.time)
+                                                            }" else "No data",
+                                                            progress = (weight?.weightKilograms?.toFloat() ?: 0f) / 100f,
+                                                            icon = painterResource(id = R.drawable.monitor_weight),
+                                                            isHealthConnectData = isHealthConnectEnabled && weight?.sourceApp != LocalContext.current.packageName,
+                                                            onClick = { navController.navigate(Screen.Weight.route) }
+                                                        )
+                                                    }
                                                     is UiItemState.Error -> {}
                                                 }
                                             }
@@ -493,11 +520,20 @@ internal fun HomeScreenContent(
                                             ) { state ->
                                                 when (state) {
                                                     is UiItemState.Loading -> HealthStatCardSkeleton()
-                                                    is UiItemState.Success -> WaterCard(
-                                                        totalIntakeMl = state.data,
-                                                        onClick = { navController.navigate(Screen.WaterIntake.route) }
-                                                    )
-
+                                                    is UiItemState.Success -> {
+                                                        val waterIntake = state.data
+                                                        NewHealthStatCard(
+                                                            title = "Water",
+                                                            value = if (waterIntake != null) "%.0f ml".format(
+                                                                waterIntake * 1000
+                                                            ) else "0 ml",
+                                                            subtitle = "Today",
+                                                            progress = (waterIntake?.toFloat() ?: 0f) / 2.5f, // 2.5L goal
+                                                            icon = painterResource(id = R.drawable.ic_med_drops),
+                                                            isHealthConnectData = isHealthConnectEnabled,
+                                                            onClick = { navController.navigate(Screen.WaterIntake.route) }
+                                                        )
+                                                    }
                                                     is UiItemState.Error -> {}
                                                 }
                                             }
@@ -508,11 +544,23 @@ internal fun HomeScreenContent(
                                             ) { state ->
                                                 when (state) {
                                                     is UiItemState.Loading -> TemperatureCardSkeleton()
-                                                    is UiItemState.Success -> TemperatureCard(
-                                                        temperatureRecord = state.data,
-                                                        onClick = { navController.navigate(Screen.BodyTemperature.route) }
-                                                    )
-
+                                                    is UiItemState.Success -> {
+                                                        val temperature = state.data
+                                                        NewTemperatureCard(
+                                                            title = "Temperature",
+                                                            value = if (temperature != null) "%.1f°C".format(
+                                                                temperature.temperatureCelsius
+                                                            ) else "-",
+                                                            subtitle = if (temperature != null) "Last: ${
+                                                                DateTimeFormatter.ofLocalizedTime(
+                                                                    FormatStyle.SHORT
+                                                                ).format(temperature.time)
+                                                            }" else "No data",
+                                                            icon = painterResource(id = R.drawable.rounded_thermostat_24),
+                                                            isHealthConnectData = isHealthConnectEnabled && temperature?.sourceApp != LocalContext.current.packageName,
+                                                            onClick = { navController.navigate(Screen.BodyTemperature.route) }
+                                                        )
+                                                    }
                                                     is UiItemState.Error -> {}
                                                 }
                                             }

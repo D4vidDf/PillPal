@@ -190,6 +190,9 @@ class HomeViewModel @Inject constructor(
         .onStart { emit(UiItemState.Loading) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
+    val isHealthConnectEnabled: StateFlow<Boolean> = userPreferencesRepository.showHealthConnectDataFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     // --- User Actions ---
 
     fun refreshData() = viewModelScope.launch {
