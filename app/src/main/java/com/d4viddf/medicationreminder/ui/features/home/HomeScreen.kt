@@ -101,6 +101,7 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -474,7 +475,7 @@ internal fun HomeScreenContent(
                                                             subtitle = if (heartRate != null) "Last: ${
                                                                 DateTimeFormatter.ofLocalizedTime(
                                                                     FormatStyle.SHORT
-                                                                ).format(heartRate.time)
+                                                                ).format(heartRate.time.atZone(ZoneId.systemDefault()))
                                                             }" else "No data",
                                                             progress = (heartRate?.beatsPerMinute?.toFloat() ?: 0f) / 120f,
                                                             icon = painterResource(id = R.drawable.cardio_load),
@@ -502,7 +503,7 @@ internal fun HomeScreenContent(
                                                             subtitle = if (weight != null) "Last: ${
                                                                 DateTimeFormatter.ofLocalizedDate(
                                                                     FormatStyle.MEDIUM
-                                                                ).format(weight.time)
+                                                                ).format(weight.time.atZone(ZoneId.systemDefault()))
                                                             }" else "No data",
                                                             progress = (weight?.weightKilograms?.toFloat() ?: 0f) / 100f,
                                                             icon = painterResource(id = R.drawable.monitor_weight),
@@ -554,7 +555,7 @@ internal fun HomeScreenContent(
                                                             subtitle = if (temperature != null) "Last: ${
                                                                 DateTimeFormatter.ofLocalizedTime(
                                                                     FormatStyle.SHORT
-                                                                ).format(temperature.time)
+                                                                ).format(temperature.time.atZone(ZoneId.systemDefault()))
                                                             }" else "No data",
                                                             icon = painterResource(id = R.drawable.health_and_safety_24px),
                                                             isHealthConnectData = isHealthConnectEnabled && temperature?.sourceApp != LocalContext.current.packageName,
