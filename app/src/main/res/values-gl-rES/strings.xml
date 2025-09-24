@@ -638,7 +638,7 @@
     <string name="more_options">Máis opcións</string>
     <string name="manage_presets">Xestionar predefinidos</string>
     <string name="log_water_screen_instruction">Elixe polo menos unha opción ou engade unha personalizada</string>
-    <string name="water_preset_water">Auga</string>
+    <string name="water_preset_water">Vaso</string>
     <string name="water_preset_bottle">Botella</string>
     <string name="water_preset_big_bottle">Botella grande</string>
     <string name="add_preset">Engadir predefinido</string>

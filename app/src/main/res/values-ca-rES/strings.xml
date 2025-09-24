@@ -637,7 +637,7 @@
     <string name="more_options">Més opcions</string>
     <string name="manage_presets">Gestionar preajustos</string>
     <string name="log_water_screen_instruction">Tria almenys una opció o afegeix-ne una de personalitzada</string>
-    <string name="water_preset_water">Aigua</string>
+    <string name="water_preset_water">Got</string>
     <string name="water_preset_bottle">Ampolla</string>
     <string name="water_preset_big_bottle">Ampolla gran</string>
     <string name="add_preset">Afegir preajust</string>
