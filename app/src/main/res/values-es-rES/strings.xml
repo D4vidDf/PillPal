@@ -688,4 +688,23 @@
     <string name="analysis_screen_title" translatable="false">Análisis</string>
     <string name="notification_action_snooze" translatable="false">Posponer (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navegar a la pantalla de dispositivos conectados</string>
+    <string name="cancel">Cancelar</string>
+    <string name="app_status_installed">Instalada</string>
+    <string name="app_status_not_installed">No instalada</string>
+    <string name="connected_devices_title">Dispositivos conectados</string>
+    <string name="device_info_app_status">Estado de la aplicación</string>
+    <string name="device_info_battery">Batería</string>
+    <string name="device_info_last_sync">Última sincronización</string>
+    <string name="device_status_connected">Conectado</string>
+    <string name="heart_rate_tracker">Monitor de frecuencia cardíaca</string>
+    <string name="install_on_watch_button">Instalar aplicación en el reloj</string>
+    <string name="log_temperature">Registrar temperatura</string>
+    <string name="log_water">Registrar agua</string>
+    <string name="log_weight">Registrar peso</string>
+    <string name="no_device_found_subtitle">Asegúrate de que tu reloj esté cerca y el Bluetooth esté activado.</string>
+    <string name="no_device_found_title">No se encontró ningún dispositivo</string>
+    <string name="refresh_device_list_button">Actualizar lista de dispositivos</string>
+    <string name="sync_data_button">Sincronizar datos ahora</string>
+    <string name="water">Agua</string>
+    <string name="water_intake_screen_title">Agua</string>
 </resources>
