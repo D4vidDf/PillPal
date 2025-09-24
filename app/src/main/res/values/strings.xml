@@ -731,4 +731,12 @@
     <string name="log_weight_title">Log Weight</string>
     <string name="manage_water_presets_title">Manage Water Presets</string>
     <string name="delete">Delete</string>
+    <string name="measurement_location">Measurement Location</string>
+    <string name="location_unknown">Unknown</string>
+    <string name="location_armpit">Armpit</string>
+    <string name="location_ear">Ear</string>
+    <string name="location_forehead">Forehead</string>
+    <string name="location_mouth">Mouth</string>
+    <string name="location_rectum">Rectum</string>
+    <string name="location_wrist">Wrist</string>
 </resources>

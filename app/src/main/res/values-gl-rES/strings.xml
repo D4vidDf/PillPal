@@ -653,4 +653,12 @@
     <string name="log_weight_title">Rexistrar Peso</string>
     <string name="manage_water_presets_title">Xestionar predefinidos de auga</string>
     <string name="delete">Eliminar</string>
+    <string name="measurement_location">Lugar de medición</string>
+    <string name="location_unknown">Descoñecido</string>
+    <string name="location_armpit">Axila</string>
+    <string name="location_ear">Oído</string>
+    <string name="location_forehead">Fronte</string>
+    <string name="location_mouth">Boca</string>
+    <string name="location_rectum">Recto</string>
+    <string name="location_wrist">Pulso</string>
 </resources>

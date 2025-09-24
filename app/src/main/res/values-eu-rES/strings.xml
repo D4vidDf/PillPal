@@ -655,4 +655,12 @@
     <string name="log_weight_title">Pisua erregistratu</string>
     <string name="manage_water_presets_title">Kudeatu uraren aurrezarpenak</string>
     <string name="delete">Ezabatu</string>
+    <string name="measurement_location">Neurketa-lekua</string>
+    <string name="location_unknown">Ezezaguna</string>
+    <string name="location_armpit">Besapea</string>
+    <string name="location_ear">Belarria</string>
+    <string name="location_forehead">Bekokia</string>
+    <string name="location_mouth">Ahoa</string>
+    <string name="location_rectum">Ondestea</string>
+    <string name="location_wrist">Eskumuturra</string>
 </resources>

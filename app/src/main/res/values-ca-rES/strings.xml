@@ -652,4 +652,12 @@
     <string name="log_weight_title">Registrar Pes</string>
     <string name="manage_water_presets_title">Gestionar preajustos d\'aigua</string>
     <string name="delete">Eliminar</string>
+    <string name="measurement_location">Lloc de mesura</string>
+    <string name="location_unknown">Desconegut</string>
+    <string name="location_armpit">Aixella</string>
+    <string name="location_ear">Orella</string>
+    <string name="location_forehead">Front</string>
+    <string name="location_mouth">Boca</string>
+    <string name="location_rectum">Recte</string>
+    <string name="location_wrist">Canell</string>
 </resources>

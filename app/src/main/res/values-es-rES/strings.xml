@@ -726,4 +726,12 @@
     <string name="log_weight_title">Registrar Peso</string>
     <string name="manage_water_presets_title">Gestionar preajustes de agua</string>
     <string name="delete">Eliminar</string>
+    <string name="measurement_location">Lugar de medición</string>
+    <string name="location_unknown">Desconocido</string>
+    <string name="location_armpit">Axila</string>
+    <string name="location_ear">Oído</string>
+    <string name="location_forehead">Frente</string>
+    <string name="location_mouth">Boca</string>
+    <string name="location_rectum">Recto</string>
+    <string name="location_wrist">Muñeca</string>
 </resources>
