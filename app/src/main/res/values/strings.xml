@@ -695,4 +695,21 @@
     <string name="health_connect_disconnect_dialog_open_settings_button">Abrir ajustes</string>
     <string name="connected_devices_title">Connected devices</string>
     <string name="water">Water</string>
+    <string name="log_temperature">Log Temperature</string>
+    <string name="heart_rate_tracker">Heart Rate</string>
+    <string name="water_intake_screen_title">Water</string>
+    <string name="log_water">Log water</string>
+    <string name="log_weight">Log weight</string>
+
+    <string name="device_status_connected">Connected</string>
+    <string name="device_info_battery">Battery</string>
+    <string name="device_info_app_status">App Status</string>
+    <string name="app_status_installed">Installed</string>
+    <string name="app_status_not_installed">Not Installed</string>
+    <string name="device_info_last_sync">Last Sync</string>
+    <string name="no_device_found_title">No Device Found</string>
+    <string name="no_device_found_subtitle">Please make sure your watch is nearby and Bluetooth is enabled.</string>
+    <string name="sync_data_button">Sync Data Now</string>
+    <string name="refresh_device_list_button">Refresh Device List</string>
+    <string name="install_on_watch_button">Install App on Watch</string>
 </resources>
