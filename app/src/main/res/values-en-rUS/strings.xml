@@ -409,30 +409,6 @@
     <string name="no_upcoming_doses_today_next_in">No upcoming doses today. Next dose in %1$s.</string>
     <string name="no_upcoming_doses_at_all">No upcoming doses scheduled.</string>
     <string name="time_remaining_days_hours">%1$dd %2$dh</string>
-    <string name="adherence_title">Adherence</string>
-    <string name="adherence_mock_text">95% on time this week</string>
-    <string name="as_needed_meds_title">\"As Needed\" Medications</string>
-    <string name="no_as_needed_meds">No \"as needed\" doses logged recently.</string>
-    <string name="refill_reminders_title">Refill Reminders</string>
-    <string name="no_refill_reminders">No medications are running low.</string>
-    <string name="blood_pressure_title">Blood Pressure</string>
-    <string name="blood_pressure_mock_text">Latest: 125/82 mmHg</string>
-    <string name="symptom_tracker_title">How are you feeling?</string>
-    <string name="notes_for_doctor_title">Notes for Doctor</string>
-    <string name="show_all_button">Show all</string>
-    <string name="log_bp_button">Log</string>
-    <string name="no_as_needed_meds_configured">No \"as needed\" medications configured.</string>
-    <string name="take_medication_button">Take</string>
-    <string name="health_section_title">Health</string>
-    <string name="heart_rate_title">Heart Rate</string>
-    <string name="heart_rate_unit">ppm</string>
-    <string name="today_label">Today</string>
-    <string name="weight_title">Weight</string>
-    <string name="last_registered_label">Last registered:</string>
-    <string name="progress_section_title">Progress</string>
-    <string name="missed_reminders_title">Missed Reminders</string>
-    <string name="last_missed_label">Last missed:</string>
-    <string name="today_progress_title">Today\\\'s Progress</string>
     <string name="today_schedules_title">Today\'s Schedules</string>
     <string name="navigate_back">Navigate back</string>
     <string name="no_medications_title">No Registered Medications</string>
@@ -711,23 +687,4 @@
     <string name="analysis_screen_title" translatable="false">Analysis</string>
     <string name="notification_action_snooze" translatable="false">Posponer (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
-    <string name="medDetail_history_section_title">History</string>
-    <string name="medDetail_history_navigateToFull_cd">History</string>
-    <string name="medDetail_weekProgress_section_title">Week Progress</string>
-    <string name="medDetail_weekProgress_navigateToFull_cd">View full graph</string>
-    <string name="medDetail_information_section_title">Information</string>
-    <string name="medDetail_graph_weeklyDosesFor_prefix">Weekly doses for</string>
-    <string name="medDetail_graph_thisMedication_fallbackName">this medication</string>
-    <string name="medHistory_screen_title">History</string>
-    <string name="medGraph_screen_title">Statistics</string>
-    <string name="medGraph_weekly_previousWeek_cd">Previous week</string>
-    <string name="medGraph_weekly_nextWeek_cd">Next week</string>
-    <string name="medGraph_yearly_previousYear_cd">Previous year</string>
-    <string name="medGraph_yearly_nextYear_cd">Next year</string>
-    <string name="medGraph_yearPickerDialog_title">Select Year</string>
-    <string name="medGraph_weekly_changeWeek_cd_prefix">Change week, current period:</string>
-    <string name="medGraph_weekly_chart_description_prefix">Weekly doses taken.</string>
-    <string name="medGraph_chart_doses_suffix">doses</string>
-    <string name="medGraph_yearly_changeYear_cd_prefix">Change year, current year:</string>
-    <string name="medGraph_yearly_chart_description_prefix">Yearly doses taken.</string>
 </resources>

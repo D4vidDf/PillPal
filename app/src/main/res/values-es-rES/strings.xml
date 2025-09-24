@@ -688,5 +688,4 @@
     <string name="analysis_screen_title" translatable="false">Análisis</string>
     <string name="notification_action_snooze" translatable="false">Posponer (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navegar a la pantalla de dispositivos conectados</string>
-    <string name="minutes">minutos</string>
 </resources>
