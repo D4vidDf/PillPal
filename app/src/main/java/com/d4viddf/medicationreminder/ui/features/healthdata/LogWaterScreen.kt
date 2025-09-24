@@ -129,7 +129,8 @@ fun LogWaterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             DateInputButton(
@@ -147,51 +148,53 @@ fun LogWaterScreen(
             Spacer(modifier = Modifier.height(24.dp)) // Increased space
 
             // Preset Options
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                item {
-                    WaterPresetRow(
-                        title = stringResource(id = R.string.water_preset_water),
-                        subtitle = "250 ml",
-                        count = waterCount,
-                        onIncrement = { waterCount++ },
-                        onDecrement = { if (waterCount > 0) waterCount-- }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                item {
-                    WaterPresetRow(
-                        title = stringResource(id = R.string.water_preset_bottle),
-                        subtitle = "500 ml",
-                        count = bottleCount,
-                        onIncrement = { bottleCount++ },
-                        onDecrement = { if (bottleCount > 0) bottleCount-- }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                item {
-                    WaterPresetRow(
-                        title = stringResource(id = R.string.water_preset_big_bottle),
-                        subtitle = "750 ml",
-                        count = bigBottleCount,
-                        onIncrement = { bigBottleCount++ },
-                        onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                items(waterPresets) { preset ->
-                    WaterPresetRow(
-                        title = preset.name,
-                        subtitle = "${preset.amount} ml",
-                        count = presetCounts.getOrPut(preset.id) { 0 },
-                        onIncrement = { presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) + 1 },
-                        onDecrement = {
-                            if ((presetCounts[preset.id] ?: 0) > 0) {
-                                presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) - 1
-                            }
-                        },
-                        onDelete = { viewModel.deleteWaterPreset(preset.id) }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn() {
+                    item {
+                        WaterPresetRow(
+                            title = stringResource(id = R.string.water_preset_water),
+                            subtitle = "250 ml",
+                            count = waterCount,
+                            onIncrement = { waterCount++ },
+                            onDecrement = { if (waterCount > 0) waterCount-- }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        WaterPresetRow(
+                            title = stringResource(id = R.string.water_preset_bottle),
+                            subtitle = "500 ml",
+                            count = bottleCount,
+                            onIncrement = { bottleCount++ },
+                            onDecrement = { if (bottleCount > 0) bottleCount-- }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        WaterPresetRow(
+                            title = stringResource(id = R.string.water_preset_big_bottle),
+                            subtitle = "750 ml",
+                            count = bigBottleCount,
+                            onIncrement = { bigBottleCount++ },
+                            onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    items(waterPresets) { preset ->
+                        WaterPresetRow(
+                            title = preset.name,
+                            subtitle = "${preset.amount} ml",
+                            count = presetCounts.getOrPut(preset.id) { 0 },
+                            onIncrement = { presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) + 1 },
+                            onDecrement = {
+                                if ((presetCounts[preset.id] ?: 0) > 0) {
+                                    presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) - 1
+                                }
+                            },
+                            onDelete = { viewModel.deleteWaterPreset(preset.id) }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
 

@@ -650,4 +650,6 @@
     <string name="decrement">Disminuir</string>
     <string name="increment">Incrementar</string>
     <string name="log_weight_title">Registrar Pes</string>
+    <string name="manage_water_presets_title">Gestionar preajustos d\'aigua</string>
+    <string name="delete">Eliminar</string>
 </resources>

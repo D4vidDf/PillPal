@@ -653,4 +653,6 @@
     <string name="decrement">Gutxitu</string>
     <string name="increment">Gehitu</string>
     <string name="log_weight_title">Pisua erregistratu</string>
+    <string name="manage_water_presets_title">Kudeatu uraren aurrezarpenak</string>
+    <string name="delete">Ezabatu</string>
 </resources>

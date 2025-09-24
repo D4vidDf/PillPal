@@ -729,4 +729,6 @@
     <string name="decrement">Decrement</string>
     <string name="increment">Increment</string>
     <string name="log_weight_title">Log Weight</string>
+    <string name="manage_water_presets_title">Manage Water Presets</string>
+    <string name="delete">Delete</string>
 </resources>
