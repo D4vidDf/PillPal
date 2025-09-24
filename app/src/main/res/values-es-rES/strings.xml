@@ -737,4 +737,6 @@
     <string name="clear_time_range_filter">Limpiar filtro de rango de tiempo</string>
     <string name="select_start_time">Seleccionar hora de inicio</string>
     <string name="select_end_time">Seleccionar hora de finalización</string>
+    <string name="missed_doses_title">Dosis omitidas</string>
+    <string name="todays_schedule_title">Horario de hoy</string>
 </resources>

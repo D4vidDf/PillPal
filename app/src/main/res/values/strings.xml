@@ -742,4 +742,6 @@
     <string name="clear_time_range_filter">Clear time range filter</string>
     <string name="select_start_time">Select Start Time</string>
     <string name="select_end_time">Select End Time</string>
+    <string name="missed_doses_title">Missed Doses</string>
+    <string name="todays_schedule_title">Today\'s Schedule</string>
 </resources>

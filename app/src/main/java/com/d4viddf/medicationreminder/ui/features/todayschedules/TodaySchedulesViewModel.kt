@@ -41,10 +41,6 @@ class TodaySchedulesViewModel @Inject constructor(
     // Determines the screen's mode: showing missed doses or today's schedule.
     val showMissed: StateFlow<Boolean> = savedStateHandle.getStateFlow(SHOW_MISSED_ARG, false)
 
-    val screenTitle: StateFlow<String> = showMissed.map { isMissedMode ->
-        if (isMissedMode) "Missed Doses" else "Today's Schedule"
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Today's Schedule")
-
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 

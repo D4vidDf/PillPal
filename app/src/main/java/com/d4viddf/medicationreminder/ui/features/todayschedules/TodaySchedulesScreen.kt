@@ -48,8 +48,8 @@ fun TodaySchedulesScreen(
     // Collect all necessary states from the ViewModel
     val scheduleItems by viewModel.scheduleItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val screenTitle by viewModel.screenTitle.collectAsState()
     val showMissed by viewModel.showMissed.collectAsState()
+    val screenTitle = if (showMissed) stringResource(id = R.string.missed_doses_title) else stringResource(id = R.string.todays_schedule_title)
 
     // States for the filter controls
     val allMedications by viewModel.allMedications.collectAsState()

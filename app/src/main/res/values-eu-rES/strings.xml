@@ -666,4 +666,6 @@
     <string name="clear_time_range_filter">Garbitu denbora-tartearen iragazkia</string>
     <string name="select_start_time">Hautatu hasiera-ordua</string>
     <string name="select_end_time">Hautatu amaiera-ordua</string>
+    <string name="missed_doses_title">Galdutako dosiak</string>
+    <string name="todays_schedule_title">Gaurko ordutegia</string>
 </resources>
