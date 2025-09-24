@@ -88,10 +88,10 @@ fun LogWeightScreen(
                         selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(id = R.string.dialog_ok_button)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(id = R.string.dialog_cancel_button)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -106,7 +106,7 @@ fun LogWeightScreen(
         )
         // --- UPDATED: Corrected call to your TimePickerDialog ---
         TimePickerDialog(
-            title = { Text("Select Time") },
+            title = { Text(stringResource(id = R.string.dialog_select_time_title)) },
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(
@@ -115,12 +115,12 @@ fun LogWeightScreen(
                         showTimePicker = false
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(id = R.string.dialog_ok_button))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancel")
+                    Text(stringResource(id = R.string.dialog_cancel_button))
                 }
             }
         ) {
@@ -172,8 +172,8 @@ fun LogWeightScreen(
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
-                label = { Text("Weight") },
-                suffix = { Text("kg") },
+                label = { Text(stringResource(id = R.string.weight_title)) },
+                suffix = { Text(stringResource(id = R.string.kg)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -192,7 +192,7 @@ fun LogWeightScreen(
                     .height(52.dp),
                 shapes = ButtonDefaults.shapes()
             ) {
-                Text("Save", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(id = R.string.save), style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
@@ -204,7 +204,7 @@ private fun DateInputButton(
     onClick: () -> Unit
 ) {
     val buttonText = if (selectedDate.isEqual(LocalDate.now())) {
-        "Today"
+        stringResource(id = R.string.today)
     } else {
         selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
     }
@@ -224,7 +224,7 @@ private fun DateInputButton(
     ) {
         Icon(
             imageVector = Icons.Default.CalendarToday,
-            contentDescription = "Select Date",
+            contentDescription = stringResource(id = R.string.select_date),
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -254,7 +254,7 @@ private fun TimeInputButton(
     ) {
         Icon(
             imageVector = Icons.Default.AccessTime,
-            contentDescription = "Select Time",
+            contentDescription = stringResource(id = R.string.dialog_select_time_title),
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.width(12.dp))
