@@ -114,7 +114,11 @@ private fun HomeItemCard(
             if (item.id == "next_dose") {
                 Box {
                     TextButton(onClick = { isMenuExpanded = true }) {
-                        Text(text = item.displayUnit ?: stringResource(id = R.string.minutes))
+                        val textToShow = when (item.displayUnit) {
+                            "seconds" -> stringResource(id = R.string.seconds)
+                            else -> stringResource(id = R.string.minutes)
+                        }
+                        Text(text = textToShow)
                         Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                     }
                     DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
