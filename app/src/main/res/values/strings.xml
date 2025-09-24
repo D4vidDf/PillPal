@@ -712,4 +712,20 @@
     <string name="sync_data_button">Sync Data Now</string>
     <string name="refresh_device_list_button">Refresh Device List</string>
     <string name="install_on_watch_button">Install App on Watch</string>
+    <string name="log_water_intake_title">Log Water Intake</string>
+    <string name="more_options">More options</string>
+    <string name="manage_presets">Manage Presets</string>
+    <string name="log_water_screen_instruction">Choose at least one option or add a personalized one</string>
+    <string name="water_preset_water">Water</string>
+    <string name="water_preset_bottle">Bottle</string>
+    <string name="water_preset_big_bottle">Big Bottle</string>
+    <string name="add_preset">Add Preset</string>
+    <string name="add_new_preset_title">Add New Preset</string>
+    <string name="preset_name">Preset Name</string>
+    <string name="amount_ml">Amount (ml)</string>
+    <string name="add_button">Add</string>
+    <string name="personalized_amount">Personalized Amount</string>
+    <string name="save_total_ml">Save Total (%1$d mL)</string>
+    <string name="decrement">Decrement</string>
+    <string name="increment">Increment</string>
 </resources>

@@ -707,4 +707,20 @@
     <string name="sync_data_button">Sincronizar datos ahora</string>
     <string name="water">Agua</string>
     <string name="water_intake_screen_title">Agua</string>
+    <string name="log_water_intake_title">Registrar Toma de Agua</string>
+    <string name="more_options">Más opciones</string>
+    <string name="manage_presets">Gestionar preajustes</string>
+    <string name="log_water_screen_instruction">Elige al menos una opción o añade una personalizada</string>
+    <string name="water_preset_water">Agua</string>
+    <string name="water_preset_bottle">Botella</string>
+    <string name="water_preset_big_bottle">Botella grande</string>
+    <string name="add_preset">Añadir preajuste</string>
+    <string name="add_new_preset_title">Añadir Nuevo Preajuste</string>
+    <string name="preset_name">Nombre del preajuste</string>
+    <string name="amount_ml">Cantidad (ml)</string>
+    <string name="add_button">Añadir</string>
+    <string name="personalized_amount">Cantidad personalizada</string>
+    <string name="save_total_ml">Guardar Total (%1$d mL)</string>
+    <string name="decrement">Decrementar</string>
+    <string name="increment">Incrementar</string>
 </resources>

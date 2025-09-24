@@ -633,4 +633,20 @@
     <string name="what_is_body_fat_title">Què és el greix corporal?</string>
     <string name="what_is_lean_mass_content">La massa magra està formada per músculs, òrgans, ossos i aigua corporal.</string>
     <string name="what_is_lean_mass_title">Què és la massa magra?</string>
+    <string name="log_water_intake_title">Registrar Presa d\'Aigua</string>
+    <string name="more_options">Més opcions</string>
+    <string name="manage_presets">Gestionar preajustos</string>
+    <string name="log_water_screen_instruction">Tria almenys una opció o afegeix-ne una de personalitzada</string>
+    <string name="water_preset_water">Aigua</string>
+    <string name="water_preset_bottle">Ampolla</string>
+    <string name="water_preset_big_bottle">Ampolla gran</string>
+    <string name="add_preset">Afegir preajust</string>
+    <string name="add_new_preset_title">Afegir Nou Preajust</string>
+    <string name="preset_name">Nom del preajust</string>
+    <string name="amount_ml">Quantitat (ml)</string>
+    <string name="add_button">Afegir</string>
+    <string name="personalized_amount">Quantitat personalitzada</string>
+    <string name="save_total_ml">Desar Total (%1$d mL)</string>
+    <string name="decrement">Disminuir</string>
+    <string name="increment">Incrementar</string>
 </resources>

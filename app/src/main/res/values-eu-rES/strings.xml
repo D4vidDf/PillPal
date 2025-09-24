@@ -636,4 +636,20 @@
     <string name="what_is_body_fat_title">Zer da gorputzeko gantza?</string>
     <string name="what_is_lean_mass_content">Masa argala muskuluek, organoek, hezurrek eta gorputzeko urak osatzen dute.</string>
     <string name="what_is_lean_mass_title">Zer da masa argala?</string>
+    <string name="log_water_intake_title">Ur-hartzea erregistratu</string>
+    <string name="more_options">Aukera gehiago</string>
+    <string name="manage_presets">Kudeatu aurrezarpenak</string>
+    <string name="log_water_screen_instruction">Aukeratu gutxienez aukera bat edo gehitu pertsonalizatu bat</string>
+    <string name="water_preset_water">Ura</string>
+    <string name="water_preset_bottle">Botila</string>
+    <string name="water_preset_big_bottle">Botila handia</string>
+    <string name="add_preset">Gehitu aurrezarpena</string>
+    <string name="add_new_preset_title">Gehitu Aurrezarpen Berria</string>
+    <string name="preset_name">Aurrezarpenaren izena</string>
+    <string name="amount_ml">Kopurua (ml)</string>
+    <string name="add_button">Gehitu</string>
+    <string name="personalized_amount">Kopuru pertsonalizatua</string>
+    <string name="save_total_ml">Gorde Guztira (%1$d mL)</string>
+    <string name="decrement">Gutxitu</string>
+    <string name="increment">Gehitu</string>
 </resources>

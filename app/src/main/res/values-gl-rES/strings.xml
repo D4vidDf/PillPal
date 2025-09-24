@@ -634,4 +634,20 @@
     <string name="what_is_body_fat_title">Que é a graxa corporal?</string>
     <string name="what_is_lean_mass_content">A masa magra está composta por músculos, órganos, ósos e auga corporal.</string>
     <string name="what_is_lean_mass_title">Que é a masa magra?</string>
+    <string name="log_water_intake_title">Rexistrar Toma de Auga</string>
+    <string name="more_options">Máis opcións</string>
+    <string name="manage_presets">Xestionar predefinidos</string>
+    <string name="log_water_screen_instruction">Elixe polo menos unha opción ou engade unha personalizada</string>
+    <string name="water_preset_water">Auga</string>
+    <string name="water_preset_bottle">Botella</string>
+    <string name="water_preset_big_bottle">Botella grande</string>
+    <string name="add_preset">Engadir predefinido</string>
+    <string name="add_new_preset_title">Engadir Novo Predefinido</string>
+    <string name="preset_name">Nome do predefinido</string>
+    <string name="amount_ml">Cantidade (ml)</string>
+    <string name="add_button">Engadir</string>
+    <string name="personalized_amount">Cantidade personalizada</string>
+    <string name="save_total_ml">Gardar Total (%1$d mL)</string>
+    <string name="decrement">Decrementar</string>
+    <string name="increment">Incrementar</string>
 </resources>
