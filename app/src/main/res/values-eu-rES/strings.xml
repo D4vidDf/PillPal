@@ -663,4 +663,7 @@
     <string name="location_mouth">Ahoa</string>
     <string name="location_rectum">Ondestea</string>
     <string name="location_wrist">Eskumuturra</string>
+    <string name="clear_time_range_filter">Garbitu denbora-tartearen iragazkia</string>
+    <string name="select_start_time">Hautatu hasiera-ordua</string>
+    <string name="select_end_time">Hautatu amaiera-ordua</string>
 </resources>

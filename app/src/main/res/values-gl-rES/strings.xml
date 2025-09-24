@@ -661,4 +661,7 @@
     <string name="location_mouth">Boca</string>
     <string name="location_rectum">Recto</string>
     <string name="location_wrist">Pulso</string>
+    <string name="clear_time_range_filter">Limpar filtro de rango de tempo</string>
+    <string name="select_start_time">Seleccionar hora de inicio</string>
+    <string name="select_end_time">Seleccionar hora de finalización</string>
 </resources>
