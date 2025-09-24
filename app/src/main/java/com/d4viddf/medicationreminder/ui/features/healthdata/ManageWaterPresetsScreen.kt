@@ -33,7 +33,7 @@ fun ManageWaterPresetsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Water Presets") },
+                title = { Text(stringResource(id = R.string.manage_water_presets_title)) },
                 navigationIcon = {FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -46,7 +46,7 @@ fun ManageWaterPresetsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddPresetDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Preset")
+                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_preset))
             }
         }
     ) { innerPadding ->
@@ -71,18 +71,18 @@ fun ManageWaterPresetsScreen(
 
             AlertDialog(
                 onDismissRequest = { showAddPresetDialog = false },
-                title = { Text("Add New Preset") },
+                title = { Text(stringResource(id = R.string.add_new_preset_title)) },
                 text = {
                     Column {
                         OutlinedTextField(
                             value = newPresetName,
                             onValueChange = { newPresetName = it },
-                            label = { Text("Preset Name") }
+                            label = { Text(stringResource(id = R.string.preset_name)) }
                         )
                         OutlinedTextField(
                             value = newPresetAmount,
                             onValueChange = { newPresetAmount = it.filter { char -> char.isDigit() } },
-                            label = { Text("Amount (ml)") },
+                            label = { Text(stringResource(id = R.string.amount_ml)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                     }
@@ -97,12 +97,12 @@ fun ManageWaterPresetsScreen(
                             }
                         }
                     ) {
-                        Text("Add")
+                        Text(stringResource(id = R.string.add_button))
                     }
                 },
                 dismissButton = {
                     Button(onClick = { showAddPresetDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.dialog_cancel_button))
                     }
                 }
             )
@@ -126,7 +126,7 @@ private fun WaterPresetListItem(
             Text(text = "${preset.amount} ml", style = MaterialTheme.typography.bodyMedium)
         }
         IconButton(onClick = onDelete) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete")
+            Icon(Icons.Default.Delete, contentDescription = stringResource(id = R.string.delete))
         }
     }
 }

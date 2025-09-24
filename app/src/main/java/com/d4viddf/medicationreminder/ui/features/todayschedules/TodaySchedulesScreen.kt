@@ -48,8 +48,8 @@ fun TodaySchedulesScreen(
     // Collect all necessary states from the ViewModel
     val scheduleItems by viewModel.scheduleItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val screenTitle by viewModel.screenTitle.collectAsState()
     val showMissed by viewModel.showMissed.collectAsState()
+    val screenTitle = if (showMissed) stringResource(id = R.string.missed_doses_title) else stringResource(id = R.string.todays_schedule_title)
 
     // States for the filter controls
     val allMedications by viewModel.allMedications.collectAsState()
@@ -328,7 +328,7 @@ private fun FilterControls(
                 trailingIcon = {
                     if (selectedTimeRange != null) {
                         IconButton(onClick = { onTimeRangeFilterChanged(null, null) }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear time range filter")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.clear_time_range_filter))
                         }
                     }
                 }
@@ -349,7 +349,7 @@ private fun TimeRangePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (selectingStart) "Select Start Time" else "Select End Time") },
+        title = { Text(if (selectingStart) stringResource(id = R.string.select_start_time) else stringResource(id = R.string.select_end_time)) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (selectingStart) {
@@ -369,12 +369,12 @@ private fun TimeRangePickerDialog(
                     onConfirm(startTime, endTime)
                 }
             }) {
-                Text(if (selectingStart) "Next" else "Confirm")
+                Text(if (selectingStart) stringResource(id = R.string.next) else stringResource(id = R.string.confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(id = R.string.cancel))
             }
         }
     )

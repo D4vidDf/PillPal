@@ -95,17 +95,17 @@
     <string name="medication_detail_header_loading">Loading...</string>
     <string name="medication_detail_header_no_dosage">No dosage</string>
     <string name="medication_detail_header_image_acc">Medication image</string>
-    <string name="medication_detail_counter_dose_unit_single">toma</string>
-    <string name="medication_detail_counter_dose_unit_plural">tomas</string>
-    <string name="medication_detail_counter_freq_once_daily">vez al día</string>
-    <string name="medication_detail_counter_freq_multiple_daily">veces al día</string>
-    <string name="medication_detail_counter_freq_interval">intervalo</string>
-    <string name="medication_detail_counter_freq_as_needed">según necesidad</string>
-    <string name="medication_detail_counter_duration_total_days">días total</string>
-    <string name="medication_detail_counter_duration_remaining_days">días rest.</string>
-    <string name="medication_detail_counter_days_all">todos los días</string>
-    <string name="medication_detail_counter_days_single">día</string>
-    <string name="medication_detail_counter_days_multiple_weekly">días/semana</string>
+    <string name="medication_detail_counter_dose_unit_single">dose</string>
+    <string name="medication_detail_counter_dose_unit_plural">doses</string>
+    <string name="medication_detail_counter_freq_once_daily">once a day</string>
+    <string name="medication_detail_counter_freq_multiple_daily">times a day</string>
+    <string name="medication_detail_counter_freq_interval">interval</string>
+    <string name="medication_detail_counter_freq_as_needed">as needed</string>
+    <string name="medication_detail_counter_duration_total_days">total days</string>
+    <string name="medication_detail_counter_duration_remaining_days">days left</string>
+    <string name="medication_detail_counter_days_all">every day</string>
+    <string name="medication_detail_counter_days_single">day</string>
+    <string name="medication_detail_counter_days_multiple_weekly">days/week</string>
     <string name="medication_detail_counter_no_details">No count details.</string>
     <string name="medication_progress_display_acc">Medication progress: %1$d doses taken out of %2$d. %3$d doses remaining.</string>
     <string name="medication_progress_display_not_package_based_acc">Medication: %1$s remaining, %2$s taken. Progress not package-based.</string>
@@ -666,7 +666,7 @@
     <string name="all_reminders_header">All Reminders</string>
     <string name="medication_vault_title" translatable="false">Vault</string>
     <string name="analysis_screen_title" translatable="false">Analysis</string>
-    <string name="notification_action_snooze" translatable="false">Posponer (10 min)</string>
+    <string name="notification_action_snooze">Snooze (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
     <string name="next_dose_card_cd">Next dose card</string>
     <string name="today_schedule_item_card_cd">Today\'s schedule item card</string>
@@ -689,10 +689,10 @@
     <string name="home_button_cd_watch_connected_settings">Wear OS device connected. Open connection settings.</string>
     <string name="home_button_cd_watch_disconnected_settings">Wear OS device not connected. Open connection settings.</string>
 
-    <string name="health_connect_disconnect_dialog_title">Abre Salud conectada para terminar la desconexión</string>
-    <string name="health_connect_disconnect_dialog_message">PillPal seguirá teniendo permisos en Salud conectada a menos que los desactives. Abre Salud conectada para eliminar los permisos de PillPal.</string>
-    <string name="health_connect_disconnect_dialog_go_back_button">Volver</string>
-    <string name="health_connect_disconnect_dialog_open_settings_button">Abrir ajustes</string>
+    <string name="health_connect_disconnect_dialog_title">Open Health Connect to finish disconnecting</string>
+    <string name="health_connect_disconnect_dialog_message">PillPal will still have permissions in Health Connect unless you disable them. Open Health Connect to remove PillPal\'s permissions.</string>
+    <string name="health_connect_disconnect_dialog_go_back_button">Go back</string>
+    <string name="health_connect_disconnect_dialog_open_settings_button">Open settings</string>
     <string name="connected_devices_title">Connected devices</string>
     <string name="water">Water</string>
     <string name="log_temperature">Log Temperature</string>
@@ -712,4 +712,36 @@
     <string name="sync_data_button">Sync Data Now</string>
     <string name="refresh_device_list_button">Refresh Device List</string>
     <string name="install_on_watch_button">Install App on Watch</string>
+    <string name="log_water_intake_title">Log Water Intake</string>
+    <string name="more_options">More options</string>
+    <string name="manage_presets">Manage Presets</string>
+    <string name="log_water_screen_instruction">Choose at least one option or add a personalized one</string>
+    <string name="water_preset_water">Glass</string>
+    <string name="water_preset_bottle">Bottle</string>
+    <string name="water_preset_big_bottle">Big Bottle</string>
+    <string name="add_preset">Add Preset</string>
+    <string name="add_new_preset_title">Add New Preset</string>
+    <string name="preset_name">Preset Name</string>
+    <string name="amount_ml">Amount (ml)</string>
+    <string name="add_button">Add</string>
+    <string name="personalized_amount">Personalized Amount</string>
+    <string name="save_total_ml">Save Total (%1$d mL)</string>
+    <string name="decrement">Decrement</string>
+    <string name="increment">Increment</string>
+    <string name="log_weight_title">Log Weight</string>
+    <string name="manage_water_presets_title">Manage Water Presets</string>
+    <string name="delete">Delete</string>
+    <string name="measurement_location">Measurement Location</string>
+    <string name="location_unknown">Unknown</string>
+    <string name="location_armpit">Armpit</string>
+    <string name="location_ear">Ear</string>
+    <string name="location_forehead">Forehead</string>
+    <string name="location_mouth">Mouth</string>
+    <string name="location_rectum">Rectum</string>
+    <string name="location_wrist">Wrist</string>
+    <string name="clear_time_range_filter">Clear time range filter</string>
+    <string name="select_start_time">Select Start Time</string>
+    <string name="select_end_time">Select End Time</string>
+    <string name="missed_doses_title">Missed Doses</string>
+    <string name="todays_schedule_title">Today\'s Schedule</string>
 </resources>

@@ -80,12 +80,12 @@ fun LogWaterScreen(
                     }
                     showDatePicker = false
                 }) {
-                    Text("OK")
+                    Text(stringResource(id = R.string.dialog_ok_button))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
+                    Text(stringResource(id = R.string.dialog_cancel_button))
                 }
             }
         ) {
@@ -96,7 +96,7 @@ fun LogWaterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log Water Intake") },
+                title = { Text(stringResource(id = R.string.log_water_intake_title)) },
                 navigationIcon = {FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -107,14 +107,14 @@ fun LogWaterScreen(
                 },
                 actions = {
                     IconButton(onClick = { showMenu = !showMenu }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More")
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(id = R.string.more_options))
                     }
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Manage Presets") },
+                            text = { Text(stringResource(id = R.string.manage_presets)) },
                             onClick = {
                                 navController.navigate(Screen.ManageWaterPresets.route)
                                 showMenu = false
@@ -129,7 +129,8 @@ fun LogWaterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             DateInputButton(
@@ -139,7 +140,7 @@ fun LogWaterScreen(
 
             Spacer(modifier = Modifier.height(32.dp)) // Increased space
             Text(
-                text = "Choose at least one option or add a personalized one",
+                text = stringResource(id = R.string.log_water_screen_instruction),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth()
@@ -147,51 +148,53 @@ fun LogWaterScreen(
             Spacer(modifier = Modifier.height(24.dp)) // Increased space
 
             // Preset Options
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                item {
-                    WaterPresetRow(
-                        title = "Water",
-                        subtitle = "250 ml",
-                        count = waterCount,
-                        onIncrement = { waterCount++ },
-                        onDecrement = { if (waterCount > 0) waterCount-- }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                item {
-                    WaterPresetRow(
-                        title = "Bottle",
-                        subtitle = "500 ml",
-                        count = bottleCount,
-                        onIncrement = { bottleCount++ },
-                        onDecrement = { if (bottleCount > 0) bottleCount-- }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                item {
-                    WaterPresetRow(
-                        title = "Big Bottle",
-                        subtitle = "750 ml",
-                        count = bigBottleCount,
-                        onIncrement = { bigBottleCount++ },
-                        onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                items(waterPresets) { preset ->
-                    WaterPresetRow(
-                        title = preset.name,
-                        subtitle = "${preset.amount} ml",
-                        count = presetCounts.getOrPut(preset.id) { 0 },
-                        onIncrement = { presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) + 1 },
-                        onDecrement = {
-                            if ((presetCounts[preset.id] ?: 0) > 0) {
-                                presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) - 1
-                            }
-                        },
-                        onDelete = { viewModel.deleteWaterPreset(preset.id) }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn() {
+                    item {
+                        WaterPresetRow(
+                            title = stringResource(id = R.string.water_preset_water),
+                            subtitle = "250 ml",
+                            count = waterCount,
+                            onIncrement = { waterCount++ },
+                            onDecrement = { if (waterCount > 0) waterCount-- }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        WaterPresetRow(
+                            title = stringResource(id = R.string.water_preset_bottle),
+                            subtitle = "500 ml",
+                            count = bottleCount,
+                            onIncrement = { bottleCount++ },
+                            onDecrement = { if (bottleCount > 0) bottleCount-- }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        WaterPresetRow(
+                            title = stringResource(id = R.string.water_preset_big_bottle),
+                            subtitle = "750 ml",
+                            count = bigBottleCount,
+                            onIncrement = { bigBottleCount++ },
+                            onDecrement = { if (bigBottleCount > 0) bigBottleCount-- }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    items(waterPresets) { preset ->
+                        WaterPresetRow(
+                            title = preset.name,
+                            subtitle = "${preset.amount} ml",
+                            count = presetCounts.getOrPut(preset.id) { 0 },
+                            onIncrement = { presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) + 1 },
+                            onDecrement = {
+                                if ((presetCounts[preset.id] ?: 0) > 0) {
+                                    presetCounts[preset.id] = (presetCounts[preset.id] ?: 0) - 1
+                                }
+                            },
+                            onDelete = { viewModel.deleteWaterPreset(preset.id) }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
 
@@ -200,7 +203,7 @@ fun LogWaterScreen(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = { showAddPresetDialog = true }) {
-                    Text("Add Preset")
+                    Text(stringResource(id = R.string.add_preset))
                 }
             }
 
@@ -210,18 +213,18 @@ fun LogWaterScreen(
 
                 AlertDialog(
                     onDismissRequest = { showAddPresetDialog = false },
-                    title = { Text("Add New Preset") },
+                    title = { Text(stringResource(id = R.string.add_new_preset_title)) },
                     text = {
                         Column {
                             OutlinedTextField(
                                 value = newPresetName,
                                 onValueChange = { newPresetName = it },
-                                label = { Text("Preset Name") }
+                                label = { Text(stringResource(id = R.string.preset_name)) }
                             )
                             OutlinedTextField(
                                 value = newPresetAmount,
                                 onValueChange = { newPresetAmount = it.filter { char -> char.isDigit() } },
-                                label = { Text("Amount (ml)") },
+                                label = { Text(stringResource(id = R.string.amount_ml)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                             )
                         }
@@ -236,12 +239,12 @@ fun LogWaterScreen(
                                 }
                             }
                         ) {
-                            Text("Add")
+                            Text(stringResource(id = R.string.add_button))
                         }
                     },
                     dismissButton = {
                         Button(onClick = { showAddPresetDialog = false }) {
-                            Text("Cancel")
+                            Text(stringResource(id = R.string.dialog_cancel_button))
                         }
                     }
                 )
@@ -252,7 +255,7 @@ fun LogWaterScreen(
                 value = customAmount,
                 onValueChange = { customAmount = it.filter { char -> char.isDigit() } },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Personalized Amount") },
+                label = { Text(stringResource(id = R.string.personalized_amount)) },
                 suffix = { Text("mL") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true
@@ -292,7 +295,7 @@ fun LogWaterScreen(
                 shapes = ButtonDefaults.shapes()
             ) {
                 Text(
-                    text = "Save Total (${totalAmount.toInt()} mL)",
+                    text = stringResource(id = R.string.save_total_ml, totalAmount.toInt()),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -306,7 +309,7 @@ private fun DateInputButton(
     onClick: () -> Unit
 ) {
     val buttonText = if (selectedDate.isEqual(LocalDate.now())) {
-        "Today"
+        stringResource(id = R.string.today)
     } else {
         selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
     }
@@ -326,7 +329,7 @@ private fun DateInputButton(
     ) {
         Icon(
             imageVector = Icons.Default.CalendarToday,
-            contentDescription = "Select Date",
+            contentDescription = stringResource(id = R.string.select_date),
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -378,7 +381,7 @@ private fun WaterPresetRow(
                     modifier = Modifier.size(buttonSize),
                     shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Decrement")
+                    Icon(Icons.Default.Remove, contentDescription = stringResource(id = R.string.decrement))
                 }
                 ToggleButton(
                     checked = false,
@@ -386,7 +389,7 @@ private fun WaterPresetRow(
                     modifier = Modifier.size(buttonSize),
                     shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Increment")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.increment))
                 }
             }
         }

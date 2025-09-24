@@ -77,13 +77,13 @@ fun LogTemperatureScreen(
     var selectedLocation by remember { mutableStateOf(BodyTemperature.LOCATION_UNKNOWN) }
 
     val locations = mapOf(
-        BodyTemperature.LOCATION_UNKNOWN to "Unknown",
-        BodyTemperature.LOCATION_ARMPIT to "Armpit",
-        BodyTemperature.LOCATION_EAR to "Ear",
-        BodyTemperature.LOCATION_FOREHEAD to "Forehead",
-        BodyTemperature.LOCATION_MOUTH to "Mouth",
-        BodyTemperature.LOCATION_RECTUM to "Rectum",
-        BodyTemperature.LOCATION_WRIST to "Wrist"
+        BodyTemperature.LOCATION_UNKNOWN to stringResource(id = R.string.location_unknown),
+        BodyTemperature.LOCATION_ARMPIT to stringResource(id = R.string.location_armpit),
+        BodyTemperature.LOCATION_EAR to stringResource(id = R.string.location_ear),
+        BodyTemperature.LOCATION_FOREHEAD to stringResource(id = R.string.location_forehead),
+        BodyTemperature.LOCATION_MOUTH to stringResource(id = R.string.location_mouth),
+        BodyTemperature.LOCATION_RECTUM to stringResource(id = R.string.location_rectum),
+        BodyTemperature.LOCATION_WRIST to stringResource(id = R.string.location_wrist)
     )
 
     val isButtonEnabled = amount.toDoubleOrNull() != null && amount.toDouble() > 0
@@ -148,7 +148,7 @@ fun LogTemperatureScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log Temperature") },
+                title = { Text(stringResource(id = R.string.log_temperature)) },
                 navigationIcon = {FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -190,8 +190,8 @@ fun LogTemperatureScreen(
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
-                label = { Text("Temperature") },
-                suffix = { Text("°C") },
+                label = { Text(stringResource(id = R.string.temperature)) },
+                suffix = { Text(stringResource(id = R.string.celsius)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -208,7 +208,7 @@ fun LogTemperatureScreen(
                     value = locations[selectedLocation] ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Measurement Location") },
+                    label = { Text(stringResource(id = R.string.measurement_location)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = locationExpanded) },
                     modifier = Modifier
                         .menuAnchor()
@@ -244,7 +244,7 @@ fun LogTemperatureScreen(
                     .height(52.dp),
                 shapes = ButtonDefaults.shapes()
             ) {
-                Text("Save", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(id = R.string.save), style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
