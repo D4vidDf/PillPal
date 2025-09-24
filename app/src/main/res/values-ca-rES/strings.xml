@@ -649,4 +649,5 @@
     <string name="save_total_ml">Desar Total (%1$d mL)</string>
     <string name="decrement">Disminuir</string>
     <string name="increment">Incrementar</string>
+    <string name="log_weight_title">Registrar Pes</string>
 </resources>

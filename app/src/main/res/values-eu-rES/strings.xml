@@ -652,4 +652,5 @@
     <string name="save_total_ml">Gorde Guztira (%1$d mL)</string>
     <string name="decrement">Gutxitu</string>
     <string name="increment">Gehitu</string>
+    <string name="log_weight_title">Pisua erregistratu</string>
 </resources>

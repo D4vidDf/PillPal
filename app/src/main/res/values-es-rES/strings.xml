@@ -723,4 +723,5 @@
     <string name="save_total_ml">Guardar Total (%1$d mL)</string>
     <string name="decrement">Decrementar</string>
     <string name="increment">Incrementar</string>
+    <string name="log_weight_title">Registrar Peso</string>
 </resources>

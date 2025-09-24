@@ -131,7 +131,7 @@ fun LogWeightScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log Weight") },
+                title = { Text(stringResource(id = R.string.log_weight_title)) },
                 navigationIcon = {FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
