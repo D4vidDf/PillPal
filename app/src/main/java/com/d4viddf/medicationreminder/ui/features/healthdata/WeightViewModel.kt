@@ -109,11 +109,11 @@ class WeightViewModel @Inject constructor(
         val maxWeight = records.maxOfOrNull { it.weightKilograms }?.toFloat() ?: (latestWeightBefore?.weightKilograms?.toFloat() ?: 0f)
         val yMax = if (maxWeight > 100f) (maxWeight + 10) else 100f
 
-        val currentWeight = records.maxByOrNull { it.time }?.weightKilograms?.toFloat() ?: 0f
+        val currentWeight = records.maxByOrNull { it.time }?.weightKilograms?.toFloat() ?: latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
         val progress = if (weightGoal.value > 0) currentWeight / weightGoal.value else 0f
         _averageWeight.value = if (records.isNotEmpty()) records.map { it.weightKilograms }.average().toFloat() else (latestWeightBefore?.weightKilograms?.toFloat() ?: 0f)
 
-        val lastWeightLog = latestWeightBefore?.let {
+        val lastWeightLog = weightLogs.firstOrNull() ?: latestWeightBefore?.let {
             WeightLogItem(
                 weight = it.weightKilograms,
                 date = it.time.atZone(ZoneId.systemDefault()),
@@ -169,25 +169,31 @@ class WeightViewModel @Inject constructor(
             }
         }
         return when (timeRange) {
-            TimeRange.DAY -> aggregateByHour(records, selectedDate)
+            TimeRange.DAY -> aggregateByHour(records, selectedDate, latestWeightBefore)
             TimeRange.WEEK -> aggregateByDayOfWeek(records, selectedDate, latestWeightBefore)
             TimeRange.MONTH -> aggregateByDayOfMonth(records, selectedDate, latestWeightBefore)
             TimeRange.YEAR -> aggregateByMonth(records, selectedDate, latestWeightBefore)
         }
     }
 
-    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate): WeightChartData {
-        val data = records
+    private fun aggregateByHour(records: List<Weight>, selectedDate: LocalDate, latestWeightBefore: Weight?): WeightChartData {
+        val hourData = records
             .filter { it.time.atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate }
-            .sortedBy { it.time }
-            .map {
-                val zonedDateTime = it.time.atZone(ZoneId.systemDefault())
-                LineChartPoint(
-                    x = zonedDateTime.hour.toFloat(),
-                    y = it.weightKilograms.toFloat(),
-                    label = ""
-                )
+            .groupBy { it.time.atZone(ZoneId.systemDefault()).hour }
+            .mapValues { (_, hourRecords) ->
+                hourRecords.map { it.weightKilograms }.average().toFloat()
             }
+
+        var lastKnownWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
+        val data = (0..23).map { hour ->
+            val avg = hourData[hour]
+            if (avg != null) {
+                lastKnownWeight = avg
+                LineChartPoint(x = hour.toFloat(), y = avg, label = "", showPoint = true)
+            } else {
+                LineChartPoint(x = hour.toFloat(), y = lastKnownWeight, label = "", showPoint = false)
+            }
+        }
         val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
         return WeightChartData(lineChartData = data, labels = labels)
     }
