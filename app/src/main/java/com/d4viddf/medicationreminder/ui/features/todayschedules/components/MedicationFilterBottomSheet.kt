@@ -50,7 +50,7 @@ fun MedicationFilterBottomSheet(
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f, fill = false),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(allMedications) { medication ->
