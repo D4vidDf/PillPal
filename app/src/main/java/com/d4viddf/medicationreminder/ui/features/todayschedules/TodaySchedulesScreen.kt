@@ -249,62 +249,61 @@ private fun FilterControls(
         )
     }
 
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        item {
-            val label = when {
-                selectedMedicationIds.isEmpty() -> stringResource(id = R.string.filter_by_medication)
-                selectedMedicationIds.size == 1 -> stringResource(id = R.string.filter_by_medication_singular)
-                else -> stringResource(id = R.string.filter_by_medication_plural, selectedMedicationIds.size)
-            }
-            FilterChip(
-                selected = selectedMedicationIds.isNotEmpty(),
-                onClick = { showMedicationFilter = true },
-                label = { Text(label) },
-                leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
-            )
+        val medicationLabel = when {
+            selectedMedicationIds.isEmpty() -> stringResource(id = R.string.filter_by_medication)
+            selectedMedicationIds.size == 1 -> stringResource(id = R.string.filter_by_medication_singular)
+            else -> stringResource(id = R.string.filter_by_medication_plural, selectedMedicationIds.size)
         }
+        FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = selectedMedicationIds.isNotEmpty(),
+            onClick = { showMedicationFilter = true },
+            label = { Text(medicationLabel, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+            leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
+        )
 
-        item {
-            val context = androidx.compose.ui.platform.LocalContext.current
-            val colorResId = if (selectedColorName != null) {
-                val resId = context.resources.getIdentifier("color_${selectedColorName.lowercase()}", "string", context.packageName)
-                if (resId != 0) resId else R.string.filter_by_color
-            } else {
-                R.string.filter_by_color
-            }
-
-            FilterChip(
-                selected = selectedColorName != null,
-                onClick = { showColorFilter = true },
-                label = { Text(stringResource(id = colorResId)) },
-                leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
-            )
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val colorResId = if (selectedColorName != null) {
+            val resId = context.resources.getIdentifier("color_${selectedColorName.lowercase()}", "string", context.packageName)
+            if (resId != 0) resId else R.string.filter_by_color
+        } else {
+            R.string.filter_by_color
         }
+        FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = selectedColorName != null,
+            onClick = { showColorFilter = true },
+            label = { Text(stringResource(id = colorResId), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+            leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
+        )
 
-        item {
-            val formatter = DateTimeFormatter.ofPattern("HH:mm")
-            val label = if (selectedTimeRange != null) {
-                "${selectedTimeRange.start.format(formatter)} - ${selectedTimeRange.endInclusive.format(formatter)}"
-            } else {
-                stringResource(id = R.string.filter_by_time_range)
-            }
-            FilterChip(
-                selected = selectedTimeRange != null,
-                onClick = { showTimeRangeDialog = true },
-                label = { Text(label) },
-                leadingIcon = { Icon(Icons.Default.AccessTime, contentDescription = null) },
-                trailingIcon = {
-                    if (selectedTimeRange != null) {
-                        IconButton(onClick = { onTimeRangeFilterChanged(null, null) }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.clear_time_range_filter))
-                        }
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+        val timeLabel = if (selectedTimeRange != null) {
+            "${selectedTimeRange.start.format(formatter)} - ${selectedTimeRange.endInclusive.format(formatter)}"
+        } else {
+            stringResource(id = R.string.filter_by_time_range)
+        }
+        FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = selectedTimeRange != null,
+            onClick = { showTimeRangeDialog = true },
+            label = { Text(timeLabel, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+            leadingIcon = { Icon(Icons.Default.AccessTime, contentDescription = null) },
+            trailingIcon = {
+                if (selectedTimeRange != null) {
+                    IconButton(onClick = { onTimeRangeFilterChanged(null, null) }) {
+                        Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.clear_time_range_filter))
                     }
                 }
-            )
-        }
+            }
+        )
     }
 }
 
