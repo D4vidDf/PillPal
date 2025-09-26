@@ -84,18 +84,29 @@ fun TodaySchedulesScreen(
             )
         },
         floatingActionButton = {
-            if (!showMissed) {
-                FloatingActionButton(onClick = {
-                    coroutineScope.launch {
-                        if (nextTimeIndex != -1) {
-                            listState.animateScrollToItem(nextTimeIndex)
+            if (!showMissed && scheduleItems.isNotEmpty()) {
+                val tooltipState = rememberTooltipState()
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = {
+                        PlainTooltip {
+                            Text(stringResource(id = R.string.scroll_to_current_time))
                         }
+                    },
+                    state = tooltipState
+                ) {
+                    FloatingActionButton(onClick = {
+                        coroutineScope.launch {
+                            if (nextTimeIndex != -1) {
+                                listState.animateScrollToItem(nextTimeIndex)
+                            }
+                        }
+                    }) {
+                        Icon(
+                            Icons.Default.AccessTime,
+                            contentDescription = null
+                        )
                     }
-                }) {
-                    Icon(
-                        Icons.Default.AccessTime,
-                        contentDescription = stringResource(id = R.string.scroll_to_current_time)
-                    )
                 }
             }
         }
