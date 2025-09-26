@@ -237,15 +237,11 @@ fun MissedRemindersCard(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
-                if (lastMissedMedication != null) {
+                if (lastMissedTime != null) {
                     Text(
-                        text = if (lastMissedTime != null) {
-                            "$lastMissedMedication at $lastMissedTime"
-                        } else {
-                            lastMissedMedication
-                        },
+                        text = "Last missed at $lastMissedTime",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        color = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
             }
