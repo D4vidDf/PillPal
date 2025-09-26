@@ -774,4 +774,9 @@
     <string name="color_light_green">Light Green</string>
     <string name="color_light_blue">Light Blue</string>
     <string name="color_no_color">No color</string>
+
+    <!-- Home Screen Cards -->
+    <string name="next_dose_in_title">Next Dose In</string>
+    <string name="last_missed_at_time">Last missed at %1$s</string>
+    <string name="view_details_missed_reminders_cd">View details for missed reminders</string>
 </resources>

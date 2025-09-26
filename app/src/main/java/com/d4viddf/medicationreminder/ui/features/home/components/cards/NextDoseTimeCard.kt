@@ -6,7 +6,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.R
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
@@ -49,9 +52,12 @@ fun NextDoseTimeCard(
 
     Card {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-            Text(text = "Next Dose In", style = MaterialTheme.typography.titleMedium)
+            Text(text = stringResource(id = R.string.next_dose_in_title), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = formattedTime, style = MaterialTheme.typography.displaySmall)
+            Text(
+                text = formattedTime,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            )
         }
     }
 }

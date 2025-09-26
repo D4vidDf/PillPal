@@ -695,4 +695,9 @@
     <string name="color_light_green">Verd Clar</string>
     <string name="color_light_blue">Blau Clar</string>
     <string name="color_no_color">Sense color</string>
+
+    <!-- Home Screen Cards -->
+    <string name="next_dose_in_title">Pròxima dosi en</string>
+    <string name="last_missed_at_time">Darrera omissió a les %1$s</string>
+    <string name="view_details_missed_reminders_cd">Veure detalls dels recordatoris omesos</string>
 </resources>

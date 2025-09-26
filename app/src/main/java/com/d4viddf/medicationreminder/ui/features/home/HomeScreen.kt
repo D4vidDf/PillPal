@@ -448,6 +448,7 @@ internal fun HomeScreenContent(
                                                     is UiItemState.Success -> MissedRemindersCard(
                                                         missedDoses = state.data.size,
                                                         lastMissedMedication = state.data.firstOrNull()?.medicationName,
+                                                        lastMissedTime = state.data.firstOrNull()?.formattedReminderTime,
                                                         onClick = {
                                                             navController.navigate(
                                                                 Screen.TodaySchedules.createRoute(
