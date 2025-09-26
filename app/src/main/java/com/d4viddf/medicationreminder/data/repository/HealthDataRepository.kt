@@ -111,7 +111,21 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
-    fun getLatestWeightBefore(date: Instant): Flow<Weight?> = healthDataDao.getLatestWeightBefore(date)
+    fun getLatestWeightBefore(date: Instant): Flow<Weight?> {
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getLatestWeightBefore(date)
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getLatestWeightBefore(date)
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    if (local == null) return@combine healthConnect
+                    if (healthConnect == null) return@combine local
+                    if (local.time.isAfter(healthConnect.time)) local else healthConnect
+                }
+            } else {
+                localData
+            }
+        }
+    }
 
     fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
