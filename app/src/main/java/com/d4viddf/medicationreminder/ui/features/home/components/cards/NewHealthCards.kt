@@ -150,7 +150,6 @@ fun TodayProgressCard(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // UPDATED: Shows "taken / total" format
                 Text(
                     text = "$taken/$total",
                     style = MaterialTheme.typography.headlineLarge,
@@ -158,11 +157,36 @@ fun TodayProgressCard(
                 )
             }
             if (total > 0) {
-                CircularProgressIndicator(
-                    progress = { taken.toFloat() / total.toFloat() },
-                    modifier = Modifier.size(64.dp),
-                    strokeWidth = 6.dp
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        progress = { taken.toFloat() / total.toFloat() },
+                        modifier = Modifier.size(64.dp),
+                        strokeWidth = 6.dp,
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.ic_rounded_checklist_24),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            shape = MaterialTheme.shapes.extraLarge
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_today_24),
+                        contentDescription = null, // Decorative
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
@@ -175,11 +199,14 @@ fun TodayProgressCard(
  *
  * @param missedDoses The total number of missed doses.
  * @param lastMissedMedication The name of the last medication that was missed.
+ * @param lastMissedTime The time of the last missed dose.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MissedRemindersCard(
     missedDoses: Int,
     lastMissedMedication: String?,
+    lastMissedTime: String?,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -187,7 +214,11 @@ fun MissedRemindersCard(
     if (missedDoses == 0) return
 
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -197,26 +228,33 @@ fun MissedRemindersCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(id = R.string.missed_reminders_title),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
                 Text(
                     text = missedDoses.toString(),
                     style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
                 if (lastMissedMedication != null) {
                     Text(
-                        text = "${stringResource(id = R.string.last_missed_label)} $lastMissedMedication",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                        text = if (lastMissedTime != null) {
+                            "$lastMissedMedication at $lastMissedTime"
+                        } else {
+                            lastMissedMedication
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                     )
                 }
             }
-            IconButton(onClick = onClick) {Icon(
+            Icon(
                 imageVector = Icons.Filled.ArrowForwardIos,
-                contentDescription = null, // Should be tied to a navigation action
-                modifier = Modifier.size(24.dp)
-            ) }
+                contentDescription = "View details for missed reminders",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onErrorContainer
+            )
         }
     }
 }

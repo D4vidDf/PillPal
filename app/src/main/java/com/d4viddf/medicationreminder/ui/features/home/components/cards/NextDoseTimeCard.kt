@@ -51,7 +51,10 @@ fun NextDoseTimeCard(
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
             Text(text = "Next Dose In", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = formattedTime, style = MaterialTheme.typography.displaySmall)
+            Text(
+                text = formattedTime,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            )
         }
     }
 }
