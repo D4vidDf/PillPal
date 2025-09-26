@@ -42,8 +42,19 @@ fun ColorFilterBottomSheet(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val selectedColorDisplayName = when {
+                tempSelectedColorName != null -> {
+                    val resId = context.resources.getIdentifier("color_${tempSelectedColorName!!.lowercase()}", "string", context.packageName)
+                    if (resId != 0) stringResource(id = resId) else tempSelectedColorName
+                }
+                else -> stringResource(id = R.string.none_set)
+            }
+
+            val title = "${stringResource(id = R.string.filter_by_color)}: $selectedColorDisplayName"
+
             Text(
-                text = stringResource(id = R.string.filter_by_color),
+                text = title,
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(16.dp))
