@@ -92,7 +92,7 @@ private fun ColorItem(
     }
 
     val borderModifier = if (isSelected) {
-        Modifier.border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary), shape)
+        Modifier.border(BorderStroke(4.dp, MaterialTheme.colorScheme.primary), shape)
     } else {
         Modifier
     }
