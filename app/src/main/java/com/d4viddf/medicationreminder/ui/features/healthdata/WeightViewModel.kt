@@ -157,17 +157,13 @@ class WeightViewModel @Inject constructor(
         }
     }
 
+    private fun getInitialWeight(records: List<Weight>, latestWeightBefore: Weight?): Float {
+        return latestWeightBefore?.weightKilograms?.toFloat()
+            ?: records.firstOrNull()?.weightKilograms?.toFloat()
+            ?: 0f
+    }
+
     private fun aggregateDataForChart(records: List<Weight>, latestWeightBefore: Weight?, timeRange: TimeRange, selectedDate: LocalDate): WeightChartData {
-        if (records.isEmpty() && latestWeightBefore != null) {
-            if (timeRange == TimeRange.DAY) {
-                val lastWeight = latestWeightBefore.weightKilograms.toFloat()
-                val data = (0..23).map {
-                    LineChartPoint(x = it.toFloat(), y = lastWeight, label = "", showPoint = false)
-                }
-                val labels = (0..23).map { if (it % 4 == 0) it.toString() else "" }
-                return WeightChartData(lineChartData = data, labels = labels)
-            }
-        }
         return when (timeRange) {
             TimeRange.DAY -> aggregateByHour(records, selectedDate, latestWeightBefore)
             TimeRange.WEEK -> aggregateByDayOfWeek(records, selectedDate, latestWeightBefore)
@@ -184,7 +180,7 @@ class WeightViewModel @Inject constructor(
                 hourRecords.map { it.weightKilograms }.average().toFloat()
             }
 
-        var lastKnownWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
+        var lastKnownWeight = getInitialWeight(records, latestWeightBefore)
         val data = (0..23).map { hour ->
             val avg = hourData[hour]
             if (avg != null) {
@@ -222,7 +218,7 @@ class WeightViewModel @Inject constructor(
             dayOfWeekInitials[day] ?: ""
         }
 
-        var lastKnownWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
+        var lastKnownWeight = getInitialWeight(records, latestWeightBefore)
         val data = (0..6).map {
             val date = startOfWeek.plusDays(it.toLong())
             val avg = weekData[date]
@@ -253,7 +249,7 @@ class WeightViewModel @Inject constructor(
             if (day in labelsToShow) day.toString() else ""
         }
 
-        var lastKnownWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
+        var lastKnownWeight = getInitialWeight(records, latestWeightBefore)
         val data = (0 until daysInMonth).map {
             val date = startOfMonth.plusDays(it.toLong())
             val avg = monthData[date]
@@ -280,7 +276,7 @@ class WeightViewModel @Inject constructor(
             startOfYear.plusMonths(it.toLong()).month.getDisplayName(TextStyle.SHORT, Locale.getDefault()).first().toString()
         }
 
-        var lastKnownWeight = latestWeightBefore?.weightKilograms?.toFloat() ?: 0f
+        var lastKnownWeight = getInitialWeight(records, latestWeightBefore)
         val data = (0..11).map {
             val date = startOfYear.plusMonths(it.toLong())
             val avg = yearData[date.month]
