@@ -7,11 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
-import com.d4viddf.medicationreminder.ui.components.getMedicationIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +92,7 @@ private fun MedicationFilterItem(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
-            painter = getMedicationIcon(medicationType = medication.type),
+            painter = painterResource(id = R.drawable.medication_filled),
             contentDescription = null,
             modifier = Modifier.size(40.dp)
         )
