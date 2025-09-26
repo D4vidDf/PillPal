@@ -215,10 +215,13 @@ class HomeViewModel @Inject constructor(
     val weightGoal: StateFlow<Float> = userPreferencesRepository.weightGoalValueFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
+    val waterIntakeGoal: StateFlow<Int> = userPreferencesRepository.waterIntakeGoalFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     val waterIntakeProgress: StateFlow<Float> =
         combine(
             waterIntakeToday,
-            userPreferencesRepository.waterIntakeGoalFlow
+            waterIntakeGoal
         ) { waterIntakeState, goal ->
             val intake = (waterIntakeState as? UiItemState.Success)?.data?.first ?: 0.0
             if (goal > 0) (intake / (goal / 1000.0)).toFloat() else 0f
