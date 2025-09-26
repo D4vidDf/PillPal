@@ -68,6 +68,7 @@ fun NewHealthStatCard(
                         progress = { progress },
                         modifier = Modifier.size(64.dp),
                         strokeWidth = 6.dp,
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     )
                     Icon(
                         painter = icon,
@@ -162,6 +163,7 @@ fun TodayProgressCard(
                         progress = { taken.toFloat() / total.toFloat() },
                         modifier = Modifier.size(64.dp),
                         strokeWidth = 6.dp,
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     )
                     Icon(
                         painter = painterResource(R.drawable.ic_rounded_checklist_24),
