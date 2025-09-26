@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,9 +27,10 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 fun ColorFilterBottomSheet(
     selectedColorName: String?,
     onDismiss: () -> Unit,
-    onColorSelected: (String?) -> Unit
+    onConfirm: (String?) -> Unit
 ) {
     val colors = listOf<String?>(null) + MedicationColor.values().map { it.name }
+    var tempSelectedColorName by remember { mutableStateOf(selectedColorName) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -48,19 +47,20 @@ fun ColorFilterBottomSheet(
             LazyVerticalGrid(
                 columns = GridCells.Fixed(4),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.heightIn(max = 300.dp)
             ) {
                 items(colors) { colorName ->
                     ColorItem(
                         colorName = colorName,
-                        isSelected = colorName == selectedColorName,
-                        onClick = { onColorSelected(colorName) }
+                        isSelected = colorName == tempSelectedColorName,
+                        onClick = { tempSelectedColorName = colorName }
                     )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = onDismiss,
+                onClick = { onConfirm(tempSelectedColorName) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(id = R.string.confirm))

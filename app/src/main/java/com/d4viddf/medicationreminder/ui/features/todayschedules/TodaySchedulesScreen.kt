@@ -243,7 +243,7 @@ private fun FilterControls(
         ColorFilterBottomSheet(
             selectedColorName = selectedColorName,
             onDismiss = { showColorFilter = false },
-            onColorSelected = {
+            onConfirm = {
                 onColorFilterChanged(it)
                 showColorFilter = false
             }
