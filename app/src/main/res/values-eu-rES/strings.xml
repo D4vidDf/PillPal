@@ -429,7 +429,6 @@
     <string name="weight_title">Pisua</string>
     <string name="last_registered_label">Azken erregistroa:</string>
     <string name="progress_section_title">Aurrerapena</string>
-    <string name="missed_reminders_title">Galdutako Abisuak</string>
     <string name="last_missed_label">Azkena galduta:</string>
     <string name="today_progress_title">Gaurko Aurrerapena</string>
     <string name="today_schedules_title">Gaurko Ordutegiak</string>
@@ -437,11 +436,11 @@
     <string name="no_medications_title">Ez dago Erregistratutako Botikarik</string>
     <string name="no_medications_body">Hasi zure lehen botika gehitzen zure ordutegia hemen ikusteko.</string>
     <string name="add_medication_button">Gehitu Botika</string>
-    <string name="no_schedule_today_title">Gaurko Ez Dago Dosi Programaturik</string>
-    <string name="no_schedule_today_body">Gaurko ez duzu botikarik programatuta. Begiratu bihar berriro!</string>
-    <string name="no_more_schedules_today_title">Gaurko Dosi Guztiak Osatuta!</string>
-    <string name="no_more_schedules_today_body">Gaurko programatutako dosi guztiak hartu dituzu. Lan bikaina!</string>
-    <string name="no_schedules_for_today">Gaurko ordutegirik ez</string>
+    <string name="no_schedule_today_title">Gaurko Ez Dago Abisurik Programatuta</string>
+    <string name="no_schedule_today_body">Gaurko ez duzu abisurik programatuta. Begiratu bihar berriro!</string>
+    <string name="no_more_reminders_today_title">Gaurko Abisu Guztiak Osatuta!</string>
+    <string name="no_more_reminders_today_body">Gaurko programatutako abisu guztiak hartu dituzu. Lan bikaina!</string>
+    <string name="no_reminders_for_today">Gaurko abisurik ez</string>
     <string name="scroll_to_current_time">Joan uneko ordura</string>
     <string name="filter_by_medication">Botika</string>
     <string name="all_medications">Guztiak</string>
@@ -463,7 +462,8 @@
     <string name="no_weight_data">Ez dago pisu erregistratuta</string>
     <string name="no_heart_rate_data">Ez dago bihotz maiztasun daturik erregistratuta</string>
     <string name="edit_section">Editatu atala</string>
-    <string name="no_missed_schedules">Ez dago galdutako dosirik! Egunean zaude</string>
+    <string name="no_missed_reminders">Ez dago galdutako abisurik! Egunean zaude</string>
+    <string name="no_reminders_for_today_filtered">Ez dago gaurko abisurik iragazkiekin bat datozenik.</string>
     <string name="water_intake_goal_progress">%1$sml falta zaizkizu zure eguneroko 4000ml-ko helburua lortzeko</string>
     <string name="water_intake_goal_reached_days">Orain arte, zure helburua %1$d egunetan lortu duzu eta guztira %2$sml edan duzu</string>
 
@@ -636,6 +636,18 @@
     <string name="what_is_body_fat_title">Zer da gorputzeko gantza?</string>
     <string name="what_is_lean_mass_content">Masa argala muskuluek, organoek, hezurrek eta gorputzeko urak osatzen dute.</string>
     <string name="what_is_lean_mass_title">Zer da masa argala?</string>
+    <string name="about_heart_rate_info_title">Bihotz-maiztasunari buruz</string>
+    <string name="what_is_heart_rate_title">Zer da bihotz-maiztasuna?</string>
+    <string name="what_is_heart_rate_content">Bihotz-maiztasuna zure bihotzak minutuko taupada kopurua da (tpm). Zure osasun orokorraren adierazle erabilgarria izan daiteke.</string>
+    <string name="what_is_resting_heart_rate_title">Zer da atsedeneko bihotz-maiztasuna?</string>
+    <string name="what_is_resting_heart_rate_content">Atsedeneko bihotz-maiztasuna atsedenaldian duzun bihotz-maiztasuna da. Atsedeneko bihotz-maiztasun baxuagoa, oro har, osasun kardiobaskular onaren seinale da.</string>
+    <string name="what_can_affect_heart_rate_title">Zerk eragin dezake bihotz-maiztasunean?</string>
+    <string name="what_can_affect_heart_rate_content">Bihotz-maiztasunean hainbat faktorek eragin dezakete, hala nola adinak, jarduera-mailak, estresak eta botikek.</string>
+    <string name="about_water_info_title">Ur-hartzeari buruz</string>
+    <string name="why_is_water_important_title">Zergatik da garrantzitsua ura?</string>
+    <string name="why_is_water_important_content">Ura funtsezkoa da gorputzeko funtzio askotarako, besteak beste, tenperatura erregulatzeko, artikulazioak lubrifikatzeko eta hondakinak kentzeko.</string>
+    <string name="how_much_water_should_i_drink_title">Zenbat ur edan behar dut?</string>
+    <string name="how_much_water_should_i_drink_content">Behar duzun ur kantitatea aldatu egin daiteke adina, jarduera-maila eta klima bezalako faktoreen arabera. Garrantzitsua da egunean zehar hidratatuta egotea.</string>
     <string name="log_water_intake_title">Ur-hartzea erregistratu</string>
     <string name="more_options">Aukera gehiago</string>
     <string name="manage_presets">Kudeatu aurrezarpenak</string>
@@ -666,6 +678,24 @@
     <string name="clear_time_range_filter">Garbitu denbora-tartearen iragazkia</string>
     <string name="select_start_time">Hautatu hasiera-ordua</string>
     <string name="select_end_time">Hautatu amaiera-ordua</string>
-    <string name="missed_doses_title">Galdutako dosiak</string>
-    <string name="todays_schedule_title">Gaurko ordutegia</string>
+    <string name="missed_reminders_title">Galdutako abisuak</string>
+    <string name="todays_reminders_title">Gaurko abisuak</string>
+    <string name="filter_by_medication_singular">botika 1</string>
+    <string name="filter_by_medication_plural">%d botika</string>
+    <string name="select_all">Hautatu dena</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Laranja</string>
+    <string name="color_pink">Arrosa</string>
+    <string name="color_green">Berde Iluna</string>
+    <string name="color_blue">Urdina</string>
+    <string name="color_purple">Morea</string>
+    <string name="color_yellow">Urre kolorea</string>
+    <string name="color_light_yellow">Hori Argia</string>
+    <string name="color_light_orange">Laranja Argia</string>
+    <string name="color_light_pink">Arrosa Argia</string>
+    <string name="color_light_purple">More Argia</string>
+    <string name="color_light_green">Berde Argia</string>
+    <string name="color_light_blue">Urdin Argia</string>
+    <string name="color_no_color">Kolorerik gabe</string>
 </resources>

@@ -1,38 +1,77 @@
 package com.d4viddf.medicationreminder.ui.features.todayschedules
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Medication
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.toShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
+import com.d4viddf.medicationreminder.ui.features.todayschedules.components.ColorFilterBottomSheet
+import com.d4viddf.medicationreminder.ui.features.todayschedules.components.MedicationFilterBottomSheet
 import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodayScheduleItem
+import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodaySchedulesSkeletonLoader
 import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -49,11 +88,11 @@ fun TodaySchedulesScreen(
     val scheduleItems by viewModel.scheduleItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val showMissed by viewModel.showMissed.collectAsState()
-    val screenTitle = if (showMissed) stringResource(id = R.string.missed_doses_title) else stringResource(id = R.string.todays_schedule_title)
+    val screenTitle = if (showMissed) stringResource(id = R.string.missed_reminders_title) else stringResource(id = R.string.todays_reminders_title)
 
     // States for the filter controls
     val allMedications by viewModel.allMedications.collectAsState()
-    val selectedMedicationId by viewModel.selectedMedicationId.collectAsState()
+    val selectedMedicationIds by viewModel.selectedMedicationIds.collectAsState()
     val selectedColorName by viewModel.selectedColorName.collectAsState()
     val selectedTimeRange by viewModel.selectedTimeRange.collectAsState()
 
@@ -80,18 +119,29 @@ fun TodaySchedulesScreen(
             )
         },
         floatingActionButton = {
-            if (!showMissed) {
-                FloatingActionButton(onClick = {
-                    coroutineScope.launch {
-                        if (nextTimeIndex != -1) {
-                            listState.animateScrollToItem(nextTimeIndex)
+            if (!showMissed && scheduleItems.isNotEmpty()) {
+                val tooltipState = rememberTooltipState()
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = {
+                        PlainTooltip {
+                            Text(stringResource(id = R.string.scroll_to_current_time))
                         }
+                    },
+                    state = tooltipState
+                ) {
+                    FloatingActionButton(onClick = {
+                        coroutineScope.launch {
+                            if (nextTimeIndex != -1) {
+                                listState.animateScrollToItem(nextTimeIndex)
+                            }
+                        }
+                    }) {
+                        Icon(
+                            Icons.Default.AccessTime,
+                            contentDescription = null
+                        )
                     }
-                }) {
-                    Icon(
-                        Icons.Default.AccessTime,
-                        contentDescription = stringResource(id = R.string.scroll_to_current_time)
-                    )
                 }
             }
         }
@@ -101,7 +151,7 @@ fun TodaySchedulesScreen(
             if (!showMissed) {
                 FilterControls(
                     allMedications = allMedications,
-                    selectedMedicationId = selectedMedicationId,
+                    selectedMedicationIds = selectedMedicationIds,
                     selectedColorName = selectedColorName,
                     selectedTimeRange = selectedTimeRange,
                     onMedicationFilterChanged = viewModel::onMedicationFilterChanged,
@@ -115,9 +165,10 @@ fun TodaySchedulesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(128.dp))
+                    TodaySchedulesSkeletonLoader()
                 } else if (scheduleItems.isEmpty()) {
-                    EmptyState(isMissedMode = showMissed)
+                    val isFiltered = selectedMedicationIds.isNotEmpty() || selectedColorName != null || selectedTimeRange != null
+                    EmptyState(isMissedMode = showMissed, isFiltered = isFiltered)
                 } else {
                     LazyColumn(
                         state = listState,
@@ -200,16 +251,39 @@ private fun TimeGroupCard(
 @Composable
 private fun FilterControls(
     allMedications: List<Medication>,
-    selectedMedicationId: Int?,
+    selectedMedicationIds: List<Int>,
     selectedColorName: String?,
     selectedTimeRange: ClosedRange<LocalTime>?,
-    onMedicationFilterChanged: (Int?) -> Unit,
+    onMedicationFilterChanged: (List<Int>) -> Unit,
     onColorFilterChanged: (String?) -> Unit,
     onTimeRangeFilterChanged: (LocalTime?, LocalTime?) -> Unit,
 ) {
-    var medicationMenuExpanded by remember { mutableStateOf(false) }
-    var colorMenuExpanded by remember { mutableStateOf(false) }
+    var showMedicationFilter by remember { mutableStateOf(false) }
+    var showColorFilter by remember { mutableStateOf(false) }
     var showTimeRangeDialog by remember { mutableStateOf(false) }
+
+    if (showMedicationFilter) {
+        MedicationFilterBottomSheet(
+            allMedications = allMedications,
+            selectedMedicationIds = selectedMedicationIds,
+            onDismiss = { showMedicationFilter = false },
+            onConfirm = {
+                onMedicationFilterChanged(it)
+                showMedicationFilter = false
+            }
+        )
+    }
+
+    if (showColorFilter) {
+        ColorFilterBottomSheet(
+            selectedColorName = selectedColorName,
+            onDismiss = { showColorFilter = false },
+            onConfirm = {
+                onColorFilterChanged(it)
+                showColorFilter = false
+            }
+        )
+    }
 
     if (showTimeRangeDialog) {
         TimeRangePickerDialog(
@@ -226,96 +300,38 @@ private fun FilterControls(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
-            Box {
-                FilterChip(
-                    selected = selectedMedicationId != null,
-                    onClick = { medicationMenuExpanded = true },
-                    label = {
-                        Text(
-                            allMedications.find { it.id == selectedMedicationId }?.name?.split(" ")?.first()
-                                ?: stringResource(id = R.string.filter_by_medication)
-                        )
-                    },
-                    leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
-                )
-                DropdownMenu(
-                    expanded = medicationMenuExpanded,
-                    onDismissRequest = { medicationMenuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.all_medications)) },
-                        onClick = {
-                            onMedicationFilterChanged(null)
-                            medicationMenuExpanded = false
-                        }
-                    )
-                    allMedications.forEach { medication ->
-                        DropdownMenuItem(
-                            text = { Text(medication.name.split(" ").first()) },
-                            onClick = {
-                                onMedicationFilterChanged(medication.id)
-                                medicationMenuExpanded = false
-                            }
-                        )
-                    }
-                }
+            val medicationLabel = when {
+                selectedMedicationIds.isEmpty() -> stringResource(id = R.string.filter_by_medication)
+                selectedMedicationIds.size == 1 -> stringResource(id = R.string.filter_by_medication_singular)
+                else -> stringResource(id = R.string.filter_by_medication_plural, selectedMedicationIds.size)
             }
+            FilterChip(
+                selected = selectedMedicationIds.isNotEmpty(),
+                onClick = { showMedicationFilter = true },
+                label = { Text(medicationLabel) },
+                leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
+            )
         }
 
         item {
-            Box {
-                FilterChip(
-                    selected = selectedColorName != null,
-                    onClick = { colorMenuExpanded = true },
-                    label = {
-                        Text(
-                            selectedColorName?.replace("_", " ")?.lowercase()
-                                ?.replaceFirstChar { it.titlecase() }
-                                ?: stringResource(id = R.string.filter_by_color)
-                        )
-                    },
-                    leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
-                )
-                DropdownMenu(
-                    expanded = colorMenuExpanded,
-                    onDismissRequest = { colorMenuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.all_colors)) },
-                        onClick = {
-                            onColorFilterChanged(null)
-                            colorMenuExpanded = false
-                        }
-                    )
-                    MedicationColor.values().forEach { color ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(16.dp)
-                                            .clip(CircleShape)
-                                            .background(color.backgroundColor)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        color.name.replace("_", " ").lowercase()
-                                            .replaceFirstChar { it.titlecase() })
-                                }
-                            },
-                            onClick = {
-                                onColorFilterChanged(color.name)
-                                colorMenuExpanded = false
-                            }
-                        )
-                    }
-                }
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val colorResId = if (selectedColorName != null) {
+                val resId = context.resources.getIdentifier("color_${selectedColorName.lowercase()}", "string", context.packageName)
+                if (resId != 0) resId else R.string.filter_by_color
+            } else {
+                R.string.filter_by_color
             }
+            FilterChip(
+                selected = selectedColorName != null,
+                onClick = { showColorFilter = true },
+                label = { Text(stringResource(id = colorResId)) },
+                leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
+            )
         }
 
         item {
             val formatter = DateTimeFormatter.ofPattern("HH:mm")
-            val label = if (selectedTimeRange != null) {
+            val timeLabel = if (selectedTimeRange != null) {
                 "${selectedTimeRange.start.format(formatter)} - ${selectedTimeRange.endInclusive.format(formatter)}"
             } else {
                 stringResource(id = R.string.filter_by_time_range)
@@ -323,7 +339,7 @@ private fun FilterControls(
             FilterChip(
                 selected = selectedTimeRange != null,
                 onClick = { showTimeRangeDialog = true },
-                label = { Text(label) },
+                label = { Text(timeLabel) },
                 leadingIcon = { Icon(Icons.Default.AccessTime, contentDescription = null) },
                 trailingIcon = {
                     if (selectedTimeRange != null) {
@@ -389,22 +405,40 @@ private fun TimeHeader(time: String, modifier: Modifier = Modifier) {
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier, isMissedMode: Boolean) {
-    val message = if (isMissedMode) stringResource(R.string.no_missed_schedules) else stringResource(R.string.no_schedules_for_today)
+private fun EmptyState(modifier: Modifier = Modifier, isMissedMode: Boolean, isFiltered: Boolean) {
+    val message = when {
+        isMissedMode -> stringResource(R.string.no_missed_reminders)
+        isFiltered -> stringResource(R.string.no_reminders_for_today_filtered)
+        else -> stringResource(R.string.no_reminders_for_today)
+    }
     val icon = if(isMissedMode) R.drawable.task_alt else R.drawable.medication_filled
 
     Column(
-        modifier = modifier.padding(16.dp).fillMaxSize(),
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
+        Surface(
+            modifier = Modifier.size(128.dp),
+            shape = MaterialShapes.Pill.toShape(),
+            color = MaterialTheme.colorScheme.secondaryContainer
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(56.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,

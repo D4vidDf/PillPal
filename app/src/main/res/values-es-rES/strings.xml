@@ -429,7 +429,6 @@
     <string name="weight_title">Peso</string>
     <string name="last_registered_label">Último registro:</string>
     <string name="progress_section_title">Progreso</string>
-    <string name="missed_reminders_title">Recordatorios Omitidos</string>
     <string name="last_missed_label">Último omitido:</string>
     <string name="today_progress_title">Progreso de Hoy</string>
     <string name="today_schedules_title">Horarios de Hoy</string>
@@ -437,11 +436,11 @@
     <string name="no_medications_title">No hay Medicamentos Registrados</string>
     <string name="no_medications_body">Empieza añadiendo tu primer medicamento para ver tu horario aquí.</string>
     <string name="add_medication_button">Añadir Medicamento</string>
-    <string name="no_schedule_today_title">No hay Dosis Programadas para Hoy</string>
-    <string name="no_schedule_today_body">No tienes medicamentos programados para hoy. ¡Vuelve mañana!</string>
-    <string name="no_more_schedules_today_title">¡Todas las Dosis Completas por Hoy!</string>
-    <string name="no_more_schedules_today_body">Has tomado todas tus dosis programadas para hoy. ¡Buen trabajo!</string>
-    <string name="no_schedules_for_today">No hay horarios para hoy</string>
+    <string name="no_schedule_today_title">No hay Recordatorios Programados para Hoy</string>
+    <string name="no_schedule_today_body">No tienes recordatorios programados para hoy. ¡Vuelve mañana!</string>
+    <string name="no_more_reminders_today_title">¡Todos los Recordatorios Completados por Hoy!</string>
+    <string name="no_more_reminders_today_body">Has tomado todos tus recordatorios programados para hoy. ¡Buen trabajo!</string>
+    <string name="no_reminders_for_today">No hay recordatorios para hoy</string>
     <string name="scroll_to_current_time">Desplazarse a la hora actual</string>
     <string name="filter_by_medication">Medicamento</string>
     <string name="all_medications">Todos</string>
@@ -463,7 +462,8 @@
     <string name="no_weight_data">No hay peso registrado</string>
     <string name="no_heart_rate_data">No hay datos de frecuencia cardíaca registrados</string>
     <string name="edit_section">Editar sección</string>
-    <string name="no_missed_schedules">¡Sin dosis omitidas! Estás al día</string>
+    <string name="no_missed_reminders">¡Sin recordatorios omitidos! Estás al día</string>
+    <string name="no_reminders_for_today_filtered">No hay recordatorios para hoy que coincidan con los filtros.</string>
     <string name="water_intake_goal_progress">Estás a %1$sml de tu objetivo diario de 4000ml</string>
     <string name="water_intake_goal_reached_days">Has alcanzado tu objetivo %1$d día(s) y bebido un total de %2$sml</string>
 
@@ -524,6 +524,18 @@
     <string name="what_is_body_fat_content">El porcentaje de grasa corporal se refiere a la proporción de tu peso corporal que es grasa.</string>
     <string name="what_is_lean_mass_title">¿Qué es la masa magra?</string>
     <string name="what_is_lean_mass_content">La masa magra está formada por músculos, órganos, huesos y agua corporal.</string>
+    <string name="about_heart_rate_info_title">Sobre la frecuencia cardíaca</string>
+    <string name="what_is_heart_rate_title">¿Qué es la frecuencia cardíaca?</string>
+    <string name="what_is_heart_rate_content">La frecuencia cardíaca es el número de veces que tu corazón late por minuto (ppm). Puede ser un indicador útil de tu salud general.</string>
+    <string name="what_is_resting_heart_rate_title">¿Qué es la frecuencia cardíaca en reposo?</string>
+    <string name="what_is_resting_heart_rate_content">La frecuencia cardíaca en reposo es tu frecuencia cardíaca cuando estás en reposo. Una frecuencia cardíaca en reposo más baja es generalmente una señal de buena salud cardiovascular.</string>
+    <string name="what_can_affect_heart_rate_title">¿Qué puede afectar la frecuencia cardíaca?</string>
+    <string name="what_can_affect_heart_rate_content">La frecuencia cardíaca puede verse afectada por varios factores, como la edad, el nivel de actividad, el estrés y los medicamentos.</string>
+    <string name="about_water_info_title">Sobre el consumo de agua</string>
+    <string name="why_is_water_important_title">¿Por qué es importante el agua?</string>
+    <string name="why_is_water_important_content">El agua es esencial para muchas funciones corporales, como regular la temperatura, lubricar las articulaciones y eliminar los desechos.</string>
+    <string name="how_much_water_should_i_drink_title">¿Cuánta agua debo beber?</string>
+    <string name="how_much_water_should_i_drink_content">La cantidad de agua que necesitas puede variar según factores como la edad, el nivel de actividad y el clima. Es importante mantenerse hidratado durante todo el día.</string>
     <string name="differences_between_body_and_skin_temp_title">Diferencias entre la temperatura corporal y la variación de la temperatura cutánea</string>
     <string name="differences_between_body_and_skin_temp_content">La temperatura corporal se mide con un termómetro y refleja la temperatura del interior del cuerpo. La variación de la temperatura cutánea es la fluctuación de la temperatura de la piel tomada en la muñeca mientras duermes.</string>
     <string name="disclaimer_body_temp">Esta función no está pensada para diagnosticar ni controlar enfermedades graves o afecciones médicas. Consulta a tu profesional sanitario si tienes preguntas sobre tu salud o sobre lo que significan en general tus lecturas de temperatura corporal.</string>
@@ -737,6 +749,24 @@
     <string name="clear_time_range_filter">Limpiar filtro de rango de tiempo</string>
     <string name="select_start_time">Seleccionar hora de inicio</string>
     <string name="select_end_time">Seleccionar hora de finalización</string>
-    <string name="missed_doses_title">Dosis omitidas</string>
-    <string name="todays_schedule_title">Horario de hoy</string>
+    <string name="missed_reminders_title">Recordatorios omitidos</string>
+    <string name="todays_reminders_title">Recordatorios de hoy</string>
+    <string name="filter_by_medication_singular">1 medicamento</string>
+    <string name="filter_by_medication_plural">%d medicamentos</string>
+    <string name="select_all">Seleccionar todo</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Naranja</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_green">Verde Oscuro</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_purple">Morado</string>
+    <string name="color_yellow">Dorado</string>
+    <string name="color_light_yellow">Amarillo Claro</string>
+    <string name="color_light_orange">Naranja Claro</string>
+    <string name="color_light_pink">Rosa Claro</string>
+    <string name="color_light_purple">Morado Claro</string>
+    <string name="color_light_green">Verde Claro</string>
+    <string name="color_light_blue">Azul Claro</string>
+    <string name="color_no_color">Sin color</string>
 </resources>

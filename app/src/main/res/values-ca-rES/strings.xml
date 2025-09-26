@@ -437,11 +437,11 @@
     <string name="no_medications_title">No hi ha Medicaments Registrats</string>
     <string name="no_medications_body">Comença afegint el teu primer medicament per veure el teu horari aquí.</string>
     <string name="add_medication_button">Afegeix Medicament</string>
-    <string name="no_schedule_today_title">No hi ha Dosis Programades per Avui</string>
-    <string name="no_schedule_today_body">No tens medicaments programats per avui. Torna demà!</string>
-    <string name="no_more_schedules_today_title">Totes les Dosis Completes per Avui!</string>
-    <string name="no_more_schedules_today_body">Has pres totes les teves dosis programades per avui. Bona feina!</string>
-    <string name="no_schedules_for_today">No hi ha horaris per avui</string>
+    <string name="no_schedule_today_title">No hi ha Recordatoris Programats per Avui</string>
+    <string name="no_schedule_today_body">No tens recordatoris programats per avui. Torna demà!</string>
+    <string name="no_more_reminders_today_title">Tots els Recordatoris Complerts per Avui!</string>
+    <string name="no_more_reminders_today_body">Has pres tots els teus recordatoris programats per avui. Bona feina!</string>
+    <string name="no_reminders_for_today">No hi ha recordatoris per avui</string>
     <string name="scroll_to_current_time">Desplaça\'t a l\'hora actual</string>
     <string name="filter_by_medication">Medicament</string>
     <string name="all_medications">Tots</string>
@@ -463,7 +463,8 @@
     <string name="no_weight_data">No hi ha pes registrat</string>
     <string name="no_heart_rate_data">No hi ha dades de freqüència cardíaca registrades</string>
     <string name="edit_section">Edita la secció</string>
-    <string name="no_missed_schedules">Cap dosi omesa! Estàs al dia</string>
+    <string name="no_missed_reminders">Cap recordatori omès! Estàs al dia</string>
+    <string name="no_reminders_for_today_filtered">No hi ha recordatoris per avui que coincideixin amb els filtres.</string>
     <string name="water_intake_goal_progress">Estàs a %1$sml d\'assolir el teu objectiu diari de 4000ml</string>
     <string name="water_intake_goal_reached_days">Fins ara, has assolit el teu objectiu %1$d dia(es) i has begut un total de %2$sml</string>
 
@@ -633,6 +634,18 @@
     <string name="what_is_body_fat_title">Què és el greix corporal?</string>
     <string name="what_is_lean_mass_content">La massa magra està formada per músculs, òrgans, ossos i aigua corporal.</string>
     <string name="what_is_lean_mass_title">Què és la massa magra?</string>
+    <string name="about_heart_rate_info_title">Sobre la freqüència cardíaca</string>
+    <string name="what_is_heart_rate_title">Què és la freqüència cardíaca?</string>
+    <string name="what_is_heart_rate_content">La freqüència cardíaca és el nombre de vegades que el teu cor batega per minut (ppm). Pot ser un indicador útil de la teva salut general.</string>
+    <string name="what_is_resting_heart_rate_title">Què és la freqüència cardíaca en repòs?</string>
+    <string name="what_is_resting_heart_rate_content">La freqüència cardíaca en repòs és la teva freqüència cardíaca quan estàs en repòs. Una freqüència cardíaca en repòs més baixa és generalment un senyal de bona salut cardiovascular.</string>
+    <string name="what_can_affect_heart_rate_title">Què pot afectar la freqüència cardíaca?</string>
+    <string name="what_can_affect_heart_rate_content">La freqüència cardíaca pot veure\'s afectada per diversos factors, com l\'edat, el nivell d\'activitat, l\'estrès i els medicaments.</string>
+    <string name="about_water_info_title">Sobre el consum d\'aigua</string>
+    <string name="why_is_water_important_title">Per què és important l\'aigua?</string>
+    <string name="why_is_water_important_content">L\'aigua és essencial per a moltes funcions corporals, com regular la temperatura, lubricar les articulacions i eliminar els residus.</string>
+    <string name="how_much_water_should_i_drink_title">Quanta aigua hauria de beure?</string>
+    <string name="how_much_water_should_i_drink_content">La quantitat d\'aigua que necessites pot variar segons factors com l\'edat, el nivell d\'activitat i el clima. És important mantenir-se hidratat durant tot el dia.</string>
     <string name="log_water_intake_title">Registrar Presa d\'Aigua</string>
     <string name="more_options">Més opcions</string>
     <string name="manage_presets">Gestionar preajustos</string>
@@ -663,6 +676,23 @@
     <string name="clear_time_range_filter">Neteja el filtre d\'interval de temps</string>
     <string name="select_start_time">Selecciona l\'hora d\'inici</string>
     <string name="select_end_time">Selecciona l\'hora de finalització</string>
-    <string name="missed_doses_title">Dosis omeses</string>
-    <string name="todays_schedule_title">Horari d\'avui</string>
+    <string name="todays_reminders_title">Recordatoris d\'avui</string>
+    <string name="filter_by_medication_singular">1 medicament</string>
+    <string name="filter_by_medication_plural">%d medicaments</string>
+    <string name="select_all">Seleccionar tot</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Taronja</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_green">Verd Fosc</string>
+    <string name="color_blue">Blau</string>
+    <string name="color_purple">Lila</string>
+    <string name="color_yellow">Daurat</string>
+    <string name="color_light_yellow">Groc Clar</string>
+    <string name="color_light_orange">Taronja Clar</string>
+    <string name="color_light_pink">Rosa Clar</string>
+    <string name="color_light_purple">Lila Clar</string>
+    <string name="color_light_green">Verd Clar</string>
+    <string name="color_light_blue">Blau Clar</string>
+    <string name="color_no_color">Sense color</string>
 </resources>
