@@ -164,7 +164,7 @@ fun TodayProgressCard(
                         strokeWidth = 6.dp,
                     )
                     Icon(
-                        painter = painterResource(R.drawable.ic_rounded_checklist_24),
+                        painter = painterResource(R.drawable.ic_checklist_24),
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -181,7 +181,7 @@ fun TodayProgressCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_today_24),
+                        painter = painterResource(R.drawable.ic_today_24dp),
                         contentDescription = null, // Decorative
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
