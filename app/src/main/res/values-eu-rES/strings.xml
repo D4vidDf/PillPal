@@ -429,7 +429,6 @@
     <string name="weight_title">Pisua</string>
     <string name="last_registered_label">Azken erregistroa:</string>
     <string name="progress_section_title">Aurrerapena</string>
-    <string name="missed_reminders_title">Galdutako Abisuak</string>
     <string name="last_missed_label">Azkena galduta:</string>
     <string name="today_progress_title">Gaurko Aurrerapena</string>
     <string name="today_schedules_title">Gaurko Ordutegiak</string>

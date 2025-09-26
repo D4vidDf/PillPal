@@ -429,7 +429,6 @@
     <string name="weight_title">Peso</string>
     <string name="last_registered_label">Último registro:</string>
     <string name="progress_section_title">Progreso</string>
-    <string name="missed_reminders_title">Recordatorios Omitidos</string>
     <string name="last_missed_label">Último omitido:</string>
     <string name="today_progress_title">Progreso de Hoy</string>
     <string name="today_schedules_title">Horarios de Hoy</string>
