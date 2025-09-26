@@ -1,7 +1,9 @@
 package com.d4viddf.medicationreminder.ui.features.todayschedules.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -10,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -88,10 +91,16 @@ private fun ColorItem(
         R.string.color_no_color
     }
 
+    val borderModifier = if (isSelected) {
+        Modifier.border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary), shape)
+    } else {
+        Modifier
+    }
 
     Box(
         modifier = Modifier
             .aspectRatio(1f)
+            .then(borderModifier)
             .clip(shape)
             .background(color)
             .clickable(onClick = onClick)
@@ -100,7 +109,13 @@ private fun ColorItem(
             },
         contentAlignment = Alignment.Center
     ) {
-        if (colorName == null) {
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = contentColor
+            )
+        } else if (colorName == null) {
             Icon(
                 imageVector = Icons.Default.Block,
                 contentDescription = null, // Description is on the box
