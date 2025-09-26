@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MedicationFilterBottomSheet(
     allMedications: List<Medication>,
@@ -70,7 +70,8 @@ fun MedicationFilterBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { onConfirm(tempSelectedIds.toList()) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text(text = stringResource(id = R.string.confirm))
             }

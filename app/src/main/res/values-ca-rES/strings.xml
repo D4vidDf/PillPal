@@ -676,7 +676,6 @@
     <string name="clear_time_range_filter">Neteja el filtre d\'interval de temps</string>
     <string name="select_start_time">Selecciona l\'hora d\'inici</string>
     <string name="select_end_time">Selecciona l\'hora de finalització</string>
-    <string name="missed_reminders_title">Recordatoris omesos</string>
     <string name="todays_reminders_title">Recordatoris d\'avui</string>
     <string name="filter_by_medication_singular">1 medicament</string>
     <string name="filter_by_medication_plural">%d medicaments</string>

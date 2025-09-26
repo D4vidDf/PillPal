@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColorFilterBottomSheet(
     selectedColorName: String?,
@@ -62,7 +62,6 @@ fun ColorFilterBottomSheet(
                 columns = GridCells.Fixed(4),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.heightIn(max = 300.dp)
             ) {
                 items(colors) { colorName ->
                     ColorItem(
@@ -75,7 +74,8 @@ fun ColorFilterBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { onConfirm(tempSelectedColorName) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text(text = stringResource(id = R.string.confirm))
             }
@@ -97,6 +97,8 @@ private fun ColorItem(
     val contentColor = medicationColor?.onBackgroundColor ?: MaterialTheme.colorScheme.onSurfaceVariant
     val tickColor = medicationColor?.textColor ?: contentColor
 
+    val borderColor = medicationColor?.cardColor ?: MaterialTheme.colorScheme.primary
+
     val context = androidx.compose.ui.platform.LocalContext.current
     val colorResId = if (colorName != null) {
         val resId = context.resources.getIdentifier("color_${colorName.lowercase()}", "string", context.packageName)
@@ -106,7 +108,7 @@ private fun ColorItem(
     }
 
     val borderModifier = if (isSelected) {
-        Modifier.border(BorderStroke(4.dp, MaterialTheme.colorScheme.primary), shape)
+        Modifier.border(BorderStroke(4.dp, borderColor), shape)
     } else {
         Modifier
     }

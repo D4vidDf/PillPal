@@ -676,7 +676,7 @@
 
     <!-- Missing resources added by Agent -->
     <string name="all_reminders_header">All Reminders</string>
-    <string name="medication_vault_title" translatable="false">Vault</string>
+    <string name="medication_vault_title">Vault</string>
     <string name="analysis_screen_title" translatable="false">Analysis</string>
     <string name="notification_action_snooze">Snooze (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
