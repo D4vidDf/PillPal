@@ -696,4 +696,9 @@
     <string name="color_light_green">Verde Claro</string>
     <string name="color_light_blue">Azul Claro</string>
     <string name="color_no_color">Sen cor</string>
+
+    <!-- Home Screen Cards -->
+    <string name="next_dose_in_title">Vindeira dose en</string>
+    <string name="last_missed_at_time">Última omisión ás %1$s</string>
+    <string name="view_details_missed_reminders_cd">Ver detalles dos recordatorios omitidos</string>
 </resources>

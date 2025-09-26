@@ -68,7 +68,6 @@ fun NewHealthStatCard(
                         progress = { progress },
                         modifier = Modifier.size(64.dp),
                         strokeWidth = 6.dp,
-                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     )
                     Icon(
                         painter = icon,
@@ -163,7 +162,6 @@ fun TodayProgressCard(
                         progress = { taken.toFloat() / total.toFloat() },
                         modifier = Modifier.size(64.dp),
                         strokeWidth = 6.dp,
-                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     )
                     Icon(
                         painter = painterResource(R.drawable.ic_rounded_checklist_24),
@@ -241,7 +239,7 @@ fun MissedRemindersCard(
                 )
                 if (lastMissedTime != null) {
                     Text(
-                        text = "Last missed at $lastMissedTime",
+                        text = stringResource(id = R.string.last_missed_at_time, lastMissedTime),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
@@ -249,7 +247,7 @@ fun MissedRemindersCard(
             }
             Icon(
                 imageVector = Icons.Filled.ArrowForwardIos,
-                contentDescription = "View details for missed reminders",
+                contentDescription = stringResource(id = R.string.view_details_missed_reminders_cd),
                 modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.onErrorContainer
             )
