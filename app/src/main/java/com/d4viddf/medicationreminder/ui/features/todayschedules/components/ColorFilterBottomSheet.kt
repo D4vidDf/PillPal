@@ -81,8 +81,11 @@ private fun ColorItem(
     val cornerRadius by animateDpAsState(targetValue = if (isSelected) 50.dp else 16.dp, label = "cornerRadius")
     val shape = RoundedCornerShape(cornerRadius)
 
-    val color = colorName?.let { MedicationColor.valueOf(it).backgroundColor } ?: MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = colorName?.let { MedicationColor.valueOf(it).onBackgroundColor } ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val medicationColor = colorName?.let { MedicationColor.valueOf(it) }
+    val color = medicationColor?.backgroundColor ?: MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = medicationColor?.onBackgroundColor ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val tickColor = medicationColor?.textColor ?: contentColor
+
     val context = androidx.compose.ui.platform.LocalContext.current
     val colorResId = if (colorName != null) {
         val resId = context.resources.getIdentifier("color_${colorName.lowercase()}", "string", context.packageName)
@@ -113,7 +116,7 @@ private fun ColorItem(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = contentColor
+                tint = tickColor
             )
         } else if (colorName == null) {
             Icon(
