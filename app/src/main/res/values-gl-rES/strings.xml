@@ -437,11 +437,11 @@
     <string name="no_medications_title">Non hai Medicamentos Rexistrados</string>
     <string name="no_medications_body">Comeza engadindo o teu primeiro medicamento para ver o teu horario aquí.</string>
     <string name="add_medication_button">Engadir Medicamento</string>
-    <string name="no_schedule_today_title">Non hai Doses Programadas para Hoxe</string>
-    <string name="no_schedule_today_body">Non tes medicamentos programados para hoxe. Volve mañá!</string>
-    <string name="no_more_schedules_today_title">Todas as Doses Completas por Hoxe!</string>
-    <string name="no_more_schedules_today_body">Tomaches todas as túas doses programadas para hoxe. Bo traballo!</string>
-    <string name="no_schedules_for_today">Non hai horarios para hoxe</string>
+    <string name="no_schedule_today_title">Non hai Recordatorios Programados para Hoxe</string>
+    <string name="no_schedule_today_body">Non tes recordatorios programados para hoxe. Volve mañá!</string>
+    <string name="no_more_reminders_today_title">Todos os Recordatorios Completados por Hoxe!</string>
+    <string name="no_more_reminders_today_body">Tomaches todos os teus recordatorios programados para hoxe. Bo traballo!</string>
+    <string name="no_reminders_for_today">Non hai recordatorios para hoxe</string>
     <string name="scroll_to_current_time">Desprazarse á hora actual</string>
     <string name="filter_by_medication">Medicamento</string>
     <string name="all_medications">Todos</string>
@@ -463,7 +463,8 @@
     <string name="no_weight_data">Non hai peso rexistrado</string>
     <string name="no_heart_rate_data">Non hai datos de frecuencia cardíaca rexistrados</string>
     <string name="edit_section">Editar sección</string>
-    <string name="no_missed_schedules">Sen doses omitidas! Estás ao día</string>
+    <string name="no_missed_reminders">Sen recordatorios omitidos! Estás ao día</string>
+    <string name="no_reminders_for_today_filtered">Non hai recordatorios para hoxe que coincidan cos filtros.</string>
     <string name="water_intake_goal_progress">Estás a %1$sml de acadar o teu obxectivo diario de 4000ml</string>
     <string name="water_intake_goal_reached_days">Ata agora, acadaches o teu obxectivo %1$d día(s) e bebiches un total de %2$sml</string>
 
@@ -664,6 +665,24 @@
     <string name="clear_time_range_filter">Limpar filtro de rango de tempo</string>
     <string name="select_start_time">Seleccionar hora de inicio</string>
     <string name="select_end_time">Seleccionar hora de finalización</string>
-    <string name="missed_doses_title">Doses omitidas</string>
-    <string name="todays_schedule_title">Horario de hoxe</string>
+    <string name="missed_reminders_title">Recordatorios omitidos</string>
+    <string name="todays_reminders_title">Recordatorios de hoxe</string>
+    <string name="filter_by_medication_singular">1 medicamento</string>
+    <string name="filter_by_medication_plural">%d medicamentos</string>
+    <string name="select_all">Seleccionar todo</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Laranxa</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_green">Verde Escuro</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_purple">Morado</string>
+    <string name="color_yellow">Dourado</string>
+    <string name="color_light_yellow">Amarelo Claro</string>
+    <string name="color_light_orange">Laranxa Claro</string>
+    <string name="color_light_pink">Rosa Claro</string>
+    <string name="color_light_purple">Morado Claro</string>
+    <string name="color_light_green">Verde Claro</string>
+    <string name="color_light_blue">Azul Claro</string>
+    <string name="color_no_color">Sen cor</string>
 </resources>

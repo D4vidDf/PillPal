@@ -439,11 +439,11 @@
     <string name="no_medications_title">No Registered Medications</string>
     <string name="no_medications_body">Start by adding your first medication to see your schedule here.</string>
     <string name="add_medication_button">Add Medication</string>
-    <string name="no_schedule_today_title">No Doses Scheduled for Today</string>
-    <string name="no_schedule_today_body">You have no medications scheduled for today. Check back tomorrow!</string>
-    <string name="no_more_schedules_today_title">All Doses Complete for Today!</string>
-    <string name="no_more_schedules_today_body">You have taken all your scheduled doses for today. Great job!</string>
-    <string name="no_schedules_for_today">No schedules for today</string>
+    <string name="no_schedule_today_title">No Reminders Scheduled for Today</string>
+    <string name="no_schedule_today_body">You have no reminders scheduled for today. Check back tomorrow!</string>
+    <string name="no_more_reminders_today_title">All Reminders Complete for Today!</string>
+    <string name="no_more_reminders_today_body">You have taken all your scheduled reminders for today. Great job!</string>
+    <string name="no_reminders_for_today">No reminders for today</string>
     <string name="scroll_to_current_time">Scroll to current time</string>
     <string name="filter_by_medication">Medication</string>
     <string name="all_medications">All</string>
@@ -465,7 +465,8 @@
     <string name="no_weight_data">No weight registered</string>
     <string name="no_heart_rate_data">No heart rate data registered</string>
     <string name="edit_section">Edit section</string>
-    <string name="no_missed_schedules">No missed doses! You\'re on track</string>
+    <string name="no_missed_reminders">No missed reminders! You\'re on track</string>
+    <string name="no_reminders_for_today_filtered">No reminders for today that match the filters.</string>
     <string name="water_intake_goal_progress">You are %1$sml away from reaching your daily goal of 4000ml</string>
     <string name="water_intake_goal_reached_days">So far, you have reached your goal %1$d day(s) and have drunk a total of %2$sml</string>
 
@@ -742,6 +743,24 @@
     <string name="clear_time_range_filter">Clear time range filter</string>
     <string name="select_start_time">Select Start Time</string>
     <string name="select_end_time">Select End Time</string>
-    <string name="missed_doses_title">Missed Doses</string>
-    <string name="todays_schedule_title">Today\'s Schedule</string>
+    <string name="missed_reminders_title">Missed Reminders</string>
+    <string name="todays_reminders_title">Today\'s Reminders</string>
+    <string name="filter_by_medication_singular">1 medication</string>
+    <string name="filter_by_medication_plural">%d medications</string>
+    <string name="select_all">Select All</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Orange</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_green">Dark Green</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_yellow">Golden</string>
+    <string name="color_light_yellow">Light Yellow</string>
+    <string name="color_light_orange">Light Orange</string>
+    <string name="color_light_pink">Light Pink</string>
+    <string name="color_light_purple">Light Purple</string>
+    <string name="color_light_green">Light Green</string>
+    <string name="color_light_blue">Light Blue</string>
+    <string name="color_no_color">No color</string>
 </resources>

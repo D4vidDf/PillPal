@@ -29,9 +29,13 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
+import com.d4viddf.medicationreminder.ui.features.todayschedules.components.ColorFilterBottomSheet
+import com.d4viddf.medicationreminder.ui.features.todayschedules.components.MedicationFilterBottomSheet
 import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodayScheduleItem
+import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodaySchedulesSkeletonLoader
 import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MaterialShapes
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -49,11 +53,11 @@ fun TodaySchedulesScreen(
     val scheduleItems by viewModel.scheduleItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val showMissed by viewModel.showMissed.collectAsState()
-    val screenTitle = if (showMissed) stringResource(id = R.string.missed_doses_title) else stringResource(id = R.string.todays_schedule_title)
+    val screenTitle = if (showMissed) stringResource(id = R.string.missed_reminders_title) else stringResource(id = R.string.todays_reminders_title)
 
     // States for the filter controls
     val allMedications by viewModel.allMedications.collectAsState()
-    val selectedMedicationId by viewModel.selectedMedicationId.collectAsState()
+    val selectedMedicationIds by viewModel.selectedMedicationIds.collectAsState()
     val selectedColorName by viewModel.selectedColorName.collectAsState()
     val selectedTimeRange by viewModel.selectedTimeRange.collectAsState()
 
@@ -101,7 +105,7 @@ fun TodaySchedulesScreen(
             if (!showMissed) {
                 FilterControls(
                     allMedications = allMedications,
-                    selectedMedicationId = selectedMedicationId,
+                    selectedMedicationIds = selectedMedicationIds,
                     selectedColorName = selectedColorName,
                     selectedTimeRange = selectedTimeRange,
                     onMedicationFilterChanged = viewModel::onMedicationFilterChanged,
@@ -115,9 +119,10 @@ fun TodaySchedulesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(128.dp))
+                    TodaySchedulesSkeletonLoader()
                 } else if (scheduleItems.isEmpty()) {
-                    EmptyState(isMissedMode = showMissed)
+                    val isFiltered = selectedMedicationIds.isNotEmpty() || selectedColorName != null || selectedTimeRange != null
+                    EmptyState(isMissedMode = showMissed, isFiltered = isFiltered)
                 } else {
                     LazyColumn(
                         state = listState,
@@ -200,16 +205,39 @@ private fun TimeGroupCard(
 @Composable
 private fun FilterControls(
     allMedications: List<Medication>,
-    selectedMedicationId: Int?,
+    selectedMedicationIds: List<Int>,
     selectedColorName: String?,
     selectedTimeRange: ClosedRange<LocalTime>?,
-    onMedicationFilterChanged: (Int?) -> Unit,
+    onMedicationFilterChanged: (List<Int>) -> Unit,
     onColorFilterChanged: (String?) -> Unit,
     onTimeRangeFilterChanged: (LocalTime?, LocalTime?) -> Unit,
 ) {
-    var medicationMenuExpanded by remember { mutableStateOf(false) }
-    var colorMenuExpanded by remember { mutableStateOf(false) }
+    var showMedicationFilter by remember { mutableStateOf(false) }
+    var showColorFilter by remember { mutableStateOf(false) }
     var showTimeRangeDialog by remember { mutableStateOf(false) }
+
+    if (showMedicationFilter) {
+        MedicationFilterBottomSheet(
+            allMedications = allMedications,
+            selectedMedicationIds = selectedMedicationIds,
+            onDismiss = { showMedicationFilter = false },
+            onConfirm = {
+                onMedicationFilterChanged(it)
+                showMedicationFilter = false
+            }
+        )
+    }
+
+    if (showColorFilter) {
+        ColorFilterBottomSheet(
+            selectedColorName = selectedColorName,
+            onDismiss = { showColorFilter = false },
+            onColorSelected = {
+                onColorFilterChanged(it)
+                showColorFilter = false
+            }
+        )
+    }
 
     if (showTimeRangeDialog) {
         TimeRangePickerDialog(
@@ -226,91 +254,34 @@ private fun FilterControls(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
-            Box {
-                FilterChip(
-                    selected = selectedMedicationId != null,
-                    onClick = { medicationMenuExpanded = true },
-                    label = {
-                        Text(
-                            allMedications.find { it.id == selectedMedicationId }?.name?.split(" ")?.first()
-                                ?: stringResource(id = R.string.filter_by_medication)
-                        )
-                    },
-                    leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
-                )
-                DropdownMenu(
-                    expanded = medicationMenuExpanded,
-                    onDismissRequest = { medicationMenuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.all_medications)) },
-                        onClick = {
-                            onMedicationFilterChanged(null)
-                            medicationMenuExpanded = false
-                        }
-                    )
-                    allMedications.forEach { medication ->
-                        DropdownMenuItem(
-                            text = { Text(medication.name.split(" ").first()) },
-                            onClick = {
-                                onMedicationFilterChanged(medication.id)
-                                medicationMenuExpanded = false
-                            }
-                        )
-                    }
-                }
+            val label = when {
+                selectedMedicationIds.isEmpty() -> stringResource(id = R.string.filter_by_medication)
+                selectedMedicationIds.size == 1 -> stringResource(id = R.string.filter_by_medication_singular)
+                else -> stringResource(id = R.string.filter_by_medication_plural, selectedMedicationIds.size)
             }
+            FilterChip(
+                selected = selectedMedicationIds.isNotEmpty(),
+                onClick = { showMedicationFilter = true },
+                label = { Text(label) },
+                leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null) }
+            )
         }
 
         item {
-            Box {
-                FilterChip(
-                    selected = selectedColorName != null,
-                    onClick = { colorMenuExpanded = true },
-                    label = {
-                        Text(
-                            selectedColorName?.replace("_", " ")?.lowercase()
-                                ?.replaceFirstChar { it.titlecase() }
-                                ?: stringResource(id = R.string.filter_by_color)
-                        )
-                    },
-                    leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
-                )
-                DropdownMenu(
-                    expanded = colorMenuExpanded,
-                    onDismissRequest = { colorMenuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.all_colors)) },
-                        onClick = {
-                            onColorFilterChanged(null)
-                            colorMenuExpanded = false
-                        }
-                    )
-                    MedicationColor.values().forEach { color ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(16.dp)
-                                            .clip(CircleShape)
-                                            .background(color.backgroundColor)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        color.name.replace("_", " ").lowercase()
-                                            .replaceFirstChar { it.titlecase() })
-                                }
-                            },
-                            onClick = {
-                                onColorFilterChanged(color.name)
-                                colorMenuExpanded = false
-                            }
-                        )
-                    }
-                }
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val colorResId = if (selectedColorName != null) {
+                val resId = context.resources.getIdentifier("color_${selectedColorName.lowercase()}", "string", context.packageName)
+                if (resId != 0) resId else R.string.filter_by_color
+            } else {
+                R.string.filter_by_color
             }
+
+            FilterChip(
+                selected = selectedColorName != null,
+                onClick = { showColorFilter = true },
+                label = { Text(stringResource(id = colorResId)) },
+                leadingIcon = { Icon(Icons.Default.ColorLens, contentDescription = null) }
+            )
         }
 
         item {
@@ -390,21 +361,38 @@ private fun TimeHeader(time: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier, isMissedMode: Boolean) {
-    val message = if (isMissedMode) stringResource(R.string.no_missed_schedules) else stringResource(R.string.no_schedules_for_today)
+private fun EmptyState(modifier: Modifier = Modifier, isMissedMode: Boolean, isFiltered: Boolean) {
+    val message = when {
+        isMissedMode -> stringResource(R.string.no_missed_reminders)
+        isFiltered -> stringResource(R.string.no_reminders_for_today_filtered)
+        else -> stringResource(R.string.no_reminders_for_today)
+    }
     val icon = if(isMissedMode) R.drawable.task_alt else R.drawable.medication_filled
 
     Column(
-        modifier = modifier.padding(16.dp).fillMaxSize(),
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
+        Surface(
+            modifier = Modifier.size(128.dp),
+            shape = MaterialShapes.Pill.toShape(),
+            color = MaterialTheme.colorScheme.secondaryContainer
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(56.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,

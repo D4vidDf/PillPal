@@ -48,8 +48,8 @@ class TodaySchedulesViewModel @Inject constructor(
     private val _allMedications = MutableStateFlow<List<Medication>>(emptyList())
     val allMedications: StateFlow<List<Medication>> = _allMedications.asStateFlow()
 
-    private val _selectedMedicationId = MutableStateFlow<Int?>(null)
-    val selectedMedicationId: StateFlow<Int?> = _selectedMedicationId.asStateFlow()
+    private val _selectedMedicationIds = MutableStateFlow<List<Int>>(emptyList())
+    val selectedMedicationIds: StateFlow<List<Int>> = _selectedMedicationIds.asStateFlow()
 
     private val _selectedColorName = MutableStateFlow<String?>(null)
     val selectedColorName: StateFlow<String?> = _selectedColorName.asStateFlow()
@@ -82,13 +82,13 @@ class TodaySchedulesViewModel @Inject constructor(
     //    This will re-evaluate and emit a new list whenever the data or any filter changes.
     val scheduleItems: StateFlow<Map<String, List<TodayScheduleUiItem>>> = combine(
         sourceReminders,
-        selectedMedicationId,
+        selectedMedicationIds,
         selectedColorName,
         selectedTimeRange
-    ) { items, medId, color, timeRange ->
+    ) { items, medIds, color, timeRange ->
         _isLoading.value = true
         val filteredList = items.filter { item ->
-            val medicationMatch = medId == null || item.reminder.medicationId == medId
+            val medicationMatch = medIds.isEmpty() || item.reminder.medicationId in medIds
             val colorMatch = color == null || item.medicationColorName == color
             val timeMatch = timeRange == null ||
                     try { LocalTime.parse(item.formattedReminderTime) in timeRange }
@@ -102,8 +102,8 @@ class TodaySchedulesViewModel @Inject constructor(
 
     // --- User Actions & Filter Updates ---
 
-    fun onMedicationFilterChanged(medicationId: Int?) {
-        _selectedMedicationId.value = medicationId
+    fun onMedicationFilterChanged(medicationIds: List<Int>) {
+        _selectedMedicationIds.value = medicationIds
     }
 
     fun onColorFilterChanged(colorName: String?) {
