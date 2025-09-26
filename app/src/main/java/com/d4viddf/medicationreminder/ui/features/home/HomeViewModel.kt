@@ -212,10 +212,16 @@ class HomeViewModel @Inject constructor(
     val isHealthConnectEnabled: StateFlow<Boolean> = userPreferencesRepository.showHealthConnectDataFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val weightGoal: StateFlow<Float> = userPreferencesRepository.weightGoalValueFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
+    val waterIntakeGoal: StateFlow<Int> = userPreferencesRepository.waterIntakeGoalFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     val waterIntakeProgress: StateFlow<Float> =
         combine(
             waterIntakeToday,
-            userPreferencesRepository.waterIntakeGoalFlow
+            waterIntakeGoal
         ) { waterIntakeState, goal ->
             val intake = (waterIntakeState as? UiItemState.Success)?.data?.first ?: 0.0
             if (goal > 0) (intake / (goal / 1000.0)).toFloat() else 0f
@@ -224,11 +230,11 @@ class HomeViewModel @Inject constructor(
     val weightProgress: StateFlow<Float> =
         combine(
             latestWeight,
-            userPreferencesRepository.weightGoalMaxFlow
+            weightGoal
         ) { weightState, goal ->
             if (weightState is UiItemState.Success) {
                 val weight = weightState.data?.weightKilograms ?: 0.0
-                if (goal > 0) (weight / goal).toFloat() else 0f
+                if (goal > 0f) (weight.toFloat() / goal) else 0f
             } else {
                 0f
             }

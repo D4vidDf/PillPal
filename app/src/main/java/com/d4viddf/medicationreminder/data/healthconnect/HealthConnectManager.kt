@@ -121,12 +121,15 @@ class HealthConnectManager @Inject constructor(
         }
     }
 
-    fun getLatestWeight(): Flow<Weight?> = flow {
+    fun getLatestWeight(): Flow<Weight?> = getLatestWeightBefore(Instant.now())
+
+    fun getLatestWeightBefore(date: Instant): Flow<Weight?> = flow {
         if (hasAllPermissions()) {
             val request = ReadRecordsRequest(
                 recordType = WeightRecord::class,
-                timeRangeFilter = TimeRangeFilter.before(Instant.now()),
-                ascendingOrder = false
+                timeRangeFilter = TimeRangeFilter.before(date),
+                ascendingOrder = false,
+                pageSize = 1
             )
             val response = healthConnectClient.readRecords(request)
             emit(response.records.firstOrNull()?.let {

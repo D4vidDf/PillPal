@@ -17,12 +17,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -49,7 +46,6 @@ fun WeightGoalScreen(
     viewModel: NutritionWeightSettingsViewModel = hiltViewModel()
 ) {
     val weightGoalValue by viewModel.weightGoalValue.collectAsState()
-    val weightGoalType by viewModel.weightGoalType.collectAsState()
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
     val isTablet = screenWidthDp > 600
@@ -58,13 +54,13 @@ fun WeightGoalScreen(
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(id = R.string.weight_goal)) },
-                navigationIcon = {FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(id = R.string.back)
-                    )
-
-                }
+                navigationIcon = {
+                    FilledTonalIconButton(onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.back)
+                        )
+                    }
                 }
             )
         }
@@ -80,27 +76,6 @@ fun WeightGoalScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    GoalTypeButton(
-                        text = stringResource(id = R.string.lose_weight),
-                        isSelected = weightGoalType == "lose",
-                        onClick = { viewModel.onWeightGoalTypeChange("lose") }
-                    )
-                    GoalTypeButton(
-                        text = stringResource(id = R.string.maintain_weight),
-                        isSelected = weightGoalType == "maintain",
-                        onClick = { viewModel.onWeightGoalTypeChange("maintain") }
-                    )
-                    GoalTypeButton(
-                        text = stringResource(id = R.string.gain_weight),
-                        isSelected = weightGoalType == "gain",
-                        onClick = { viewModel.onWeightGoalTypeChange("gain") }
-                    )
-                }
                 Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -142,26 +117,5 @@ fun WeightGoalScreen(
                 Text(text = stringResource(id = R.string.set_objective))
             }
         }
-    }
-}
-
-@Composable
-private fun GoalTypeButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    TextButton(
-        onClick = onClick,
-        enabled = !isSelected
-    ) {
-        Text(
-            text = text,
-            style = if (isSelected) {
-                MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-            } else {
-                MaterialTheme.typography.titleMedium
-            }
-        )
     }
 }

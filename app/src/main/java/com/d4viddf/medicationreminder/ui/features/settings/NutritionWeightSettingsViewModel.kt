@@ -18,10 +18,18 @@ class NutritionWeightSettingsViewModel @Inject constructor(
     private val _waterIntakeGoal = MutableStateFlow("")
     val waterIntakeGoal = _waterIntakeGoal.asStateFlow()
 
+    private val _weightGoalValue = MutableStateFlow("")
+    val weightGoalValue = _weightGoalValue.asStateFlow()
+
     init {
         viewModelScope.launch {
             userPreferencesRepository.waterIntakeGoalFlow.collect {
                 _waterIntakeGoal.value = it.toString()
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.weightGoalValueFlow.collect {
+                _weightGoalValue.value = if (it == 0f) "" else it.toInt().toString()
             }
         }
     }
@@ -38,43 +46,14 @@ class NutritionWeightSettingsViewModel @Inject constructor(
         }
     }
 
-    private val _weightGoalType = MutableStateFlow("lose")
-    val weightGoalType = _weightGoalType.asStateFlow()
-
-    private val _weightGoalValue = MutableStateFlow("")
-    val weightGoalValue = _weightGoalValue.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            userPreferencesRepository.waterIntakeGoalFlow.collect {
-                _waterIntakeGoal.value = it.toString()
-            }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository.weightGoalTypeFlow.collect {
-                _weightGoalType.value = it
-            }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository.weightGoalValueFlow.collect {
-                _weightGoalValue.value = it.toString()
-            }
-        }
-    }
-
-    fun onWeightGoalTypeChange(type: String) {
-        _weightGoalType.value = type
-    }
-
     fun onWeightGoalValueChange(value: String) {
         _weightGoalValue.value = value
     }
 
     fun saveWeightGoal() {
         viewModelScope.launch {
-            userPreferencesRepository.setWeightGoalType(_weightGoalType.value)
-            _weightGoalValue.value.toFloatOrNull()?.let {
-                userPreferencesRepository.setWeightGoalValue(it)
+            _weightGoalValue.value.toIntOrNull()?.let {
+                userPreferencesRepository.setWeightGoalValue(it.toFloat())
             }
         }
     }

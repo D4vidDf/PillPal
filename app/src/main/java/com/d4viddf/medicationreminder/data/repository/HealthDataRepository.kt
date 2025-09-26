@@ -7,6 +7,7 @@ import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.source.local.HealthDataDao
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -23,6 +24,7 @@ class HealthDataRepository @Inject constructor(
 ) {
 
     // --- READ Functions ---
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getLatestBodyTemperature(): Flow<BodyTemperature?> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getLatestBodyTemperature()
@@ -39,6 +41,7 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getLatestWeight(): Flow<Weight?> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getLatestWeight()
@@ -55,6 +58,7 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getLatestHeartRate(): Flow<HeartRate?> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getLatestHeartRate()
@@ -81,6 +85,7 @@ class HealthDataRepository @Inject constructor(
             Pair(total, fromHealthConnect)
         }
     }
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getBodyTemperatureBetween(startTime: Instant, endTime: Instant): Flow<List<BodyTemperature>> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getBodyTemperatureBetween(startTime, endTime)
@@ -96,6 +101,7 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getWeightBetween(startTime: Instant, endTime: Instant): Flow<List<Weight>> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getWeightBetween(startTime, endTime)
@@ -111,8 +117,24 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
-    fun getLatestWeightBefore(date: Instant): Flow<Weight?> = healthDataDao.getLatestWeightBefore(date)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getLatestWeightBefore(date: Instant): Flow<Weight?> {
+        return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
+            val localData = healthDataDao.getLatestWeightBefore(date)
+            if (showHealthConnectData) {
+                val healthConnectData = healthConnectManager.getLatestWeightBefore(date)
+                localData.combine(healthConnectData) { local, healthConnect ->
+                    if (local == null) return@combine healthConnect
+                    if (healthConnect == null) return@combine local
+                    if (local.time.isAfter(healthConnect.time)) local else healthConnect
+                }
+            } else {
+                localData
+            }
+        }
+    }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getWaterIntakeBetween(startTime: Instant, endTime: Instant): Flow<List<WaterIntake>> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getWaterIntakeBetween(startTime, endTime)
@@ -128,6 +150,7 @@ class HealthDataRepository @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getHeartRateBetween(startTime: Instant, endTime: Instant): Flow<List<HeartRate>> {
         return userPreferencesRepository.showHealthConnectDataFlow.flatMapLatest { showHealthConnectData ->
             val localData = healthDataDao.getHeartRateBetween(startTime, endTime)

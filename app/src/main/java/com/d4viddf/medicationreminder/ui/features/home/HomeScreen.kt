@@ -134,6 +134,8 @@ fun HomeScreen(
     val weightProgress by viewModel.weightProgress.collectAsState()
     val heartRateProgress by viewModel.heartRateProgress.collectAsState()
     val isHealthConnectEnabled by viewModel.isHealthConnectEnabled.collectAsState()
+    val weightGoal by viewModel.weightGoal.collectAsState()
+    val waterIntakeGoal by viewModel.waterIntakeGoal.collectAsState()
 
 
     // A flag to indicate if there are unread alerts (you can wire this to a real data source)
@@ -164,6 +166,8 @@ fun HomeScreen(
         waterIntakeProgress = waterIntakeProgress,
         weightProgress = weightProgress,
         heartRateProgress = heartRateProgress,
+        weightGoal = weightGoal,
+        waterIntakeGoal = waterIntakeGoal,
         heartRateRangeState = heartRateRangeState,
         latestHeartRateState = latestHeartRateState,
         isHealthConnectEnabled = isHealthConnectEnabled,
@@ -201,6 +205,8 @@ internal fun HomeScreenContent(
     heartRateRangeState: UiItemState<Pair<Long, Long>?>,
     latestHeartRateState: UiItemState<HeartRate?>,
     isHealthConnectEnabled: Boolean,
+    weightGoal: Float,
+    waterIntakeGoal: Int,
     onRefresh: () -> Unit,
     onDismissConfirmationDialog: () -> Unit,
     navController: NavController,
@@ -529,7 +535,8 @@ internal fun HomeScreenContent(
                                                             progress = weightProgress,
                                                             icon = painterResource(id = R.drawable.monitor_weight),
                                                             isHealthConnectData = isHealthConnectEnabled,
-                                                            onClick = { navController.navigate(Screen.Weight.route) }
+                                                            onClick = { navController.navigate(Screen.Weight.route) },
+                                                            showProgress = weightGoal > 0f
                                                         )
                                                     }
                                                     is UiItemState.Error -> {}
@@ -558,7 +565,8 @@ internal fun HomeScreenContent(
                                                             progress = waterIntakeProgress,
                                                             icon = painterResource(id = R.drawable.water_full),
                                                             isHealthConnectData = isHealthConnectEnabled,
-                                                            onClick = { navController.navigate(Screen.WaterIntake.route) }
+                                                            onClick = { navController.navigate(Screen.WaterIntake.route) },
+                                                            showProgress = waterIntakeProgress > 0f
                                                         )
                                                     }
                                                     is UiItemState.Error -> {}
@@ -812,6 +820,8 @@ private fun HomeScreenNormalPreview() {
             weightProgress = 0.8f,
             heartRateProgress = 0.6f,
             isHealthConnectEnabled = true,
+            weightGoal = 80f,
+            waterIntakeGoal = 2000,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -846,6 +856,8 @@ private fun HomeScreenNoMedicationsPreview() {
             weightProgress = 0f,
             heartRateProgress = 0f,
             isHealthConnectEnabled = false,
+            weightGoal = 0f,
+            waterIntakeGoal = 0,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -880,6 +892,8 @@ private fun HomeScreenNoMoreDosesPreview() {
             weightProgress = 0.7f,
             heartRateProgress = 0.5f,
             isHealthConnectEnabled = true,
+            weightGoal = 90f,
+            waterIntakeGoal = 2500,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
@@ -914,6 +928,8 @@ private fun HomeScreenLoadingPreview() {
             weightProgress = 0f,
             heartRateProgress = 0f,
             isHealthConnectEnabled = false,
+            weightGoal = 0f,
+            waterIntakeGoal = 0,
             onRefresh = {},
             onDismissConfirmationDialog = {},
             navController = rememberNavController(),
