@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.datastore.SettingsDataStore
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -58,7 +60,8 @@ class HomeViewModel @Inject constructor(
     private val medicationTypeRepository: MedicationTypeRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
     userPreferencesRepository: UserPreferencesRepository,
-    private val healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     // --- UI State & Events ---
@@ -76,6 +79,27 @@ class HomeViewModel @Inject constructor(
     // For navigation events
     private val _navigationChannel = Channel<String>()
     val navigationEvents: Flow<String> = _navigationChannel.receiveAsFlow()
+
+    // --- Dosage Migration Dialog ---
+    private val _showDosageMigrationDialog = MutableStateFlow(false)
+    val showDosageMigrationDialog: StateFlow<Boolean> = _showDosageMigrationDialog.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val hasSeenDialog = settingsDataStore.dosageMigrationDialogShown.first()
+            val hasMeds = medicationRepository.getAllMedications().first().isNotEmpty()
+            if (!hasSeenDialog && hasMeds) {
+                _showDosageMigrationDialog.value = true
+            }
+        }
+    }
+
+    fun onDosageMigrationDialogDismissed() {
+        viewModelScope.launch {
+            settingsDataStore.setDosageMigrationDialogShown(true)
+            _showDosageMigrationDialog.value = false
+        }
+    }
 
     // --- Reactive Data Flows ---
 
@@ -187,7 +211,7 @@ class HomeViewModel @Inject constructor(
             System.currentTimeMillis() - 24 * 60 * 60 * 1000
         ).map { UiItemState.Success(it) as UiItemState<Pair<Double?, Boolean>> }
             .onStart { emit(UiItemState.Loading) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
+            .stateIn(viewModelScope, SharingStarted.WhileSubbilled(5000), UiItemState.Loading)
 
     val heartRateRange: StateFlow<UiItemState<Pair<Long, Long>?>> =
         healthDataRepository.getHeartRateBetween(
