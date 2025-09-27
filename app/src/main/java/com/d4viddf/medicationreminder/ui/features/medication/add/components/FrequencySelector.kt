@@ -397,27 +397,40 @@ fun IntervalDurationSelector(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-    Text(stringResource(id = R.string.freq_every_label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(end = 8.dp))
-        Box(Modifier.width(70.dp)) {
-            IOSWheelPicker(
-                items = (0..23).toList(),
-                selectedItem = hours,
-                onItemSelected = onHoursChanged,
-                modifier = Modifier.height(120.dp),
-                displayTransform = { it.toString().padStart(2, '0') }
-            )
-        }
-        Text(stringResource(id = R.string.freq_hours_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 8.dp))
-        Box(Modifier.width(70.dp)) {
-            IOSWheelPicker(
-                items = (0..55 step 5).toList(),
-                selectedItem = minutes,
-                onItemSelected = onMinutesChanged,
-                modifier = Modifier.height(120.dp),
-                displayTransform = { it.toString().padStart(2, '0') }
-            )
-        }
-        Text(stringResource(id = R.string.freq_minutes_unit), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 8.dp))
+        Text(stringResource(id = R.string.freq_every_label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(end = 8.dp))
+        OutlinedTextField(
+            value = hours.toString(),
+            onValueChange = { value ->
+                if (value.isEmpty()) {
+                    onHoursChanged(0)
+                } else if (value.all { it.isDigit() }) {
+                    val h = value.toInt()
+                    if (h in 0..23) {
+                        onHoursChanged(h)
+                    }
+                }
+            },
+            label = { Text(stringResource(id = R.string.freq_hours_unit)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.width(100.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = minutes.toString(),
+            onValueChange = { value ->
+                if (value.isEmpty()) {
+                    onMinutesChanged(0)
+                } else if (value.all { it.isDigit() }) {
+                    val m = value.toInt()
+                    if (m in 0..59) {
+                        onMinutesChanged(m)
+                    }
+                }
+            },
+            label = { Text(stringResource(id = R.string.freq_minutes_unit)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.width(100.dp)
+        )
     }
 }
 
