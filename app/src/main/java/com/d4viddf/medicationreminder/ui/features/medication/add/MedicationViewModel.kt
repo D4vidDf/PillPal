@@ -207,12 +207,12 @@ class MedicationViewModel @Inject constructor(
     }
     */
 
-    suspend fun insertMedicationAndDosage(medication: Medication, dosage: String): Pair<Int, Long?> {
+    suspend fun insertMedicationAndDosage(medication: Medication, schedule: MedicationSchedule, dosage: String): Pair<Int, Long?> {
         return withContext(Dispatchers.IO) {
             val medId = medicationRepository.insertMedication(medication)
             var dosageId: Long? = null
             if (dosage.isNotBlank()) {
-                val dosageStartDate = medication.startDate ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val dosageStartDate = schedule.startDate ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 dosageId = dosageRepository.insert(
                     MedicationDosage(
                         medicationId = medId.toInt(),

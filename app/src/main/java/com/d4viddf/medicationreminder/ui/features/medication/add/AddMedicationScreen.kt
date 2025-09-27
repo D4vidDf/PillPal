@@ -213,13 +213,13 @@ fun AddMedicationScreen(
                         progress = (currentStep + 1) / 5f
                     } else if (currentStep == 4) {
                         coroutineScope.launch {
-                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) // "yyyy-MM-dd"
-                            val finalStartDate: String?
-                            if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
-                                finalStartDate = startDate
+                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            val finalStartDate: String = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
+                                startDate
                             } else {
-                                finalStartDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                                Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $finalStartDate")
+                                LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE).also {
+                                    Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $it")
+                                }
                             }
 
                             val medicationToInsert = Medication(
@@ -235,48 +235,43 @@ fun AddMedicationScreen(
                                 nregistro = medicationSearchResult?.nregistro
                             )
 
-                            val (medicationId, dosageId) = medicationViewModel.insertMedicationAndDosage(
+                            val scheduleType = when (frequency) {
+                                FrequencyType.ONCE_A_DAY -> ScheduleType.DAILY
+                                FrequencyType.MULTIPLE_TIMES_A_DAY -> ScheduleType.CUSTOM_ALARMS
+                                FrequencyType.INTERVAL -> ScheduleType.INTERVAL
+                            }
+
+                            val scheduleToInsert = MedicationSchedule(
+                                medicationId = 0, // Placeholder
+                                scheduleType = scheduleType,
+                                startDate = finalStartDate, // Use the same start date
+                                intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
+                                intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
+                                daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { DayOfWeek.of(it) } else null,
+                                specificTimes = when (scheduleType) {
+                                    ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
+                                    ScheduleType.CUSTOM_ALARMS -> selectedTimes
+                                    else -> null
+                                },
+                                intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
+                                intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
+                            )
+
+                            val (medicationId, _) = medicationViewModel.insertMedicationAndDosage(
                                 medication = medicationToInsert,
+                                schedule = scheduleToInsert,
                                 dosage = dosage
                             )
 
                             medicationId.let { medId ->
-                                val scheduleType = when (frequency) {
-                                    FrequencyType.ONCE_A_DAY -> ScheduleType.DAILY
-                                    FrequencyType.MULTIPLE_TIMES_A_DAY -> ScheduleType.CUSTOM_ALARMS
-                                    FrequencyType.INTERVAL -> ScheduleType.INTERVAL
-                                    // else case is not strictly needed if all FrequencyType cases are handled and frequency is non-nullable.
-                                    // However, to be safe or if new types are added without updating this `when`, a default is good.
-                                }
+                                val finalSchedule = scheduleToInsert.copy(medicationId = medId)
+                                medicationScheduleViewModel.insertSchedule(finalSchedule)
 
-                                val schedule = MedicationSchedule(
-                                    medicationId = medId,
-                                    scheduleType = scheduleType,
-                                    intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
-                                    intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
-                                    daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { DayOfWeek.of(it) } else null,
-                                    specificTimes = when (scheduleType) {
-                                        ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
-                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes
-                                        else -> null
-                                    },
-                                    intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
-                                    intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
-                                )
-                                medicationScheduleViewModel.insertSchedule(schedule)
-
-                                // Get ApplicationContext from LocalContext for WorkerScheduler
                                 val appContext = localContext.applicationContext
                                 WorkerScheduler.scheduleRemindersForMedication(appContext, medId)
                                 Log.d("AddMedScreen", "Called WorkerScheduler.scheduleRemindersForMedication for medId: $medId after inserting medication and schedule.")
-
-                                // Removed medicationInfoViewModel.insertMedicationInfo call block
                             }
-                            // onNavigateBack() // Remove this line
 
-                            // New navigation logic:
-                            // Pop AddMedicationScreen AND AddMedicationChoiceScreen from the back stack.
-                            // This effectively returns to the screen that was active before AddMedicationChoiceScreen.
                             navController.popBackStack()
                         }
                     }
