@@ -58,7 +58,7 @@ class ReminderSchedulingWorker constructor(
                 }
                 allMedications.forEach { medication ->
                     Log.d(TAG, "Daily refresh: Processing medication ID: ${medication.id}, Name: ${medication.name}")
-                    val medicationEndDate = medication.endDate?.let { LocalDate.parse(it, ReminderCalculator.dateStorableFormatter) }
+                    val medicationEndDate = medication.endDate?.let { LocalDate.parse(it) }
                     if (medicationEndDate == null || !LocalDate.now().isAfter(medicationEndDate)) {
                         scheduleNextReminderForMedication(medication)
                     } else {
@@ -126,8 +126,8 @@ class ReminderSchedulingWorker constructor(
         }
 
         val now = LocalDateTime.now()
-        val medicationStartDate = medication.startDate?.let { ReminderCalculator.dateStorableFormatter.parse(it, LocalDate::from) } ?: now.toLocalDate()
-        val medicationEndDate = medication.endDate?.let { ReminderCalculator.dateStorableFormatter.parse(it, LocalDate::from) }
+        val medicationStartDate = medication.startDate?.let { LocalDate.parse(it) } ?: now.toLocalDate()
+        val medicationEndDate = medication.endDate?.let { LocalDate.parse(it) }
         Log.d(funcTag, "Current datetime (now): $now, Medication StartDate: $medicationStartDate, Medication EndDate: $medicationEndDate")
 
         if (medicationEndDate != null && now.toLocalDate().isAfter(medicationEndDate)) {
