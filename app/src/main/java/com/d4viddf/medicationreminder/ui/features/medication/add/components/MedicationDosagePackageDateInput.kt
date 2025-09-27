@@ -105,7 +105,9 @@ fun MedicationDosagePackageDateInput(
                 .clickable { showDosageModal = true }
         ) {
             val displayDosage = remember(dosage, medicationSearchResult, medicationType, strDosageWholePill, strDosageMg, strDosageMl, strDosageSprays, strDosageSuppositories, strDosagePatches, strDosageTapToSet) {
-                dosage.ifEmpty {
+                val formattedDosage = dosage.replace(".5", " ½").replace(".33", " ⅓").replace(".25", " ¼")
+
+                formattedDosage.ifEmpty {
                     if (medicationSearchResult?.dosage != null) medicationSearchResult.dosage
                     else {
                         when (medicationType?.name) { // medicationType.name is English, used for logic
@@ -160,10 +162,19 @@ fun MedicationDosagePackageDateInput(
             ) {
                 Text(strPackageSizeLabel, style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
+                val packageSizeUnit = when (medicationType?.name) {
+                    "Tablet", "Pill" -> "Pills"
+                    "Cream", "Creme", "Powder" -> "g"
+                    "Liquid", "Syringe" -> strDosageMl
+                    "Spray" -> strDosageSprays
+                    "Suppository", "Suppositorium" -> strDosageSuppositories
+                    "Patch" -> strDosagePatches
+                    else -> strPackageUnitsLabel
+                }
                 OutlinedTextField(
                     value = packageSize,
                     onValueChange = onPackageSizeChange,
-                    label = { Text(strPackageUnitsLabel) },
+                    label = { Text(packageSizeUnit) },
                     textStyle = MaterialTheme.typography.headlineMedium.copy(textAlign = TextAlign.Center),
                     modifier = Modifier.width(120.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
@@ -206,7 +217,7 @@ fun MedicationDosagePackageDateInput(
         val configuration = LocalConfiguration.current
         ModalBottomSheet(
             onDismissRequest = { showDosageModal = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             Column(
                 modifier = Modifier
@@ -229,19 +240,25 @@ fun MedicationDosagePackageDateInput(
                 ) {
                     when (medicationType?.name) { // medicationType.name is English, used for logic
                         "Tablet", "Pill" -> {
-                            var numPills by remember(dosage) { mutableStateOf(dosage.substringBefore(".").toIntOrNull() ?: dosage.substringBefore(",").toIntOrNull() ?: dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
+                            var numPills by remember(dosage) { mutableStateOf(dosage.toFloatOrNull()?.toInt() ?: 0) }
                             var pillFraction by remember(dosage) {
                                 mutableStateOf(
                                     when {
                                         dosage.contains(".5") || dosage.contains(",5") -> PillFraction.HALF
+                                        dosage.contains(".33") -> PillFraction.THIRD
                                         dosage.contains(".25") || dosage.contains(",25") -> PillFraction.QUARTER
                                         else -> PillFraction.WHOLE
                                     }
                                 )
                             }
                             LaunchedEffect(numPills, pillFraction) {
-                                val fractionDisplay = resolvedPillFractionDisplayValues[pillFraction] ?: ""
-                                onDosageChange("${numPills}${fractionDisplay}")
+                                val fractionValue = when (pillFraction) {
+                                    PillFraction.WHOLE -> ""
+                                    PillFraction.HALF -> ".5"
+                                    PillFraction.THIRD -> ".33"
+                                    PillFraction.QUARTER -> ".25"
+                                }
+                                onDosageChange(if (pillFraction == PillFraction.WHOLE) numPills.toString() else "${numPills}${fractionValue}")
                             }
 
                             IOSWheelPicker(
@@ -288,21 +305,21 @@ fun MedicationDosagePackageDateInput(
                         }
                         "Spray" -> {
                             var numSprays by remember(dosage) { mutableStateOf(dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
-                            LaunchedEffect(numSprays, strDosageSprays) { onDosageChange("$numSprays $strDosageSprays") }
+                            LaunchedEffect(numSprays) { onDosageChange(numSprays.toString()) }
 
                             IOSWheelPicker(items = (1..10).toList(), selectedItem = numSprays, onItemSelected = { numSprays = it }, modifier = Modifier.width(80.dp).height(150.dp), displayTransform = { it.toString() })
                             Text(strDosageSprays, modifier = Modifier.padding(start = 16.dp))
                         }
                         "Suppository", "Suppositorium" -> {
                             var numSuppositories by remember(dosage) { mutableStateOf(dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
-                            LaunchedEffect(numSuppositories, strDosageSuppositories) { onDosageChange("$numSuppositories $strDosageSuppositories") }
+                            LaunchedEffect(numSuppositories) { onDosageChange(numSuppositories.toString()) }
 
                             IOSWheelPicker(items = (1..10).toList(), selectedItem = numSuppositories, onItemSelected = { numSuppositories = it }, modifier = Modifier.width(80.dp).height(150.dp), displayTransform = { it.toString() })
                             Text(strDosageSuppositories, modifier = Modifier.padding(start = 16.dp))
                         }
                         "Patch" -> {
                             var numPatches by remember(dosage) { mutableStateOf(dosage.filter { it.isDigit() }.toIntOrNull() ?: 1) }
-                            LaunchedEffect(numPatches, strDosagePatches) { onDosageChange("$numPatches $strDosagePatches") }
+                            LaunchedEffect(numPatches) { onDosageChange(numPatches.toString()) }
 
                             IOSWheelPicker(items = (1..10).toList(), selectedItem = numPatches, onItemSelected = { numPatches = it }, modifier = Modifier.width(80.dp).height(150.dp), displayTransform = { it.toString() })
                             Text(strDosagePatches, modifier = Modifier.padding(start = 16.dp))
@@ -511,6 +528,7 @@ fun <T> IOSWheelPicker(
 enum class PillFraction(val stringRes: Int) {
     WHOLE(R.string.dosage_whole_pill),
     HALF(R.string.dosage_half_pill),
+    THIRD(R.string.dosage_third_pill),
     QUARTER(R.string.dosage_quarter_pill);
 
     companion object {

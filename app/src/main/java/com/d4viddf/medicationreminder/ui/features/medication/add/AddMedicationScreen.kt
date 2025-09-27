@@ -336,7 +336,6 @@ fun AddMedicationScreen(
                             medicationSearchResult = result
                             if (result != null) {
                                 medicationName = result.name
-                                dosage = result.dosage ?: ""
                             }
                         },
                         selectedTypeId = selectedTypeId,
@@ -408,7 +407,6 @@ fun AddMedicationScreen(
                         medicationSearchResult = result
                         if (result != null) {
                             medicationName = result.name
-                            dosage = result.dosage ?: ""
                         }
                     },
                     selectedTypeId = selectedTypeId,
