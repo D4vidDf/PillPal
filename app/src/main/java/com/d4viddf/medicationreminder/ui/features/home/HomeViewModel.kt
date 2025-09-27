@@ -10,6 +10,7 @@ import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
@@ -53,6 +54,7 @@ class HomeViewModel @Inject constructor(
     private val application: Application,
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
+    private val medicationDosageRepository: MedicationDosageRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
     userPreferencesRepository: UserPreferencesRepository,
@@ -315,12 +317,13 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun mapToNextDoseUiItem(reminder: MedicationReminder): NextDoseUiItem? {
         return medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
+            val dosage = medicationDosageRepository.getActiveDosage(med.id)
             val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
             NextDoseUiItem(
                 reminderId = reminder.id,
                 medicationId = med.id,
                 medicationName = med.name,
-                medicationDosage = med.dosage!!,
+                medicationDosage = dosage?.dosage ?: "",
                 medicationColorName = med.color,
                 medicationImageUrl = type?.imageUrl,
                 rawReminderTime = reminder.reminderTime,
@@ -332,11 +335,12 @@ class HomeViewModel @Inject constructor(
     private suspend fun mapToTodayScheduleUiItem(reminders: List<MedicationReminder>): List<TodayScheduleUiItem> {
         return reminders.mapNotNull { reminder ->
             medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
+                val dosage = medicationDosageRepository.getActiveDosage(med.id)
                 val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
                 TodayScheduleUiItem(
                     reminder = reminder,
                     medicationName = med.name,
-                    medicationDosage = med.dosage!!,
+                    medicationDosage = dosage?.dosage ?: "",
                     medicationColorName = med.color,
                     medicationIconUrl = type?.imageUrl,
                     medicationTypeName = type?.name,

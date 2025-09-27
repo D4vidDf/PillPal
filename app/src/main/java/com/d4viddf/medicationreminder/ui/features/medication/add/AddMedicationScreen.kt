@@ -218,22 +218,28 @@ fun AddMedicationScreen(
                             if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
                                 finalStartDate = startDate
                             } else {
-                                finalStartDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                finalStartDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                                 Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $finalStartDate")
                             }
 
-                            val medicationId = medicationViewModel.insertMedication(
-                                Medication(
-                                    name = medicationName, typeId = selectedTypeId, color = selectedColor.toString(),
-                                    dosage = dosage.ifEmpty { null }, packageSize = packageSize.toIntOrNull() ?: 0,
-                                    remainingDoses = packageSize.toIntOrNull() ?: 0,
-                                    startDate = finalStartDate, // Use the new finalStartDate
-                                    endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
-                                    reminderTime = null, // This seems to be consistently null here
-                                    registrationDate = currentRegistrationDate, // Set the new field
-                                    nregistro = medicationSearchResult?.nregistro // Populate nregistro from search result
-                                )
+                            val medicationToInsert = Medication(
+                                name = medicationName,
+                                typeId = selectedTypeId,
+                                color = selectedColor.toString(),
+                                packageSize = packageSize.toIntOrNull() ?: 0,
+                                remainingDoses = packageSize.toIntOrNull() ?: 0,
+                                startDate = finalStartDate,
+                                endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
+                                reminderTime = null,
+                                registrationDate = currentRegistrationDate,
+                                nregistro = medicationSearchResult?.nregistro
                             )
+
+                            val (medicationId, dosageId) = medicationViewModel.insertMedicationAndDosage(
+                                medication = medicationToInsert,
+                                dosage = dosage
+                            )
+
                             medicationId.let { medId ->
                                 val scheduleType = when (frequency) {
                                     FrequencyType.ONCE_A_DAY -> ScheduleType.DAILY

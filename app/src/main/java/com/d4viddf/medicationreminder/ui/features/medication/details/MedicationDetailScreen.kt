@@ -193,8 +193,12 @@ fun MedicationDetailsScreen(
     var internalShowTwoPanesState by remember { mutableStateOf(false) } // Added state variable
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
+    val activeDosage by viewModel.activeDosage.collectAsState()
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+
+    val medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
+    val cimaMedicationInfo by medicationInfoViewModel.medicationInfo.collectAsState()
 
     val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) })
     val weeklyMaxYForChart by (graphViewModel?.weeklyMaxYValue?.collectAsState() ?: remember { mutableStateOf(5f) }) // Collect new max Y value
@@ -202,11 +206,16 @@ fun MedicationDetailsScreen(
     val isGraphLoading by graphViewModel?.isLoading?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
 
 
+    LaunchedEffect(medicationId) {
+        medicationInfoViewModel.loadMedicationInfo(medicationId)
+    }
+
     LaunchedEffect(medicationId, graphViewModel) {
         viewModel.getMedicationById(medicationId)?.let { med ->
             medicationState = med
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
             viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
+            viewModel.loadActiveDosage(med.id)
             medicationReminderViewModel.loadTodaySchedule(medicationId)
 
             med.typeId?.let { typeId ->
@@ -336,7 +345,10 @@ fun MedicationDetailsScreen(
                                     animatedVisibilityScope = animatedVisibilityScope,
                                     medicationId = medicationId,
                                      scheduleState = scheduleState,
-                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
+                                     makeAppBarTransparent = makeAppBarTransparent, // Pass the variable
+                                    onNavigateToScheduleDosageChange = { medId ->
+                                        navController.navigate(Screen.ScheduleDosageChange.createRoute(medId))
+                                    }
                                 )
                             }
                             item {
@@ -393,12 +405,17 @@ fun MedicationDetailsScreen(
                             medicationState = medicationState,
                             progressDetails = progressDetails,
                             medicationTypeState = medicationTypeState,
+                            activeDosage = activeDosage,
+                            cimaMedicationInfo = cimaMedicationInfo,
                             color = color,
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,
                             medicationId = medicationId,
                                      scheduleState = scheduleState,
-                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
+                                     makeAppBarTransparent = makeAppBarTransparent, // Pass the variable
+                                    onNavigateToScheduleDosageChange = { medId ->
+                                        navController.navigate(Screen.ScheduleDosageChange.createRoute(medId))
+                                    }
                         )
                     }
                     item {
@@ -476,12 +493,15 @@ private fun MedicationHeaderAndProgress(
     medicationState: Medication?,
     progressDetails: ProgressDetails?,
     medicationTypeState: MedicationType?,
+    activeDosage: com.d4viddf.medicationreminder.data.model.MedicationDosage?,
+    cimaMedicationInfo: com.d4viddf.medicationreminder.data.model.CimaMedicationDetail?,
     color: MedicationColor,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     medicationId: Int,
     scheduleState: MedicationSchedule?,
-    makeAppBarTransparent: Boolean // New parameter
+    makeAppBarTransparent: Boolean,
+    onNavigateToScheduleDosageChange: (Int) -> Unit
 ) {
     val displayProgressDetails = if (medicationState.isPastEndDate()) {
         Log.d("MedDetailScreen", "Medication ${medicationState?.name} has ended. Displaying completed progress.")
@@ -602,9 +622,11 @@ private fun MedicationHeaderAndProgress(
                     MedicationDetailHeader(
                         medicationId = medicationId,
                         medicationName = medicationState.name,
-                        medicationDosage = medicationState.dosage,
+                        userDosage = activeDosage?.dosage,
+                        cimaDosage = cimaMedicationInfo?.pactivos,
                         medicationImageUrl = medicationTypeState?.imageUrl,
                         colorScheme = color,
+                        onNavigateToScheduleDosageChange = onNavigateToScheduleDosageChange
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationProgressDisplay(

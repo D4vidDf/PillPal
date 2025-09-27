@@ -7,6 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.d4viddf.medicationreminder.data.model.FirebaseSync
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationDosage
 import com.d4viddf.medicationreminder.data.model.MedicationInfo
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
@@ -19,14 +20,113 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
-        WaterIntake::class, WaterPreset::class, HeartRate::class],
-    version = 10, // Incremented version to 10
+        WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class],
+    version = 11, // Incremented version to 11
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // We are performing major schema changes, so we'll disable foreign keys for the transaction.
+                db.execSQL("PRAGMA foreign_keys=OFF;")
+
+                // Step 1: Create the new medication_dosages table.
+                db.execSQL("""
+                    CREATE TABLE `medication_dosages` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `medicationId` INTEGER NOT NULL,
+                        `dosage` TEXT NOT NULL,
+                        `startDate` TEXT NOT NULL,
+                        `endDate` TEXT
+                    )
+                """)
+
+                // Step 2: Populate the new medication_dosages table from the old medications table.
+                // Use COALESCE to find a valid start date for the dosage.
+                db.execSQL("""
+                    INSERT INTO medication_dosages (medicationId, dosage, startDate)
+                    SELECT id, dosage, COALESCE(startDate, registrationDate, '${java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)}')
+                    FROM medications
+                    WHERE dosage IS NOT NULL AND dosage != ''
+                """)
+
+                // Step 3: Recreate the medications table without the 'dosage' column.
+                db.execSQL("""
+                    CREATE TABLE `medications_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `typeId` INTEGER,
+                        `color` TEXT NOT NULL,
+                        `packageSize` INTEGER NOT NULL,
+                        `remainingDoses` INTEGER NOT NULL,
+                        `startDate` TEXT,
+                        `endDate` TEXT,
+                        `reminderTime` TEXT,
+                        `registrationDate` TEXT,
+                        `nregistro` TEXT
+                    )
+                """)
+                db.execSQL("""
+                    INSERT INTO `medications_new` (id, name, typeId, color, packageSize, remainingDoses, startDate, endDate, reminderTime, registrationDate, nregistro)
+                    SELECT id, name, typeId, color, packageSize, remainingDoses, startDate, endDate, reminderTime, registrationDate, nregistro FROM `medications`
+                """)
+                db.execSQL("DROP TABLE `medications`")
+                db.execSQL("ALTER TABLE `medications_new` RENAME TO `medications`")
+
+
+                // Step 4: Create a new medication_reminder table with the required medicationDosageId.
+                db.execSQL("""
+                    CREATE TABLE `medication_reminder_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `medicationId` INTEGER NOT NULL,
+                        `medicationScheduleId` INTEGER,
+                        `medicationDosageId` INTEGER NOT NULL,
+                        `reminderTime` TEXT NOT NULL,
+                        `isTaken` INTEGER NOT NULL DEFAULT 0,
+                        `takenAt` TEXT,
+                        `notificationId` INTEGER,
+                        FOREIGN KEY(`medicationId`) REFERENCES `medications`(`id`) ON DELETE CASCADE,
+                        FOREIGN KEY(`medicationScheduleId`) REFERENCES `medication_schedule`(`id`) ON DELETE CASCADE,
+                        FOREIGN KEY(`medicationDosageId`) REFERENCES `medication_dosages`(`id`) ON DELETE CASCADE
+                    )
+                """)
+
+                // Step 5: Populate the new reminder table, linking to the new dosage table.
+                // This preserves all reminders for medications that had a dosage.
+                db.execSQL("""
+                    INSERT INTO medication_reminder_new (id, medicationId, medicationScheduleId, reminderTime, isTaken, takenAt, notificationId, medicationDosageId)
+                    SELECT
+                        mr.id,
+                        mr.medicationId,
+                        mr.medicationScheduleId,
+                        md.id,
+                        mr.reminderTime,
+                        mr.isTaken,
+                        mr.takenAt,
+                        mr.notificationId
+                    FROM medication_reminder AS mr
+                    JOIN medication_dosages AS md ON mr.medicationId = md.medicationId
+                """)
+
+                // Step 6: Drop the old reminder table and rename the new one.
+                db.execSQL("DROP TABLE `medication_reminder`")
+                db.execSQL("ALTER TABLE `medication_reminder_new` RENAME TO `medication_reminder`")
+
+                // Step 7: Recreate all necessary indices for the new tables.
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_dosages_medicationId` ON `medication_dosages` (`medicationId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_reminder_medicationId` ON `medication_reminder` (`medicationId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_reminder_medicationScheduleId` ON `medication_reminder` (`medicationScheduleId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_reminder_medicationDosageId` ON `medication_reminder` (`medicationDosageId`)")
+
+                // Finally, re-enable foreign key constraints.
+                db.execSQL("PRAGMA foreign_keys=ON;")
+            }
+        }
+
+
         val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""
@@ -144,6 +244,7 @@ abstract class MedicationDatabase : RoomDatabase() {
     abstract fun medicationTypeDao(): MedicationTypeDao
     abstract fun medicationScheduleDao(): MedicationScheduleDao
     abstract fun medicationReminderDao(): MedicationReminderDao
+    abstract fun medicationDosageDao(): MedicationDosageDao
     abstract fun medicationInfoDao(): MedicationInfoDao
     abstract fun firebaseSyncDao(): FirebaseSyncDao
     abstract fun healthDataDao(): HealthDataDao
