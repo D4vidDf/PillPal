@@ -211,7 +211,7 @@ class HomeViewModel @Inject constructor(
             System.currentTimeMillis() - 24 * 60 * 60 * 1000
         ).map { UiItemState.Success(it) as UiItemState<Pair<Double?, Boolean>> }
             .onStart { emit(UiItemState.Loading) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubbilled(5000), UiItemState.Loading)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiItemState.Loading)
 
     val heartRateRange: StateFlow<UiItemState<Pair<Long, Long>?>> =
         healthDataRepository.getHeartRateBetween(
