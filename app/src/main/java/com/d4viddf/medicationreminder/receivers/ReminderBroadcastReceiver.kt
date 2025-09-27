@@ -8,17 +8,16 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
-import com.d4viddf.medicationreminder.common.NotificationConstants
-import com.d4viddf.medicationreminder.common.WorkerConstants
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.services.PreReminderForegroundService
 import com.d4viddf.medicationreminder.utils.FileLogger
 // import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
-import com.d4viddf.medicationreminder.data.MedicationReminder // Import MedicationReminder
+import com.d4viddf.medicationreminder.data.model.MedicationReminder // Import MedicationReminder
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors

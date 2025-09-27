@@ -24,8 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.common.components.TimePickerDialog
-import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.common.component.TimePickerDialog
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime

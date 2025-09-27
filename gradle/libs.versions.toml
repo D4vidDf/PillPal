@@ -75,6 +75,7 @@ concurrentFuturesVersion = "1.2.0"
 kotlinxCoroutinesGuava = "1.10.2"
 horologistComposeLayout = "0.7.14-beta"
 materialIconsCore = "1.7.8"
+androidxMaterial3 = "1.3.2"
 
 
 [libraries]
@@ -179,6 +180,7 @@ concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures
 kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
 horologist-compose-layout = { group = "com.google.android.horologist", name = "horologist-compose-layout", version.ref = "horologistComposeLayout" }
 androidx-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core", version.ref = "materialIconsCore" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidxMaterial3" }
 
 
 [plugins]

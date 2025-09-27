@@ -6,17 +6,18 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.d4viddf.medicationreminder.common.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
-import com.d4viddf.medicationreminder.common.WorkerConstants.KEY_IS_DAILY_REFRESH
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationReminder
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.data.ScheduleType
-import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.KEY_IS_DAILY_REFRESH
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
+import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -42,8 +43,8 @@ class ReminderSchedulingWorker constructor(
     @RequiresApi(Build.VERSION_CODES.S)
     override suspend fun doWork(): Result {
         Log.d(TAG, "ReminderSchedulingWorker (CustomFactory) started. InputData: $inputData, Thread: ${Thread.currentThread().name}")
-        val medicationIdInput = inputData.getInt(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_MEDICATION_ID, -1)
-        val isDailyRefresh = inputData.getBoolean(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_IS_DAILY_REFRESH, false)
+        val medicationIdInput = inputData.getInt(WorkerConstants.KEY_MEDICATION_ID, -1)
+        val isDailyRefresh = inputData.getBoolean(WorkerConstants.KEY_IS_DAILY_REFRESH, false)
 
         return try {
             if (isDailyRefresh) {

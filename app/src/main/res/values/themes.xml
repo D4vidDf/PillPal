@@ -5,7 +5,6 @@
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <!-- Set the splash screen's background color -->
-        <item name="windowSplashScreenBackground">@color/white</item>
 
         <!-- Set the splash screen's icon. -->
         <!-- Use windowSplashScreenAnimatedIcon to allow for animation on API 31+ -->

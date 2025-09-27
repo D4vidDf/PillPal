@@ -2,7 +2,11 @@ package com.d4viddf.medicationreminder.viewmodel
 
 import app.cash.turbine.test
 import com.d4viddf.medicationreminder.data.*
-import com.d4viddf.medicationreminder.logic.ReminderCalculator // Actual object, not mocked
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -64,7 +68,8 @@ class MedicationViewModelTest {
         `when`(medicationRepository.getMedicationById(org.mockito.ArgumentMatchers.anyInt())).thenReturn(null)
 
 
-        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
+        viewModel =
+            MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
     }
 
     private fun createMedication(
@@ -116,7 +121,8 @@ class MedicationViewModelTest {
             medicationScheduleId = medId * 10,
             reminderTime = reminderTime.format(storableDateTimeFormatter),
             isTaken = isTaken,
-            takenAt = if (isTaken) reminderTime.plusMinutes(1).format(storableDateTimeFormatter) else null,
+            takenAt = if (isTaken) reminderTime.plusMinutes(1)
+                .format(storableDateTimeFormatter) else null,
             notificationId = id
         )
     }
@@ -291,7 +297,8 @@ class MedicationViewModelTest {
         // Re-initialize viewModel or ensure the flow is collected if init was already run by @Before
         // Since observeMedications and observeSearchQueryAndMedications are in init,
         // we need to re-initialize the viewModel after mocking getAllMedications for this specific test.
-        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
+        viewModel =
+            MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
 
 
         viewModel.searchResults.test {
@@ -358,7 +365,8 @@ class MedicationViewModelTest {
         `when`(medicationRepository.getAllMedications()).thenReturn(dynamicMedicationsFlow)
 
         // Re-initialize viewModel to use the new dynamic flow
-        viewModel = MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
+        viewModel =
+            MedicationViewModel(medicationRepository, reminderRepository, scheduleRepository)
 
         viewModel.searchResults.test {
             assertEquals(emptyList<Medication>(), awaitItem()) // Initial: empty query, empty meds

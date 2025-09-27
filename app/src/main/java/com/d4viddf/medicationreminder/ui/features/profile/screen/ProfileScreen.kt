@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
