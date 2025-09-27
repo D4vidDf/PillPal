@@ -101,7 +101,7 @@ import java.util.Locale
 fun Medication?.isPastEndDate(): Boolean {
     if (this?.endDate.isNullOrBlank()) return false
     return try {
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
         val endDateValue = LocalDate.parse(this.endDate, formatter)
         endDateValue.isBefore(LocalDate.now())
     } catch (e: Exception) {
@@ -340,6 +340,8 @@ fun MedicationDetailsScreen(
                                     medicationState = medicationState,
                                     progressDetails = progressDetails,
                                     medicationTypeState = medicationTypeState,
+                                    activeDosage = activeDosage,
+                                    cimaMedicationInfo = cimaMedicationInfo,
                                     color = color,
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope,
@@ -586,12 +588,23 @@ private fun MedicationHeaderAndProgress(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
+                                    text = activeDosage?.dosage?.takeIf { it.isNotBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
                                     fontSize = 20.sp,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = color.textColor,
-                                    textAlign = TextAlign.Center, // Changed to Center
+                                    textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth()
                                 )
+                                if (!cimaMedicationInfo?.pactivos.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Reference: ${cimaMedicationInfo?.pactivos}",
+                                        fontSize = 14.sp,
+                                        color = color.textColor.copy(alpha = 0.7f),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
                         }
                         Column(

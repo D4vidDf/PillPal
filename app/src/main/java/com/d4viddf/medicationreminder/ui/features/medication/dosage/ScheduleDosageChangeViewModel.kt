@@ -23,7 +23,7 @@ class ScheduleDosageChangeViewModel @Inject constructor(
             // 2. Deactivate the current dosage by setting its end date
             activeDosage?.let {
                 val newDosageStartDate = newStartDate.minusDays(1)
-                dosageRepository.deactivateDosage(it.id, newDosageStartDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                dosageRepository.deactivateDosage(it.id, newDosageStartDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
             }
 
             // 3. Insert the new dosage record
@@ -31,7 +31,7 @@ class ScheduleDosageChangeViewModel @Inject constructor(
                 MedicationDosage(
                     medicationId = medicationId,
                     dosage = newDosage,
-                    startDate = newStartDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    startDate = newStartDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
                     endDate = null
                 )
             )

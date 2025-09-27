@@ -97,7 +97,7 @@ abstract class MedicationDatabase : RoomDatabase() {
                 // Step 5: Populate the new reminder table, linking to the new dosage table.
                 // This preserves all reminders for medications that had a dosage.
                 db.execSQL("""
-                    INSERT INTO medication_reminder_new (id, medicationId, medicationScheduleId, reminderTime, isTaken, takenAt, notificationId, medicationDosageId)
+                    INSERT INTO medication_reminder_new (id, medicationId, medicationScheduleId, medicationDosageId, reminderTime, isTaken, takenAt, notificationId)
                     SELECT
                         mr.id,
                         mr.medicationId,
