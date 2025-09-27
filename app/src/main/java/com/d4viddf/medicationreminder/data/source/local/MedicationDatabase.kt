@@ -40,7 +40,8 @@ abstract class MedicationDatabase : RoomDatabase() {
                         `medicationId` INTEGER NOT NULL,
                         `dosage` TEXT NOT NULL,
                         `startDate` TEXT NOT NULL,
-                        `endDate` TEXT
+                        `endDate` TEXT,
+                        FOREIGN KEY(`medicationId`) REFERENCES `medications`(`id`) ON DELETE CASCADE
                     )
                 """)
 
