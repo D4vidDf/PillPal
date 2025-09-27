@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -194,6 +195,11 @@ fun MedicationDetailsScreen(
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
     val activeDosage by viewModel.activeDosage.collectAsState()
+    val finalActiveDosage = if (LocalInspectionMode.current) {
+        com.d4viddf.medicationreminder.data.model.MedicationDosage(id = 1, medicationId = 1, dosage = "1 pill", startDate = "2023-01-01")
+    } else {
+        activeDosage
+    }
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
@@ -340,7 +346,7 @@ fun MedicationDetailsScreen(
                                     medicationState = medicationState,
                                     progressDetails = progressDetails,
                                     medicationTypeState = medicationTypeState,
-                                    activeDosage = activeDosage,
+                                    activeDosage = finalActiveDosage,
                                     cimaMedicationInfo = cimaMedicationInfo,
                                     color = color,
                                     sharedTransitionScope = sharedTransitionScope,
@@ -407,7 +413,7 @@ fun MedicationDetailsScreen(
                             medicationState = medicationState,
                             progressDetails = progressDetails,
                             medicationTypeState = medicationTypeState,
-                            activeDosage = activeDosage,
+                            activeDosage = finalActiveDosage,
                             cimaMedicationInfo = cimaMedicationInfo,
                             color = color,
                             sharedTransitionScope = sharedTransitionScope,
@@ -625,6 +631,7 @@ private fun MedicationHeaderAndProgress(
                             Spacer(modifier = Modifier.height(8.dp))
                             MedicationDetailCounters(
                                 colorScheme = color,
+                                activeDosage = activeDosage?.dosage,
                                 medication = medicationState,
                                 schedule = scheduleState
                             )
@@ -650,6 +657,7 @@ private fun MedicationHeaderAndProgress(
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationDetailCounters(
                         colorScheme = color,
+                        activeDosage = activeDosage?.dosage,
                         medication = medicationState,
                         schedule = scheduleState,
                         modifier = Modifier.padding(horizontal = 12.dp)
