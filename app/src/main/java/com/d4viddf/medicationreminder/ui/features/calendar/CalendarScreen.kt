@@ -551,10 +551,10 @@ fun CalendarScreenPreviewLight() {
     AppTheme(themePreference = ThemeKeys.LIGHT) {
         val calendarState = rememberScheduleCalendarState()
         val sampleMedication1 = Medication(id = 1, name = "Metformin", typeId = 1, color = MedicationColor.BLUE.toString(), packageSize = 30, remainingDoses = 15, startDate = "2024-05-28", endDate = "2024-06-05", reminderTime = null, registrationDate = "2024-05-01")
-        val sampleSchedule1 = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf(
+        val sampleSchedule1 = MedicationSchedule(id = 1, medicationId = 1, scheduleType = ScheduleType.DAILY, startDate = "2024-05-28", specificTimes = listOf(
             LocalTime.of(9,0)), intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null)
         val sampleMedication2 = Medication(id = 2, name = "Lisinopril (Ongoing)", typeId = 2, color = MedicationColor.ORANGE.toString(), packageSize = 90, remainingDoses = 80, startDate = "2024-05-20", endDate = null, reminderTime = null, registrationDate = "2024-05-01")
-        val sampleSchedule2 = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, specificTimes = listOf(LocalTime.of(8,0)), intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null)
+        val sampleSchedule2 = MedicationSchedule(id = 2, medicationId = 2, scheduleType = ScheduleType.DAILY, startDate = "2024-05-20", specificTimes = listOf(LocalTime.of(8,0)), intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null)
         val previewMedicationSchedules = listOf(
             MedicationScheduleItem(medication = sampleMedication1, schedule = sampleSchedule1, actualStartDate = LocalDate.parse("2025-05-28"), actualEndDate = LocalDate.parse("2025-06-05"), isOngoingOverall = false),
             MedicationScheduleItem(medication = sampleMedication2, schedule = sampleSchedule2, actualStartDate = LocalDate.parse("2025-05-20"), actualEndDate = null, isOngoingOverall = true)
@@ -590,7 +590,7 @@ fun CalendarScreenPreviewDark() {
     AppTheme(themePreference = ThemeKeys.DARK) {
         val calendarState = rememberScheduleCalendarState()
         val sampleMedication1 = Medication(id = 1, name = "Aspirin (Fixed)", typeId = 3, color = MedicationColor.LIGHT_PURPLE.toString(), packageSize = 100, remainingDoses = 50, startDate = "2024-06-03", endDate = "2024-06-07", reminderTime = null, registrationDate = "2024-06-01")
-        val sampleSchedule1 = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf(LocalTime.of(7,0)), intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null)
+        val sampleSchedule1 = MedicationSchedule(id = 3, medicationId = 1, scheduleType = ScheduleType.DAILY, startDate = "2024-06-03", specificTimes = listOf(LocalTime.of(7,0)), intervalHours = null, intervalMinutes = null, daysOfWeek = null, intervalStartTime = null, intervalEndTime = null)
         val previewMedicationSchedules = listOf(MedicationScheduleItem(medication = sampleMedication1, schedule = sampleSchedule1, actualStartDate = LocalDate.parse("2025-06-03"), actualEndDate = LocalDate.parse("2025-06-07"), isOngoingOverall = false))
         Scaffold(
             topBar = { CalendarTopAppBar(currentMonth = YearMonth.from(calendarState.startDateTime.toLocalDate()), onDateSelectorClicked = {}) }

@@ -86,6 +86,7 @@ fun MedicationDetailCountersPreview() {
             schedule = MedicationSchedule(
                 medicationId = 1,
                 scheduleType = ScheduleType.AS_NEEDED, // Consistent with AS_NEEDED
+                startDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                 daysOfWeek = null, // Consistent with emptyList()
                 specificTimes = null, // AS_NEEDED might not have specific times
                 intervalHours = 0, // Default for AS_NEEDED
