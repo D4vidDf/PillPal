@@ -6,11 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
-import com.d4viddf.medicationreminder.common.NotificationConstants
-import com.d4viddf.medicationreminder.common.WorkerConstants
-import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
+import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Keep for class name, specific constants removed
 import com.d4viddf.medicationreminder.services.PreReminderForegroundService // Keep for class name, specific constants removed
 import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger

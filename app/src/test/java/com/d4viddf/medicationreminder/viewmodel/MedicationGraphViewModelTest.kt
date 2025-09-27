@@ -1,24 +1,20 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationReminder
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.repository.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull // For error checking
-import org.junit.Assert.assertTrue // For error message checking
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import java.time.DayOfWeek

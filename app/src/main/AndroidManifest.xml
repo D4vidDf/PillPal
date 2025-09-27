@@ -23,6 +23,14 @@
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.WRITE_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_WEIGHT" />
+    <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
+    <uses-permission android:name="android.permission.health.READ_HYDRATION" />
+    <uses-permission android:name="android.permission.health.WRITE_HYDRATION" />
+    <uses-permission android:name="android.permission.health.READ_BODY_TEMPERATURE" />
+    <uses-permission android:name="android.permission.health.WRITE_BODY_TEMPERATURE" />
 
     <application
         android:name=".MedicationReminderApplication"
@@ -59,7 +67,48 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="medicationreminder" android:host="medication" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.health.connect.action.ACTION_VIEW_HEALTH_DATA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+
+            <!-- Permission handling for Android 14 and later -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE"/>
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
+            </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.features.settings.PermissionsRationaleActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.features.settings.PrivacyPolicyActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PRIVACY_POLICY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".ui.features.settings.PrivacyPolicyActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
 
         <activity
             android:name=".ui.features.notifications.activity.FullScreenNotificationActivity"

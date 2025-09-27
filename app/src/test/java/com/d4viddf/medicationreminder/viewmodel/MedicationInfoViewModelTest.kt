@@ -1,9 +1,10 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import com.d4viddf.medicationreminder.data.CimaMedicationDetail
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.model.CimaMedicationDetail
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.repository.MedicationInfoRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*

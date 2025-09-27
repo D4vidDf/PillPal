@@ -2,17 +2,17 @@ package com.d4viddf.medicationreminder.viewmodel
 
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationReminder
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.MedicationRepository
-import com.d4viddf.medicationreminder.data.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.data.ScheduleType
-import com.d4viddf.medicationreminder.data.TodayScheduleItem
-import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.data.model.TodayScheduleItem
+import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
+import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationReminderViewModel
 import io.mockk.MockKAnnotations
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
@@ -37,8 +37,6 @@ import org.junit.runner.Description
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @ExperimentalCoroutinesApi

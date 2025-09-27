@@ -1,14 +1,14 @@
 package com.d4viddf.medicationreminder.viewmodel
 
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.data.ScheduleType
-import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.ui.features.medication.schedules.AllSchedulesViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock

@@ -14,8 +14,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "0.5.5"
+        versionCode = 46
+        versionName = "0.6.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -56,6 +56,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.0")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -97,6 +98,7 @@ dependencies {
     implementation(libs.google.guava)
     implementation(libs.concurrent.futures)
     implementation(libs.kotlinx.coroutines.guava)
+    implementation(libs.androidx.compose.material3)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
@@ -152,4 +154,7 @@ dependencies {
 
     // Coroutines support for Play Services Tasks (for .await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
+
+    // Health Connect
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha02")
 }

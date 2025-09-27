@@ -30,8 +30,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.data.MedicationSearchResult
-import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
+import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
+import com.d4viddf.medicationreminder.data.model.CimaFoto
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
 fun MedicationSearchResultCard(
@@ -117,7 +118,13 @@ fun MedicationSearchResultCardPreview() {
             comercializado = true,
             requiereReceta = false,
             generico = true,
-            imageUrl = listOf(com.d4viddf.medicationreminder.data.CimaFoto(tipo = "materialaso", url = "https://example.com/aspirin_image.jpg", fecha = null))
+            imageUrl = listOf(
+                CimaFoto(
+                    tipo = "materialaso",
+                    url = "https://example.com/aspirin_image.jpg",
+                    fecha = null
+                )
+            )
         )
         MedicationSearchResultCard(
             medicationResult = sampleResult,

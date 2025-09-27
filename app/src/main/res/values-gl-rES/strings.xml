@@ -5,7 +5,7 @@
     <string name="settings">Axustes</string>
     <string name="add">Engadir</string>
     <string name="back">Atrás</string>
-    <string name="back_button_cd">Atrás</string> <!-- Added new string resource -->
+    <string name="back_button_cd">Atrás</string>
     <string name="close">Pechar</string>
     <string name="next">Seguinte</string>
     <string name="confirm">Confirmar</string>
@@ -15,8 +15,10 @@
     <string name="none_set">Ningún establecido</string>
     <string name="error_required_field">Este campo é obrigatorio ou contén un erro</string>
     <string name="info_not_available">Información non dispoñible</string>
+
     <!-- HomeScreen -->
     <string name="medications_title">Medicamentos</string>
+
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Novo medicamento</string>
     <string name="medication_summary_title">Resumo da medicación</string>
@@ -85,6 +87,7 @@
     <string name="medication_name_clear_search_acc">Limpar busca</string>
     <string name="medication_name_error">Introduce un nome de medicamento válido</string>
     <string name="medication_type_selector_title">Selecciona o tipo de medicamento</string>
+
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Hoxe</string>
     <string name="medication_detail_after_waking_up">Ao espertar</string>
@@ -109,12 +112,12 @@
     <string name="medication_progress_display_info_not_available_acc">Progreso da medicación: Información non dispoñible.</string>
     <string name="medication_progress_display_title">Progreso</string>
     <string name="medication_detail_no_reminders_today">Non hai recordatorios para hoxe.</string>
-    <string name="content_desc_add_past_dose" translatable="false">Add past medication dose</string>
-    <string name="dialog_add_past_dose_title" translatable="false">Add Past Dose</string>
-    <string name="label_medication_name_in_dialog" translatable="false">Medication Name</string>
-    <string name="button_select_date" translatable="false">Select Date</string>
-    <string name="button_save_dose" translatable="false">Save Dose</string>
-    <string name="dialog_select_time_title" translatable="false">Select Time</string>
+    <string name="content_desc_add_past_dose">Engadir dose pasada</string>
+    <string name="dialog_add_past_dose_title">Engadir Dose Pasada</string>
+    <string name="label_medication_name_in_dialog">Nome do Medicamento</string>
+    <string name="button_select_date">Seleccionar Data</string>
+    <string name="button_save_dose">Gardar Dose</string>
+    <string name="dialog_select_time_title">Seleccionar Hora</string>
     <string name="medication_history_title">Historial da medicación</string>
     <string name="current_week_dosage_title">Dose da semana actual</string>
     <string name="bar_graph_placeholder">Marcador de posición do gráfico de barres (día actual resaltado)</string>
@@ -122,6 +125,8 @@
     <string name="medication_information_title">Información da medicación</string>
     <string name="medication_info_description_placeholder">A información detallada sobre este medicamento está dispoñible.</string>
     <string name="view_full_information">Ver información completa</string>
+
+
     <!-- Settings Screen (New) -->
     <string name="settings_screen_title">Axustes</string>
     <string name="settings_language_label">Idioma</string>
@@ -132,15 +137,18 @@
     <string name="settings_notification_sound_label">Son de notificación</string>
     <string name="settings_notification_sound_default">Predeterminado</string>
     <string name="settings_notification_sound_unknown">Son descoñecido</string>
-    <string name="settings_volume_label" translatable="false">Volume Control</string>
-    <string name="volume_up_content_description" translatable="false">Volume Up</string>
-    <string name="volume_off_content_description" translatable="false">Volume Off</string>
+    <string name="settings_volume_label">Control de Volume</string>
+    <string name="volume_up_content_description">Subir Volume</string>
+    <string name="volume_off_content_description">Baixar Volume</string>
+
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Notificacións</string>
-    <string name="notification_channel_reminder_name" translatable="false">Medication Reminders</string>
-    <string name="notification_channel_reminder_description" translatable="false">Notifications for medication intake reminders</string>
-    <string name="notification_channel_prereminder_name" translatable="false">Pre-Medication Reminders</string>
-    <string name="notification_channel_prereminder_description" translatable="false">Notifications that appear before medication is due.</string>
+    <string name="notification_channel_reminder_name">Recordatorios de Medicación</string>
+    <string name="notification_channel_reminder_description">Notificacións para recordatorios de toma de medicación</string>
+    <string name="notification_channel_prereminder_name">Pre-Recordatorios de Medicación</string>
+    <string name="notification_channel_prereminder_description">Notificacións que aparecen antes de que venza a medicación.</string>
+
+
     <!-- Day initialisms for medication summary -->
     <string name="day_mon">Luns</string>
     <string name="day_tue">Mar</string>
@@ -149,6 +157,7 @@
     <string name="day_fri">Ven</string>
     <string name="day_sat">Sáb</string>
     <string name="day_sun">Dom</string>
+
     <!-- Day initialisms for frequency selector -->
     <string name="day_mon_initial">L</string>
     <string name="day_tue_initial">M</string>
@@ -157,24 +166,30 @@
     <string name="day_fri_initial">V</string>
     <string name="day_sat_initial">S</string>
     <string name="day_sun_initial">D</string>
+
     <string name="info_not_available_short">N/D</string>
+
     <!-- Settings Screen: Language Names (in their own language) -->
     <string name="language_english">English</string>
     <string name="language_spanish">Español</string>
     <string name="language_galician">Galego</string>
     <string name="language_euskera">Euskara</string>
     <string name="language_catalan">Català</string>
+
     <!-- Settings Screen: Theme Options (will be translated) -->
     <string name="settings_theme_light_option">Claro</string>
     <string name="settings_theme_dark_option">Escuro</string>
     <string name="settings_theme_system_option">Predeterminado do sistema</string>
+
     <!-- FrequencyType Strings -->
     <string name="frequency_once_a_day">Unha vez ao día</string>
     <string name="frequency_multiple_times_a_day">Varias veces ao día</string>
     <string name="frequency_interval">Intervalo</string>
+
     <!-- Dosage Units -->
     <string name="dosage_mg">mg</string>
     <string name="dosage_ml">ml</string>
+
     <!-- Strings for Navigation Components (Task: Add Missing String Resources) -->
     <string name="add_medication_title">Engadir Medicamento</string>
     <string name="add_medication_short_action">Engadir</string>
@@ -183,11 +198,13 @@
     <string name="profile_screen_title">Perfil</string>
     <string name="select_medication_placeholder">Selecciona un medicamento para ver detalles</string>
     <string name="less_than_a_minute">menos dun minuto</string>
+
     <string name="notification_title_time_for">Hora do teu %1$s!</string>
     <string name="notification_text_take_dosage">Toma %1$s.</string>
     <string name="notification_action_mark_as_taken">Marcar como Tomada</string>
     <string name="notification_text_interval_dose_valid">Toma %1$s. Válido por aprox. %2$s.</string>
     <string name="notification_text_interval_dose_window_ended">Toma %1$s. Xanela de dose rematando/rematada.</string>
+
     <!-- FullScreenNotificationActivity -->
     <string name="fullscreen_notification_action_taken">Marcar como tomada</string>
     <string name="fullscreen_notification_action_dismiss">Descartar</string>
@@ -198,6 +215,7 @@
     <string name="medication_type_drops_image_description">Icona de gotas</string>
     <string name="medication_type_inhaler_image_description">Icona de inhalador</string>
     <string name="medication_type_other_image_description">Icona de medicamento</string>
+
     <string name="prereminder_title_medication">%1$s</string>
     <string name="prereminder_text_in_about_hour">Recordatorio en aproximadamente unha hora</string>
     <string name="prereminder_text_in_approx_minutes_plural">Recordatorio en ~%1$d minutos</string>
@@ -210,24 +228,28 @@
     <string name="prereminder_text_very_soon_singular">Moi pronto: %1$d min!</string>
     <string name="prereminder_text_about_time">Xa é hora!</string>
     <string name="prereminder_action_taken">Tomada</string>
-    <string name="content_description_tick_mark" translatable="false">Confirmation tick</string>
-    <string name="notification_actions_more_options" translatable="false">More options</string>
-    <string name="split_button_state_expanded" translatable="false">Expanded</string>
-    <string name="split_button_state_collapsed" translatable="false">Collapsed</string>
+
+    <string name="content_description_tick_mark">Marca de confirmación</string>
+    <string name="notification_actions_more_options">Máis opcións</string>
+    <string name="split_button_state_expanded">Expandido</string>
+    <string name="split_button_state_collapsed">Contraído</string>
+
     <string name="time_hr_min">%1$d h %2$d min</string>
     <string name="time_hr">%1$d h</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">Aínda non hai medicamentos. Actualiza ou engade un!</string>
     <string name="search_medications_placeholder">Buscar medicamentos...</string>
-    <string name="search_icon_content_description" translatable="false">Search</string>
+    <string name="search_icon_content_description">Buscar</string>
     <string name="clear_search_query_button_description">Limpar consulta de busca</string>
-    <string name="microphone_icon_content_description" translatable="false">Voice search</string>
-    <string name="speech_prompt_text" translatable="false">Speak now...</string>
+    <string name="microphone_icon_content_description">Busca por voz</string>
+    <string name="speech_prompt_text">Fala agora...</string>
+
     <!-- Calendar Screen Strings -->
-    <string name="select_date" translatable="false">Select Date</string>
-    <string name="previous_month" translatable="false">Previous Month</string>
-    <string name="next_month" translatable="false">Next Month</string>
-    <string name="no_medications_scheduled_for_this_month" translatable="false">No medications scheduled for this month.</string>
+    <string name="select_date">Seleccionar Data</string>
+    <string name="previous_month">Mes Anterior</string>
+    <string name="next_month">Mes Seguinte</string>
+    <string name="no_medications_scheduled_for_this_month">Non hai medicamentos programados para este mes.</string>
+
     <!-- Onboarding Screen (Original) -->
     <string name="onboarding_welcome_title">Benvido/a a PillPal!</string>
     <string name="onboarding_welcome_subtitle">Imos configuralo.</string>
@@ -235,6 +257,7 @@
     <string name="onboarding_permissions_placeholder">[Marcador de posición para Axustes de Permisos]</string>
     <string name="onboarding_pane_welcome_area_description">Área da mensaxe de benvida</string>
     <string name="onboarding_pane_steps_permissions_area_description">Área de pasos de introdución e permisos</string>
+
     <!-- Onboarding Screen (New Pager Flow) -->
     <string name="onboarding_logo_content_description">Logo da Aplicación</string>
     <string name="onboarding_step1_pager_title">Comezando</string>
@@ -254,12 +277,14 @@
     <string name="previous_button_text">Anterior</string>
     <string name="start_onboarding_button_text">Iniciar Introdución</string>
     <string name="onboarding_welcome_app_subtitle">O teu compañeiro de saúde para recordatorios de medicación puntuais.</string>
+
     <!-- AddMedicationChoiceScreen -->
     <string name="add_medication_choice_title">Engadir Medicamento</string>
     <string name="add_medication_camera_button">Usar Cámara</string>
-    <string name="add_medication_camera_button_desc">Usa la cámara para identificar el medicamento</string>
+    <string name="add_medication_camera_button_desc">Usa a cámara para identificar o medicamento</string>
     <string name="add_medication_search_button">Buscar Medicamento</string>
-    <string name="add_medication_search_button_desc">Busca el medicamento polo nome</string>
+    <string name="add_medication_search_button_desc">Busca o medicamento polo nome</string>
+
     <!-- AddMedicationStepsIndicator -->
     <string name="step_completed">Paso completado</string>
     <string name="step_title_medication_name">Nome</string>
@@ -267,6 +292,7 @@
     <string name="step_title_dosage_package">Dose e Envase</string>
     <string name="step_title_frequency">Frecuencia</string>
     <string name="step_title_summary">Resumo</string>
+
     <string name="settings_category_general">Xeral</string>
     <string name="settings_category_general_cd">Navegar a axustes xerais</string>
     <string name="settings_category_sound">Son</string>
@@ -276,11 +302,13 @@
     <string name="settings_developer_options_description">Estas opcións son para fins de depuración e desenvolvemento.</string>
     <string name="settings_restart_daily_worker_button">Reiniciar Tarefa Diaria</string>
     <string name="settings_share_app_logs_button">Compartir Rexistros da Aplicación</string>
+
     <!-- AllSchedulesScreen -->
     <string name="all_schedules_title">Todos os Horarios</string>
     <string name="back_button_content_description">Atrás</string>
     <string name="all_schedules_no_schedules_found">Non se atoparon horarios para este medicamento.</string>
     <string name="todays_full_schedule_title_template">%1$s - Horario de Hoxe</string>
+
     <!-- MedicationGraphScreen -->
     <string name="medication_statistics_title">Estatísticas da Medicación</string>
     <string name="med_stats_navigate_back_cd">Navegar Atrás</string>
@@ -296,6 +324,7 @@
     <string name="next_period_cd">Período Seguinte</string>
     <string name="med_graph_no_data_found">Non se atoparon datos do gráfico para o período seleccionado.</string>
     <string name="med_graph_unknown_error">Ocorreu un erro descoñecido ao cargar os datos do gráfico.</string>
+
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Volver aos detalles da medicación</string>
     <string name="med_info_loading_details">Cargando información do medicamento...</string>
@@ -320,6 +349,7 @@
     <string name="med_info_label_biosimilar">Biosimilar</string>
     <string name="med_info_label_estado_autorizacion_date">Data de Autorización</string>
     <string name="med_info_not_available_generic">Información do medicamento non dispoñible.</string>
+
     <!-- MedicationHistoryScreen -->
     <string name="med_history_navigate_back_cd">Navegar Atrás</string>
     <string name="med_history_filter_by_date_label">Filtrar por Data:</string>
@@ -340,6 +370,7 @@
     <string name="med_history_sort_by_newest_button">Ordenar: Máis Recentes Primeiro</string>
     <string name="medication_period_ended">O período de medicación rematou.</string>
     <string name="medication_progress_completed">Completado</string>
+
     <!-- Added for Show More/Less functionality -->
     <string name="show_more">Mostrar Máis</string>
     <string name="show_less">Mostrar Menos</string>
@@ -363,46 +394,311 @@
    <string name="medGraph_chart_doses_suffix">doses</string>
    <string name="medGraph_yearly_changeYear_cd_prefix">Cambiar ano, ano actual:</string>
    <string name="medGraph_yearly_chart_description_prefix">Dosesanuais tomadas.</string>
-
-    <!-- Greetings -->
+    <string name="time_remaining_hours_minutes">%1$dh %2$dm</string>
+    <string name="time_remaining_minutes">%1$dm</string>
+    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
     <string name="greeting_morning">¡Bos días! 🌤️</string>
     <string name="greeting_afternoon">¡Boas tardes! ☀️</string>
     <string name="greeting_evening">¡Boas noites! 🌙</string>
-
-    <!-- Next Dose Time Remaining -->
     <string name="next_dose_time_at_in">SEGUINTE DOSE ÁS %1$s (en %2$s)</string>
     <string name="next_dose_time_in">(en %1$s)</string>
     <string name="next_dose_at">SEGUINTE DOSE ÁS %1$s</string>
     <string name="no_upcoming_doses_today_next_in">Non hai seguintes doses hoxe. Seguinte dose en %1$s.</string>
     <string name="no_upcoming_doses_at_all">Non hai seguintes doses programadas.</string>
     <string name="time_remaining_days_hours">%1$dd %2$dh</string>
-    <string name="time_remaining_hours_minutes">%1$dh %2$dm</string>
-    <string name="time_remaining_minutes">%1$dm</string>
-    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
-    <string name="all_reminders_header">All Reminders</string>
-    <string name="next_dosage_title">Next Dosage</string>
-    <string name="adherence_title">Adherence</string>
-    <string name="adherence_mock_text">95% on time this week</string>
-    <string name="as_needed_meds_title">\"As Needed\" Medications</string>
-    <string name="no_as_needed_meds">No \"as needed\" doses logged recently.</string>
-    <string name="refill_reminders_title">Refill Reminders</string>
-    <string name="no_refill_reminders">No medications are running low.</string>
-    <string name="blood_pressure_title">Blood Pressure</string>
-    <string name="blood_pressure_mock_text">Latest: 125/82 mmHg</string>
-    <string name="symptom_tracker_title">How are you feeling?</string>
-    <string name="notes_for_doctor_title">Notes for Doctor</string>
-    <string name="show_all_button">Show all</string>
-    <string name="log_bp_button">Log</string>
-    <string name="no_as_needed_meds_configured">No \"as needed\" medications configured.</string>
-    <string name="take_medication_button">Take</string>
-    <string name="health_section_title">Health</string>
-    <string name="heart_rate_title">Heart Rate</string>
+    <string name="all_reminders_header">Todos os Recordatorios</string>
+    <string name="next_dosage_title">Vindeira Dose</string>
+    <string name="adherence_title">Adherencia</string>
+    <string name="adherence_mock_text">95% a tempo esta semana</string>
+    <string name="as_needed_meds_title">Medicamentos "Segundo Necesidade"</string>
+    <string name="no_as_needed_meds">Non se rexistraron doses "segundo necesidade" recentemente.</string>
+    <string name="refill_reminders_title">Recordatorios de Recarga</string>
+    <string name="no_refill_reminders">Non hai medicamentos que se estean a esgotar.</string>
+    <string name="blood_pressure_title">Presión Arterial</string>
+    <string name="blood_pressure_mock_text">Última: 125/82 mmHg</string>
+    <string name="symptom_tracker_title">Como te atopas?</string>
+    <string name="notes_for_doctor_title">Notas para o Médico</string>
+    <string name="show_all_button">Amosar todo</string>
+    <string name="log_bp_button">Rexistrar</string>
+    <string name="no_as_needed_meds_configured">Non hai medicamentos "segundo necesidade" configurados.</string>
+    <string name="take_medication_button">Tomar</string>
+    <string name="health_section_title">Saúde</string>
+    <string name="heart_rate_title">Frecuencia Cardíaca</string>
     <string name="heart_rate_unit">ppm</string>
-    <string name="today_label">Today</string>
-    <string name="weight_title">Weight</string>
-    <string name="last_registered_label">Last registered:</string>
-    <string name="progress_section_title">Progress</string>
-    <string name="missed_reminders_title">Missed Reminders</string>
-    <string name="last_missed_label">Last missed:</string>
-    <string name="today_progress_title">Today\\\'s Progress</string>
+    <string name="today_label">Hoxe</string>
+    <string name="weight_title">Peso</string>
+    <string name="last_registered_label">Último rexistro:</string>
+    <string name="progress_section_title">Progreso</string>
+    <string name="last_missed_label">Último omitido:</string>
+    <string name="today_progress_title">Progreso de Hoxe</string>
+    <string name="today_schedules_title">Horarios de Hoxe</string>
+    <string name="navigate_back">Navegar cara atrás</string>
+    <string name="no_medications_title">Non hai Medicamentos Rexistrados</string>
+    <string name="no_medications_body">Comeza engadindo o teu primeiro medicamento para ver o teu horario aquí.</string>
+    <string name="add_medication_button">Engadir Medicamento</string>
+    <string name="no_schedule_today_title">Non hai Recordatorios Programados para Hoxe</string>
+    <string name="no_schedule_today_body">Non tes recordatorios programados para hoxe. Volve mañá!</string>
+    <string name="no_more_reminders_today_title">Todos os Recordatorios Completados por Hoxe!</string>
+    <string name="no_more_reminders_today_body">Tomaches todos os teus recordatorios programados para hoxe. Bo traballo!</string>
+    <string name="no_reminders_for_today">Non hai recordatorios para hoxe</string>
+    <string name="scroll_to_current_time">Desprazarse á hora actual</string>
+    <string name="filter_by_medication">Medicamento</string>
+    <string name="all_medications">Todos</string>
+    <string name="filter_by_color">Cor</string>
+    <string name="all_colors">Todas as Cores</string>
+    <string name="filter_by_time_range">Rango de Tempo</string>
+    <string name="mark_as_taken_dialog_title">Confirmar Acción</string>
+    <string name="mark_as_taken_dialog_message">Como che gustaría marcar este medicamento como tomado?</string>
+    <string name="mark_as_taken_dialog_now">Á hora actual</string>
+    <string name="mark_as_taken_dialog_scheduled_time">Á hora programada</string>
+    <string name="bottom_sheet_add_reminders_title">Crear recordatorios</string>
+    <string name="bottom_sheet_add_medication">Medicación</string>
+    <string name="bottom_sheet_add_water_reminder">Auga</string>
+    <string name="bottom_sheet_register_manually_title">Rexistrar manualmente</string>
+    <string name="bottom_sheet_log_medication">Dose de medicación</string>
+    <string name="bottom_sheet_log_water">Auga</string>
+    <string name="bottom_sheet_log_weight">Peso</string>
+    <string name="personalize_home_title">Personalizar Inicio</string>
+    <string name="no_weight_data">Non hai peso rexistrado</string>
+    <string name="no_heart_rate_data">Non hai datos de frecuencia cardíaca rexistrados</string>
+    <string name="edit_section">Editar sección</string>
+    <string name="no_missed_reminders">Sen recordatorios omitidos! Estás ao día</string>
+    <string name="no_reminders_for_today_filtered">Non hai recordatorios para hoxe que coincidan cos filtros.</string>
+    <string name="water_intake_goal_progress">Estás a %1$sml de acadar o teu obxectivo diario de 4000ml</string>
+    <string name="water_intake_goal_reached_days">Ata agora, acadaches o teu obxectivo %1$d día(s) e bebiches un total de %2$sml</string>
+
+    <string name="water_intake_remaining_goal">Restante: %1$s ml para o obxectivo</string>
+    <string name="water_intake_records_title">Rexistros</string>
+    <string name="water_intake_custom_quantity">Cantidade personalizada</string>
+    <string name="water_intake_average_day">" de media diaria"</string>
+
+    <string name="today">Hoxe</string>
+    <string name="yesterday">Onte</string>
+    <string name="current_week">Semana actual</string>
+    <string name="current_month">Mes actual</string>
+
+    <string name="time_range_day">Día</string>
+    <string name="time_range_week">Semana</string>
+    <string name="time_range_month">Mes</string>
+    <string name="time_range_year">Ano</string>
+
+    <string name="this_week">Esta Semana</string>
+    <string name="this_month">Este Mes</string>
+
+    <string name="average">Media</string>
+
+    <string name="nutrition_weight_settings_title">Nutrición e Peso</string>
+
+    <string name="daily_water_intake_goal">Obxectivo</string>
+    <string name="water_intake_goal_ml">Obxectivo (ml)</string>
+    <string name="save">Gardar</string>
+
+    <string name="weight_goal">Obxectivo de Peso</string>
+    <string name="lose_weight">Perder Peso</string>
+    <string name="gain_weight">Gañar Peso</string>
+    <string name="weight_goal_kg">Obxectivo (kg)</string>
+
+    <string name="ml_at_day">ml ao día</string>
+    <string name="set_objective">Establecer Obxectivo</string>
+    <string name="weight_tracker">Peso</string>
+    <string name="history">Historial</string>
+    <string name="goal_template">Obxectivo: %s</string>
+    <string name="body_temperature_tracker">Temperatura Corporal</string>
+    <string name="maintain_weight">Manter Peso</string>
+    <string name="goal">Obxectivo</string>
+    <string name="last_recorded_weight">Último peso rexistrado: %1$s kg o %2$s</string>
+    <string name="no_weight_data_recorded">Aínda non se rexistraron datos de peso.</string>
+    <string name="about_body_temperature">Sobre a temperatura corporal</string>
+    <string name="about_body_temperature_description">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno.</string>
+    <string name="what_does_body_temp_mean_title">Que significa \"temperatura corporal\"?</string>
+    <string name="what_does_body_temp_mean_content">A temperatura corporal refírese á temperatura do corpo medida cun termómetro. O corpo traballa para manter a temperatura corporal dentro dun rango pequeno. Segundo a Organización Mundial da Saúde, a temperatura corporal normal oscila entre 36,5 e 37 °C. Pero cada persoa é diferent.</string>
+    <string name="what_can_affect_body_temp_title">Que pode afectar á temperatura corporal?</string>
+    <string name="what_can_affect_body_temp_content">A temperatura corporal pode verse afectada por varios factores, como a idade, as actividades, as hormonas, a hora do día, as enfermidades e o ciclo menstrual.</string>
+    <string name="how_is_body_temp_measured_title">Como se mide a temperatura corporal?</string>
+    <string name="how_is_body_temp_measured_content">A temperatura corporal pódese comprobar cun termómetro. Podes rexistrar os teus resultats manualmente ou sincronizalos desde un dispositivo compatible.</string>
+    <string name="disclaimer_body_temp">Esta función non está destinada a diagnosticar ou controlar enfermidades graves ou afeccións médicas. Consulte co seu médico se ten dúbidas sobre a súa saúde ou o que significan en xeral as súas lecturas de temperatura corporal.</string>
+    <string name="no_temperatures_recorded">Non se rexistraron temperaturas</string>
+    <string name="minutes">minutos</string>
+    <string name="goals">Obxectivos</string>
+    <string name="about_weight">Sobre o peso</string>
+    <string name="about_weight_info_title">Información sobre o peso</string>
+    <string name="action_collapse">Contraer</string>
+    <string name="action_expand">Expandir</string>
+    <string name="analysis_screen_title">Análise</string>
+    <string name="app_status_installed">Instalada</string>
+    <string name="app_status_not_installed">Non instalada</string>
+    <string name="bpm">ppm</string>
+    <string name="cancel">Cancelar</string>
+    <string name="celsius">°C</string>
+    <string name="configure_water">Configurar auga</string>
+    <string name="configure_weight">Configurar peso</string>
+    <string name="connected_devices_title">Dispositivos conectados</string>
+    <string name="connection">Conexión</string>
+    <string name="data">Datos</string>
+    <string name="dato_frecuencia_cardiaca">Frecuencia cardíaca</string>
+    <string name="dato_ingesta_de_agua">Toma de auga</string>
+    <string name="dato_peso">Peso</string>
+    <string name="dato_temperatura_corporal">Temperatura corporal</string>
+    <string name="delete_nutrition_data">Eliminar entradas de auga</string>
+    <string name="delete_nutrition_data_confirmation">Estás seguro de que queres eliminar todas as entradas de auga? Esta acción non se pode desfacer.</string>
+    <string name="delete_weight_data">Eliminar datos de peso</string>
+    <string name="delete_weight_data_confirmation">Estás seguro de que queres eliminar todos os datos de peso? Esta acción non se pode desfacer.</string>
+    <string name="device_info_app_status">Estado da aplicación</string>
+    <string name="device_info_battery">Batería</string>
+    <string name="device_info_last_sync">Última sincronización</string>
+    <string name="device_status_connected">Conectado</string>
+    <string name="differences_between_body_and_skin_temp_title">Diferenzas entre a temperatura corporal e a variación da temperatura da pel</string>
+    <string name="health_connect_data_source">Datos de Health Connect</string>
+    <string name="health_connect_description">Para ver todos os teus datos, dálle permiso a Pillpal para ler e escribir datos. Pillpal mostrará os datos das túas outras aplicacións e esas aplicacións poderán acceder aos datos de Pillpal.</string>
+    <string name="health_connect_disconnect">Desconectar Health Connect</string>
+    <string name="health_connect_disconnect_dialog_go_back_button">Volver</string>
+    <string name="health_connect_disconnect_dialog_message">PillPal seguirá tendo permisos en Health Connect a menos que os desactives. Abre Health Connect para eliminar os permisos de PillPal.</string>
+    <string name="health_connect_disconnect_dialog_open_settings_button">Abrir axustes</string>
+    <string name="health_connect_disconnect_dialog_title">Abre Health Connect para rematar a desconexión</string>
+    <string name="health_connect_get_help_description">Máis información sobre a sincronización con Health Connect e problemas comúns</string>
+    <string name="health_connect_get_help_title">Obter axuda</string>
+    <string name="health_connect_information_description_1">Os datos que permites que Pillpal lea de Health Connect estarán dispoñibles na aplicación Pillpal, pero non nos teus dispositivos.</string>
+    <string name="health_connect_information_description_2">Si permites que Pillpal escriba un tipo de datos en Health Connect, eses datos gardaranse en Health Connect e estarán dispoñibles para as túas outras aplicacións.</string>
+    <string name="health_connect_information_title">Información</string>
+    <string name="health_connect_manage_data_description">Revisa os permisos e elimina os datos de Health Connect</string>
+    <string name="health_connect_manage_data_title">Xestionar datos e acceso</string>
+    <string name="health_connect_review_permissions">Revisar permisos</string>
+    <string name="health_connect_settings">Health Connect</string>
+    <string name="health_connect_settings_title">Axustes</string>
+    <string name="health_connect_title">Aproveita ao máximo Health Connect</string>
+    <string name="health_connect_today_description">Mostrando datos de Health Connect</string>
+    <string name="health_connect_today_title">Health Connect en PillPal</string>
+    <string name="heart_rate">Frecuencia cardíaca</string>
+    <string name="heart_rate_tracker">Monitor de frecuencia cardíaca</string>
+    <string name="home_button_cd_connect_wear_os">Conectar dispositivo Wear OS</string>
+    <string name="home_button_cd_notifications_read">Notificacións lidas</string>
+    <string name="home_button_cd_notifications_unread">Notificacións non lidas</string>
+    <string name="home_button_cd_watch_app_not_installed">Reloxo conectado, aplicación non instalada</string>
+    <string name="home_button_cd_watch_connected">Reloxo conectado</string>
+    <string name="home_button_cd_watch_connected_settings">Dispositivo Wear OS conectado. Abrir axustes de conexión.</string>
+    <string name="home_button_cd_watch_disconnected_settings">Dispositivo Wear OS non conectado. Abrir axustes de conexión.</string>
+    <string name="home_button_cd_watch_not_connected">Reloxo non conectado</string>
+    <string name="home_item_heart_rate">Frecuencia cardíaca</string>
+    <string name="home_item_missed_reminders">Recordatorios omitidos</string>
+    <string name="home_item_next_dose">Seguinte dose</string>
+    <string name="home_item_temperature">Temperatura</string>
+    <string name="home_item_today_progress">Progreso de hoxe</string>
+    <string name="home_item_water_intake">Toma de auga</string>
+    <string name="home_item_weight">Peso</string>
+    <string name="home_section_header_cd">Cabeceira da sección de inicio</string>
+    <string name="home_section_health">Saúde</string>
+    <string name="home_section_nutrition">Nutrición</string>
+    <string name="home_section_progress">Progreso</string>
+    <string name="install_on_watch_button">Instalar a aplicación no reloxo</string>
+    <string name="kg">kg</string>
+    <string name="log_temperature">Rexistrar temperatura</string>
+    <string name="log_water">Rexistrar auga</string>
+    <string name="log_weight">Rexistrar peso</string>
+    <string name="medication_vault_title">Caixa forte</string>
+    <string name="ml">ml</string>
+    <string name="more_information">Máis información</string>
+    <string name="mostrar_datos_de_salud_conectada_description">Verás datos de PillPal e Health Connect para os tipos de datos admitidos</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Mostrar datos de Health Connect</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Só verás datos dos teus dispositivos PillPal e as funcións desa aplicación</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Mostrar só datos de PillPal</string>
+    <string name="move_down">Mover cara abaixo</string>
+    <string name="move_up">Mover cara arriba</string>
+    <string name="no_data">Sen datos</string>
+    <string name="no_device_found_subtitle">Asegúrate de que o teu reloxo estea preto e o Bluetooth estea activado.</string>
+    <string name="no_device_found_title">Non se atopou ningún dispositivo</string>
+    <string name="notification_action_snooze">Aprazar (10 min)</string>
+    <string name="percentage">%</string>
+    <string name="que_datos_se_mostraran_description_1">Se lle dás permiso a PillPal para ler datos, a aplicación pode amosarche os seguintes datos de Health Connect:</string>
+    <string name="que_datos_se_mostraran_description_2">Se escolles amosar os datos de Health Connect na aplicación, é posible que estes tipos de datos xa non coincidan co que aparece no teu dispositivo PillPal.</string>
+    <string name="que_datos_se_mostraran_description_3">As puntuacións, insignias e táboas de clasificación seguirán a usar só os datos dos teus dispositivos e funcións de PillPal.</string>
+    <string name="que_datos_se_mostraran_title">Que datos se amosarán</string>
+    <string name="refresh_device_list_button">Actualizar a lista de dispositivos</string>
+    <string name="salud_conectada_en_hoy_description">Para os tipos de datos admitidos, podes escoller que se amosen os datos de Health Connect na aplicación</string>
+    <string name="seconds">segundos</string>
+    <string name="settings_category_connected_devices_cd">Navegar á pantalla de dispositivos conectados</string>
+    <string name="state_collapsed">Contraído</string>
+    <string name="state_expanded">Expandido</string>
+    <string name="switch_state_not_taken">Non tomada</string>
+    <string name="switch_state_taken">Tomada</string>
+    <string name="sync_data_button">Sincronizar datos agora</string>
+    <string name="today_progress">Hoxe: </string>
+    <string name="today_schedule_item_card_cd">Tarxeta do elemento do horario de hoxe</string>
+    <string name="today_schedule_item_switch_cd">Cambiar o estado de medicación tomada</string>
+    <string name="water">Auga</string>
+    <string name="water_card_title">Auga</string>
+    <string name="water_goal">Obxectivo de auga</string>
+    <string name="water_intake_screen_title">Auga</string>
+    <string name="what_is_bmi_content">O índice de masa corporal (IMC) é a relación entre o teu peso e a túa altura.</string>
+    <string name="what_is_bmi_title">Que é o IMC?</string>
+    <string name="what_is_body_fat_content">A porcentaxe de graxa corporal refírese á proporción do teu peso corporal que é graxa.</string>
+    <string name="what_is_body_fat_title">Que é a graxa corporal?</string>
+    <string name="what_is_lean_mass_content">A masa magra está composta por músculos, órganos, ósos e auga corporal.</string>
+    <string name="what_is_lean_mass_title">Que é a masa magra?</string>
+    <string name="about_heart_rate_info_title">Sobre a frecuencia cardíaca</string>
+    <string name="what_is_heart_rate_title">Que é a frecuencia cardíaca?</string>
+    <string name="what_is_heart_rate_content">A frecuencia cardíaca é o número de veces que o teu corazón late por minuto (ppm). Pode ser un indicador útil da túa saúde xeral.</string>
+    <string name="what_is_resting_heart_rate_title">Que é a frecuencia cardíaca en repouso?</string>
+    <string name="what_is_resting_heart_rate_content">A frecuencia cardíaca en repouso é a túa frecuencia cardíaca cando estás en repouso. Unha frecuencia cardíaca en repouso máis baixa é xeralmente un sinal de boa saúde cardiovascular.</string>
+    <string name="what_can_affect_heart_rate_title">Que pode afectar á frecuencia cardíaca?</string>
+    <string name="what_can_affect_heart_rate_content">A frecuencia cardíaca pode verse afectada por varios factores, como a idade, o nivel de actividade, o estrés e os medicamentos.</string>
+    <string name="about_water_info_title">Sobre a inxestión de auga</string>
+    <string name="why_is_water_important_title">Por que é importante a auga?</string>
+    <string name="why_is_water_important_content">A auga é esencial para moitas funcións corporais, incluíndo a regulación da temperatura, a lubricación das articulacións e a eliminación de residuos.</string>
+    <string name="how_much_water_should_i_drink_title">Canta auga debo beber?</string>
+    <string name="how_much_water_should_i_drink_content">A cantidade de auga que necesitas pode variar dependendo de factores como a idade, o nivel de actividade e o clima. É importante manterse hidratado durante todo o día.</string>
+    <string name="log_water_intake_title">Rexistrar Toma de Auga</string>
+    <string name="more_options">Máis opcións</string>
+    <string name="manage_presets">Xestionar predefinidos</string>
+    <string name="log_water_screen_instruction">Elixe polo menos unha opción ou engade unha personalizada</string>
+    <string name="water_preset_water">Vaso</string>
+    <string name="water_preset_bottle">Botella</string>
+    <string name="water_preset_big_bottle">Botella grande</string>
+    <string name="add_preset">Engadir predefinido</string>
+    <string name="add_new_preset_title">Engadir Novo Predefinido</string>
+    <string name="preset_name">Nome do predefinido</string>
+    <string name="amount_ml">Cantidade (ml)</string>
+    <string name="add_button">Engadir</string>
+    <string name="personalized_amount">Cantidade personalizada</string>
+    <string name="save_total_ml">Gardar Total (%1$d mL)</string>
+    <string name="decrement">Decrementar</string>
+    <string name="increment">Incrementar</string>
+    <string name="log_weight_title">Rexistrar Peso</string>
+    <string name="manage_water_presets_title">Xestionar predefinidos de auga</string>
+    <string name="delete">Eliminar</string>
+    <string name="measurement_location">Lugar de medición</string>
+    <string name="location_unknown">Descoñecido</string>
+    <string name="location_armpit">Axila</string>
+    <string name="location_ear">Oído</string>
+    <string name="location_forehead">Fronte</string>
+    <string name="location_mouth">Boca</string>
+    <string name="location_rectum">Recto</string>
+    <string name="location_wrist">Pulso</string>
+    <string name="clear_time_range_filter">Limpar filtro de rango de tempo</string>
+    <string name="select_start_time">Seleccionar hora de inicio</string>
+    <string name="select_end_time">Seleccionar hora de finalización</string>
+    <string name="missed_reminders_title">Recordatorios omitidos</string>
+    <string name="todays_reminders_title">Recordatorios de hoxe</string>
+    <string name="filter_by_medication_singular">1 medicamento</string>
+    <string name="filter_by_medication_plural">%d medicamentos</string>
+    <string name="select_all">Seleccionar todo</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Laranxa</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_green">Verde Escuro</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_purple">Morado</string>
+    <string name="color_yellow">Dourado</string>
+    <string name="color_light_yellow">Amarelo Claro</string>
+    <string name="color_light_orange">Laranxa Claro</string>
+    <string name="color_light_pink">Rosa Claro</string>
+    <string name="color_light_purple">Morado Claro</string>
+    <string name="color_light_green">Verde Claro</string>
+    <string name="color_light_blue">Azul Claro</string>
+    <string name="color_no_color">Sen cor</string>
+
+    <!-- Home Screen Cards -->
+    <string name="next_dose_in_title">Vindeira dose en</string>
+    <string name="last_missed_at_time">Última omisión ás %1$s</string>
+    <string name="view_details_missed_reminders_cd">Ver detalles dos recordatorios omitidos</string>
 </resources>
