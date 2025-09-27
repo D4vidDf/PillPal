@@ -21,13 +21,18 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
         WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class],
-    version = 11, // Incremented version to 11
+    version = 12, // Incremented version to 12
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medication_schedule ADD COLUMN startDate TEXT")
+            }
+        }
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // We are performing major schema changes, so we'll disable foreign keys for the transaction.
