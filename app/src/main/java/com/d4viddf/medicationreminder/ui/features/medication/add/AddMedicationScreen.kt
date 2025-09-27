@@ -181,6 +181,9 @@ fun AddMedicationScreen(
                 navigationIcon = {
                     if (currentStep > 0) {
                         IconButton(onClick = {
+                            if (currentStep == 2) {
+                                dosage = ""
+                            }
                             currentStep--
                             progress = (currentStep + 1) / 5f
                         }) {
@@ -336,6 +339,7 @@ fun AddMedicationScreen(
                             medicationSearchResult = result
                             if (result != null) {
                                 medicationName = result.name
+                                dosage = result.dosage ?: ""
                             }
                         },
                         selectedTypeId = selectedTypeId,
@@ -407,6 +411,7 @@ fun AddMedicationScreen(
                         medicationSearchResult = result
                         if (result != null) {
                             medicationName = result.name
+                            dosage = result.dosage ?: ""
                         }
                     },
                     selectedTypeId = selectedTypeId,
@@ -662,11 +667,17 @@ fun MedicationSummary(
     val selectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
     val selectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
 
+    val formattedDosage = dosage
+        .replace(".5", " ½")
+        .replace(".33", " ⅓")
+        .replace(".25", " ¼")
+        .trim()
+
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Text(stringResource(id = R.string.medication_summary_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
         InfoRow(stringResource(id = R.string.label_name), medicationName)
-        InfoRow(stringResource(id = R.string.label_dosage), dosage.ifEmpty { notSet })
+        InfoRow(stringResource(id = R.string.label_dosage), formattedDosage.ifEmpty { notSet })
         InfoRow(stringResource(id = R.string.label_package_size), packageSize.ifEmpty { notSet })
         InfoRow(stringResource(id = R.string.label_start_date), if (startDate.isBlank() || startDate == selectStartDatePlaceholder) notSet else startDate)
         InfoRow(stringResource(id = R.string.label_end_date), if (endDate.isBlank() || endDate == selectEndDatePlaceholder) notSet else endDate)
