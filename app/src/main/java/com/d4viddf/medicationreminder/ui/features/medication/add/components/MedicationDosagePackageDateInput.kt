@@ -528,13 +528,16 @@ fun <T> IOSWheelPicker(
 enum class PillFraction(val stringRes: Int) {
     WHOLE(R.string.dosage_whole_pill),
     HALF(R.string.dosage_half_pill),
-    THIRD(R.string.dosage_third_pill),
+    THIRD(0), // Using 0 as a placeholder since we can't add new string resources
     QUARTER(R.string.dosage_quarter_pill);
 
     companion object {
         @Composable
-        fun displayValue(fraction: PillFraction): String { // Removed unused context parameter
-            return stringResource(id = fraction.stringRes)
+        fun displayValue(fraction: PillFraction): String {
+            return when (fraction) {
+                THIRD -> "⅓"
+                else -> stringResource(id = fraction.stringRes)
+            }
         }
     }
 }
