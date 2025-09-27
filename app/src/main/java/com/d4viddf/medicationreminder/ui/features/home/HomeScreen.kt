@@ -139,7 +139,7 @@ fun HomeScreen(
 
 
     // A flag to indicate if there are unread alerts (you can wire this to a real data source)
-    val hasUnreadAlerts = false // TODO: Replace with a flow from the ViewModel
+    val hasUnreadAlerts = false // TODO: Replace with a real data source
 
     LaunchedEffect(key1 = Unit) {
         viewModel.navigationEvents.collectLatest { route ->
@@ -790,7 +790,7 @@ private val mockNextDoseGroup = listOf(
 
 private val mockMissedReminders = listOf(
     TodayScheduleUiItem(
-        MedicationReminder(3, 3, 3, "08:00", isTaken = false, null, null),
+        MedicationReminder(3, 3, 3,1, "08:00", isTaken = false, null, null),
         "Metformin", "500mg", "LIGHT_ORANGE", null, null, "08:00"
     )
 )

@@ -3,6 +3,7 @@ package com.d4viddf.medicationreminder.ui.features.medication.graph
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
@@ -36,7 +37,8 @@ data class ChartyGraphEntry(
 class MedicationGraphViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
-    private val scheduleRepository: MedicationScheduleRepository // Added
+    private val scheduleRepository: MedicationScheduleRepository,
+    private val dosageRepository: MedicationDosageRepository
 ) : ViewModel() {
 
     private val _chartyGraphData = MutableStateFlow<List<ChartyGraphEntry>>(emptyList())
@@ -162,8 +164,9 @@ class MedicationGraphViewModel @Inject constructor(
                         _isLoading.value = false
                         return@launch
                     }
+                    val activeDosage = dosageRepository.getActiveDosage(medicationId)
                     _medicationName.value = medicationForJob!!.name ?: "Medication $medicationId"
-                    _currentDosageQuantity.value = parseDosageQuantity(medicationForJob!!.dosage)
+                    _currentDosageQuantity.value = parseDosageQuantity(activeDosage?.dosage)
                     Log.d(TAG, "ReminderObserverJob: Fetched medication: Name='${_medicationName.value}', DosageQty=${_currentDosageQuantity.value}")
                 } catch (e: Exception) {
                     Log.e(TAG, "ReminderObserverJob: Error fetching medication details for medId $medicationId", e)
