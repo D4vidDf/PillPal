@@ -144,6 +144,7 @@ fun AddMedicationScreen(
     var medicationName by rememberSaveable { mutableStateOf("") }
     var dosage by rememberSaveable { mutableStateOf("") }
     var packageSize by rememberSaveable { mutableStateOf("") }
+    var saveRemainingFraction by rememberSaveable { mutableStateOf(false) }
     var medicationSearchResult by rememberSaveable { mutableStateOf<MedicationSearchResult?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -231,6 +232,7 @@ fun AddMedicationScreen(
                                 color = selectedColor.toString(),
                                 packageSize = packageSize.toIntOrNull() ?: 0,
                                 remainingDoses = packageSize.toIntOrNull() ?: 0,
+                                saveRemainingFraction = saveRemainingFraction,
                                 startDate = finalStartDate,
                                 endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
                                 reminderTime = null,
@@ -339,7 +341,6 @@ fun AddMedicationScreen(
                             medicationSearchResult = result
                             if (result != null) {
                                 medicationName = result.name
-                                dosage = result.dosage ?: ""
                             }
                         },
                         selectedTypeId = selectedTypeId,
@@ -350,6 +351,8 @@ fun AddMedicationScreen(
                         onDosageChange = { dosage = it },
                         packageSize = packageSize,
                         onPackageSizeChange = { packageSize = it },
+                        saveRemainingFraction = saveRemainingFraction,
+                        onSaveRemainingFractionChange = { saveRemainingFraction = it },
                         medicationSearchResult = medicationSearchResult,
                         startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                         onStartDateSelected = { startDate = it },
@@ -411,7 +414,6 @@ fun AddMedicationScreen(
                         medicationSearchResult = result
                         if (result != null) {
                             medicationName = result.name
-                            dosage = result.dosage ?: ""
                         }
                     },
                     selectedTypeId = selectedTypeId,
@@ -422,6 +424,8 @@ fun AddMedicationScreen(
                     onDosageChange = { dosage = it },
                     packageSize = packageSize,
                     onPackageSizeChange = { packageSize = it },
+                    saveRemainingFraction = saveRemainingFraction,
+                    onSaveRemainingFractionChange = { saveRemainingFraction = it },
                     medicationSearchResult = medicationSearchResult,
                     startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                     onStartDateSelected = { startDate = it },
@@ -482,6 +486,8 @@ private fun CurrentStepContent(
     onDosageChange: (String) -> Unit,
     packageSize: String,
     onPackageSizeChange: (String) -> Unit,
+    saveRemainingFraction: Boolean,
+    onSaveRemainingFractionChange: (Boolean) -> Unit,
     medicationSearchResult: MedicationSearchResult?,
     startDate: String,
     onStartDateSelected: (String) -> Unit,
@@ -549,6 +555,8 @@ private fun CurrentStepContent(
                 selectedTypeId = selectedTypeId,
                 dosage = dosage, onDosageChange = onDosageChange,
                 packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
+                saveRemainingFraction = saveRemainingFraction,
+                onSaveRemainingFractionChange = onSaveRemainingFractionChange,
                 medicationSearchResult = medicationSearchResult,
                 startDate = startDate, // Pass the potentially placeholder-containing state
                 onStartDateSelected = onStartDateSelected,
@@ -671,6 +679,7 @@ fun MedicationSummary(
         .replace(".5", " ½")
         .replace(".33", " ⅓")
         .replace(".25", " ¼")
+        .replace(".0", "")
         .trim()
 
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {

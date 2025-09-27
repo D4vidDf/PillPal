@@ -3,20 +3,14 @@
 package com.d4viddf.medicationreminder.ui.features.medication.add.components
 
 import android.content.res.Configuration
-import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -26,13 +20,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeViewModel
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import kotlin.math.abs
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +34,8 @@ fun MedicationDosagePackageDateInput(
     onDosageChange: (String) -> Unit,
     packageSize: String,
     onPackageSizeChange: (String) -> Unit,
+    saveRemainingFraction: Boolean,
+    onSaveRemainingFractionChange: (Boolean) -> Unit,
     medicationSearchResult: MedicationSearchResult?,
     startDate: String,
     onStartDateSelected: (String) -> Unit,
@@ -53,11 +47,10 @@ fun MedicationDosagePackageDateInput(
     val medicationType = medicationTypes.find { it.id == selectedTypeId }
     var showDosageModal by remember { mutableStateOf(false) }
 
-    // Resolve strings in Composable context
     val strDosagePackageDatesTitle = stringResource(id = R.string.dosage_package_dates_title)
     val strDosageWholePill = stringResource(id = R.string.dosage_whole_pill)
-    val strDosageMg = stringResource(id = R.string.dosage_mg) // Assuming R.string.dosage_mg exists for "mg"
-    val strDosageMl = stringResource(id = R.string.dosage_ml) // Assuming R.string.dosage_ml exists for "ml"
+    val strDosageMg = stringResource(id = R.string.dosage_mg)
+    val strDosageMl = stringResource(id = R.string.dosage_ml)
     val strDosageSprays = stringResource(id = R.string.dosage_sprays)
     val strDosageSuppositories = stringResource(id = R.string.dosage_suppositories)
     val strDosagePatches = stringResource(id = R.string.dosage_patches)
@@ -70,19 +63,9 @@ fun MedicationDosagePackageDateInput(
     val strSelectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
     val strEndDateLabel = stringResource(id = R.string.end_date_label)
     val strSelectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
-    val strSelectDosageDialogTitle = stringResource(id = R.string.select_dosage_dialog_title)
+    val strInsertDosageDialogTitle = "Insert dosis"
     val strDosageWheelPickerNotAvailable = stringResource(id = R.string.dosage_wheel_picker_not_available)
     val strDialogDoneButton = stringResource(id = R.string.dialog_done_button)
-    val strDialogOkButton = stringResource(id = R.string.dialog_ok_button)
-    val strDialogCancelButton = stringResource(id = R.string.dialog_cancel_button)
-
-    // Pre-resolve PillFraction display values
-    // The 'pillFractionDisplayValues' using context = null was part of an intermediate step and is not needed.
-    // 'resolvedPillFractionDisplayValues' is the correct one.
-    val resolvedPillFractionDisplayValues = PillFraction.entries.associate {
-        it to PillFraction.displayValue(it) // Call the composable function directly
-    }
-
 
     Column(
         modifier = Modifier
@@ -114,7 +97,7 @@ fun MedicationDosagePackageDateInput(
                 formattedDosage.ifEmpty {
                     if (medicationSearchResult?.dosage != null) medicationSearchResult.dosage
                     else {
-                        when (medicationType?.name) { // medicationType.name is English, used for logic
+                        when (medicationType?.name) {
                             "Tablet", "Pill" -> strDosageWholePill
                             "Cream", "Creme" -> "10 $strDosageMg"
                             "Liquid" -> "10 $strDosageMl"
@@ -221,181 +204,198 @@ fun MedicationDosagePackageDateInput(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    strSelectDosageDialogTitle,
+                    strInsertDosageDialogTitle,
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    when (medicationType?.name) {
-                        "Tablet", "Pill" -> {
-                            var numPills by remember(dosage) {
-                                mutableStateOf(
-                                    dosage.split(".").first().filter { it.isDigit() }.ifEmpty { "" }
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        when (medicationType?.name) {
+                            "Tablet", "Pill" -> {
+                                var numPills by remember(dosage) { mutableStateOf(dosage.split(".").firstOrNull()?.filter { it.isDigit() } ?: "") }
+                                var selectedFraction by remember(dosage) {
+                                    mutableStateOf(
+                                        when {
+                                            dosage.endsWith(".5") -> PillFraction.HALF
+                                            dosage.endsWith(".33") -> PillFraction.THIRD
+                                            dosage.endsWith(".25") -> PillFraction.QUARTER
+                                            else -> PillFraction.WHOLE
+                                        }
+                                    )
+                                }
+
+                                LaunchedEffect(numPills, selectedFraction) {
+                                    val dosageValue = if (selectedFraction == PillFraction.WHOLE) {
+                                        if (numPills.isNotEmpty()) (numPills.toIntOrNull() ?: 0).toString() else ""
+                                    } else {
+                                        val intValue = numPills.toIntOrNull() ?: 0
+                                        when (selectedFraction) {
+                                            PillFraction.HALF -> "$intValue.5"
+                                            PillFraction.THIRD -> "$intValue.33"
+                                            PillFraction.QUARTER -> "$intValue.25"
+                                            else -> intValue.toString()
+                                        }
+                                    }
+                                    onDosageChange(dosageValue)
+                                }
+
+                                OutlinedTextField(
+                                    value = numPills,
+                                    onValueChange = { numPills = it.filter { c -> c.isDigit() } },
+                                    label = { Text("Pills") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                UnitDropdown(
+                                    items = PillFraction.values().toList(),
+                                    selected = selectedFraction,
+                                    onSelected = { selectedFraction = it },
+                                    displayTransform = { it.display },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
-                            var selectedFraction by remember(dosage) {
-                                mutableStateOf(
-                                    when {
-                                        dosage.endsWith(".5") -> PillFraction.HALF
-                                        dosage.endsWith(".33") -> PillFraction.THIRD
-                                        dosage.endsWith(".25") -> PillFraction.QUARTER
-                                        else -> PillFraction.WHOLE
+                            "Cream", "Creme" -> {
+                                val parts = dosage.split(" ")
+                                var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
+                                var unit by remember { mutableStateOf(CreamUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: CreamUnit.MG) }
+
+                                LaunchedEffect(amount, unit) {
+                                    if (amount.isNotBlank()) {
+                                        onDosageChange("$amount ${unit.displayValue}")
+                                    } else {
+                                        onDosageChange("")
                                     }
+                                }
+
+                                OutlinedTextField(
+                                    value = amount,
+                                    onValueChange = { amount = it },
+                                    label = { Text("Amount") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                UnitDropdown(
+                                    items = CreamUnit.values().toList(),
+                                    selected = unit,
+                                    onSelected = { unit = it },
+                                    displayTransform = { it.displayValue },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
+                            "Liquid" -> {
+                                val parts = dosage.split(" ")
+                                var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
+                                var unit by remember { mutableStateOf(LiquidUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: LiquidUnit.ML) }
 
-                            LaunchedEffect(numPills, selectedFraction) {
-                                val dosageValue = if (selectedFraction == PillFraction.WHOLE) {
-                                    if (numPills.isNotEmpty()) (numPills.toIntOrNull() ?: 0).toString() else ""
-                                } else {
-                                    val intValue = numPills.toIntOrNull() ?: 0
-                                    when (selectedFraction) {
-                                        PillFraction.HALF -> "$intValue.5"
-                                        PillFraction.THIRD -> "$intValue.33"
-                                        PillFraction.QUARTER -> "$intValue.25"
-                                        else -> intValue.toString()
+                                LaunchedEffect(amount, unit) {
+                                    if (amount.isNotBlank()) {
+                                        onDosageChange("$amount ${unit.displayValue}")
+                                    } else {
+                                        onDosageChange("")
                                     }
                                 }
-                                onDosageChange(dosageValue)
+
+                                OutlinedTextField(
+                                    value = amount,
+                                    onValueChange = { amount = it },
+                                    label = { Text("Amount") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                UnitDropdown(
+                                    items = LiquidUnit.values().toList(),
+                                    selected = unit,
+                                    onSelected = { unit = it },
+                                    displayTransform = { it.displayValue },
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
+                            "Powder" -> {
+                                val parts = dosage.split(" ")
+                                var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
+                                var unit by remember { mutableStateOf(PowderUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: PowderUnit.MG) }
 
-                            OutlinedTextField(
-                                value = numPills,
-                                onValueChange = { numPills = it.filter { c -> c.isDigit() } },
-                                label = { Text("Pills") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            UnitDropdown(
-                                items = PillFraction.values().toList(),
-                                selected = selectedFraction,
-                                onSelected = { selectedFraction = it },
-                                displayTransform = { it.display },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        "Cream", "Creme" -> {
-                            val parts = dosage.split(" ")
-                            var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
-                            var unit by remember { mutableStateOf(CreamUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: CreamUnit.MG) }
-
-                            LaunchedEffect(amount, unit) {
-                                if (amount.isNotBlank()) {
-                                    onDosageChange("$amount ${unit.displayValue}")
-                                } else {
-                                    onDosageChange("")
+                                LaunchedEffect(amount, unit) {
+                                    if (amount.isNotBlank()) {
+                                        onDosageChange("$amount ${unit.displayValue}")
+                                    } else {
+                                        onDosageChange("")
+                                    }
                                 }
+
+                                OutlinedTextField(
+                                    value = amount,
+                                    onValueChange = { amount = it },
+                                    label = { Text("Amount") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                UnitDropdown(
+                                    items = PowderUnit.values().toList(),
+                                    selected = unit,
+                                    onSelected = { unit = it },
+                                    displayTransform = { it.displayValue },
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
-
-                            OutlinedTextField(
-                                value = amount,
-                                onValueChange = { amount = it },
-                                label = { Text("Amount") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            UnitDropdown(
-                                items = CreamUnit.values().toList(),
-                                selected = unit,
-                                onSelected = { unit = it },
-                                displayTransform = { it.displayValue },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        "Liquid" -> {
-                            val parts = dosage.split(" ")
-                            var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
-                            var unit by remember { mutableStateOf(LiquidUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: LiquidUnit.ML) }
-
-                            LaunchedEffect(amount, unit) {
-                                if (amount.isNotBlank()) {
-                                    onDosageChange("$amount ${unit.displayValue}")
-                                } else {
-                                    onDosageChange("")
+                            "Syringe", "Suppository", "Suppositorium", "Spray", "Patch" -> {
+                                val (unitLabel, unitSuffix) = when(medicationType?.name) {
+                                    "Syringe" -> SyringeUnit.ML.displayValue to " ${SyringeUnit.ML.displayValue}"
+                                    "Spray" -> strDosageSprays to " $strDosageSprays"
+                                    "Suppository", "Suppositorium" -> strDosageSuppositories to " $strDosageSuppositories"
+                                    "Patch" -> strDosagePatches to " $strDosagePatches"
+                                    else -> "" to ""
                                 }
-                            }
+                                var amount by remember(dosage) { mutableStateOf(dosage.removeSuffix(unitSuffix)) }
 
-                            OutlinedTextField(
-                                value = amount,
-                                onValueChange = { amount = it },
-                                label = { Text("Amount") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            UnitDropdown(
-                                items = LiquidUnit.values().toList(),
-                                selected = unit,
-                                onSelected = { unit = it },
-                                displayTransform = { it.displayValue },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        "Powder" -> {
-                            val parts = dosage.split(" ")
-                            var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
-                            var unit by remember { mutableStateOf(PowderUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: PowderUnit.MG) }
-
-                            LaunchedEffect(amount, unit) {
-                                if (amount.isNotBlank()) {
-                                    onDosageChange("$amount ${unit.displayValue}")
-                                } else {
-                                    onDosageChange("")
+                                LaunchedEffect(amount) {
+                                    if (amount.isNotBlank()) {
+                                        onDosageChange("$amount$unitSuffix")
+                                    } else {
+                                        onDosageChange("")
+                                    }
                                 }
-                            }
 
-                            OutlinedTextField(
-                                value = amount,
-                                onValueChange = { amount = it },
-                                label = { Text("Amount") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            UnitDropdown(
-                                items = PowderUnit.values().toList(),
-                                selected = unit,
-                                onSelected = { unit = it },
-                                displayTransform = { it.displayValue },
-                                modifier = Modifier.weight(1f)
-                            )
+                                OutlinedTextField(
+                                    value = amount,
+                                    onValueChange = { amount = it.filter { c -> c.isDigit() } },
+                                    label = { Text(unitLabel) },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            else -> {
+                                Text(strDosageWheelPickerNotAvailable,
+                                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
-                        "Syringe", "Suppository", "Suppositorium", "Spray", "Patch" -> {
-                            val (unitLabel, unitSuffix) = when(medicationType?.name) {
-                                "Syringe" -> SyringeUnit.ML.displayValue to " ${SyringeUnit.ML.displayValue}"
-                                "Spray" -> strDosageSprays to " $strDosageSprays"
-                                "Suppository", "Suppositorium" -> strDosageSuppositories to " $strDosageSuppositories"
-                                "Patch" -> strDosagePatches to " $strDosagePatches"
-                                else -> "" to ""
-                            }
-                            var amount by remember(dosage) { mutableStateOf(dosage.removeSuffix(unitSuffix)) }
+                    }
 
-                            LaunchedEffect(amount) {
-                                if (amount.isNotBlank()) {
-                                    onDosageChange("$amount$unitSuffix")
-                                } else {
-                                    onDosageChange("")
-                                }
-                            }
-
-                            OutlinedTextField(
-                                value = amount,
-                                onValueChange = { amount = it.filter { c -> c.isDigit() } },
-                                label = { Text(unitLabel) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.fillMaxWidth()
+                    if (medicationType?.name in listOf("Tablet", "Pill")) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                                .clickable { onSaveRemainingFractionChange(!saveRemainingFraction) }
+                        ) {
+                            Checkbox(
+                                checked = saveRemainingFraction,
+                                onCheckedChange = onSaveRemainingFractionChange
                             )
-                        }
-                        else -> {
-                            Text(strDosageWheelPickerNotAvailable,
-                                modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                textAlign = TextAlign.Center
+                            Text(
+                                text = "Save remaining fraction of the pill",
+                                modifier = Modifier.padding(start = 8.dp)
                             )
                         }
                     }
@@ -416,7 +416,7 @@ fun MedicationDosagePackageDateInput(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun M3StyledDatePickerButton(
-    label: String, // stringResource
+    label: String,
     dateString: String,
     placeholder: String,
     onDateSelected: (String) -> Unit,
@@ -499,8 +499,8 @@ private fun M3StyledDatePickerButton(
         ) {
             DatePicker(
                 state = datePickerState,
-                title = null, // Title can be set here if needed, using stringResource
-                headline = null, // Headline can be set here if needed, using stringResource
+                title = null,
+                headline = null,
                 showModeToggle = true
             )
         }
@@ -568,17 +568,10 @@ fun <T> UnitDropdown(
 }
 
 enum class PillFraction(val value: Float, val display: String) {
-    WHOLE(0.0f, " "),
+    WHOLE(0.0f, "Whole"),
     HALF(0.5f, "½"),
     THIRD(0.33f, "⅓"),
     QUARTER(0.25f, "¼");
-
-    companion object {
-        @Composable
-        fun displayValue(fraction: PillFraction): String {
-            return fraction.display
-        }
-    }
 }
 
 enum class CreamUnit(val displayValue: String) {
@@ -609,6 +602,8 @@ fun MedicationDosagePackageDateInputPreview() {
             onDosageChange = {},
             packageSize = "30",
             onPackageSizeChange = {},
+            saveRemainingFraction = false,
+            onSaveRemainingFractionChange = {},
             medicationSearchResult = null,
             startDate = "",
             onStartDateSelected = {},
