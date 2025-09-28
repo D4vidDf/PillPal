@@ -133,6 +133,25 @@ fun MedicationDosagePackageDateInput(
             }
         }
 
+        if (medicationType?.name in listOf("Tablet", "Pill")) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .clickable { onSaveRemainingFractionChange(!saveRemainingFraction) }
+            ) {
+                Checkbox(
+                    checked = saveRemainingFraction,
+                    onCheckedChange = onSaveRemainingFractionChange
+                )
+                Text(
+                    text = "Save remaining fraction of the pill",
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+
         Surface(
             tonalElevation = 3.dp,
             shape = RoundedCornerShape(16.dp),
@@ -200,10 +219,8 @@ fun MedicationDosagePackageDateInput(
             if (medicationType?.name in listOf("Tablet", "Pill")) {
                 DosageEditor(
                     initialDosage = dosage,
-                    initialSaveRemainingFraction = saveRemainingFraction,
-                    onSave = { newDosage, newSaveFraction ->
+                    onSave = { newDosage ->
                         onDosageChange(newDosage)
-                        onSaveRemainingFractionChange(newSaveFraction)
                         showDosageModal = false
                     }
                 )
@@ -350,24 +367,6 @@ fun MedicationDosagePackageDateInput(
                                         textAlign = TextAlign.Center
                                     )
                                 }
-                            }
-                        }
-                        if (medicationType?.name in listOf("Tablet", "Pill")) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                                    .clickable { onSaveRemainingFractionChange(!saveRemainingFraction) }
-                            ) {
-                                Checkbox(
-                                    checked = saveRemainingFraction,
-                                    onCheckedChange = onSaveRemainingFractionChange
-                                )
-                                Text(
-                                    text = "Save remaining fraction of the pill",
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
                             }
                         }
                     }

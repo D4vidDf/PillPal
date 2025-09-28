@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,12 +44,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DosageEditor(
     initialDosage: String,
-    initialSaveRemainingFraction: Boolean,
-    onSave: (String, Boolean) -> Unit
+    onSave: (String) -> Unit
 ) {
     var integerPart by remember { mutableStateOf("1") }
     var selectedFraction by remember { mutableStateOf(PillFraction.WHOLE) }
-    var saveRemainingFraction by remember { mutableStateOf(initialSaveRemainingFraction) }
     var showFractionMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(initialDosage) {
@@ -68,7 +67,10 @@ fun DosageEditor(
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface // Match bottom sheet background
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,7 +78,11 @@ fun DosageEditor(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceAround
         ) {
-            Text("Dosage", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                "Dosage",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -88,8 +94,12 @@ fun DosageEditor(
                     onValueChange = { newValue ->
                         integerPart = (newValue.filter { it.isDigit() }.toIntOrNull() ?: 0).toString()
                     },
-                    textStyle = MaterialTheme.typography.displayLarge.copy(textAlign = TextAlign.Center),
+                    textStyle = MaterialTheme.typography.displayLarge.copy(
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface // Ensure visibility in dark mode
+                    ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.weight(1f)
                 )
 
@@ -97,6 +107,7 @@ fun DosageEditor(
                     Text(
                         text = if (selectedFraction != PillFraction.WHOLE) selectedFraction.display else "",
                         style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.onSurface, // Ensure visibility in dark mode
                         modifier = Modifier.clickable { showFractionMenu = true }
                     )
                     DropdownMenu(
@@ -109,14 +120,21 @@ fun DosageEditor(
                                 onClick = {
                                     selectedFraction = fraction
                                     showFractionMenu = false
-                                }
+                                },
+                                colors = androidx.compose.material3.DropdownMenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.onSurface
+                                )
                             )
                         }
                     }
                 }
             }
 
-            Text("pill", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                "pill",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -134,7 +152,11 @@ fun DosageEditor(
                         .size(64.dp)
                         .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Decrease dosage")
+                    Icon(
+                        Icons.Default.Remove,
+                        contentDescription = "Decrease dosage",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer // Ensure visibility
+                    )
                 }
                 Spacer(modifier = Modifier.width(32.dp))
                 IconButton(
@@ -146,22 +168,15 @@ fun DosageEditor(
                         .size(64.dp)
                         .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Increase dosage")
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Increase dosage",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer // Ensure visibility
+                    )
                 }
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clickable { saveRemainingFraction = !saveRemainingFraction }
-                    .padding(8.dp)
-            ) {
-                Checkbox(
-                    checked = saveRemainingFraction,
-                    onCheckedChange = { saveRemainingFraction = it }
-                )
-                Text("Save remaining fraction of the pill")
-            }
+            Spacer(modifier = Modifier.height(64.dp)) // Placeholder for the checkbox space
 
             Button(
                 onClick = {
@@ -177,7 +192,7 @@ fun DosageEditor(
                         }
                         "$intPart.$fractionValue"
                     }
-                    onSave(dosageValue, saveRemainingFraction)
+                    onSave(dosageValue)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
