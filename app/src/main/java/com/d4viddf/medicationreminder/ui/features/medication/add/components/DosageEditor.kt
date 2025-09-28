@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DosageEditor(
     initialDosage: String,
+    unit: String,
     onSave: (String) -> Unit
 ) {
     var integerPart by remember { mutableStateOf("1") }
@@ -59,10 +60,10 @@ fun DosageEditor(
         val parts = initialDosage.split(".")
         integerPart = parts.getOrNull(0)?.filter { it.isDigit() }?.takeIf { it.isNotEmpty() } ?: "0"
         val fractionPart = parts.getOrNull(1)
-        selectedFraction = when {
-            fractionPart?.startsWith("5") == true -> PillFraction.HALF
-            fractionPart?.startsWith("33") == true -> PillFraction.THIRD
-            fractionPart?.startsWith("25") == true -> PillFraction.QUARTER
+        selectedFraction = when (fractionPart) {
+            "5" -> PillFraction.HALF
+            "33" -> PillFraction.THIRD
+            "25" -> PillFraction.QUARTER
             else -> PillFraction.WHOLE
         }
     }
@@ -85,9 +86,7 @@ fun DosageEditor(
             )
 
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 BasicTextField(
                     value = integerPart,
@@ -95,17 +94,18 @@ fun DosageEditor(
                         integerPart = (newValue.filter { it.isDigit() }.toIntOrNull() ?: 0).toString()
                     },
                     textStyle = MaterialTheme.typography.displayLarge.copy(
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.End,
                         color = MaterialTheme.colorScheme.onSurface // Ensure visibility in dark mode
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
-                    modifier = Modifier.weight(1f)
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface)
                 )
 
-                Box(modifier = Modifier.weight(1f)) {
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Box {
                     Text(
-                        text = if (selectedFraction != PillFraction.WHOLE) selectedFraction.display else "",
+                        text = selectedFraction.display,
                         style = MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.onSurface, // Ensure visibility in dark mode
                         modifier = Modifier.clickable { showFractionMenu = true }
@@ -131,7 +131,7 @@ fun DosageEditor(
             }
 
             Text(
-                "pill",
+                text = unit,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )

@@ -219,6 +219,7 @@ fun MedicationDosagePackageDateInput(
             if (medicationType?.name in listOf("Tablet", "Pill")) {
                 DosageEditor(
                     initialDosage = dosage,
+                    unit = medicationType?.name ?: "Pill",
                     onSave = { newDosage ->
                         onDosageChange(newDosage)
                         showDosageModal = false
@@ -538,7 +539,7 @@ fun <T> UnitDropdown(
 }
 
 enum class PillFraction(val value: Float, val display: String) {
-    WHOLE(0.0f, "Whole"),
+    WHOLE(0.0f, "whole"),
     HALF(0.5f, "½"),
     THIRD(0.33f, "⅓"),
     QUARTER(0.25f, "¼");
