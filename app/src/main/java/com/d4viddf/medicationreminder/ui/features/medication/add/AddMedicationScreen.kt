@@ -144,6 +144,7 @@ fun AddMedicationScreen(
     var medicationName by rememberSaveable { mutableStateOf("") }
     var dosage by rememberSaveable { mutableStateOf("") }
     var packageSize by rememberSaveable { mutableStateOf("") }
+    var saveRemainingFraction by rememberSaveable { mutableStateOf(false) }
     var medicationSearchResult by rememberSaveable { mutableStateOf<MedicationSearchResult?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -181,6 +182,9 @@ fun AddMedicationScreen(
                 navigationIcon = {
                     if (currentStep > 0) {
                         IconButton(onClick = {
+                            if (currentStep == 2) {
+                                dosage = ""
+                            }
                             currentStep--
                             progress = (currentStep + 1) / 5f
                         }) {
@@ -228,6 +232,7 @@ fun AddMedicationScreen(
                                 color = selectedColor.toString(),
                                 packageSize = packageSize.toIntOrNull() ?: 0,
                                 remainingDoses = packageSize.toIntOrNull() ?: 0,
+                                saveRemainingFraction = saveRemainingFraction,
                                 startDate = finalStartDate,
                                 endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
                                 reminderTime = null,
@@ -336,7 +341,6 @@ fun AddMedicationScreen(
                             medicationSearchResult = result
                             if (result != null) {
                                 medicationName = result.name
-                                dosage = result.dosage ?: ""
                             }
                         },
                         selectedTypeId = selectedTypeId,
@@ -347,6 +351,8 @@ fun AddMedicationScreen(
                         onDosageChange = { dosage = it },
                         packageSize = packageSize,
                         onPackageSizeChange = { packageSize = it },
+                        saveRemainingFraction = saveRemainingFraction,
+                        onSaveRemainingFractionChange = { saveRemainingFraction = it },
                         medicationSearchResult = medicationSearchResult,
                         startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                         onStartDateSelected = { startDate = it },
@@ -408,7 +414,6 @@ fun AddMedicationScreen(
                         medicationSearchResult = result
                         if (result != null) {
                             medicationName = result.name
-                            dosage = result.dosage ?: ""
                         }
                     },
                     selectedTypeId = selectedTypeId,
@@ -419,6 +424,8 @@ fun AddMedicationScreen(
                     onDosageChange = { dosage = it },
                     packageSize = packageSize,
                     onPackageSizeChange = { packageSize = it },
+                    saveRemainingFraction = saveRemainingFraction,
+                    onSaveRemainingFractionChange = { saveRemainingFraction = it },
                     medicationSearchResult = medicationSearchResult,
                     startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                     onStartDateSelected = { startDate = it },
@@ -479,6 +486,8 @@ private fun CurrentStepContent(
     onDosageChange: (String) -> Unit,
     packageSize: String,
     onPackageSizeChange: (String) -> Unit,
+    saveRemainingFraction: Boolean,
+    onSaveRemainingFractionChange: (Boolean) -> Unit,
     medicationSearchResult: MedicationSearchResult?,
     startDate: String,
     onStartDateSelected: (String) -> Unit,
@@ -546,6 +555,8 @@ private fun CurrentStepContent(
                 selectedTypeId = selectedTypeId,
                 dosage = dosage, onDosageChange = onDosageChange,
                 packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
+                saveRemainingFraction = saveRemainingFraction,
+                onSaveRemainingFractionChange = onSaveRemainingFractionChange,
                 medicationSearchResult = medicationSearchResult,
                 startDate = startDate, // Pass the potentially placeholder-containing state
                 onStartDateSelected = onStartDateSelected,
@@ -664,11 +675,18 @@ fun MedicationSummary(
     val selectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
     val selectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
 
+    val formattedDosage = dosage
+        .replace(".5", " ½")
+        .replace(".33", " ⅓")
+        .replace(".25", " ¼")
+        .replace(".0", "")
+        .trim()
+
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Text(stringResource(id = R.string.medication_summary_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
         InfoRow(stringResource(id = R.string.label_name), medicationName)
-        InfoRow(stringResource(id = R.string.label_dosage), dosage.ifEmpty { notSet })
+        InfoRow(stringResource(id = R.string.label_dosage), formattedDosage.ifEmpty { notSet })
         InfoRow(stringResource(id = R.string.label_package_size), packageSize.ifEmpty { notSet })
         InfoRow(stringResource(id = R.string.label_start_date), if (startDate.isBlank() || startDate == selectStartDatePlaceholder) notSet else startDate)
         InfoRow(stringResource(id = R.string.label_end_date), if (endDate.isBlank() || endDate == selectEndDatePlaceholder) notSet else endDate)
