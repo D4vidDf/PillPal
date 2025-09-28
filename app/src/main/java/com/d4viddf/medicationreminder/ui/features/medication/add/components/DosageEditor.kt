@@ -86,7 +86,9 @@ fun DosageEditor(
             )
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 BasicTextField(
                     value = integerPart,
@@ -106,7 +108,7 @@ fun DosageEditor(
                 Box {
                     Text(
                         text = selectedFraction.display,
-                        style = MaterialTheme.typography.displayLarge,
+                        style = if (selectedFraction == PillFraction.WHOLE) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.onSurface, // Ensure visibility in dark mode
                         modifier = Modifier.clickable { showFractionMenu = true }
                     )
