@@ -17,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.toShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import java.time.LocalDate
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,8 +61,15 @@ fun NotificationItem(notification: Notification) {
                     text = notification.title,
                     style = MaterialTheme.typography.titleMedium
                 )
-                val formatter = remember {
-                    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+                val isToday = remember(notification.timestamp) {
+                    notification.timestamp.toLocalDate().isEqual(LocalDate.now())
+                }
+                val formatter = remember(isToday) {
+                    if (isToday) {
+                        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+                    } else {
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                    }
                 }
                 Text(
                     text = notification.timestamp.format(formatter),
