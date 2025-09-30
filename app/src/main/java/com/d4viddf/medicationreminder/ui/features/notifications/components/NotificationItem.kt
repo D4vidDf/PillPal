@@ -34,13 +34,15 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+import java.time.format.FormatStyle
+
 @Composable
 fun NotificationItem(notification: Notification) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.ui.graphics.RectangleShape,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -55,20 +57,20 @@ fun NotificationItem(notification: Notification) {
                     text = notification.title,
                     style = MaterialTheme.typography.titleMedium
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                val formatter = remember {
+                    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+                }
+                Text(
+                    text = notification.timestamp.format(formatter),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = notification.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = notification.timestamp.format(DateTimeFormatter.ofPattern("HH:mm")),
-                style = MaterialTheme.typography.bodySmall
-            )
         }
     }
 }

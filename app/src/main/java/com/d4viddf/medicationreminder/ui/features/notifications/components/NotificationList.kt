@@ -36,84 +36,65 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationList(
     notifications: List<Notification>,
     onNotificationSwiped: (Notification) -> Unit
 ) {
-    val groupedNotifications = notifications.groupBy { it.timestamp.toLocalDate() }
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(0.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        groupedNotifications.forEach { (date, notificationsForDate) ->
-            stickyHeader {
-                DateHeader(date = date)
-            }
-            items(notificationsForDate, key = { it.id }) { notification ->
-                val dismissState = rememberDismissState(
-                    confirmValueChange = {
-                        if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
-                            onNotificationSwiped(notification)
-                            true
-                        } else {
-                            false
-                        }
+        items(notifications, key = { it.id }) { notification ->
+            val dismissState = rememberDismissState(
+                confirmValueChange = {
+                    if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
+                        onNotificationSwiped(notification)
+                        true
+                    } else {
+                        false
                     }
-                )
+                }
+            )
 
-                SwipeToDismiss(
-                    state = dismissState,
-                    directions = setOf(DismissDirection.EndToStart),
-                    background = {
-                        val color by animateColorAsState(
-                            targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
-                            label = "background color"
-                        )
-                        val scale by animateFloatAsState(
-                            targetValue = if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
-                            label = "icon scale"
-                        )
+            SwipeToDismiss(
+                state = dismissState,
+                directions = setOf(DismissDirection.EndToStart),
+                background = {
+                    val color by animateColorAsState(
+                        targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
+                        label = "background color"
+                    )
+                    val scale by animateFloatAsState(
+                        targetValue = if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
+                        label = "icon scale"
+                    )
 
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .background(color)
-                                .padding(horizontal = 20.dp),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(id = R.string.delete),
-                                modifier = Modifier.scale(scale)
-                            )
-                        }
-                    },
-                    dismissContent = {
-                        NotificationItem(notification = notification)
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(color)
+                            .padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(id = R.string.delete),
+                            modifier = Modifier.scale(scale)
+                        )
                     }
-                )
-            }
+                },
+                dismissContent = {
+                    NotificationItem(notification = notification)
+                }
+            )
+            HorizontalDivider()
         }
     }
-}
-
-import androidx.compose.ui.res.stringResource
-import com.d4viddf.medicationreminder.R
-
-@Composable
-private fun DateHeader(date: LocalDate) {
-    val headerText = when {
-        date.isEqual(LocalDate.now()) -> stringResource(id = R.string.date_header_today)
-        date.isEqual(LocalDate.now().minusDays(1)) -> stringResource(id = R.string.date_header_yesterday)
-        else -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
-    }
-    Text(
-        text = headerText,
-        style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-    )
 }
