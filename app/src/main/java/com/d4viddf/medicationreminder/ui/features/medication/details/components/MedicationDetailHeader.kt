@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -31,11 +32,11 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 fun MedicationDetailHeader(
     medicationId: Int,
     medicationName: String?,
-    medicationDosage: String?,
+    userDosage: String?,
+    cimaDosage: String?,
     medicationImageUrl: String?,
     colorScheme: MedicationColor,
-    // sharedTransitionScope: SharedTransitionScope?, // Removed
-    // animatedVisibilityScope: AnimatedVisibilityScope?, // Removed
+    onNavigateToScheduleDosageChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val loadingText = stringResource(id = R.string.medication_detail_header_loading)
@@ -51,28 +52,39 @@ fun MedicationDetailHeader(
         }
     }
 
-    // Removed: val sharedTransitionScope = LocalSharedTransitionScope.current
     Row(
-        modifier = modifier.fillMaxWidth(), // El modifier se aplica al Row principal
-        verticalAlignment = Alignment.CenterVertically // Alineación vertical de los elementos del Row
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = displayName,
-                fontSize = 30.sp, // Reverted
+                fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.textColor,
-                lineHeight = 34.sp, // Reverted
-                maxLines = 2, // Reverted
-                overflow = TextOverflow.Ellipsis, // Ensured
-                modifier = Modifier // sharedElement modifier removed
+                lineHeight = 34.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = medicationDosage?.takeIf { it.isNotBlank() } ?: noDosageText,
+                text = userDosage?.takeIf { it.isNotBlank() } ?: noDosageText,
                 fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = colorScheme.textColor
             )
+            if (!cimaDosage.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Reference: $cimaDosage",
+                    fontSize = 14.sp,
+                    color = colorScheme.textColor.copy(alpha = 0.7f)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { onNavigateToScheduleDosageChange(medicationId) }) {
+                Text("Change Dosage")
+            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Image(
@@ -89,13 +101,13 @@ fun MedicationDetailHeader(
 fun MedicationDetailHeaderPreview() {
     AppTheme(dynamicColor = false) {
         MedicationDetailHeader(
-            medicationId = 0, // Dummy ID for preview
+            medicationId = 0,
             medicationName = "Amoxicillin Trihydrate Suspension",
-            medicationDosage = "250mg / 5ml",
-            medicationImageUrl = null, // Or a sample image URL
-            colorScheme = MedicationColor.LIGHT_BLUE
-            // sharedTransitionScope = null, // Removed
-            // animatedVisibilityScope = null // Removed
+            userDosage = "1 pill",
+            cimaDosage = "250mg / 5ml",
+            medicationImageUrl = null,
+            colorScheme = MedicationColor.LIGHT_BLUE,
+            onNavigateToScheduleDosageChange = {}
         )
     }
 }

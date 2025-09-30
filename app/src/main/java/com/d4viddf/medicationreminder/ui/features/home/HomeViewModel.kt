@@ -5,11 +5,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.datastore.SettingsDataStore
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -53,10 +56,12 @@ class HomeViewModel @Inject constructor(
     private val application: Application,
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
+    private val medicationDosageRepository: MedicationDosageRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
     userPreferencesRepository: UserPreferencesRepository,
-    private val healthDataRepository: HealthDataRepository
+    private val healthDataRepository: HealthDataRepository,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     // --- UI State & Events ---
@@ -74,6 +79,27 @@ class HomeViewModel @Inject constructor(
     // For navigation events
     private val _navigationChannel = Channel<String>()
     val navigationEvents: Flow<String> = _navigationChannel.receiveAsFlow()
+
+    // --- Dosage Migration Dialog ---
+    private val _showDosageMigrationDialog = MutableStateFlow(false)
+    val showDosageMigrationDialog: StateFlow<Boolean> = _showDosageMigrationDialog.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val hasSeenDialog = settingsDataStore.dosageMigrationDialogShown.first()
+            val hasMeds = medicationRepository.getAllMedications().first().isNotEmpty()
+            if (!hasSeenDialog && hasMeds) {
+                _showDosageMigrationDialog.value = true
+            }
+        }
+    }
+
+    fun onDosageMigrationDialogDismissed() {
+        viewModelScope.launch {
+            settingsDataStore.setDosageMigrationDialogShown(true)
+            _showDosageMigrationDialog.value = false
+        }
+    }
 
     // --- Reactive Data Flows ---
 
@@ -315,12 +341,13 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun mapToNextDoseUiItem(reminder: MedicationReminder): NextDoseUiItem? {
         return medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
+            val dosage = medicationDosageRepository.getActiveDosage(med.id)
             val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
             NextDoseUiItem(
                 reminderId = reminder.id,
                 medicationId = med.id,
                 medicationName = med.name,
-                medicationDosage = med.dosage!!,
+                medicationDosage = dosage?.dosage ?: "",
                 medicationColorName = med.color,
                 medicationImageUrl = type?.imageUrl,
                 rawReminderTime = reminder.reminderTime,
@@ -332,11 +359,12 @@ class HomeViewModel @Inject constructor(
     private suspend fun mapToTodayScheduleUiItem(reminders: List<MedicationReminder>): List<TodayScheduleUiItem> {
         return reminders.mapNotNull { reminder ->
             medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
+                val dosage = medicationDosageRepository.getActiveDosage(med.id)
                 val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
                 TodayScheduleUiItem(
                     reminder = reminder,
                     medicationName = med.name,
-                    medicationDosage = med.dosage!!,
+                    medicationDosage = dosage?.dosage ?: "",
                     medicationColorName = med.color,
                     medicationIconUrl = type?.imageUrl,
                     medicationTypeName = type?.name,

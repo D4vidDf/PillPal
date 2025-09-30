@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
@@ -33,6 +34,7 @@ class TodaySchedulesViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
+    private val dosageRepository: MedicationDosageRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -137,10 +139,11 @@ class TodaySchedulesViewModel @Inject constructor(
         return reminders.mapNotNull { reminder ->
             medicationRepository.getMedicationById(reminder.medicationId)?.let { medication ->
                 val typeDetails = medication.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
+                val activeDosage = dosageRepository.getActiveDosage(medication.id)
                 TodayScheduleUiItem(
                     reminder = reminder,
                     medicationName = medication.name,
-                    medicationDosage = medication.dosage!!,
+                    medicationDosage = activeDosage?.dosage ?: "",
                     medicationColorName = medication.color,
                     medicationIconUrl = typeDetails?.imageUrl,
                     medicationTypeName = typeDetails?.name,

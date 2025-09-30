@@ -20,6 +20,7 @@ import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.data.model.MedicationInfoSyncItem
 import com.d4viddf.medicationreminder.data.model.MedicationReminderSyncItem
 import com.d4viddf.medicationreminder.data.model.MedicationTypeSyncItem
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
@@ -58,6 +59,8 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var medicationTypeRepository: MedicationTypeRepository
     @Inject
     lateinit var medicationInfoRepository: MedicationInfoRepository
+    @Inject
+    lateinit var dosageRepository: MedicationDosageRepository
     @Inject
     lateinit var batteryStateHolder: BatteryStateHolder
 
@@ -263,12 +266,13 @@ class DataLayerListenerService : WearableListenerService() {
             }
             val medInfo = medicationInfoRepository.getMedicationInfoById(medication.id)
             val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
+            val activeDosage = dosageRepository.getActiveDosage(medication.id)
 
             medicationFullSyncItems.add(
                 MedicationFullSyncItem(
                     medicationId = medication.id,
                     name = medication.name,
-                    dosage = medication.dosage,
+                    dosage = activeDosage?.dosage,
                     color = medication.color,
                     type = medType?.let {
                         MedicationTypeSyncItem(

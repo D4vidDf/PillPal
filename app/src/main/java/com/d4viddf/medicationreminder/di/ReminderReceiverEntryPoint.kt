@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.di // Or your chosen package
 
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
@@ -13,6 +14,7 @@ import dagger.hilt.components.SingletonComponent // Or ApplicationComponent if o
 interface ReminderReceiverEntryPoint {
     fun reminderRepository(): MedicationReminderRepository
     fun medicationRepository(): MedicationRepository
+    fun medicationDosageRepository(): MedicationDosageRepository
     fun medicationTypeRepository(): MedicationTypeRepository
     fun notificationScheduler(): NotificationScheduler
 }

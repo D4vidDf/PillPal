@@ -71,6 +71,7 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                     )
                     val reminderRepository = entryPoint.reminderRepository()
                     val medicationRepository = entryPoint.medicationRepository()
+                    val dosageRepository = entryPoint.medicationDosageRepository()
                     val notificationScheduler = entryPoint.notificationScheduler()
 
                     val originalReminder = reminderRepository.getReminderById(reminderId)
@@ -91,6 +92,15 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                         return@launch
                     }
 
+                    val activeDosage = dosageRepository.getActiveDosage(medication.id)
+                    if (activeDosage == null) {
+                        val dosageNotFoundLog = "Active dosage not found for medication ID ${medication.id}. Aborting snooze."
+                        Log.e(TAG, dosageNotFoundLog)
+                        FileLogger.log(TAG, dosageNotFoundLog)
+                        pendingResult.finish()
+                        return@launch
+                    }
+
                     // Calculate new reminder time (10 minutes from now)
                     val calendar = Calendar.getInstance()
                     calendar.add(Calendar.MINUTE, SNOOZE_MINUTES)
@@ -106,7 +116,7 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                         context = context,
                         reminder = originalReminder, // Pass the original reminder object
                         medicationName = medication.name,
-                        medicationDosage = medication.dosage ?: "", // Use empty string if dosage is null
+                        medicationDosage = activeDosage.dosage, // Use the fetched dosage
                         isIntervalType = false, // Snoozed reminder is not an interval type
                         nextDoseTimeForHelperMillis = null, // No next dose for a one-off snooze
                         actualScheduledTimeMillis = snoozeDateTimeMillis // This is the time for the snoozed reminder

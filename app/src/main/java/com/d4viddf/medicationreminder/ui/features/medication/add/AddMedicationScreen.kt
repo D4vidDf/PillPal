@@ -144,6 +144,7 @@ fun AddMedicationScreen(
     var medicationName by rememberSaveable { mutableStateOf("") }
     var dosage by rememberSaveable { mutableStateOf("") }
     var packageSize by rememberSaveable { mutableStateOf("") }
+    var saveRemainingFraction by rememberSaveable { mutableStateOf(false) }
     var medicationSearchResult by rememberSaveable { mutableStateOf<MedicationSearchResult?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -181,6 +182,9 @@ fun AddMedicationScreen(
                 navigationIcon = {
                     if (currentStep > 0) {
                         IconButton(onClick = {
+                            if (currentStep == 2) {
+                                dosage = ""
+                            }
                             currentStep--
                             progress = (currentStep + 1) / 5f
                         }) {
@@ -213,64 +217,66 @@ fun AddMedicationScreen(
                         progress = (currentStep + 1) / 5f
                     } else if (currentStep == 4) {
                         coroutineScope.launch {
-                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) // "yyyy-MM-dd"
-                            val finalStartDate: String?
-                            if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
-                                finalStartDate = startDate
+                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            val finalStartDate: String = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
+                                startDate
                             } else {
-                                finalStartDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                                Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $finalStartDate")
+                                LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE).also {
+                                    Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $it")
+                                }
                             }
 
-                            val medicationId = medicationViewModel.insertMedication(
-                                Medication(
-                                    name = medicationName, typeId = selectedTypeId, color = selectedColor.toString(),
-                                    dosage = dosage.ifEmpty { null }, packageSize = packageSize.toIntOrNull() ?: 0,
-                                    remainingDoses = packageSize.toIntOrNull() ?: 0,
-                                    startDate = finalStartDate, // Use the new finalStartDate
-                                    endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
-                                    reminderTime = null, // This seems to be consistently null here
-                                    registrationDate = currentRegistrationDate, // Set the new field
-                                    nregistro = medicationSearchResult?.nregistro // Populate nregistro from search result
-                                )
+                            val medicationToInsert = Medication(
+                                name = medicationName,
+                                typeId = selectedTypeId,
+                                color = selectedColor.toString(),
+                                packageSize = packageSize.toIntOrNull() ?: 0,
+                                remainingDoses = packageSize.toIntOrNull() ?: 0,
+                                saveRemainingFraction = saveRemainingFraction,
+                                startDate = finalStartDate,
+                                endDate = if (endDate.isNotBlank() && endDate != selectEndDatePlaceholder) endDate else null,
+                                reminderTime = null,
+                                registrationDate = currentRegistrationDate,
+                                nregistro = medicationSearchResult?.nregistro
                             )
+
+                            val scheduleType = when (frequency) {
+                                FrequencyType.ONCE_A_DAY -> ScheduleType.DAILY
+                                FrequencyType.MULTIPLE_TIMES_A_DAY -> ScheduleType.CUSTOM_ALARMS
+                                FrequencyType.INTERVAL -> ScheduleType.INTERVAL
+                            }
+
+                            val scheduleToInsert = MedicationSchedule(
+                                medicationId = 0, // Placeholder
+                                scheduleType = scheduleType,
+                                startDate = finalStartDate, // Use the same start date
+                                intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
+                                intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
+                                daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { DayOfWeek.of(it) } else null,
+                                specificTimes = when (scheduleType) {
+                                    ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
+                                    ScheduleType.CUSTOM_ALARMS -> selectedTimes
+                                    else -> null
+                                },
+                                intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
+                                intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
+                            )
+
+                            val (medicationId, _) = medicationViewModel.insertMedicationAndDosage(
+                                medication = medicationToInsert,
+                                schedule = scheduleToInsert,
+                                dosage = dosage
+                            )
+
                             medicationId.let { medId ->
-                                val scheduleType = when (frequency) {
-                                    FrequencyType.ONCE_A_DAY -> ScheduleType.DAILY
-                                    FrequencyType.MULTIPLE_TIMES_A_DAY -> ScheduleType.CUSTOM_ALARMS
-                                    FrequencyType.INTERVAL -> ScheduleType.INTERVAL
-                                    // else case is not strictly needed if all FrequencyType cases are handled and frequency is non-nullable.
-                                    // However, to be safe or if new types are added without updating this `when`, a default is good.
-                                }
+                                val finalSchedule = scheduleToInsert.copy(medicationId = medId)
+                                medicationScheduleViewModel.insertSchedule(finalSchedule)
 
-                                val schedule = MedicationSchedule(
-                                    medicationId = medId,
-                                    scheduleType = scheduleType,
-                                    intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
-                                    intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
-                                    daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { DayOfWeek.of(it) } else null,
-                                    specificTimes = when (scheduleType) {
-                                        ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
-                                        ScheduleType.CUSTOM_ALARMS -> selectedTimes
-                                        else -> null
-                                    },
-                                    intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
-                                    intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
-                                )
-                                medicationScheduleViewModel.insertSchedule(schedule)
-
-                                // Get ApplicationContext from LocalContext for WorkerScheduler
                                 val appContext = localContext.applicationContext
                                 WorkerScheduler.scheduleRemindersForMedication(appContext, medId)
                                 Log.d("AddMedScreen", "Called WorkerScheduler.scheduleRemindersForMedication for medId: $medId after inserting medication and schedule.")
-
-                                // Removed medicationInfoViewModel.insertMedicationInfo call block
                             }
-                            // onNavigateBack() // Remove this line
 
-                            // New navigation logic:
-                            // Pop AddMedicationScreen AND AddMedicationChoiceScreen from the back stack.
-                            // This effectively returns to the screen that was active before AddMedicationChoiceScreen.
                             navController.popBackStack()
                         }
                     }
@@ -335,7 +341,6 @@ fun AddMedicationScreen(
                             medicationSearchResult = result
                             if (result != null) {
                                 medicationName = result.name
-                                dosage = result.dosage ?: ""
                             }
                         },
                         selectedTypeId = selectedTypeId,
@@ -346,6 +351,8 @@ fun AddMedicationScreen(
                         onDosageChange = { dosage = it },
                         packageSize = packageSize,
                         onPackageSizeChange = { packageSize = it },
+                        saveRemainingFraction = saveRemainingFraction,
+                        onSaveRemainingFractionChange = { saveRemainingFraction = it },
                         medicationSearchResult = medicationSearchResult,
                         startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                         onStartDateSelected = { startDate = it },
@@ -407,7 +414,6 @@ fun AddMedicationScreen(
                         medicationSearchResult = result
                         if (result != null) {
                             medicationName = result.name
-                            dosage = result.dosage ?: ""
                         }
                     },
                     selectedTypeId = selectedTypeId,
@@ -418,6 +424,8 @@ fun AddMedicationScreen(
                     onDosageChange = { dosage = it },
                     packageSize = packageSize,
                     onPackageSizeChange = { packageSize = it },
+                    saveRemainingFraction = saveRemainingFraction,
+                    onSaveRemainingFractionChange = { saveRemainingFraction = it },
                     medicationSearchResult = medicationSearchResult,
                     startDate = if (startDate.isBlank()) selectStartDatePlaceholder else startDate,
                     onStartDateSelected = { startDate = it },
@@ -478,6 +486,8 @@ private fun CurrentStepContent(
     onDosageChange: (String) -> Unit,
     packageSize: String,
     onPackageSizeChange: (String) -> Unit,
+    saveRemainingFraction: Boolean,
+    onSaveRemainingFractionChange: (Boolean) -> Unit,
     medicationSearchResult: MedicationSearchResult?,
     startDate: String,
     onStartDateSelected: (String) -> Unit,
@@ -545,6 +555,8 @@ private fun CurrentStepContent(
                 selectedTypeId = selectedTypeId,
                 dosage = dosage, onDosageChange = onDosageChange,
                 packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
+                saveRemainingFraction = saveRemainingFraction,
+                onSaveRemainingFractionChange = onSaveRemainingFractionChange,
                 medicationSearchResult = medicationSearchResult,
                 startDate = startDate, // Pass the potentially placeholder-containing state
                 onStartDateSelected = onStartDateSelected,
@@ -663,11 +675,18 @@ fun MedicationSummary(
     val selectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
     val selectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
 
+    val formattedDosage = dosage
+        .replace(".5", " ½")
+        .replace(".33", " ⅓")
+        .replace(".25", " ¼")
+        .replace(".0", "")
+        .trim()
+
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Text(stringResource(id = R.string.medication_summary_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
         InfoRow(stringResource(id = R.string.label_name), medicationName)
-        InfoRow(stringResource(id = R.string.label_dosage), dosage.ifEmpty { notSet })
+        InfoRow(stringResource(id = R.string.label_dosage), formattedDosage.ifEmpty { notSet })
         InfoRow(stringResource(id = R.string.label_package_size), packageSize.ifEmpty { notSet })
         InfoRow(stringResource(id = R.string.label_start_date), if (startDate.isBlank() || startDate == selectStartDatePlaceholder) notSet else startDate)
         InfoRow(stringResource(id = R.string.label_end_date), if (endDate.isBlank() || endDate == selectEndDatePlaceholder) notSet else endDate)

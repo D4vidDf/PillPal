@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationDosage
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.ui.features.medication.details.components.ProgressDetails
@@ -26,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,6 +36,7 @@ class MedicationViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val reminderRepository: MedicationReminderRepository,
     private val scheduleRepository: MedicationScheduleRepository,
+    private val dosageRepository: MedicationDosageRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -50,6 +54,9 @@ class MedicationViewModel @Inject constructor(
 
     private val _searchResults = MutableStateFlow<List<Medication>>(emptyList())
     val searchResults: StateFlow<List<Medication>> = _searchResults.asStateFlow()
+
+    private val _activeDosage = MutableStateFlow<MedicationDosage?>(null)
+    val activeDosage: StateFlow<MedicationDosage?> = _activeDosage.asStateFlow()
 
     init {
         observeMedications()
@@ -127,6 +134,12 @@ class MedicationViewModel @Inject constructor(
         }
     }
 
+    fun loadActiveDosage(medicationId: Int) {
+        viewModelScope.launch {
+            _activeDosage.value = dosageRepository.getActiveDosage(medicationId)
+        }
+    }
+
     private suspend fun calculateAndSetDailyProgressDetails(
         medication: Medication?,
         schedule: MedicationSchedule?,
@@ -194,10 +207,21 @@ class MedicationViewModel @Inject constructor(
     }
     */
 
-    suspend fun insertMedication(medication: Medication): Int {
+    suspend fun insertMedicationAndDosage(medication: Medication, schedule: MedicationSchedule, dosage: String): Pair<Int, Long?> {
         return withContext(Dispatchers.IO) {
-            medicationRepository.insertMedication(medication)
-            // WorkerScheduler call removed from here, will be handled by caller
+            val medId = medicationRepository.insertMedication(medication)
+            var dosageId: Long? = null
+            if (dosage.isNotBlank()) {
+                val dosageStartDate = schedule.startDate ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                dosageId = dosageRepository.insert(
+                    MedicationDosage(
+                        medicationId = medId.toInt(),
+                        dosage = dosage,
+                        startDate = dosageStartDate
+                    )
+                )
+            }
+            medId.toInt() to dosageId
         }
     }
 

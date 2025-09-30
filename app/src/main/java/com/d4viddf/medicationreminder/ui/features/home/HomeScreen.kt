@@ -41,6 +41,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -139,7 +140,22 @@ fun HomeScreen(
 
 
     // A flag to indicate if there are unread alerts (you can wire this to a real data source)
-    val hasUnreadAlerts = false // TODO: Replace with a flow from the ViewModel
+    val hasUnreadAlerts = false // TODO: Replace with a real data source
+
+    val showDosageMigrationDialog by viewModel.showDosageMigrationDialog.collectAsState()
+
+    if (showDosageMigrationDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onDosageMigrationDialogDismissed() },
+            title = { Text(text = "Dosage Management Updated") },
+            text = { Text(text = "We've updated how dosages are managed to support changes over time. Your existing dosage information has been automatically migrated to the new system.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.onDosageMigrationDialogDismissed() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.navigationEvents.collectLatest { route ->
@@ -790,7 +806,7 @@ private val mockNextDoseGroup = listOf(
 
 private val mockMissedReminders = listOf(
     TodayScheduleUiItem(
-        MedicationReminder(3, 3, 3, "08:00", isTaken = false, null, null),
+        MedicationReminder(3, 3, 3,1, "08:00", isTaken = false, null, null),
         "Metformin", "500mg", "LIGHT_ORANGE", null, null, "08:00"
     )
 )

@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -101,7 +102,7 @@ import java.util.Locale
 fun Medication?.isPastEndDate(): Boolean {
     if (this?.endDate.isNullOrBlank()) return false
     return try {
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
         val endDateValue = LocalDate.parse(this.endDate, formatter)
         endDateValue.isBefore(LocalDate.now())
     } catch (e: Exception) {
@@ -193,8 +194,17 @@ fun MedicationDetailsScreen(
     var internalShowTwoPanesState by remember { mutableStateOf(false) } // Added state variable
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
+    val activeDosage by viewModel.activeDosage.collectAsState()
+    val finalActiveDosage = if (LocalInspectionMode.current) {
+        com.d4viddf.medicationreminder.data.model.MedicationDosage(id = 1, medicationId = 1, dosage = "1 pill", startDate = "2023-01-01")
+    } else {
+        activeDosage
+    }
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+
+    val medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
+    val cimaMedicationInfo by medicationInfoViewModel.medicationInfo.collectAsState()
 
     val chartEntries: List<ChartyGraphEntry> by (graphViewModel?.chartyGraphData?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) })
     val weeklyMaxYForChart by (graphViewModel?.weeklyMaxYValue?.collectAsState() ?: remember { mutableStateOf(5f) }) // Collect new max Y value
@@ -202,11 +212,16 @@ fun MedicationDetailsScreen(
     val isGraphLoading by graphViewModel?.isLoading?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
 
 
+    LaunchedEffect(medicationId) {
+        medicationInfoViewModel.loadMedicationInfo(medicationId)
+    }
+
     LaunchedEffect(medicationId, graphViewModel) {
         viewModel.getMedicationById(medicationId)?.let { med ->
             medicationState = med
             scheduleState = scheduleViewModel.getActiveScheduleForMedication(med.id)
             viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
+            viewModel.loadActiveDosage(med.id)
             medicationReminderViewModel.loadTodaySchedule(medicationId)
 
             med.typeId?.let { typeId ->
@@ -331,12 +346,17 @@ fun MedicationDetailsScreen(
                                     medicationState = medicationState,
                                     progressDetails = progressDetails,
                                     medicationTypeState = medicationTypeState,
+                                    activeDosage = finalActiveDosage,
+                                    cimaMedicationInfo = cimaMedicationInfo,
                                     color = color,
                                     sharedTransitionScope = sharedTransitionScope,
                                     animatedVisibilityScope = animatedVisibilityScope,
                                     medicationId = medicationId,
                                      scheduleState = scheduleState,
-                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
+                                     makeAppBarTransparent = makeAppBarTransparent, // Pass the variable
+                                    onNavigateToScheduleDosageChange = { medId ->
+                                        navController.navigate(Screen.ScheduleDosageChange.createRoute(medId))
+                                    }
                                 )
                             }
                             item {
@@ -393,12 +413,17 @@ fun MedicationDetailsScreen(
                             medicationState = medicationState,
                             progressDetails = progressDetails,
                             medicationTypeState = medicationTypeState,
+                            activeDosage = finalActiveDosage,
+                            cimaMedicationInfo = cimaMedicationInfo,
                             color = color,
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,
                             medicationId = medicationId,
                                      scheduleState = scheduleState,
-                                     makeAppBarTransparent = makeAppBarTransparent // Pass the variable
+                                     makeAppBarTransparent = makeAppBarTransparent, // Pass the variable
+                                    onNavigateToScheduleDosageChange = { medId ->
+                                        navController.navigate(Screen.ScheduleDosageChange.createRoute(medId))
+                                    }
                         )
                     }
                     item {
@@ -476,12 +501,15 @@ private fun MedicationHeaderAndProgress(
     medicationState: Medication?,
     progressDetails: ProgressDetails?,
     medicationTypeState: MedicationType?,
+    activeDosage: com.d4viddf.medicationreminder.data.model.MedicationDosage?,
+    cimaMedicationInfo: com.d4viddf.medicationreminder.data.model.CimaMedicationDetail?,
     color: MedicationColor,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     medicationId: Int,
     scheduleState: MedicationSchedule?,
-    makeAppBarTransparent: Boolean // New parameter
+    makeAppBarTransparent: Boolean,
+    onNavigateToScheduleDosageChange: (Int) -> Unit
 ) {
     val displayProgressDetails = if (medicationState.isPastEndDate()) {
         Log.d("MedDetailScreen", "Medication ${medicationState?.name} has ended. Displaying completed progress.")
@@ -566,12 +594,23 @@ private fun MedicationHeaderAndProgress(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = medicationState.dosage.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
+                                    text = activeDosage?.dosage?.takeIf { it.isNotBlank() } ?: stringResource(id = R.string.medication_detail_header_no_dosage),
                                     fontSize = 20.sp,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = color.textColor,
-                                    textAlign = TextAlign.Center, // Changed to Center
+                                    textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth()
                                 )
+                                if (!cimaMedicationInfo?.pactivos.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Reference: ${cimaMedicationInfo?.pactivos}",
+                                        fontSize = 14.sp,
+                                        color = color.textColor.copy(alpha = 0.7f),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
                         }
                         Column(
@@ -592,6 +631,7 @@ private fun MedicationHeaderAndProgress(
                             Spacer(modifier = Modifier.height(8.dp))
                             MedicationDetailCounters(
                                 colorScheme = color,
+                                activeDosage = activeDosage?.dosage,
                                 medication = medicationState,
                                 schedule = scheduleState
                             )
@@ -602,9 +642,11 @@ private fun MedicationHeaderAndProgress(
                     MedicationDetailHeader(
                         medicationId = medicationId,
                         medicationName = medicationState.name,
-                        medicationDosage = medicationState.dosage,
+                        userDosage = activeDosage?.dosage,
+                        cimaDosage = cimaMedicationInfo?.pactivos,
                         medicationImageUrl = medicationTypeState?.imageUrl,
                         colorScheme = color,
+                        onNavigateToScheduleDosageChange = onNavigateToScheduleDosageChange
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationProgressDisplay(
@@ -615,6 +657,7 @@ private fun MedicationHeaderAndProgress(
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationDetailCounters(
                         colorScheme = color,
+                        activeDosage = activeDosage?.dosage,
                         medication = medicationState,
                         schedule = scheduleState,
                         modifier = Modifier.padding(horizontal = 12.dp)

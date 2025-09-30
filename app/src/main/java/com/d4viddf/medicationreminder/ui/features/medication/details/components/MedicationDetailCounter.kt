@@ -70,10 +70,10 @@ fun MedicationDetailCountersPreview() {
     AppTheme(dynamicColor = false) {
         MedicationDetailCounters(
             colorScheme = MedicationColor.LIGHT_ORANGE,
+            activeDosage = "250mg Capsule",
             medication = Medication(
                 id = 1,
                 name = "Amoxicillin",
-                dosage = "250mg Capsule",
                 color = "LIGHT_ORANGE",
                 reminderTime = "10:00 AM", // Not specified to change, kept as is
                 // Updated parameters as per request
@@ -86,6 +86,7 @@ fun MedicationDetailCountersPreview() {
             schedule = MedicationSchedule(
                 medicationId = 1,
                 scheduleType = ScheduleType.AS_NEEDED, // Consistent with AS_NEEDED
+                startDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                 daysOfWeek = null, // Consistent with emptyList()
                 specificTimes = null, // AS_NEEDED might not have specific times
                 intervalHours = 0, // Default for AS_NEEDED
@@ -100,13 +101,14 @@ fun MedicationDetailCountersPreview() {
 @Composable
 fun MedicationDetailCounters(
     colorScheme: MedicationColor,
+    activeDosage: String?,
     medication: Medication?,
     schedule: MedicationSchedule?,
     modifier: Modifier = Modifier // Este modifier se aplicará al Row principal de contadores
 ) {
     // --- Lógica de cálculo de datos para los contadores ---
-    val dosePair: Pair<String?, String?> = remember(medication) {
-        val fullDosage = medication?.dosage?.trim()
+    val dosePair: Pair<String?, String?> = remember(activeDosage) {
+        val fullDosage = activeDosage?.trim()
         if (fullDosage.isNullOrBlank()) { null to null }
         else {
             val parts = fullDosage.split(" ", limit = 2)
