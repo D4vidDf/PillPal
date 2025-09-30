@@ -77,7 +77,7 @@ fun NotificationItem(notification: Notification) {
 
 @Composable
 private fun NotificationIcon(notification: Notification) {
-    val iconSize = 48.dp
+    val iconSize = 56.dp // Increased size for better visibility
 
     when (notification.type) {
         "security_alert" -> {
