@@ -57,26 +57,32 @@ fun NotificationItem(notification: Notification) {
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = notification.title,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                val isToday = remember(notification.timestamp) {
-                    notification.timestamp.toLocalDate().isEqual(LocalDate.now())
-                }
-                val formatter = remember(isToday) {
-                    if (isToday) {
-                        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
-                    } else {
-                        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = notification.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    val isToday = remember(notification.timestamp) {
+                        notification.timestamp.toLocalDate().isEqual(LocalDate.now())
                     }
+                    val formatter = remember(isToday) {
+                        if (isToday) {
+                            DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+                        } else {
+                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                        }
+                    }
+                    Text(
+                        text = notification.timestamp.format(formatter),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Text(
-                    text = notification.timestamp.format(formatter),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = notification.message,
                     style = MaterialTheme.typography.bodyMedium
