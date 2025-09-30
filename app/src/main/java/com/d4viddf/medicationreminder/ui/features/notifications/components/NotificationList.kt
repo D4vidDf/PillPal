@@ -61,38 +61,41 @@ fun NotificationList(
                 state = dismissState,
                 directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart),
                 background = {
-                    val direction = dismissState.direction ?: return@SwipeToDismiss
-                    val color by animateColorAsState(
-                        targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
-                        label = "background color"
-                    )
+                    dismissState.direction?.let { direction ->
+                        val color by animateColorAsState(
+                            targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
+                            label = "background color"
+                        )
 
-                    val alignment = when (direction) {
-                        DismissDirection.StartToEnd -> Alignment.CenterStart
-                        DismissDirection.EndToStart -> Alignment.CenterEnd
-                    }
+                        val alignment = when (direction) {
+                            DismissDirection.StartToEnd -> Alignment.CenterStart
+                            DismissDirection.EndToStart -> Alignment.CenterEnd
+                        }
 
-                    val shape = when (direction) {
-                        DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                        DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
-                    }
+                        val shape = when (direction) {
+                            DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                            DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
+                        }
 
-                    val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
+                        val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
 
-                    Box(modifier = Modifier.fillMaxSize()) {
                         Box(
-                            modifier = Modifier
-                                .align(alignment)
-                                .fillMaxHeight()
-                                .width(backgroundWidth)
-                                .background(color, shape = shape),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = alignment
                         ) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(id = R.string.delete),
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(backgroundWidth)
+                                    .background(color, shape = shape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = stringResource(id = R.string.delete),
+                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
                         }
                     }
                 },
