@@ -11,10 +11,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -75,6 +77,9 @@ fun NotificationItem(notification: Notification) {
     }
 }
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun NotificationIcon(notification: Notification) {
     val iconSize = 56.dp // Increased size for better visibility
@@ -84,7 +89,7 @@ private fun NotificationIcon(notification: Notification) {
             Box(
                 modifier = Modifier
                     .size(iconSize)
-                    .clip(CircleShape)
+                    .clip(MaterialShapes.Pill.toShape())
                     .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -120,7 +125,7 @@ private fun NotificationIcon(notification: Notification) {
             Box(
                 modifier = Modifier
                     .size(iconSize)
-                    .clip(CircleShape)
+                    .clip(MaterialShapes.Pill.toShape())
                     .background(medicationColor.backgroundColor),
                 contentAlignment = Alignment.Center
             ) {
@@ -136,7 +141,7 @@ private fun NotificationIcon(notification: Notification) {
             Box(
                 modifier = Modifier
                     .size(iconSize)
-                    .clip(CircleShape)
+                    .clip(MaterialShapes.Pill.toShape())
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
