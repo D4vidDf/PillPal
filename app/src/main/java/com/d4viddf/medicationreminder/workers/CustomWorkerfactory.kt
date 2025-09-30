@@ -34,6 +34,7 @@ class CustomWorkerFactory @Inject constructor() : WorkerFactory() {
                     hiltEntryPoint.medicationRepository(),
                     hiltEntryPoint.medicationScheduleRepository(),
                     hiltEntryPoint.medicationReminderRepository(),
+                    hiltEntryPoint.medicationDosageRepository(),
                     hiltEntryPoint.notificationScheduler()
                 )
             }

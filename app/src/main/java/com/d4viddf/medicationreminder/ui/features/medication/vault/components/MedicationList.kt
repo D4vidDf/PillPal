@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +30,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationDosage
 import com.d4viddf.medicationreminder.ui.common.model.UiItemState
+import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationWithDosage
 import com.d4viddf.medicationreminder.ui.features.medication.vault.components.skeletons.MedicationCardSkeleton
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.LocalDate
@@ -44,9 +44,9 @@ import java.time.format.DateTimeFormatter
 )
 @Composable
 fun MedicationList(
-    medicationState: List<UiItemState<Medication>>,
+    medicationState: List<UiItemState<MedicationWithDosage>>,
     isRefreshing: Boolean,
-    onItemClick: (medication: Medication, index: Int) -> Unit,
+    onItemClick: (medicationWithDosage: MedicationWithDosage, index: Int) -> Unit,
     onRefresh: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
@@ -85,7 +85,7 @@ fun MedicationList(
                     items = medicationState,
                     key = { index, itemState ->
                         when (itemState) {
-                            is UiItemState.Success -> "medication-${itemState.data.id}"
+                            is UiItemState.Success -> "medication-${itemState.data.medication.id}"
                             else -> "placeholder-$index"
                         }
                     }
@@ -97,7 +97,7 @@ fun MedicationList(
                             }
                             is UiItemState.Success -> {
                                 MedicationCard(
-                                    medication = state.data,
+                                    medicationWithDosage = state.data,
                                     onClick = { onItemClick(state.data, index) },
                                     enableTransition = enableCardTransitions,
                                     sharedTransitionScope = sharedTransitionScope,
@@ -131,32 +131,36 @@ fun MedicationListPreview() {
         val todayDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val sampleMedications = listOf(
             UiItemState.Success(
-                Medication(
-                    id = 1,
-                    name = "Amoxicillin",
-                    dosage = "250mg",
-                    color = "LIGHT_BLUE",
-                    reminderTime = "10:00 AM",
-                    typeId = 1,
-                    packageSize = 30,
-                    remainingDoses = 20,
-                    startDate = todayDate,
-                    endDate = null
+                MedicationWithDosage(
+                    medication = Medication(
+                        id = 1,
+                        name = "Amoxicillin",
+                        color = "LIGHT_BLUE",
+                        reminderTime = "10:00 AM",
+                        typeId = 1,
+                        packageSize = 30,
+                        remainingDoses = 20,
+                        startDate = todayDate,
+                        endDate = null
+                    ),
+                    dosage = MedicationDosage(id = 1, medicationId = 1, dosage = "250mg", startDate = todayDate)
                 )
             ),
             UiItemState.Loading,
             UiItemState.Success(
-                Medication(
-                    id = 3,
-                    name = "Vitamin C",
-                    dosage = "500mg",
-                    color = "LIGHT_ORANGE",
-                    reminderTime = "08:00 AM",
-                    typeId = 1,
-                    packageSize = 100,
-                    remainingDoses = 50,
-                    startDate = todayDate,
-                    endDate = null
+                MedicationWithDosage(
+                    medication = Medication(
+                        id = 3,
+                        name = "Vitamin C",
+                        color = "LIGHT_ORANGE",
+                        reminderTime = "08:00 AM",
+                        typeId = 1,
+                        packageSize = 100,
+                        remainingDoses = 50,
+                        startDate = todayDate,
+                        endDate = null
+                    ),
+                    dosage = MedicationDosage(id = 2, medicationId = 3, dosage = "500mg", startDate = todayDate)
                 )
             )
         )

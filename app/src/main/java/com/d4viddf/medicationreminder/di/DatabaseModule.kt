@@ -9,6 +9,7 @@ import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.source.local.FirebaseSyncDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationDatabase
+import com.d4viddf.medicationreminder.data.source.local.MedicationDosageDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationInfoDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationReminderDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationScheduleDao
@@ -108,7 +109,7 @@ object DatabaseModule {
                     }
                 }
             })
-            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10)
+            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10, MedicationDatabase.MIGRATION_10_11, MedicationDatabase.MIGRATION_11_12, MedicationDatabase.MIGRATION_12_13)
             .fallbackToDestructiveMigration(false) // Added this line
             .build()
     }
@@ -124,6 +125,9 @@ object DatabaseModule {
 
     @Provides
     fun provideMedicationReminderDao(database: MedicationDatabase): MedicationReminderDao = database.medicationReminderDao()
+
+    @Provides
+    fun provideMedicationDosageDao(database: MedicationDatabase): MedicationDosageDao = database.medicationDosageDao()
 
     @Provides
     fun provideMedicationInfoDao(database: MedicationDatabase): MedicationInfoDao = database.medicationInfoDao()

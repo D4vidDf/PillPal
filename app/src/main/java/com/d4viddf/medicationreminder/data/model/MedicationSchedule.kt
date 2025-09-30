@@ -20,6 +20,7 @@ data class MedicationSchedule(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val medicationId: Int,
     val scheduleType: ScheduleType,
+    val startDate: String?,
     val intervalHours: Int?,
     val intervalMinutes: Int?,
     val daysOfWeek: List<DayOfWeek>?,      // List of DayOfWeek enums for "Once a day" / "Weekly"

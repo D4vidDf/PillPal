@@ -30,17 +30,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationDosage
+import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationWithDosage
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
 @Composable
 fun MedicationCard(
-    medication: Medication,
+    medicationWithDosage: MedicationWithDosage,
     onClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     enableTransition: Boolean
 ) {
+    val medication = medicationWithDosage.medication
+    val dosage = medicationWithDosage.dosage
+
     val color = try {
         MedicationColor.valueOf(medication.color)
     } catch (e: IllegalArgumentException) {
@@ -85,11 +90,13 @@ fun MedicationCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                 )
-                Text(
-                    text = "${medication.dosage}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color= color.textColor
-                )
+                if (dosage != null && dosage.dosage.isNotBlank()) {
+                    Text(
+                        text = dosage.dosage,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color= color.textColor
+                    )
+                }
                 if (medication.reminderTime != null) {
                     Text(
                         text = "Time: ${medication.reminderTime}",
@@ -117,17 +124,19 @@ fun MedicationAvatar(color: Color) {
 fun MedicationCardPreview() {
     AppTheme(dynamicColor = false) {
         MedicationCard(
-            medication = Medication(
-                id = 1,
-                name = "Amoxicillin Long Name For Testing Ellipsis",
-                dosage = "250mg",
-                color = "LIGHT_BLUE",
-                reminderTime = "10:00 AM",
-                typeId = 1,
-                packageSize = 0,
-                remainingDoses = 0,
-                startDate = null,
-                endDate = null
+            medicationWithDosage = MedicationWithDosage(
+                medication = Medication(
+                    id = 1,
+                    name = "Amoxicillin Long Name For Testing Ellipsis",
+                    color = "LIGHT_BLUE",
+                    reminderTime = "10:00 AM",
+                    typeId = 1,
+                    packageSize = 0,
+                    remainingDoses = 0,
+                    startDate = null,
+                    endDate = null
+                ),
+                dosage = MedicationDosage(id = 1, medicationId = 1, dosage = "250mg", startDate = "")
             ),
             onClick = {},
             sharedTransitionScope = null,

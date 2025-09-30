@@ -47,6 +47,7 @@ import com.d4viddf.medicationreminder.ui.features.settings.NutritionWeightSettin
 import com.d4viddf.medicationreminder.ui.features.settings.WaterIntakeGoalScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
 import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
+import com.d4viddf.medicationreminder.ui.features.medication.dosage.ScheduleDosageChangeScreen
 import com.d4viddf.medicationreminder.ui.features.medication.schedules.AllSchedulesScreen
 import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.features.medication.history.MedicationHistoryScreen
@@ -99,6 +100,9 @@ sealed class Screen(val route: String) {
     }
     object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
+    }
+    object ScheduleDosageChange : Screen("schedule_dosage_change/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "schedule_dosage_change/$medicationId"
     }
     object ConnectedDevices : Screen("connected_devices_screen")
 
@@ -369,6 +373,19 @@ fun AppNavigation(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
+                )
+            }
+
+            composable(
+                Screen.ScheduleDosageChange.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                ScheduleDosageChangeScreen(
+                    navController = navController,
+                    medicationId = medicationId
                 )
             }
 

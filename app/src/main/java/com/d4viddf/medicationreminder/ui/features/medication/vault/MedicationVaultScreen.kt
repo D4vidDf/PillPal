@@ -195,7 +195,7 @@ fun MedicationVaultScreen(
                             state = searchResultsListState,
                             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
                         ) {
-                            itemsIndexed(searchResults, key = { _, med -> med.id }) { index, medication ->
+                            itemsIndexed(searchResults, key = { _, medWithDosage -> medWithDosage.medication.id }) { index, medWithDosage ->
                                 Card(
                                     shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier
@@ -204,14 +204,14 @@ fun MedicationVaultScreen(
                                         .clickable {
                                             coroutineScope.launch {
                                                 searchResultsListState.animateScrollToItem(index)
-                                                onMedicationClick(medication.id)
+                                                onMedicationClick(medWithDosage.medication.id)
                                             }
                                         }
                                         .then(
                                             if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
                                                 with(sharedTransitionScope) {
                                                     Modifier.sharedElement(
-                                                        rememberSharedContentState(key = "medication-vault-bg-${medication.id}"),
+                                                        rememberSharedContentState(key = "medication-vault-bg-${medWithDosage.medication.id}"),
                                                         animatedVisibilityScope
                                                     )
                                                 }
@@ -220,22 +220,22 @@ fun MedicationVaultScreen(
                                 ) {
                                     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                                         Text(
-                                            text = medication.name,
+                                            text = medWithDosage.medication.name,
                                             style = MaterialTheme.typography.titleMedium,
                                             modifier = Modifier.then(
                                                 if (sharedTransitionScope != null && animatedVisibilityScope != null && widthSizeClass == WindowWidthSizeClass.Compact) {
                                                     with(sharedTransitionScope) {
                                                         Modifier.sharedElement(
-                                                            rememberSharedContentState(key = "medication-vault-name-${medication.id}"),
+                                                            rememberSharedContentState(key = "medication-vault-name-${medWithDosage.medication.id}"),
                                                             animatedVisibilityScope
                                                         )
                                                     }
                                                 } else Modifier
                                             )
                                         )
-                                        if (!medication.dosage.isNullOrBlank()) {
+                                        if (!medWithDosage.dosage?.dosage.isNullOrBlank()) {
                                             Text(
-                                                text = medication.dosage,
+                                                text = medWithDosage.dosage!!.dosage,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 modifier = Modifier.padding(top = 4.dp)
                                             )
@@ -250,14 +250,14 @@ fun MedicationVaultScreen(
                         MedicationList(
                             medicationState = medicationState, // Show all medications when not searching
                             isRefreshing = isRefreshing,
-                            onItemClick = { medication, index ->
+                            onItemClick = { medWithDosage, index ->
                                 if (widthSizeClass == WindowWidthSizeClass.Compact && sharedTransitionScope != null && animatedVisibilityScope != null) {
                                     coroutineScope.launch {
                                         mainMedicationListState.animateScrollToItem(index)
-                                        onMedicationClick(medication.id)
+                                        onMedicationClick(medWithDosage.medication.id)
                                     }
                                 } else {
-                                    onMedicationClick(medication.id)
+                                    onMedicationClick(medWithDosage.medication.id)
                                 }
                             },
                             onRefresh = viewModel::refreshMedications,

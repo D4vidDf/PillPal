@@ -108,7 +108,7 @@ fun TodayScheduleItem(
 @Preview(showBackground = true, name = "TodayScheduleItem Light")
 @Composable
 fun TodayScheduleItemPreview() {
-    val sampleReminder = MedicationReminder(1, 101, 1, LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter), false, null, null)
+    val sampleReminder = MedicationReminder(1, 101, 1, 1, LocalDateTime.now().format(ReminderCalculator.storableDateTimeFormatter), false, null, null)
     val sampleItem = TodayScheduleUiItem(
         reminder = sampleReminder,
         medicationName = "Amoxicillin Long Name",
@@ -135,7 +135,7 @@ fun TodayScheduleItemPreview() {
 @Preview(showBackground = true, name = "TodayScheduleItem Future")
 @Composable
 fun TodayScheduleItemFuturePreview() {
-    val sampleReminderTaken = MedicationReminder(2, 102, 2, LocalDateTime.now().plusHours(2).format(ReminderCalculator.storableDateTimeFormatter), true, LocalDateTime.now().minusHours(1).format(ReminderCalculator.storableDateTimeFormatter), null)
+    val sampleReminderTaken = MedicationReminder(2, 102, 2, 1, LocalDateTime.now().plusHours(2).format(ReminderCalculator.storableDateTimeFormatter), true, LocalDateTime.now().minusHours(1).format(ReminderCalculator.storableDateTimeFormatter), null)
     val sampleItemTaken = TodayScheduleUiItem(
         reminder = sampleReminderTaken,
         medicationName = "Ibuprofen",
