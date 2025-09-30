@@ -37,9 +37,12 @@ fun NotificationsScreen(
     val notifications by viewModel.notifications.collectAsState()
     var showClearAllDialog by remember { mutableStateOf(false) }
 
+import androidx.compose.material.icons.filled.Delete
+
     if (showClearAllDialog) {
         AlertDialog(
             onDismissRequest = { showClearAllDialog = false },
+            icon = { Icon(Icons.Default.Delete, contentDescription = null) },
             title = { Text(stringResource(id = R.string.notifications_clear_all_confirm_title)) },
             text = { Text(stringResource(id = R.string.notifications_clear_all_confirm_text)) },
             confirmButton = {

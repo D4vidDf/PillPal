@@ -67,48 +67,38 @@ fun NotificationList(
 
             LaunchedEffect(isDismissed) {
                 if (isDismissed) {
-                    delay(1000L)
+                    delay(300L)
                     onNotificationSwiped(notification)
                 }
             }
 
             SwipeToDismiss(
                 state = dismissState,
-                modifier = Modifier.animateItemPlacement(
-                    animationSpec = spring(
+                modifier = Modifier.animateItem(
+                    placementSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessLow
                     )
                 ),
-                directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart),
+                directions = setOf(DismissDirection.EndToStart),
                 background = {
-                    val direction = dismissState.direction ?: return@SwipeToDismiss
                     val color by animateColorAsState(
                         targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
                         label = "background color"
                     )
 
-                    val alignment = when (direction) {
-                        DismissDirection.StartToEnd -> Alignment.CenterStart
-                        DismissDirection.EndToStart -> Alignment.CenterEnd
-                    }
-
-                    val shape = when (direction) {
-                        DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                        DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
-                    }
 
                     val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
 
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = alignment
+                        contentAlignment = Alignment.CenterEnd
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .width(backgroundWidth)
-                                .background(color, shape = shape),
+                                .background(color, shape = MaterialTheme.shapes.extraLarge),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -123,7 +113,6 @@ fun NotificationList(
                     NotificationItem(notification = notification)
                 }
             )
-            HorizontalDivider()
         }
     }
 }

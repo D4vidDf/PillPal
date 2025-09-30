@@ -700,4 +700,16 @@
     <string name="next_dose_in_title">Pròxima dosi en</string>
     <string name="last_missed_at_time">Darrera omissió a les %1$s</string>
     <string name="view_details_missed_reminders_cd">Veure detalls dels recordatoris omesos</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_screen_title">Notificacions</string>
+    <string name="notifications_empty_state">No hi ha notificacions.</string>
+    <string name="notifications_clear_all">Netejar tot</string>
+    <string name="notifications_clear_all_confirm_title">Vols netejar totes les notificacions?</string>
+    <string name="notifications_clear_all_confirm_text">Això eliminarà permanentment totes les notificacions del teu dispositiu.</string>
+    <string name="date_header_today">Avui</string>
+    <string name="date_header_yesterday">Ahir</string>
+    <string name="notification_icon_cd_security">Icona d\'alerta de seguretat</string>
+    <string name="notification_icon_cd_medication">Icona de medicació</string>
+    <string name="notification_icon_cd_general">Icona de notificació</string>
 </resources>

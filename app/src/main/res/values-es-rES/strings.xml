@@ -774,4 +774,16 @@
     <string name="next_dose_in_title">Próxima dosis en</string>
     <string name="last_missed_at_time">Última omisión a las %1$s</string>
     <string name="view_details_missed_reminders_cd">Ver detalles de los recordatorios omitidos</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_screen_title">Notificaciones</string>
+    <string name="notifications_empty_state">No hay notificaciones.</string>
+    <string name="notifications_clear_all">Limpiar todo</string>
+    <string name="notifications_clear_all_confirm_title">¿Limpiar todas las notificaciones?</string>
+    <string name="notifications_clear_all_confirm_text">Esto eliminará permanentemente todas las notificaciones de tu dispositivo.</string>
+    <string name="date_header_today">Hoy</string>
+    <string name="date_header_yesterday">Ayer</string>
+    <string name="notification_icon_cd_security">Icono de alerta de seguridad</string>
+    <string name="notification_icon_cd_medication">Icono de medicación</string>
+    <string name="notification_icon_cd_general">Icono de notificación</string>
 </resources>
