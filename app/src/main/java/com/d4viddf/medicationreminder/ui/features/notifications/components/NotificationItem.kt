@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.toShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -83,13 +84,14 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 @Composable
 private fun NotificationIcon(notification: Notification) {
     val iconSize = 56.dp // Increased size for better visibility
+    val squircleShape = RoundedCornerShape(16.dp)
 
     when (notification.type) {
         "security_alert" -> {
             Box(
                 modifier = Modifier
                     .size(iconSize)
-                    .clip(MaterialShapes.Pill.toShape())
+                    .clip(squircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -125,7 +127,7 @@ private fun NotificationIcon(notification: Notification) {
             Box(
                 modifier = Modifier
                     .size(iconSize)
-                    .clip(MaterialShapes.Pill.toShape())
+                    .clip(squircleShape)
                     .background(medicationColor.backgroundColor),
                 contentAlignment = Alignment.Center
             ) {
@@ -141,7 +143,7 @@ private fun NotificationIcon(notification: Notification) {
             Box(
                 modifier = Modifier
                     .size(iconSize)
-                    .clip(MaterialShapes.Pill.toShape())
+                    .clip(squircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
