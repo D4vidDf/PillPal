@@ -6,36 +6,30 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Notification
-import kotlin.math.abs
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NotificationList(
     notifications: List<Notification>,
@@ -47,61 +41,52 @@ fun NotificationList(
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         items(notifications, key = { it.id }) { notification ->
-            val dismissState = rememberDismissState(
-                confirmStateChange = {
-                    if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
+            val dismissState = rememberSwipeToDismissBoxState(
+                confirmValueChange = {
+                    if (it == SwipeToDismissBoxValue.StartToEnd || it == SwipeToDismissBoxValue.EndToStart) {
                         onNotificationSwiped(notification)
-                        return@rememberDismissState true
+                        return@rememberSwipeToDismissBoxState true
                     }
                     false
-                }
+                },
+                positionalThreshold = { it * .25f }
             )
 
-            SwipeToDismiss(
+            SwipeToDismissBox(
                 state = dismissState,
-                directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart),
-                background = {
-                    val direction = dismissState.direction ?: return@SwipeToDismiss
+                enableDismissFromStartToEnd = true,
+                enableDismissFromEndToStart = true,
+                backgroundContent = {
                     val color by animateColorAsState(
-                        targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
-                        label = "background color"
+                        when (dismissState.targetValue) {
+                            SwipeToDismissBoxValue.StartToEnd,
+                            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                            else -> Color.Transparent
+                        }, label = "background color"
                     )
-
-                    val alignment = when (direction) {
-                        DismissDirection.StartToEnd -> Alignment.CenterStart
-                        DismissDirection.EndToStart -> Alignment.CenterEnd
+                    val alignment = when (dismissState.dismissDirection) {
+                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                        else -> Alignment.Center
                     }
-
-                    val shape = when (direction) {
-                        DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                        DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
-                    }
-
-                    val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
 
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        Modifier
+                            .fillMaxSize()
+                            .background(color)
+                            .padding(horizontal = 20.dp),
                         contentAlignment = alignment
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .width(backgroundWidth)
-                                .background(color, shape = shape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(id = R.string.delete),
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(id = R.string.delete),
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
                     }
-                },
-                dismissContent = {
-                    NotificationItem(notification = notification)
                 }
-            )
+            ) {
+                NotificationItem(notification = notification)
+            }
             HorizontalDivider()
         }
     }
