@@ -79,12 +79,10 @@ fun NotificationList(
 
                     val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
 
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = alignment
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
                         Box(
                             modifier = Modifier
+                                .align(alignment)
                                 .fillMaxHeight()
                                 .width(backgroundWidth)
                                 .background(color, shape = shape),
