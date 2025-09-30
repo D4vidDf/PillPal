@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +26,26 @@ class NotificationsViewModel @Inject constructor(
 
     init {
         markAllAsRead()
+        // TODO: Remove this mock data generator before final production release
+        addMockData()
+    }
+
+    private fun addMockData() {
+        viewModelScope.launch {
+            // Clear previous mocks to avoid duplicates on each screen view
+            notificationRepository.deleteAll()
+
+            val mockNotifications = listOf(
+                Notification(title = "Ibuprofen", message = "Time to refill your Ibuprofen", timestamp = LocalDateTime.now(), type = "low_medication", icon = "pill", color = "LIGHT_BLUE"),
+                Notification(title = "Security Note", message = "La AEMPS informa que se ha retirado un lote de Paracetamol...", timestamp = LocalDateTime.now().minusHours(1), type = "security_alert", icon = "security", color = null),
+                Notification(title = "Amoxicillin", message = "Time to refill your Amoxicillin", timestamp = LocalDateTime.now().minusDays(1), type = "low_medication", icon = "capsule", color = "LIGHT_GREEN"),
+                Notification(title = "Security Note", message = "Actualización de seguridad importante sobre su tratamiento.", timestamp = LocalDateTime.now().minusDays(1).minusHours(2), type = "security_alert", icon = "security", color = null),
+                Notification(title = "Cough Syrup", message = "Your syrup is running low.", timestamp = LocalDateTime.now().minusDays(2), type = "low_medication", icon = "syrup", color = "LIGHT_PURPLE")
+            )
+            mockNotifications.forEach { notificationRepository.insert(it) }
+            // Mark the new mock data as read since we are viewing the screen
+            markAllAsRead()
+        }
     }
 
     fun onNotificationSwiped(notification: Notification) {
