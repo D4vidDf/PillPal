@@ -36,11 +36,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.LocalDensity
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun NotificationList(
     notifications: List<Notification>,
@@ -53,41 +60,44 @@ fun NotificationList(
     ) {
         items(notifications, key = { it.id }) { notification ->
             val dismissState = rememberDismissState(
-                confirmValueChange = {
-                    if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
+                confirmStateChange = {
+                    if (it == androidx.compose.material.DismissValue.DismissedToEnd || it == androidx.compose.material.DismissValue.DismissedToStart) {
                         onNotificationSwiped(notification)
-                        true
-                    } else {
-                        false
+                        return@rememberDismissState true
                     }
+                    false
                 }
             )
 
             SwipeToDismiss(
                 state = dismissState,
-                directions = setOf(DismissDirection.EndToStart),
+                directions = setOf(androidx.compose.material.DismissDirection.EndToStart),
                 background = {
                     val color by animateColorAsState(
-                        targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
+                        targetValue = if (dismissState.targetValue == androidx.compose.material.DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
                         label = "background color"
-                    )
-                    val scale by animateFloatAsState(
-                        targetValue = if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
-                        label = "icon scale"
                     )
 
                     Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(color)
-                            .padding(horizontal = 20.dp),
+                        modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.CenterEnd
                     ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = stringResource(id = R.string.delete),
-                            modifier = Modifier.scale(scale)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(with(LocalDensity.current) { -dismissState.offset.value.toDp() })
+                                .background(
+                                    color,
+                                    shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete),
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
                     }
                 },
                 dismissContent = {
