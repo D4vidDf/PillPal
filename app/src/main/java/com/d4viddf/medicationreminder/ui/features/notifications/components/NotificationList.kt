@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -67,16 +66,17 @@ fun NotificationList(
                         targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
                         label = "background color"
                     )
-                    val iconAlpha = dismissState.progress.fraction
 
                     val alignment = when (direction) {
                         DismissDirection.StartToEnd -> Alignment.CenterStart
                         DismissDirection.EndToStart -> Alignment.CenterEnd
                     }
+
                     val shape = when (direction) {
                         DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                         DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
                     }
+
                     val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
 
                     Box(
@@ -93,8 +93,7 @@ fun NotificationList(
                             Icon(
                                 Icons.Default.Delete,
                                 contentDescription = stringResource(id = R.string.delete),
-                                tint = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.graphicsLayer(alpha = iconAlpha)
+                                tint = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
                     }
