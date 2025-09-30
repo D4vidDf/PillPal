@@ -1,0 +1,119 @@
+package com.d4viddf.medicationreminder.ui.features.notifications.components
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.d4viddf.medicationreminder.data.model.Notification
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.rememberDismissState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun NotificationList(
+    notifications: List<Notification>,
+    onNotificationSwiped: (Notification) -> Unit
+) {
+    val groupedNotifications = notifications.groupBy { it.timestamp.toLocalDate() }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        groupedNotifications.forEach { (date, notificationsForDate) ->
+            stickyHeader {
+                DateHeader(date = date)
+            }
+            items(notificationsForDate, key = { it.id }) { notification ->
+                val dismissState = rememberDismissState(
+                    confirmValueChange = {
+                        if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
+                            onNotificationSwiped(notification)
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                )
+
+                SwipeToDismiss(
+                    state = dismissState,
+                    directions = setOf(DismissDirection.EndToStart),
+                    background = {
+                        val color by animateColorAsState(
+                            targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
+                            label = "background color"
+                        )
+                        val scale by animateFloatAsState(
+                            targetValue = if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
+                            label = "icon scale"
+                        )
+
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(color)
+                                .padding(horizontal = 20.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete),
+                                modifier = Modifier.scale(scale)
+                            )
+                        }
+                    },
+                    dismissContent = {
+                        NotificationItem(notification = notification)
+                    }
+                )
+            }
+        }
+    }
+}
+
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
+
+@Composable
+private fun DateHeader(date: LocalDate) {
+    val headerText = when {
+        date.isEqual(LocalDate.now()) -> stringResource(id = R.string.date_header_today)
+        date.isEqual(LocalDate.now().minusDays(1)) -> stringResource(id = R.string.date_header_yesterday)
+        else -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    }
+    Text(
+        text = headerText,
+        style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    )
+}

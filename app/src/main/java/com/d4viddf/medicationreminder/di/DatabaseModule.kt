@@ -109,7 +109,7 @@ object DatabaseModule {
                     }
                 }
             })
-            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10, MedicationDatabase.MIGRATION_10_11, MedicationDatabase.MIGRATION_11_12, MedicationDatabase.MIGRATION_12_13)
+            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10, MedicationDatabase.MIGRATION_10_11, MedicationDatabase.MIGRATION_11_12, MedicationDatabase.MIGRATION_12_13, MedicationDatabase.MIGRATION_13_14)
             .fallbackToDestructiveMigration(false) // Added this line
             .build()
     }
@@ -136,6 +136,13 @@ object DatabaseModule {
     fun provideFirebaseSyncDao(database: MedicationDatabase): FirebaseSyncDao = database.firebaseSyncDao()
     @Provides
     fun provideHealthDataDao(database: MedicationDatabase) = database.healthDataDao()
+
+    @Provides
+    fun provideNotificationDao(database: MedicationDatabase) = database.notificationDao()
+
+    @Provides
+    @Singleton
+    fun provideCoroutineScope(): CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     @Provides
     @Singleton // Dispatchers are singletons

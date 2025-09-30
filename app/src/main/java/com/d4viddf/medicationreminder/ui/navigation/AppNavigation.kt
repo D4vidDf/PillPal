@@ -52,6 +52,7 @@ import com.d4viddf.medicationreminder.ui.features.medication.schedules.AllSchedu
 import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphScreen
 import com.d4viddf.medicationreminder.ui.features.medication.history.MedicationHistoryScreen
 import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationVaultScreen
+import com.d4viddf.medicationreminder.ui.features.notifications.NotificationsScreen
 import com.d4viddf.medicationreminder.ui.features.onboarding.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
@@ -78,6 +79,7 @@ sealed class Screen(val route: String) {
     object Analysis : Screen("analysis")
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
+    object Notifications : Screen("notifications")
     data object Onboarding : Screen("onboarding_screen")
 
     object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}/{colorName}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
@@ -165,6 +167,11 @@ fun AppNavigation(
                     sharedTransitionScope = currentSharedTransitionScope,
                     animatedVisibilityScope = this,
                     hostPaddingValues = hostScaffoldPadding
+                )
+            }
+            composable(Screen.Notifications.route) {
+                NotificationsScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable(Screen.AddMedicationChoice.route) {
