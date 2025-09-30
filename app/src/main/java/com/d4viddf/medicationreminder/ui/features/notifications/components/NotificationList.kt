@@ -1,6 +1,8 @@
 package com.d4viddf.medicationreminder.ui.features.notifications.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +26,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Notification
+import kotlinx.coroutines.delay
 import kotlin.math.abs
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -47,55 +54,68 @@ fun NotificationList(
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         items(notifications, key = { it.id }) { notification ->
+            var isDismissed by remember { mutableStateOf(false) }
             val dismissState = rememberDismissState(
                 confirmStateChange = {
                     if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
-                        onNotificationSwiped(notification)
+                        isDismissed = true
                         return@rememberDismissState true
                     }
                     false
                 }
             )
 
+            LaunchedEffect(isDismissed) {
+                if (isDismissed) {
+                    delay(1000L)
+                    onNotificationSwiped(notification)
+                }
+            }
+
             SwipeToDismiss(
                 state = dismissState,
+                modifier = Modifier.animateItemPlacement(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ),
                 directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart),
                 background = {
-                    dismissState.direction?.let { direction ->
-                        val color by animateColorAsState(
-                            targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
-                            label = "background color"
-                        )
+                    val direction = dismissState.direction ?: return@SwipeToDismiss
+                    val color by animateColorAsState(
+                        targetValue = if (dismissState.targetValue == DismissValue.Default) Color.Transparent else MaterialTheme.colorScheme.errorContainer,
+                        label = "background color"
+                    )
 
-                        val alignment = when (direction) {
-                            DismissDirection.StartToEnd -> Alignment.CenterStart
-                            DismissDirection.EndToStart -> Alignment.CenterEnd
-                        }
+                    val alignment = when (direction) {
+                        DismissDirection.StartToEnd -> Alignment.CenterStart
+                        DismissDirection.EndToStart -> Alignment.CenterEnd
+                    }
 
-                        val shape = when (direction) {
-                            DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                            DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
-                        }
+                    val shape = when (direction) {
+                        DismissDirection.StartToEnd -> RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                        DismissDirection.EndToStart -> RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
+                    }
 
-                        val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
+                    val backgroundWidth = with(LocalDensity.current) { abs(dismissState.offset.value).toDp() }
 
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = alignment
+                    ) {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = alignment
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(backgroundWidth)
+                                .background(color, shape = shape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(backgroundWidth)
-                                    .background(color, shape = shape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = stringResource(id = R.string.delete),
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete),
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
                         }
                     }
                 },
