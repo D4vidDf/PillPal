@@ -9,6 +9,7 @@
 <p align="center">
   <img alt="Version 0.6.0.16" src="https://img.shields.io/badge/version-0.6.0.16-blue"/>
 </p>
+
 ## Description
 
 PillPal is a comprehensive medication management app that helps users stay on top of their health regimen. It allows for easy scheduling of medications, setting reminders, and tracking intake. With a user-friendly interface, PillPal simplifies medication management. The app now integrates with Health Connect to provide a holistic view of your health by syncing vital signs, and includes a companion Wear OS app for convenient access to your medication schedule on the go.
