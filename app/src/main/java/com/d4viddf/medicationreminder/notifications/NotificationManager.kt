@@ -5,10 +5,11 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Notification
 import com.d4viddf.medicationreminder.data.repository.NotificationRepository
-import com.d4viddf.medicationreminder.ui.MainActivity
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
 import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
