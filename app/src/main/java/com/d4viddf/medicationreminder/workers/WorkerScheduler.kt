@@ -6,7 +6,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.common.WorkerConstants // Added import
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants // Added import
 
 object WorkerScheduler {
 

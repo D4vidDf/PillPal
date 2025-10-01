@@ -4,28 +4,25 @@ import android.annotation.SuppressLint
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
 import android.util.Log
-import com.d4viddf.medicationreminder.data.MedicationFullSyncItem
-import com.d4viddf.medicationreminder.data.MedicationScheduleDetailSyncItem
-import com.d4viddf.medicationreminder.data.ScheduleType // Enum for schedule type
-import com.d4viddf.medicationreminder.data.TodayScheduleItem
-import com.d4viddf.medicationreminder.logic.ReminderCalculator
-import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.data.model.MedicationFullSyncItem
+import com.d4viddf.medicationreminder.data.model.MedicationScheduleDetailSyncItem
+import com.d4viddf.medicationreminder.data.model.ScheduleType // Enum for schedule type
+import com.d4viddf.medicationreminder.data.model.TodayScheduleItem
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationInfoRepository
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.os.Build
-import androidx.core.app.NotificationCompat
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.data.repository.MedicationInfoRepository
 import com.d4viddf.medicationreminder.MainActivity
-import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.repository.MedicationTypeRepository
+import com.d4viddf.medicationreminder.data.model.MedicationInfoSyncItem
+import com.d4viddf.medicationreminder.data.model.MedicationReminderSyncItem
+import com.d4viddf.medicationreminder.data.model.MedicationTypeSyncItem
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
@@ -42,10 +39,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import com.d4viddf.medicationreminder.utils.BatteryStateHolder
 import com.d4viddf.medicationreminder.utils.WearConnectivityHelper // Added import
 import kotlinx.coroutines.CoroutineExceptionHandler
 
@@ -62,6 +59,10 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var medicationTypeRepository: MedicationTypeRepository
     @Inject
     lateinit var medicationInfoRepository: MedicationInfoRepository
+    @Inject
+    lateinit var dosageRepository: MedicationDosageRepository
+    @Inject
+    lateinit var batteryStateHolder: BatteryStateHolder
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val gson by lazy { Gson() }
@@ -163,6 +164,14 @@ class DataLayerListenerService : WearableListenerService() {
                 }
                 startActivity(intent)
             }
+            PATH_BATTERY_LEVEL_RESPONSE -> {
+                val nodeId = messageEvent.sourceNodeId
+                val batteryLevel = messageEvent.data.first().toInt()
+                Log.d(TAG, "Received battery level from $nodeId: $batteryLevel%")
+                serviceScope.launch {
+                    batteryStateHolder.newBatteryLevel(nodeId, batteryLevel)
+                }
+            }
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
             }
@@ -195,6 +204,7 @@ class DataLayerListenerService : WearableListenerService() {
         private const val PATH_MARK_AS_TAKEN = "/mark_as_taken"
         private const val PATH_REQUEST_INITIAL_SYNC = "/request_initial_sync"
         private const val PATH_FULL_MED_DATA_SYNC = "/full_medication_data_sync"
+        private const val PATH_BATTERY_LEVEL_RESPONSE = "/battery-level-response"
         // private const val PATH_TODAY_SCHEDULE_SYNC = "/today_schedule" // Considered legacy, full sync preferred
         private const val PATH_OPEN_PLAY_STORE_ON_PHONE = "/open_play_store" // Path from Wear OS app
         private const val PATH_ADHOC_TAKEN_ON_WATCH = "/mark_adhoc_taken_on_watch" // Path from Wear OS for ad-hoc
@@ -256,22 +266,23 @@ class DataLayerListenerService : WearableListenerService() {
             }
             val medInfo = medicationInfoRepository.getMedicationInfoById(medication.id)
             val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
+            val activeDosage = dosageRepository.getActiveDosage(medication.id)
 
             medicationFullSyncItems.add(
                 MedicationFullSyncItem(
                     medicationId = medication.id,
                     name = medication.name,
-                    dosage = medication.dosage,
+                    dosage = activeDosage?.dosage,
                     color = medication.color,
                     type = medType?.let {
-                        com.d4viddf.medicationreminder.data.MedicationTypeSyncItem(
+                        MedicationTypeSyncItem(
                             id = it.id,
                             name = it.name,
                             iconUrl = it.imageUrl
                         )
                     },
                     info = medInfo?.let {
-                        com.d4viddf.medicationreminder.data.MedicationInfoSyncItem(
+                        MedicationInfoSyncItem(
                             medicationId = it.medicationId,
                             notes = it.description,
                             instructions = it.safetyNotes
@@ -279,7 +290,7 @@ class DataLayerListenerService : WearableListenerService() {
                     },
                     schedules = scheduleDetailSyncItems,
                     reminders = reminders.map {
-                        com.d4viddf.medicationreminder.data.MedicationReminderSyncItem(
+                        MedicationReminderSyncItem(
                             id = it.id.toLong(),
                             medicationId = it.medicationId,
                             reminderTime = it.reminderTime.toString(),

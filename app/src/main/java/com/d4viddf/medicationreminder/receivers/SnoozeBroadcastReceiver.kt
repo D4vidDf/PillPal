@@ -4,13 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
-import com.d4viddf.medicationreminder.data.MedicationReminder // Assuming this is the correct data class
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
 import com.d4viddf.medicationreminder.di.ReminderReceiverEntryPoint // Using existing entry point
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.notifications.NotificationScheduler
-import com.d4viddf.medicationreminder.repository.MedicationRepository
 import com.d4viddf.medicationreminder.utils.FileLogger
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
@@ -22,7 +19,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Calendar
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SnoozeBroadcastReceiver : BroadcastReceiver() {
@@ -75,6 +71,7 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                     )
                     val reminderRepository = entryPoint.reminderRepository()
                     val medicationRepository = entryPoint.medicationRepository()
+                    val dosageRepository = entryPoint.medicationDosageRepository()
                     val notificationScheduler = entryPoint.notificationScheduler()
 
                     val originalReminder = reminderRepository.getReminderById(reminderId)
@@ -95,6 +92,15 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                         return@launch
                     }
 
+                    val activeDosage = dosageRepository.getActiveDosage(medication.id)
+                    if (activeDosage == null) {
+                        val dosageNotFoundLog = "Active dosage not found for medication ID ${medication.id}. Aborting snooze."
+                        Log.e(TAG, dosageNotFoundLog)
+                        FileLogger.log(TAG, dosageNotFoundLog)
+                        pendingResult.finish()
+                        return@launch
+                    }
+
                     // Calculate new reminder time (10 minutes from now)
                     val calendar = Calendar.getInstance()
                     calendar.add(Calendar.MINUTE, SNOOZE_MINUTES)
@@ -110,7 +116,7 @@ class SnoozeBroadcastReceiver : BroadcastReceiver() {
                         context = context,
                         reminder = originalReminder, // Pass the original reminder object
                         medicationName = medication.name,
-                        medicationDosage = medication.dosage ?: "", // Use empty string if dosage is null
+                        medicationDosage = activeDosage.dosage, // Use the fetched dosage
                         isIntervalType = false, // Snoozed reminder is not an interval type
                         nextDoseTimeForHelperMillis = null, // No next dose for a one-off snooze
                         actualScheduledTimeMillis = snoozeDateTimeMillis // This is the time for the snoozed reminder

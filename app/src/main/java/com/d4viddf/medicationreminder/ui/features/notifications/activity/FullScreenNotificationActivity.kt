@@ -11,46 +11,19 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.IntrinsicSize // Added import
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width // Added import
-import androidx.compose.foundation.layout.wrapContentSize // Added import, though it might be covered by layout.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SplitButtonDefaults
-import androidx.compose.material3.SplitButtonLayout
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -63,36 +36,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
 import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
-import com.d4viddf.medicationreminder.ui.common.components.AnimatedShape
-import com.d4viddf.medicationreminder.ui.common.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
+import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver
+import com.d4viddf.medicationreminder.ui.common.component.ShapesAnimation
+import com.d4viddf.medicationreminder.ui.common.component.bottomsheet.BottomSheetItem
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
+import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Locale
+import java.util.*
 
 
 @AndroidEntryPoint
 class FullScreenNotificationActivity : ComponentActivity() {
 
     companion object {
-        // All EXTRAs moved to IntentExtraConstants or NotificationConstants
         private const val TAG = "FullScreenNotification"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val reminderId = intent.getIntExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_REMINDER_ID, -1)
-        val medicationName = intent.getStringExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_MEDICATION_NAME) ?: getString(R.string.medication_name_placeholder)
-        val medicationDosage = intent.getStringExtra(com.d4viddf.medicationreminder.common.IntentExtraConstants.EXTRA_MEDICATION_DOSAGE) ?: getString(R.string.not_set)
-        val medicationColorNameString = intent.getStringExtra(com.d4viddf.medicationreminder.common.NotificationConstants.EXTRA_MED_COLOR_HEX)
-        val medicationTypeName = intent.getStringExtra(com.d4viddf.medicationreminder.common.NotificationConstants.EXTRA_MED_TYPE_NAME)
-
-        Log.d(TAG, "Activity created for Reminder ID: $reminderId, Name: $medicationName, Dosage: $medicationDosage, ColorNameString: $medicationColorNameString, Type: $medicationTypeName")
+        val reminderId = intent.getIntExtra(IntentExtraConstants.EXTRA_REMINDER_ID, -1)
+        val medicationName = intent.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME) ?: getString(R.string.medication_name_placeholder)
+        val medicationDosage = intent.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_DOSAGE) ?: getString(R.string.not_set)
+        val medicationColorNameString = intent.getStringExtra(NotificationConstants.EXTRA_MED_COLOR_HEX)
+        val medicationTypeName = intent.getStringExtra(NotificationConstants.EXTRA_MED_TYPE_NAME)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -105,18 +78,13 @@ class FullScreenNotificationActivity : ComponentActivity() {
                     try {
                         MedicationColor.valueOf(medicationColorNameString ?: MedicationColor.BLUE.name)
                     } catch (e: IllegalArgumentException) {
-                        Log.w(TAG, "Invalid MedicationColor name: '$medicationColorNameString'. Defaulting to BLUE.")
                         MedicationColor.BLUE
                     }
                 }
 
                 val finalBackgroundColor: Color = medicationColorScheme.backgroundColor
                 val finalContentColor: Color = medicationColorScheme.textColor
-                val animatedShapesColor = finalContentColor.copy(alpha = 0.1f) // Or your desired alpha
-
-                Log.d(TAG, "Using MedicationColor: ${medicationColorScheme.name} (Enum Name), ${medicationColorScheme.colorName} (Descriptive Name)")
-                Log.d(TAG, "Background color: $finalBackgroundColor, Content color: $finalContentColor, Animated Shapes color: $animatedShapesColor")
-
+                val animatedShapesColor = finalContentColor.copy(alpha = 0.1f)
 
                 FullScreenNotificationScreen(
                     reminderId = reminderId,
@@ -127,8 +95,7 @@ class FullScreenNotificationActivity : ComponentActivity() {
                     contentColor = finalContentColor,
                     animatedShapesColor = animatedShapesColor,
                     onMarkAsTaken = {
-                        Log.i(TAG, "Mark as Taken clicked for Reminder ID: $reminderId")
-                        val markTakenIntent = Intent(applicationContext, ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver
+                        val markTakenIntent = Intent(applicationContext, ReminderBroadcastReceiver::class.java).apply {
                             action = IntentActionConstants.ACTION_MARK_AS_TAKEN
                             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
                         }
@@ -140,7 +107,6 @@ class FullScreenNotificationActivity : ComponentActivity() {
                         finishAndRemoveTask()
                     },
                     onDismiss = {
-                        Log.i(TAG, "Dismiss clicked for Reminder ID: $reminderId")
                         if (reminderId != -1) {
                             NotificationManagerCompat.from(this@FullScreenNotificationActivity).cancel(reminderId)
                         }
@@ -148,14 +114,12 @@ class FullScreenNotificationActivity : ComponentActivity() {
                         finishAndRemoveTask()
                     },
                     onSnooze = {
-                        Log.i(TAG, "Snooze clicked for Reminder ID: $reminderId")
-                        val snoozeIntent = Intent(applicationContext, com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver::class.java).apply {
+                        val snoozeIntent = Intent(applicationContext, SnoozeBroadcastReceiver::class.java).apply {
                             action = IntentActionConstants.ACTION_SNOOZE_REMINDER
                             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
                         }
                         applicationContext.sendBroadcast(snoozeIntent)
                         if (reminderId != -1) {
-                            // Cancel the immediate notification from the full-screen activity context
                             NotificationManagerCompat.from(this@FullScreenNotificationActivity).cancel(reminderId)
                         }
                         Toast.makeText(this@FullScreenNotificationActivity, getString(R.string.notification_action_snooze) + " ($medicationName)", Toast.LENGTH_SHORT).show()
@@ -167,6 +131,7 @@ class FullScreenNotificationActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MedicationTypeImage(
     typeName: String?,
@@ -192,33 +157,41 @@ fun MedicationTypeImage(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        // --- Use your OLD/Working AnimatedShape ---
-        AnimatedShape( // Call your refactored composable
-            modifier = Modifier.fillMaxSize(),
-            shapeColor = animatedShapesColor // Pass the desired color
-        )
-        // --- End Animated Background ---
-
-        // Overlay the medication type image or tick mark
-        if (showTick) {
-            Image(
-                imageVector = Icons.Filled.Check,
-                contentDescription = stringResource(id = R.string.content_description_tick_mark),
-                modifier = Modifier.size(120.dp),
-                colorFilter = ColorFilter.tint(imageTint)
-            )
-        } else {
-            Image(
-                painter = painterResource(id = imageResId),
-                contentDescription = stringResource(id = contentDescResId),
-                modifier = Modifier.size(100.dp),
-                colorFilter = ColorFilter.tint(imageTint)
-            )
+        ShapesAnimation(
+            modifier = Modifier.size(300.dp),
+            shapeModifier = Modifier.size(300.dp),
+            shapes = listOf(
+                MaterialShapes.Cookie6Sided,
+                MaterialShapes.Sunny,
+                MaterialShapes.Cookie9Sided,
+                MaterialShapes.Cookie12Sided,
+                MaterialShapes.Pill,
+            ),
+            backgroundColor = animatedShapesColor,
+            contentPadding = PaddingValues(12.dp),
+            animationDuration = 10000,
+            pauseDuration = 3000,
+        ) {
+            if (showTick) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_check),
+                    modifier = Modifier.fillMaxSize(0.3f),
+                    contentDescription = stringResource(id = R.string.content_description_tick_mark),
+                    colorFilter = ColorFilter.tint(imageTint)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = imageResId),
+                    modifier = Modifier.fillMaxSize(0.3f),
+                    contentDescription = stringResource(id = contentDescResId),
+                    colorFilter = ColorFilter.tint(imageTint)
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FullScreenNotificationScreen(
     reminderId: Int,
@@ -234,8 +207,10 @@ fun FullScreenNotificationScreen(
 ) {
     val scope = rememberCoroutineScope()
     var showTick by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    var isDropdownExpanded by remember { mutableStateOf(false) }
+
+    // State for the bottom sheet
+    var showActionsBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     val stateExpandedText = stringResource(id = R.string.split_button_state_expanded)
     val stateCollapsedText = stringResource(id = R.string.split_button_state_collapsed)
@@ -259,6 +234,33 @@ fun FullScreenNotificationScreen(
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor,
     ) {
+        // Show the bottom sheet when triggered
+        if (showActionsBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showActionsBottomSheet = false },
+                sheetState = sheetState
+            ) {
+                NotificationActionsBottomSheet(
+                    onDismiss = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showActionsBottomSheet = false
+                                onDismiss()
+                            }
+                        }
+                    },
+                    onSnooze = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showActionsBottomSheet = false
+                                onSnooze()
+                            }
+                        }
+                    }
+                )
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -271,7 +273,7 @@ fun FullScreenNotificationScreen(
             MedicationTypeImage(
                 typeName = medicationTypeName,
                 showTick = showTick,
-                modifier = Modifier.size(200.dp),
+                modifier = Modifier.size(300.dp),
                 imageTint = contentColor,
                 animatedShapesColor = animatedShapesColor
             )
@@ -284,7 +286,7 @@ fun FullScreenNotificationScreen(
             ) {
                 if (!showTick) {
                     Text(
-                        text = medicationName,
+                        text = medicationName.split(" ").first(),
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = contentColor,
@@ -310,110 +312,136 @@ fun FullScreenNotificationScreen(
             Spacer(modifier = Modifier.weight(1f)) // Pushes content down
 
             if (!showTick) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp) // Space before the main button group
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    TextButton(
-                        onClick = {
-                            // Directly call onSnooze which is now defined in the Activity
-                            onSnooze()
+                    val buttonContainerHeight = SplitButtonDefaults.LargeContainerHeight
+
+                    SplitButtonLayout(
+                        leadingButton = {
+                            SplitButtonDefaults.LeadingButton(
+                                onClick = internalOnMarkAsTaken,
+                                modifier = Modifier.heightIn(min = buttonContainerHeight),
+                                shapes = SplitButtonDefaults.leadingButtonShapesFor(buttonContainerHeight),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = contentColor.copy(alpha = 0.20f),
+                                    contentColor = contentColor
+                                ),
+                                contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(buttonContainerHeight),
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.fullscreen_notification_action_taken),
+                                    style = ButtonDefaults.textStyleFor(buttonContainerHeight).copy(fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                                )
+                            }
                         },
-                        modifier = Modifier.padding(bottom = 8.dp) // Space between Snooze and main buttons
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.notification_action_snooze),
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = contentColor,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp // Consistent with other button text
-                            )
-                        )
-                    }
-
-                    // Box to control the alignment of the SplitButtonLayout
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(), // This Box takes full width
-                        // .padding(bottom = 32.dp), // Padding for the button group area // Removed to allow snooze button above
-                        contentAlignment = Alignment.Center // Center its child (SplitButtonLayout)
-                    ) {
-                        val buttonContainerHeight = SplitButtonDefaults.LargeContainerHeight
-
-                        SplitButtonLayout(
-                            leadingButton = {
-                                SplitButtonDefaults.LeadingButton(
-                                    onClick = internalOnMarkAsTaken,
-                                    modifier = Modifier.heightIn(min = buttonContainerHeight),
-                                    shapes = SplitButtonDefaults.leadingButtonShapesFor(buttonContainerHeight),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = contentColor.copy(alpha = 0.20f),
-                                        contentColor = contentColor
-                                    ),
-                                    contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(buttonContainerHeight),
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.fullscreen_notification_action_taken),
-                                        style = ButtonDefaults.textStyleFor(buttonContainerHeight).copy(fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                                    )
-                                }
-                            },
-                            trailingButton = {
-                                SplitButtonDefaults.TrailingButton(
-                                    checked = isDropdownExpanded,
-                                    onCheckedChange = { isDropdownExpanded = it },
-                                    modifier = Modifier
-                                        .heightIn(min = buttonContainerHeight)
-                                        .semantics {
-                                            stateDescription = if (isDropdownExpanded) stateExpandedText else stateCollapsedText
-                                            contentDescription = moreOptionsText
-                                        },
-                                    shapes = SplitButtonDefaults.trailingButtonShapesFor(buttonContainerHeight),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = contentColor.copy(alpha = 0.20f),
-                                        contentColor = contentColor
-                                    )
-                                ) {
-                                    val rotation: Float by animateFloatAsState(
-                                        targetValue = if (isDropdownExpanded) 180f else 0f,
-                                        label = "TrailingIconRotation",
-                                        animationSpec = tween(durationMillis = 300)
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Filled.KeyboardArrowDown,
-                                        modifier = Modifier.graphicsLayer { this.rotationZ = rotation },
-                                        contentDescription = null
-                                    )
-                                }
-                            },
-                            spacing = SplitButtonDefaults.Spacing
-                        )
-
-                        DropdownMenu(
-                            expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false },
-                            modifier = Modifier
-                                .width(IntrinsicSize.Max) // Allow it to be as wide as its content needs
-                                .wrapContentSize(Alignment.Center) // Attempt to center if smaller than anchor
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(id = R.string.fullscreen_notification_action_dismiss), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                                onClick = {
-                                    onDismiss()
-                                    isDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
+                        trailingButton = {
+                            // This button now opens the bottom sheet
+                            SplitButtonDefaults.TrailingButton(
+                                checked = showActionsBottomSheet,
+                                onCheckedChange = { showActionsBottomSheet = it },
+                                modifier = Modifier
+                                    .heightIn(min = buttonContainerHeight)
+                                    .semantics {
+                                        stateDescription = if (showActionsBottomSheet) stateExpandedText else stateCollapsedText
+                                        contentDescription = moreOptionsText
+                                    },
+                                shapes = SplitButtonDefaults.trailingButtonShapesFor(buttonContainerHeight),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = contentColor.copy(alpha = 0.20f),
+                                    contentColor = contentColor
+                                )
+                            ) {
+                                val rotation: Float by animateFloatAsState(
+                                    targetValue = if (showActionsBottomSheet) 180f else 0f,
+                                    label = "TrailingIconRotation",
+                                    animationSpec = tween(durationMillis = 300)
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.KeyboardArrowDown,
+                                    modifier = Modifier.graphicsLayer { this.rotationZ = rotation },
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        spacing = SplitButtonDefaults.Spacing
+                    )
                 }
             } else {
-                // When tick is shown, maintain similar spacing as if buttons were there
-                Spacer(modifier = Modifier.defaultMinSize(minHeight = SplitButtonDefaults.LargeContainerHeight + 32.dp + 48.dp /* approx height for snooze button */))
+                Spacer(modifier = Modifier.defaultMinSize(minHeight = SplitButtonDefaults.LargeContainerHeight))
             }
-            Spacer(modifier = Modifier.weight(0.1f)) // Bottom padding
+            Spacer(modifier = Modifier.weight(0.1f))
         }
+    }
+}
+
+@Composable
+private fun NotificationActionsBottomSheet(
+    onDismiss: () -> Unit,
+    onSnooze: () -> Unit
+) {
+    val actions = getNotificationActions(onDismiss = onDismiss, onSnooze = onSnooze)
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(actions, key = { it.id }) { item ->
+            BottomSheetCard(item = item)
+        }
+    }
+}
+
+@Composable
+private fun getNotificationActions(
+    onDismiss: () -> Unit,
+    onSnooze: () -> Unit
+): List<BottomSheetItem> {
+    return listOf(
+        BottomSheetItem(
+            id = "snooze",
+            icon = painterResource(id = R.drawable.ic_snooze),
+            text = stringResource(id = R.string.notification_action_snooze),
+            action = onSnooze
+        ),
+        BottomSheetItem(
+            id = "dismiss",
+            icon = painterResource(id = R.drawable.rounded_close_24),
+            text = stringResource(id = R.string.fullscreen_notification_action_dismiss),
+            action = onDismiss
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun BottomSheetCard(item: BottomSheetItem) {
+    Button(
+        onClick = item.action,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp),
+        shapes = ButtonDefaults.shapes()
+
+    ) {
+
+            Icon(
+                painter = item.icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = item.text,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
     }
 }
 
@@ -438,7 +466,7 @@ fun FullScreenNotificationScreenPillPreview() {
             animatedShapesColor = MedicationColor.LIGHT_BLUE.textColor.copy(alpha = 0.1f),
             onMarkAsTaken = {},
             onDismiss = {},
-            onSnooze = {} // Added dummy lambda for preview
+            onSnooze = {}
         )
     }
 }
@@ -457,7 +485,7 @@ fun FullScreenNotificationScreenSyrupDarkPreview() {
             animatedShapesColor = MedicationColor.PURPLE.textColor.copy(alpha = 0.1f),
             onMarkAsTaken = {},
             onDismiss = {},
-            onSnooze = {} // Added dummy lambda for preview
+            onSnooze = {}
         )
     }
 }
@@ -466,7 +494,7 @@ fun FullScreenNotificationScreenSyrupDarkPreview() {
 @Composable
 fun FullScreenNotificationScreenTickPreview() {
     AppTheme(themePreference = "Light") {
-        var showTickPreview by remember { mutableStateOf(true) }
+        // In a real scenario, the state would be managed to show the tick after an action
         FullScreenNotificationScreen(
             reminderId = 1,
             medicationName = "Amoxicillin",
@@ -475,9 +503,9 @@ fun FullScreenNotificationScreenTickPreview() {
             backgroundColor = MedicationColor.LIGHT_GREEN.backgroundColor,
             contentColor = MedicationColor.LIGHT_GREEN.textColor,
             animatedShapesColor = MedicationColor.LIGHT_GREEN.textColor.copy(alpha = 0.1f),
-            onMarkAsTaken = { showTickPreview = true },
+            onMarkAsTaken = {},
             onDismiss = {},
-            onSnooze = {} // Added dummy lambda for preview
+            onSnooze = {}
         )
     }
 }

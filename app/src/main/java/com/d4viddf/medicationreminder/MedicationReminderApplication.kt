@@ -7,9 +7,10 @@ import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.common.WorkerConstants
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
 import com.d4viddf.medicationreminder.utils.FileLogger
+import com.d4viddf.medicationreminder.workers.CustomWorkerFactory
 import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker
 import dagger.hilt.android.HiltAndroidApp
 import java.util.Calendar
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class MedicationReminderApplication : Application(), Configuration.Provider {
 
     @Inject // Hilt inyectará una instancia de CustomWorkerFasctory (si su constructor es @Inject o tiene un @Provides)
-    lateinit var customWorkerFactory: CustomWorkerFasctory
+    lateinit var customWorkerFactory: CustomWorkerFactory
 
     private var originalUncaughtExceptionHandler: Thread.UncaughtExceptionHandler? = null
 

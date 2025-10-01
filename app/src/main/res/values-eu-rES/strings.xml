@@ -5,7 +5,7 @@
     <string name="settings">Ezarpenak</string>
     <string name="add">Gehitu</string>
     <string name="back">Atzera</string>
-    <string name="back_button_cd">Atzera</string> <!-- Added new string resource -->
+    <string name="back_button_cd">Atzera</string>
     <string name="close">Itxi</string>
     <string name="next">Hurrengoa</string>
     <string name="confirm">Berretsi</string>
@@ -15,8 +15,10 @@
     <string name="none_set">Bat ere ez</string>
     <string name="error_required_field">Eremu hau derrigorrezkoa da edo errorea du</string>
     <string name="info_not_available">Informazioa ez dago eskuragarri</string>
+
     <!-- HomeScreen -->
     <string name="medications_title">Botikak</string>
+
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Botika berria</string>
     <string name="medication_summary_title">Botiken laburpena</string>
@@ -85,6 +87,7 @@
     <string name="medication_name_clear_search_acc">Garbitu bilaketa</string>
     <string name="medication_name_error">Mesedez, sartu botika-izen baliagarria</string>
     <string name="medication_type_selector_title">Hautatu botika mota</string>
+
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Gaur</string>
     <string name="medication_detail_after_waking_up">Esnatu ondoren</string>
@@ -109,12 +112,12 @@
     <string name="medication_progress_display_info_not_available_acc">Botikaren aurrerapena: Informazioa ez dago eskuragarri.</string>
     <string name="medication_progress_display_title">Aurrerapena</string>
     <string name="medication_detail_no_reminders_today">Gaurko ez dago abisurik.</string>
-    <string name="content_desc_add_past_dose" translatable="false">Add past medication dose</string>
-    <string name="dialog_add_past_dose_title" translatable="false">Add Past Dose</string>
-    <string name="label_medication_name_in_dialog" translatable="false">Medication Name</string>
-    <string name="button_select_date" translatable="false">Select Date</string>
-    <string name="button_save_dose" translatable="false">Save Dose</string>
-    <string name="dialog_select_time_title" translatable="false">Select Time</string>
+    <string name="content_desc_add_past_dose">Gehitu iraganeko dosia</string>
+    <string name="dialog_add_past_dose_title">Gehitu Iraganeko Dosia</string>
+    <string name="label_medication_name_in_dialog">Botikaren Izena</string>
+    <string name="button_select_date">Hautatu Data</string>
+    <string name="button_save_dose">Gorde Dosia</string>
+    <string name="dialog_select_time_title">Hautatu Ordua</string>
     <string name="medication_history_title">Botiken historiala</string>
     <string name="current_week_dosage_title">Aste honetako dosia</string>
     <string name="bar_graph_placeholder">Barra-grafikoaren leku-marka (gaurko eguna nabarmenduta)</string>
@@ -122,6 +125,8 @@
     <string name="medication_information_title">Botikari buruzko informazioa</string>
     <string name="medication_info_description_placeholder">Botika honi buruzko informazio zehatza eskuragarri dago.</string>
     <string name="view_full_information">Ikusi informazio osoa</string>
+
+
     <!-- Settings Screen (New) -->
     <string name="settings_screen_title">Ezarpenak</string>
     <string name="settings_language_label">Hizkuntza</string>
@@ -132,15 +137,18 @@
     <string name="settings_notification_sound_label">Jakinarazpen-soinua</string>
     <string name="settings_notification_sound_default">Lehenetsia</string>
     <string name="settings_notification_sound_unknown">Soinu ezezaguna</string>
-    <string name="settings_volume_label" translatable="false">Volume Control</string>
-    <string name="volume_up_content_description" translatable="false">Volume Up</string>
-    <string name="volume_off_content_description" translatable="false">Volume Off</string>
+    <string name="settings_volume_label">Bolumen Kontrola</string>
+    <string name="volume_up_content_description">Igo Bolumena</string>
+    <string name="volume_off_content_description">Jaitsi Bolumena</string>
+
     <!-- Notification Related -->
     <string name="notifications_toggle_label">Jakinarazpenak</string>
-    <string name="notification_channel_reminder_name" translatable="false">Medication Reminders</string>
-    <string name="notification_channel_reminder_description" translatable="false">Notifications for medication intake reminders</string>
-    <string name="notification_channel_prereminder_name" translatable="false">Pre-Medication Reminders</string>
-    <string name="notification_channel_prereminder_description" translatable="false">Notifications that appear before medication is due.</string>
+    <string name="notification_channel_reminder_name">Botiken Abisuak</string>
+    <string name="notification_channel_reminder_description">Botikak hartzeko abisuen jakinarazpenak</string>
+    <string name="notification_channel_prereminder_name">Botiken Aurre-Abisuak</string>
+    <string name="notification_channel_prereminder_description">Botika hartu baino lehen agertzen diren jakinarazpenak.</string>
+
+
     <!-- Day initialisms for medication summary -->
     <string name="day_mon">Al.</string>
     <string name="day_tue">Ar.</string>
@@ -149,6 +157,7 @@
     <string name="day_fri">Ol.</string>
     <string name="day_sat">Lr.</string>
     <string name="day_sun">Ig.</string>
+
     <!-- Day initialisms for frequency selector -->
     <string name="day_mon_initial">Al</string>
     <string name="day_tue_initial">Ar</string>
@@ -157,24 +166,30 @@
     <string name="day_fri_initial">Ol</string>
     <string name="day_sat_initial">Lr</string>
     <string name="day_sun_initial">Ig</string>
+
     <string name="info_not_available_short">E/E</string>
+
     <!-- Settings Screen: Language Names (in their own language) -->
     <string name="language_english">English</string>
     <string name="language_spanish">Español</string>
     <string name="language_galician">Galego</string>
     <string name="language_euskera">Euskara</string>
     <string name="language_catalan">Català</string>
+
     <!-- Settings Screen: Theme Options (will be translated) -->
     <string name="settings_theme_light_option">Argia</string>
     <string name="settings_theme_dark_option">Iluna</string>
     <string name="settings_theme_system_option">Sistemaren lehenetsia</string>
+
     <!-- FrequencyType Strings -->
     <string name="frequency_once_a_day">Egunean behin</string>
     <string name="frequency_multiple_times_a_day">Egunean hainbat aldiz</string>
     <string name="frequency_interval">Tartea</string>
+
     <!-- Dosage Units -->
     <string name="dosage_mg">mg</string>
     <string name="dosage_ml">ml</string>
+
     <!-- Strings for Navigation Components (Task: Add Missing String Resources) -->
     <string name="add_medication_title">Gehitu Botika</string>
     <string name="add_medication_short_action">Gehitu</string>
@@ -183,11 +198,13 @@
     <string name="profile_screen_title">Profila</string>
     <string name="select_medication_placeholder">Hautatu botika bat xehetasunak ikusteko</string>
     <string name="less_than_a_minute">minutu bat baino gutxiago</string>
+
     <string name="notification_title_time_for">Zure %1$s hartzeko ordua!</string>
     <string name="notification_text_take_dosage">Hartu %1$s.</string>
     <string name="notification_action_mark_as_taken">Markatu Hartuta Bezala</string>
     <string name="notification_text_interval_dose_valid">Hartu %1$s. Gutxi gorabehera %2$s balio du.</string>
     <string name="notification_text_interval_dose_window_ended">Hartu %1$s. Dosiaren leihoa amaitzen/amaituta dago.</string>
+
     <!-- FullScreenNotificationActivity -->
     <string name="fullscreen_notification_action_taken">Markatu hartuta bezala</string>
     <string name="fullscreen_notification_action_dismiss">Baztertu</string>
@@ -198,6 +215,7 @@
     <string name="medication_type_drops_image_description">Tanten ikonoa</string>
     <string name="medication_type_inhaler_image_description">Inhalagailuaren ikonoa</string>
     <string name="medication_type_other_image_description">Botikaren ikonoa</string>
+
     <string name="prereminder_title_medication">%1$s</string>
     <string name="prereminder_text_in_about_hour">Abisua ordubete barru gutxi gorabehera</string>
     <string name="prereminder_text_in_approx_minutes_plural">Abisua ~%1$d minutu barru</string>
@@ -210,24 +228,28 @@
     <string name="prereminder_text_very_soon_singular">Oso laster: %1$d min!</string>
     <string name="prereminder_text_about_time">Bada garaia!</string>
     <string name="prereminder_action_taken">Hartuta</string>
-    <string name="content_description_tick_mark" translatable="false">Confirmation tick</string>
-    <string name="notification_actions_more_options" translatable="false">More options</string>
-    <string name="split_button_state_expanded" translatable="false">Expanded</string>
-    <string name="split_button_state_collapsed" translatable="false">Collapsed</string>
+
+    <string name="content_description_tick_mark">Berrespen-marka</string>
+    <string name="notification_actions_more_options">Aukera gehiago</string>
+    <string name="split_button_state_expanded">Zabaldua</string>
+    <string name="split_button_state_collapsed">Tolestua</string>
+
     <string name="time_hr_min">%1$d o %2$d min</string>
     <string name="time_hr">%1$d o</string>
     <string name="time_min">%1$d min</string>
     <string name="no_medications_yet">Oraindik ez dago botikarik. Eguneratu edo gehitu bat!</string>
     <string name="search_medications_placeholder">Bilatu botikak...</string>
-    <string name="search_icon_content_description" translatable="false">Search</string>
+    <string name="search_icon_content_description">Bilatu</string>
     <string name="clear_search_query_button_description">Garbitu bilaketa-kontsulta</string>
-    <string name="microphone_icon_content_description" translatable="false">Voice search</string>
-    <string name="speech_prompt_text" translatable="false">Speak now...</string>
+    <string name="microphone_icon_content_description">Ahots bidezko bilaketa</string>
+    <string name="speech_prompt_text">Hitz egin orain...</string>
+
     <!-- Calendar Screen Strings -->
-    <string name="select_date" translatable="false">Select Date</string>
-    <string name="previous_month" translatable="false">Previous Month</string>
-    <string name="next_month" translatable="false">Next Month</string>
-    <string name="no_medications_scheduled_for_this_month" translatable="false">No medications scheduled for this month.</string>
+    <string name="select_date">Hautatu Data</string>
+    <string name="previous_month">Aurreko Hilabetea</string>
+    <string name="next_month">Hurrengo Hilabetea</string>
+    <string name="no_medications_scheduled_for_this_month">Hilabete honetarako ez dago botikarik programatuta.</string>
+
     <!-- Onboarding Screen (Original) -->
     <string name="onboarding_welcome_title">Ongi etorri PillPal-era!</string>
     <string name="onboarding_welcome_subtitle">Konfigura dezagun.</string>
@@ -235,6 +257,7 @@
     <string name="onboarding_permissions_placeholder">[Baimenen Konfigurazioaren leku-marka]</string>
     <string name="onboarding_pane_welcome_area_description">Ongietorri mezuaren eremua</string>
     <string name="onboarding_pane_steps_permissions_area_description">Sarrera urratsen eta baimenen eremua</string>
+
     <!-- Onboarding Screen (New Pager Flow) -->
     <string name="onboarding_logo_content_description">Aplikazioaren Logoa</string>
     <string name="onboarding_step1_pager_title">Hasten</string>
@@ -254,12 +277,14 @@
     <string name="previous_button_text">Aurrekoa</string>
     <string name="start_onboarding_button_text">Hasi Sarrera</string>
     <string name="onboarding_welcome_app_subtitle">Zure osasun laguna medikazio-oroigarri puntualetarako.</string>
+
     <!-- AddMedicationChoiceScreen -->
     <string name="add_medication_choice_title">Gehitu Botika</string>
     <string name="add_medication_camera_button">Erabili Kamera</string>
     <string name="add_medication_camera_button_desc">Erabili kamera botika identifikatzeko</string>
     <string name="add_medication_search_button">Bilatu Botika</string>
     <string name="add_medication_search_button_desc">Bilatu botika izenaren arabera</string>
+
     <!-- AddMedicationStepsIndicator -->
     <string name="step_completed">Urratsa osatuta</string>
     <string name="step_title_medication_name">Izena</string>
@@ -267,6 +292,7 @@
     <string name="step_title_dosage_package">Dosia eta Ontzia</string>
     <string name="step_title_frequency">Maiztasuna</string>
     <string name="step_title_summary">Laburpena</string>
+
     <string name="settings_category_general">Orokorra</string>
     <string name="settings_category_general_cd">Nabigatu ezarpen orokorretara</string>
     <string name="settings_category_sound">Soinua</string>
@@ -276,11 +302,13 @@
     <string name="settings_developer_options_description">Aukera hauek arazketarako eta garapenerako dira.</string>
     <string name="settings_restart_daily_worker_button">Berrabiarazi Eguneroko Ataza</string>
     <string name="settings_share_app_logs_button">Partekatu App-aren Erregistroak</string>
+
     <!-- AllSchedulesScreen -->
     <string name="all_schedules_title">Ordutegi Guztiak</string>
     <string name="back_button_content_description">Atzera</string>
     <string name="all_schedules_no_schedules_found">Ez da ordutegirik aurkitu botika honentzat.</string>
     <string name="todays_full_schedule_title_template">%1$s - Gaurko Ordutegia</string>
+
     <!-- MedicationGraphScreen -->
     <string name="medication_statistics_title">Botiken Estatistikak</string>
     <string name="med_stats_navigate_back_cd">Nabigatu Atzera</string>
@@ -296,6 +324,7 @@
     <string name="next_period_cd">Hurrengo Aldia</string>
     <string name="med_graph_no_data_found">Ez da grafiko-daturik aurkitu hautatutako aldirako.</string>
     <string name="med_graph_unknown_error">Errore ezezagun bat gertatu da grafiko-datuak kargatzean.</string>
+
     <!-- MedicationInfoScreen -->
     <string name="med_info_navigate_back_cd">Itzuli botikaren xehetasunetara</string>
     <string name="med_info_loading_details">Botikaren informazioa kargatzen...</string>
@@ -320,6 +349,7 @@
     <string name="med_info_label_biosimilar">Biosimilarra</string>
     <string name="med_info_label_estado_autorizacion_date">Baimen Data</string>
     <string name="med_info_not_available_generic">Botikaren informazioa ez dago eskuragarri.</string>
+
     <!-- MedicationHistoryScreen -->
     <string name="med_history_navigate_back_cd">Nabigatu Atzera</string>
     <string name="med_history_filter_by_date_label">Iragazi Dataren Arabera:</string>
@@ -340,6 +370,7 @@
     <string name="med_history_sort_by_newest_button">Sailkatu: Berrienak Lehenengo</string>
     <string name="medication_period_ended">Botika aldia amaitu da.</string>
     <string name="medication_progress_completed">Osatuta</string>
+
     <!-- Added for Show More/Less functionality -->
     <string name="show_more">Gehiago Erakutsi</string>
     <string name="show_less">Gutxiago Erakutsi</string>
@@ -363,46 +394,328 @@
    <string name="medGraph_chart_doses_suffix">dosi</string>
    <string name="medGraph_yearly_changeYear_cd_prefix">Aldatu urtea, uneko urtea:</string>
    <string name="medGraph_yearly_chart_description_prefix">Hartutako urteko dosiak.</string>
-
-    <!-- Greetings -->
+    <string name="time_remaining_hours_minutes">%1$oh %2$m</string>
+    <string name="time_remaining_minutes">%1$m</string>
+    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
     <string name="greeting_morning">Egun on! 🌤️</string>
     <string name="greeting_afternoon">Arratsalde on! ☀️</string>
     <string name="greeting_evening">Gabon! 🌙</string>
-
-    <!-- Next Dose Time Remaining -->
     <string name="next_dose_time_at_in">HURRENGO DOSIA %1$s-TAN (hemendik %2$s)</string>
     <string name="next_dose_time_in">(hemendik %1$s)</string>
     <string name="next_dose_at">HURRENGO DOSIA %1$s-TAN</string>
     <string name="no_upcoming_doses_today_next_in">Gaur ez dago hurrengo dosirik. Hurrengo dosia hemendik %1$s.</string>
     <string name="no_upcoming_doses_at_all">Ez dago hurrengo dosirik programatuta.</string>
     <string name="time_remaining_days_hours">%1$de %2$oh</string>
-    <string name="time_remaining_hours_minutes">%1$oh %2$m</string>
-    <string name="time_remaining_minutes">%1$m</string>
-    <string name="time_remaining_less_than_minute"><![CDATA[<1m]]></string>
-    <string name="all_reminders_header">All Reminders</string>
-    <string name="next_dosage_title">Next Dosage</string>
-    <string name="adherence_title">Adherence</string>
-    <string name="adherence_mock_text">95% on time this week</string>
-    <string name="as_needed_meds_title">\"As Needed\" Medications</string>
-    <string name="no_as_needed_meds">No \"as needed\" doses logged recently.</string>
-    <string name="refill_reminders_title">Refill Reminders</string>
-    <string name="no_refill_reminders">No medications are running low.</string>
-    <string name="blood_pressure_title">Blood Pressure</string>
-    <string name="blood_pressure_mock_text">Latest: 125/82 mmHg</string>
-    <string name="symptom_tracker_title">How are you feeling?</string>
-    <string name="notes_for_doctor_title">Notes for Doctor</string>
-    <string name="show_all_button">Show all</string>
-    <string name="log_bp_button">Log</string>
-    <string name="no_as_needed_meds_configured">No \"as needed\" medications configured.</string>
-    <string name="take_medication_button">Take</string>
-    <string name="health_section_title">Health</string>
-    <string name="heart_rate_title">Heart Rate</string>
+    <string name="all_reminders_header">Abisu Guztiak</string>
+    <string name="next_dosage_title">Hurrengo Dosia</string>
+    <string name="adherence_title">Atxikimendua</string>
+    <string name="adherence_mock_text">Aste honetan %95 garaiz</string>
+    <string name="as_needed_meds_title">"Beharrezko" Botikak</string>
+    <string name="no_as_needed_meds">Ez da "beharrezko" dosirik erregistratu azkenaldian.</string>
+    <string name="refill_reminders_title">Berritzeko Abisuak</string>
+    <string name="no_refill_reminders">Ez dago botikarik agortzen.</string>
+    <string name="blood_pressure_title">Odol-presioa</string>
+    <string name="blood_pressure_mock_text">Azkena: 125/82 mmHg</string>
+    <string name="symptom_tracker_title">Nola sentitzen zara?</string>
+    <string name="notes_for_doctor_title">Medikuarentzako Oharrak</string>
+    <string name="show_all_button">Erakutsi dena</string>
+    <string name="log_bp_button">Erregistratu</string>
+    <string name="no_as_needed_meds_configured">Ez dago "beharrezko" botikarik konfiguratuta.</string>
+    <string name="take_medication_button">Hartu</string>
+    <string name="health_section_title">Osasuna</string>
+    <string name="heart_rate_title">Bihotz Maiztasuna</string>
     <string name="heart_rate_unit">ppm</string>
-    <string name="today_label">Today</string>
-    <string name="weight_title">Weight</string>
-    <string name="last_registered_label">Last registered:</string>
-    <string name="progress_section_title">Progress</string>
-    <string name="missed_reminders_title">Missed Reminders</string>
-    <string name="last_missed_label">Last missed:</string>
-    <string name="today_progress_title">Today\\\'s Progress</string>
+    <string name="today_label">Gaur</string>
+    <string name="weight_title">Pisua</string>
+    <string name="last_registered_label">Azken erregistroa:</string>
+    <string name="progress_section_title">Aurrerapena</string>
+    <string name="last_missed_label">Azkena galduta:</string>
+    <string name="today_progress_title">Gaurko Aurrerapena</string>
+    <string name="today_schedules_title">Gaurko Ordutegiak</string>
+    <string name="navigate_back">Nabigatu atzera</string>
+    <string name="no_medications_title">Ez dago Erregistratutako Botikarik</string>
+    <string name="no_medications_body">Hasi zure lehen botika gehitzen zure ordutegia hemen ikusteko.</string>
+    <string name="add_medication_button">Gehitu Botika</string>
+    <string name="no_schedule_today_title">Gaurko Ez Dago Abisurik Programatuta</string>
+    <string name="no_schedule_today_body">Gaurko ez duzu abisurik programatuta. Begiratu bihar berriro!</string>
+    <string name="no_more_reminders_today_title">Gaurko Abisu Guztiak Osatuta!</string>
+    <string name="no_more_reminders_today_body">Gaurko programatutako abisu guztiak hartu dituzu. Lan bikaina!</string>
+    <string name="no_reminders_for_today">Gaurko abisurik ez</string>
+    <string name="scroll_to_current_time">Joan uneko ordura</string>
+    <string name="filter_by_medication">Botika</string>
+    <string name="all_medications">Guztiak</string>
+    <string name="filter_by_color">Kolorea</string>
+    <string name="all_colors">Kolore Guztiak</string>
+    <string name="filter_by_time_range">Denbora Tartea</string>
+    <string name="mark_as_taken_dialog_title">Berretsi Ekintza</string>
+    <string name="mark_as_taken_dialog_message">Nola markatu nahi duzu botika hau hartuta bezala?</string>
+    <string name="mark_as_taken_dialog_now">Uneko orduan</string>
+    <string name="mark_as_taken_dialog_scheduled_time">Programatutako orduan</string>
+    <string name="bottom_sheet_add_reminders_title">Sortu abisuak</string>
+    <string name="bottom_sheet_add_medication">Botika</string>
+    <string name="bottom_sheet_add_water_reminder">Ura</string>
+    <string name="bottom_sheet_register_manually_title">Erregistratu eskuz</string>
+    <string name="bottom_sheet_log_medication">Botika dosia</string>
+    <string name="bottom_sheet_log_water">Ura</string>
+    <string name="bottom_sheet_log_weight">Pisua</string>
+    <string name="personalize_home_title">Pertsonalizatu Hasiera</string>
+    <string name="no_weight_data">Ez dago pisu erregistratuta</string>
+    <string name="no_heart_rate_data">Ez dago bihotz maiztasun daturik erregistratuta</string>
+    <string name="edit_section">Editatu atala</string>
+    <string name="no_missed_reminders">Ez dago galdutako abisurik! Egunean zaude</string>
+    <string name="no_reminders_for_today_filtered">Ez dago gaurko abisurik iragazkiekin bat datozenik.</string>
+    <string name="water_intake_goal_progress">%1$sml falta zaizkizu zure eguneroko 4000ml-ko helburua lortzeko</string>
+    <string name="water_intake_goal_reached_days">Orain arte, zure helburua %1$d egunetan lortu duzu eta guztira %2$sml edan duzu</string>
+
+    <string name="water_intake_remaining_goal">Gainerakoa: %1$s ml helbururako</string>
+    <string name="water_intake_records_title">Erregistroak</string>
+    <string name="water_intake_custom_quantity">Kantitate pertsonalizatua</string>
+    <string name="water_intake_average_day">" eguneko batez bestekoa"</string>
+
+    <string name="today">Gaur</string>
+    <string name="yesterday">Atzo</string>
+    <string name="current_week">Aste hau</string>
+    <string name="current_month">Hilabete hau</string>
+
+    <string name="time_range_day">Eguna</string>
+    <string name="time_range_week">Astea</string>
+    <string name="time_range_month">Hilabetea</string>
+    <string name="time_range_year">Urtea</string>
+
+    <string name="this_week">Aste Honetan</string>
+    <string name="this_month">Hilabete Honetan</string>
+
+    <string name="average">Batez bestekoa</string>
+
+    <string name="nutrition_weight_settings_title">Elikadura eta Pisua</string>
+
+    <string name="daily_water_intake_goal">Helburua</string>
+    <string name="water_intake_goal_ml">Helburua (ml)</string>
+    <string name="save">Gorde</string>
+
+    <string name="weight_goal">Pisuaren Helburua</string>
+    <string name="lose_weight">Pisua Galdu</string>
+    <string name="gain_weight">Pisua Irabazi</string>
+    <string name="weight_goal_kg">Helburua (kg)</string>
+
+    <string name="ml_at_day">ml egunean</string>
+    <string name="set_objective">Helburua Ezarri</string>
+    <string name="weight_tracker">Pisua</string>
+    <string name="history">Historia</string>
+    <string name="goal_template">Helburua: %s</string>
+    <string name="body_temperature_tracker">Gorputzeko Tenperatura</string>
+    <string name="maintain_weight">Pisua Mantendu</string>
+    <string name="goal">Helburua</string>
+    <string name="last_recorded_weight">Azken pisua erregistratuta: %1$s kg %2$s(e)an</string>
+    <string name="no_weight_data_recorded">Oraindik ez da pisu daturik erregistratu.</string>
+    <string name="about_body_temperature">Gorputzaren tenperaturari buruz</string>
+    <string name="about_body_temperature_description">Gorputzaren tenperatura termometro batez neurtutako gorputzaren tenperaturari dagokio. Gorputzak tenperatura tarte txiki baten barruan mantentzeko lan egiten du.</string>
+    <string name="what_does_body_temp_mean_title">Zer esan nahi du \"gorputzaren tenperatura\"k?</string>
+    <string name="what_does_body_temp_mean_content">Gorputzaren tenperatura termometro batez neurtutako gorputzaren tenperaturari dagokio. Gorputzak tenperatura tarte txiki baten barruan mantentzeko lan egiten du. Osasunaren Mundu Erakundearen arabera, gorputzaren tenperatura normala 36,5 eta 37 °C artean dago. Baina pertsona bakoitza desberdina da.</string>
+    <string name="what_can_affect_body_temp_title">Zerk eragin dezake gorputzaren tenperaturan?</string>
+    <string name="what_can_affect_body_temp_content">Gorputzaren tenperaturan hainbat faktorek eragin dezakete, hala nola adinak, jarduerek, hormonek, eguneko orduak, gaixotasunek eta hilekoaren zikloak.</string>
+    <string name="how_is_body_temp_measured_title">Nola neurtzen da gorputzaren tenperatura?</string>
+    <string name="how_is_body_temp_measured_content">Gorputzaren tenperatura termometro batekin egiazta daiteke. Zure emaitzak eskuz erregistratu edo gailu bateragarri batetik sinkroniza ditzakezu.</string>
+    <string name="disclaimer_body_temp">Funtzio hau ez da gaixotasun larriak edo egoera medikoak diagnostikatzeko edo kontrolatzeko pentsatuta. Kontsultatu zure osasun-hornitzailearekin zure osasunari buruzko galderarik baduzu edo zure gorputz-tenperaturaren irakurketek, oro har, zer esan nahi duten jakiteko.</string>
+    <string name="no_temperatures_recorded">Ez da tenperaturarik erregistratu</string>
+    <string name="minutes">minutu</string>
+    <string name="goals">Helburuak</string>
+    <string name="about_weight">Pisuari buruz</string>
+    <string name="about_weight_description">Normala da zure pisua aldatzea, jaten duzuna, komunera joaten zarenean eta hidratazioa bezalako alderdien ondorioz.</string>
+    <string name="about_weight_info_title">Pisuari buruzko informazioa</string>
+    <string name="action_collapse">Tolestu</string>
+    <string name="action_expand">Zabaldu</string>
+    <string name="analysis_screen_title">Analisia</string>
+    <string name="app_status_installed">Instalatuta</string>
+    <string name="app_status_not_installed">Instalatu gabe</string>
+    <string name="bpm">tpm</string>
+    <string name="cancel">Utzi</string>
+    <string name="celsius">°C</string>
+    <string name="configure_water">Konfiguratu ura</string>
+    <string name="configure_weight">Konfiguratu pisua</string>
+    <string name="connected_devices_title">Konektatutako gailuak</string>
+    <string name="connection">Konexioa</string>
+    <string name="data">Datuak</string>
+    <string name="dato_frecuencia_cardiaca">Bihotz-maiztasuna</string>
+    <string name="dato_ingesta_de_agua">Ur-sarrera</string>
+    <string name="dato_peso">Pisua</string>
+    <string name="dato_temperatura_corporal">Gorputz-tenperatura</string>
+    <string name="delete_nutrition_data">Ezabatu ur-sarrerak</string>
+    <string name="delete_nutrition_data_confirmation">Ziur zaude ur-sarrera guztiak ezabatu nahi dituzula? Ekintza hau ezin da desegin.</string>
+    <string name="delete_weight_data">Ezabatu pisu-datuak</string>
+    <string name="delete_weight_data_confirmation">Ziur zaude pisu-datu guztiak ezabatu nahi dituzula? Ekintza hau ezin da desegin.</string>
+    <string name="device_info_app_status">Aplikazioaren egoera</string>
+    <string name="device_info_battery">Bateria</string>
+    <string name="device_info_last_sync">Azken sinkronizazioa</string>
+    <string name="device_status_connected">Konektatuta</string>
+    <string name="differences_between_body_and_skin_temp_content">Gorputzaren tenperatura termometroarekin neurtzen da eta gorputzaren barruko tenperatura islatzen du. Larruazaleko tenperaturaren aldakuntza lo zauden bitartean eskumuturrean hartutako larruazaleko tenperaturaren gorabehera da.</string>
+    <string name="differences_between_body_and_skin_temp_title">Gorputzaren tenperaturaren eta larruazaleko tenperaturaren aldakuntzaren arteko desberdintasunak</string>
+    <string name="health_connect_data_source">Health Connect-eko datuak</string>
+    <string name="health_connect_description">Zure datu guztiak ikusteko, eman baimena Pillpal-i datuak irakurtzeko eta idazteko. Pillpal-ek zure beste aplikazioetako datuak bistaratuko ditu, eta aplikazio horiek Pillpal-eko datuetara sartu ahal izango dira.</string>
+    <string name="health_connect_disconnect">Deskonektatu Health Connect</string>
+    <string name="health_connect_disconnect_dialog_go_back_button">Itzuli</string>
+    <string name="health_connect_disconnect_dialog_message">PillPal-ek Health Connect-en baimenak izaten jarraituko du desgaitzen ez badituzu. Ireki Health Connect PillPal-en baimenak kentzeko.</string>
+    <string name="health_connect_disconnect_dialog_open_settings_button">Ireki ezarpenak</string>
+    <string name="health_connect_disconnect_dialog_title">Ireki Health Connect deskonektatzeko</string>
+    <string name="health_connect_get_help_description">Health Connect-ekin sinkronizatzeari eta ohiko arazoei buruzko informazio gehiago</string>
+    <string name="health_connect_get_help_title">Laguntza lortu</string>
+    <string name="health_connect_information_description_1">Pillpal-ek Health Connect-etik irakurtzeko baimena ematen diozun datuak Pillpal aplikazioan egongo dira eskuragarri, baina ez zure gailuetan.</string>
+    <string name="health_connect_information_description_2">Pillpal-ek Health Connect-en datu mota bat idazteko baimena ematen badiozu, datu horiek Health Connect-en gordeko dira eta zure beste aplikazioetarako eskuragarri egongo dira.</string>
+    <string name="health_connect_information_title">Informazioa</string>
+    <string name="health_connect_manage_data_description">Berrikusi baimenak eta ezabatu Health Connect-eko datuak</string>
+    <string name="health_connect_manage_data_title">Kudeatu datuak eta sarbidea</string>
+    <string name="health_connect_review_permissions">Berrikusi baimenak</string>
+    <string name="health_connect_settings">Health Connect</string>
+    <string name="health_connect_settings_title">Ezarpenak</string>
+    <string name="health_connect_title">Atera etekinik handiena Health Connect-i</string>
+    <string name="health_connect_today_description">Health Connect-eko datuak erakusten</string>
+    <string name="health_connect_today_title">Health Connect PillPal-en</string>
+    <string name="heart_rate">Bihotz-maiztasuna</string>
+    <string name="heart_rate_tracker">Bihotz-maiztasunaren jarraitzailea</string>
+    <string name="home_button_cd_connect_wear_os">Konektatu Wear OS gailua</string>
+    <string name="home_button_cd_notifications_read">Jakinarazpenak irakurrita</string>
+    <string name="home_button_cd_notifications_unread">Irakurri gabeko jakinarazpenak</string>
+    <string name="home_button_cd_watch_app_not_installed">Erlojua konektatuta, aplikazioa instalatu gabe</string>
+    <string name="home_button_cd_watch_connected">Erlojua konektatuta</string>
+    <string name="home_button_cd_watch_connected_settings">Wear OS gailua konektatuta. Ireki konexio-ezarpenak.</string>
+    <string name="home_button_cd_watch_disconnected_settings">Wear OS gailua ez dago konektatuta. Ireki konexio-ezarpenak.</string>
+    <string name="home_button_cd_watch_not_connected">Erlojua ez dago konektatuta</string>
+    <string name="home_item_heart_rate">Bihotz-maiztasuna</string>
+    <string name="home_item_missed_reminders">Galdutako abisuak</string>
+    <string name="home_item_next_dose">Hurrengo dosia</string>
+    <string name="home_item_temperature">Tenperatura</string>
+    <string name="home_item_today_progress">Gaurko aurrerapena</string>
+    <string name="home_item_water_intake">Ur-sarrera</string>
+    <string name="home_item_weight">Pisua</string>
+    <string name="home_section_header_cd">Hasierako atalaren goiburua</string>
+    <string name="home_section_health">Osasuna</string>
+    <string name="home_section_nutrition">Elikadura</string>
+    <string name="home_section_progress">Aurrerapena</string>
+    <string name="install_on_watch_button">Instalatu aplikazioa erlojuan</string>
+    <string name="kg">kg</string>
+    <string name="log_temperature">Erregistratu tenperatura</string>
+    <string name="log_water">Erregistratu ura</string>
+    <string name="log_weight">Erregistratu pisua</string>
+    <string name="medication_vault_title">Gordailua</string>
+    <string name="ml">ml</string>
+    <string name="more_information">Informazio gehiago</string>
+    <string name="mostrar_datos_de_salud_conectada_description">PillPal eta Health Connect-eko datuak ikusiko dituzu onartutako datu motetarako</string>
+    <string name="mostrar_datos_de_salud_conectada_title">Erakutsi Health Connect-eko datuak</string>
+    <string name="mostrar_solo_datos_de_fitbit_description">Zure PillPal gailuetako eta aplikazio horren funtzioetako datuak soilik ikusiko dituzu</string>
+    <string name="mostrar_solo_datos_de_fitbit_title">Erakutsi PillPal-eko datuak soilik</string>
+    <string name="move_down">Mugitu behera</string>
+    <string name="move_up">Mugitu gora</string>
+    <string name="no_data">Daturik ez</string>
+    <string name="no_device_found_subtitle">Ziurtatu erlojua gertu duzula eta Bluetooth-a aktibatuta dagoela.</string>
+    <string name="no_device_found_title">Ez da gailurik aurkitu</string>
+    <string name="notification_action_snooze">Atzeratu (10 min)</string>
+    <string name="percentage">%</string>
+    <string name="que_datos_se_mostraran_description_1">PillPal-i datuak irakurtzeko baimena ematen badiozu, aplikazioak Health Connect-eko datu hauek erakuts diezazkizuke:</string>
+    <string name="que_datos_se_mostraran_description_2">Aplikazioan Health Connect-eko datuak bistaratzea aukeratzen baduzu, baliteke datu mota hauek zure PillPal gailuan agertzen denarekin bat ez etortzea.</string>
+    <string name="que_datos_se_mostraran_description_3">Puntuazioek, txapek eta sailkapen-taulek zure PillPal gailuetako eta funtzioetako datuak soilik erabiltzen jarraituko dute.</string>
+    <string name="que_datos_se_mostraran_title">Zein datu bistaratuko dira</string>
+    <string name="refresh_device_list_button">Freskatu gailuen zerrenda</string>
+    <string name="salud_conectada_en_hoy_description">Onartutako datu motetarako, Health Connect-eko datuak aplikazioan bistaratzea aukera dezakezu</string>
+    <string name="seconds">segundo</string>
+    <string name="settings_category_connected_devices_cd">Nabigatu konektatutako gailuen pantailara</string>
+    <string name="state_collapsed">Tolestuta</string>
+    <string name="state_expanded">Zabaldua</string>
+    <string name="switch_state_not_taken">Hartu gabe</string>
+    <string name="switch_state_taken">Hartuta</string>
+    <string name="sync_data_button">Sinkronizatu datuak orain</string>
+    <string name="today_progress">Gaur: </string>
+    <string name="today_schedule_item_card_cd">Gaurko ordutegiko elementuaren txartela</string>
+    <string name="today_schedule_item_switch_cd">Aldatu botika hartutako egoera</string>
+    <string name="water">Ura</string>
+    <string name="water_card_title">Ura</string>
+    <string name="water_goal">Ur-helburua</string>
+    <string name="water_intake_screen_title">Ura</string>
+    <string name="what_is_bmi_content">Gorputz-masaren indizea (GMI) zure pisuaren eta altueraren arteko erlazioa da.</string>
+    <string name="what_is_bmi_title">Zer da GMIa?</string>
+    <string name="what_is_body_fat_content">Gorputzeko gantz-ehunekoak zure gorputz-pisuaren proportzioa adierazten du, hau da, gantza.</string>
+    <string name="what_is_body_fat_title">Zer da gorputzeko gantza?</string>
+    <string name="what_is_lean_mass_content">Masa argala muskuluek, organoek, hezurrek eta gorputzeko urak osatzen dute.</string>
+    <string name="what_is_lean_mass_title">Zer da masa argala?</string>
+    <string name="about_heart_rate_info_title">Bihotz-maiztasunari buruz</string>
+    <string name="what_is_heart_rate_title">Zer da bihotz-maiztasuna?</string>
+    <string name="what_is_heart_rate_content">Bihotz-maiztasuna zure bihotzak minutuko taupada kopurua da (tpm). Zure osasun orokorraren adierazle erabilgarria izan daiteke.</string>
+    <string name="what_is_resting_heart_rate_title">Zer da atsedeneko bihotz-maiztasuna?</string>
+    <string name="what_is_resting_heart_rate_content">Atsedeneko bihotz-maiztasuna atsedenaldian duzun bihotz-maiztasuna da. Atsedeneko bihotz-maiztasun baxuagoa, oro har, osasun kardiobaskular onaren seinale da.</string>
+    <string name="what_can_affect_heart_rate_title">Zerk eragin dezake bihotz-maiztasunean?</string>
+    <string name="what_can_affect_heart_rate_content">Bihotz-maiztasunean hainbat faktorek eragin dezakete, hala nola adinak, jarduera-mailak, estresak eta botikek.</string>
+    <string name="about_water_info_title">Ur-hartzeari buruz</string>
+    <string name="why_is_water_important_title">Zergatik da garrantzitsua ura?</string>
+    <string name="why_is_water_important_content">Ura funtsezkoa da gorputzeko funtzio askotarako, besteak beste, tenperatura erregulatzeko, artikulazioak lubrifikatzeko eta hondakinak kentzeko.</string>
+    <string name="how_much_water_should_i_drink_title">Zenbat ur edan behar dut?</string>
+    <string name="how_much_water_should_i_drink_content">Behar duzun ur kantitatea aldatu egin daiteke adina, jarduera-maila eta klima bezalako faktoreen arabera. Garrantzitsua da egunean zehar hidratatuta egotea.</string>
+    <string name="log_water_intake_title">Ur-hartzea erregistratu</string>
+    <string name="more_options">Aukera gehiago</string>
+    <string name="manage_presets">Kudeatu aurrezarpenak</string>
+    <string name="log_water_screen_instruction">Aukeratu gutxienez aukera bat edo gehitu pertsonalizatu bat</string>
+    <string name="water_preset_water">Edalontzi</string>
+    <string name="water_preset_bottle">Botila</string>
+    <string name="water_preset_big_bottle">Botila handia</string>
+    <string name="add_preset">Gehitu aurrezarpena</string>
+    <string name="add_new_preset_title">Gehitu Aurrezarpen Berria</string>
+    <string name="preset_name">Aurrezarpenaren izena</string>
+    <string name="amount_ml">Kopurua (ml)</string>
+    <string name="add_button">Gehitu</string>
+    <string name="personalized_amount">Kopuru pertsonalizatua</string>
+    <string name="save_total_ml">Gorde Guztira (%1$d mL)</string>
+    <string name="decrement">Gutxitu</string>
+    <string name="increment">Gehitu</string>
+    <string name="log_weight_title">Pisua erregistratu</string>
+    <string name="manage_water_presets_title">Kudeatu uraren aurrezarpenak</string>
+    <string name="delete">Ezabatu</string>
+    <string name="measurement_location">Neurketa-lekua</string>
+    <string name="location_unknown">Ezezaguna</string>
+    <string name="location_armpit">Besapea</string>
+    <string name="location_ear">Belarria</string>
+    <string name="location_forehead">Bekokia</string>
+    <string name="location_mouth">Ahoa</string>
+    <string name="location_rectum">Ondestea</string>
+    <string name="location_wrist">Eskumuturra</string>
+    <string name="clear_time_range_filter">Garbitu denbora-tartearen iragazkia</string>
+    <string name="select_start_time">Hautatu hasiera-ordua</string>
+    <string name="select_end_time">Hautatu amaiera-ordua</string>
+    <string name="missed_reminders_title">Galdutako abisuak</string>
+    <string name="todays_reminders_title">Gaurko abisuak</string>
+    <string name="filter_by_medication_singular">botika 1</string>
+    <string name="filter_by_medication_plural">%d botika</string>
+    <string name="select_all">Hautatu dena</string>
+
+    <!-- Color Names -->
+    <string name="color_orange">Laranja</string>
+    <string name="color_pink">Arrosa</string>
+    <string name="color_green">Berde Iluna</string>
+    <string name="color_blue">Urdina</string>
+    <string name="color_purple">Morea</string>
+    <string name="color_yellow">Urre kolorea</string>
+    <string name="color_light_yellow">Hori Argia</string>
+    <string name="color_light_orange">Laranja Argia</string>
+    <string name="color_light_pink">Arrosa Argia</string>
+    <string name="color_light_purple">More Argia</string>
+    <string name="color_light_green">Berde Argia</string>
+    <string name="color_light_blue">Urdin Argia</string>
+    <string name="color_no_color">Kolorerik gabe</string>
+
+    <!-- Home Screen Cards -->
+    <string name="next_dose_in_title">Hurrengo dosia</string>
+    <string name="last_missed_at_time">Azken hutsegitea %1$s(e)an</string>
+    <string name="view_details_missed_reminders_cd">Ikusi galdutako abisuen xehetasunak</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_screen_title">Jakinarazpenak</string>
+    <string name="notifications_empty_state">Ez dago jakinarazpenik.</string>
+    <string name="notifications_clear_all">Garbitu dena</string>
+    <string name="notifications_clear_all_confirm_title">Jakinarazpen guztiak garbitu?</string>
+    <string name="notifications_clear_all_confirm_text">Honek zure gailuko jakinarazpen guztiak betiko ezabatuko ditu.</string>
+    <string name="date_header_today">Gaur</string>
+    <string name="date_header_yesterday">Atzo</string>
+    <string name="notification_icon_cd_security">Segurtasun alertaren ikonoa</string>
+    <string name="notification_icon_cd_medication">Medikazioaren ikonoa</string>
+    <string name="notification_icon_cd_general">Jakinarazpenaren ikonoa</string>
+    <string name="notification_channel_water_reminder_name">Ur-oroigarriak</string>
+    <string name="notification_channel_water_reminder_description">Hidratatuta egoten laguntzeko jakinarazpenak.</string>
+    <string name="notification_icon_cd_water">Ur-oroigarriaren ikonoa</string>
 </resources>

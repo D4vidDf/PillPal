@@ -15,13 +15,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.d4viddf.medicationreminder.data.ThemeKeys
+import com.d4viddf.medicationreminder.data.model.ThemeKeys
 import com.d4viddf.medicationreminder.notifications.NotificationHelper
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.ui.MedicationReminderApp
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.utils.PermissionUtils
-import com.d4viddf.medicationreminder.workers.TestSimpleWorker
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
 
             if (loadedOnboardingCompletedStatus != null) {
                 val windowSizeClass = calculateWindowSizeClass(this)
-                val themePreference by userPreferencesRepository.themeFlow.collectAsState(initial = ThemeKeys.SYSTEM)
+                val themePreference by userPreferencesRepository.themePreferenceFlow.collectAsState(initial = ThemeKeys.SYSTEM)
                 // val userPreferenceTagFromFlow by userPreferencesRepository.languageTagFlow
                 //     .distinctUntilChanged()
                 //     .collectAsState(initial = storedLocaleTag) // Ensure storedLocaleTag is available here
@@ -103,11 +103,17 @@ class MainActivity : ComponentActivity() {
                 //     }
                 // }
 
+                val startDestination = if (intent?.action == IntentActionConstants.ACTION_OPEN_NOTIFICATIONS_SCREEN) {
+                    Screen.Notifications.route
+                } else {
+                    if (loadedOnboardingCompletedStatus!!) Screen.Home.route else Screen.Onboarding.route
+                }
+
                 MedicationReminderApp(
                     themePreference = themePreference,
                     widthSizeClass = windowSizeClass.widthSizeClass,
                     userPreferencesRepository = userPreferencesRepository,
-                    onboardingCompleted = loadedOnboardingCompletedStatus!! // Use non-null asserted value
+                    startDestination = startDestination
                 )
             } else {
                 // While onboardingStatusHolder.value is null (splash screen is showing),

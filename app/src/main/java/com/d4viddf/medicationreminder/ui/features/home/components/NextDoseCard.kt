@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -69,7 +69,7 @@ fun NextDoseCard(
         item.formattedReminderTime
     )
 
-    Card(
+    ElevatedCard(
         colors = CardDefaults.cardColors(),
         modifier = modifier
             .fillMaxHeight()
@@ -110,7 +110,6 @@ fun NextDoseCard(
                     text = item.medicationName.split(" ").first(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -121,7 +120,6 @@ fun NextDoseCard(
                     text = item.formattedReminderTime,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
             }
         }

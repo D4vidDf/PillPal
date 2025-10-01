@@ -26,7 +26,7 @@
           </targets>
         </DialogSelection>
       </SelectionState>
-      <SelectionState runConfigName="TimeGroupCardMultipleItemsPreview - TimeGroupCard - Multiple Items">
+      <SelectionState runConfigName="wear">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

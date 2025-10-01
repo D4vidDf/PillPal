@@ -6,17 +6,19 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.d4viddf.medicationreminder.common.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
-import com.d4viddf.medicationreminder.common.WorkerConstants.KEY_IS_DAILY_REFRESH
-import com.d4viddf.medicationreminder.data.Medication
-import com.d4viddf.medicationreminder.data.MedicationReminder
-import com.d4viddf.medicationreminder.data.MedicationReminderRepository
-import com.d4viddf.medicationreminder.repository.MedicationRepository
-import com.d4viddf.medicationreminder.data.MedicationSchedule
-import com.d4viddf.medicationreminder.repository.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.data.ScheduleType
-import com.d4viddf.medicationreminder.logic.ReminderCalculator
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.KEY_IS_DAILY_REFRESH
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
+import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -30,6 +32,7 @@ class ReminderSchedulingWorker constructor(
     private val medicationRepository: MedicationRepository,
     private val medicationScheduleRepository: MedicationScheduleRepository,
     private val medicationReminderRepository: MedicationReminderRepository,
+    private val medicationDosageRepository: MedicationDosageRepository,
     private val notificationScheduler: NotificationScheduler
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -42,8 +45,8 @@ class ReminderSchedulingWorker constructor(
     @RequiresApi(Build.VERSION_CODES.S)
     override suspend fun doWork(): Result {
         Log.d(TAG, "ReminderSchedulingWorker (CustomFactory) started. InputData: $inputData, Thread: ${Thread.currentThread().name}")
-        val medicationIdInput = inputData.getInt(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_MEDICATION_ID, -1)
-        val isDailyRefresh = inputData.getBoolean(com.d4viddf.medicationreminder.common.WorkerConstants.KEY_IS_DAILY_REFRESH, false)
+        val medicationIdInput = inputData.getInt(WorkerConstants.KEY_MEDICATION_ID, -1)
+        val isDailyRefresh = inputData.getBoolean(WorkerConstants.KEY_IS_DAILY_REFRESH, false)
 
         return try {
             if (isDailyRefresh) {
@@ -55,7 +58,7 @@ class ReminderSchedulingWorker constructor(
                 }
                 allMedications.forEach { medication ->
                     Log.d(TAG, "Daily refresh: Processing medication ID: ${medication.id}, Name: ${medication.name}")
-                    val medicationEndDate = medication.endDate?.let { LocalDate.parse(it, ReminderCalculator.dateStorableFormatter) }
+                    val medicationEndDate = medication.endDate?.let { LocalDate.parse(it) }
                     if (medicationEndDate == null || !LocalDate.now().isAfter(medicationEndDate)) {
                         scheduleNextReminderForMedication(medication)
                     } else {
@@ -123,8 +126,8 @@ class ReminderSchedulingWorker constructor(
         }
 
         val now = LocalDateTime.now()
-        val medicationStartDate = medication.startDate?.let { ReminderCalculator.dateStorableFormatter.parse(it, LocalDate::from) } ?: now.toLocalDate()
-        val medicationEndDate = medication.endDate?.let { ReminderCalculator.dateStorableFormatter.parse(it, LocalDate::from) }
+        val medicationStartDate = medication.startDate?.let { LocalDate.parse(it) } ?: now.toLocalDate()
+        val medicationEndDate = medication.endDate?.let { LocalDate.parse(it) }
         Log.d(funcTag, "Current datetime (now): $now, Medication StartDate: $medicationStartDate, Medication EndDate: $medicationEndDate")
 
         if (medicationEndDate != null && now.toLocalDate().isAfter(medicationEndDate)) {
@@ -135,17 +138,16 @@ class ReminderSchedulingWorker constructor(
 
         // 1. Determine Search Window for ideal reminder calculation
         val isDailyRefresh = inputData.getBoolean(KEY_IS_DAILY_REFRESH, false)
-        // effectiveSearchStartDateTime is for the ReminderCalculator (conceptually calculatorSearchStartDateTime)
         val effectiveSearchStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) {
             medicationStartDate.atStartOfDay()
         } else {
-            if (isDailyRefresh && medicationStartDate.isBefore(now.toLocalDate().plusDays(1))) { // If daily refresh and med has started
-                now.toLocalDate().atStartOfDay() // For today's processing, start from beginning of day for calculator
+            if (isDailyRefresh && medicationStartDate.isBefore(now.toLocalDate().plusDays(1))) {
+                now.toLocalDate().atStartOfDay()
             } else {
-                now // Otherwise, for specific scheduling or future meds, use now for calculator
+                now
             }
         }
-        var calculationWindowEndDate = effectiveSearchStartDateTime.toLocalDate().plusDays(14) // How far out to calculate ideal reminders
+        var calculationWindowEndDate = effectiveSearchStartDateTime.toLocalDate().plusDays(14)
         Log.d(funcTag, "Initial calculation window end date (14 days out or med end date): $calculationWindowEndDate")
         if (medicationEndDate != null && medicationEndDate.isBefore(calculationWindowEndDate)) {
             calculationWindowEndDate = medicationEndDate
@@ -155,7 +157,6 @@ class ReminderSchedulingWorker constructor(
 
         if (calculationWindowEndDate.isBefore(effectiveSearchStartDateTime.toLocalDate())) {
             Log.i(funcTag, "Calculation window end ($calculationWindowEndDate) is before effective start for calculator (${effectiveSearchStartDateTime.toLocalDate()}). No reminders to schedule.")
-            // Cleanup logic remains the same
             val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
                 medication.id, now.format(storableDateTimeFormatter)
             ).firstOrNull() ?: emptyList()
@@ -167,23 +168,21 @@ class ReminderSchedulingWorker constructor(
             return
         }
 
-        // Define dbQueryStartDateTime for fetching existing reminders from DB
         val dbQueryStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) {
             medicationStartDate.atStartOfDay()
         } else {
-            // If medication has started or starts today, always fetch existing DB entries from the beginning of today
             now.toLocalDate().atStartOfDay()
         }
         Log.d(funcTag, "DB Query Start DateTime for allExistingRemindersForPeriodMap: $dbQueryStartDateTime")
 
-        // 2. Fetch ALL Existing Reminders for the defined period (taken and untaken) using dbQueryStartDateTime
+        // 2. Fetch ALL Existing Reminders for the defined period
         val dbQueryWindowStartStr = dbQueryStartDateTime.format(storableDateTimeFormatter)
-        val dbQueryWindowEndStr = calculationWindowEndDate.atTime(23, 59, 59).format(storableDateTimeFormatter) // End of day for calculationWindowEndDate
+        val dbQueryWindowEndStr = calculationWindowEndDate.atTime(23, 59, 59).format(storableDateTimeFormatter)
         Log.d(funcTag, "DB Query Window for allExistingReminders: Start: $dbQueryWindowStartStr, End: $dbQueryWindowEndStr for MedId: ${medication.id}")
 
         val allExistingRemindersForPeriod = medicationReminderRepository.getRemindersForMedicationInWindow(
             medication.id,
-            dbQueryWindowStartStr, // Use the new dbQueryStartDateTime string
+            dbQueryWindowStartStr,
             dbQueryWindowEndStr
         )
         val tempMap = mutableMapOf<LocalDateTime, MedicationReminder>()
@@ -199,18 +198,16 @@ class ReminderSchedulingWorker constructor(
         }
         val allExistingRemindersForPeriodMap = tempMap.toMap()
         Log.d(funcTag, "Finished building allExistingRemindersForPeriodMap. Size: ${allExistingRemindersForPeriodMap.size}")
-        Log.d(funcTag, "Found ${allExistingRemindersForPeriodMap.size} existing reminders (taken and untaken) in the period.") // This log seems redundant now but keeping for safety
 
-        // Fetch Existing Future Untaken Reminders (still needed for stale cleanup logic)
+        // Fetch Existing Future Untaken Reminders
         Log.d(funcTag, "Fetching existing future untaken reminders for medication ID: ${medication.id} for stale cleanup.")
         val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
             medication.id, now.format(storableDateTimeFormatter)
         ).firstOrNull() ?: emptyList()
-        val existingFutureUntakenRemindersMap = existingFutureUntakenRemindersDb.associateBy { // Name changed for clarity
+        val existingFutureUntakenRemindersMap = existingFutureUntakenRemindersDb.associateBy {
             try { LocalDateTime.parse(it.reminderTime, storableDateTimeFormatter) } catch (e: Exception) { null }
         }.filterKeys { it != null } as Map<LocalDateTime, MedicationReminder>
         Log.d(funcTag, "Found ${existingFutureUntakenRemindersMap.size} existing future untaken reminders (for stale cleanup).")
-
 
         // 3. Get Ideal Reminders for the period
         var lastTakenForIntervalCalc: LocalDateTime? = null
@@ -234,7 +231,7 @@ class ReminderSchedulingWorker constructor(
             schedule,
             effectiveSearchStartDateTime.toLocalDate(),
             calculationWindowEndDate,
-            lastTakenForIntervalCalc // Pass the last taken date time, or null
+            lastTakenForIntervalCalc
         )
         Log.d(funcTag, "Raw calculatedRemindersMap from ReminderCalculator: ${calculatedRemindersMap.mapValues { entry -> entry.value.map { it.toString() } }}")
 
@@ -246,10 +243,8 @@ class ReminderSchedulingWorker constructor(
                 val twelveHoursAgoMillis = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(12)
 
                 val isValidForScheduling = if (isToday) {
-                    // For today, allow if it's not older than 12 hours ago, or if it's in the future
                     idealDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() >= twelveHoursAgoMillis
                 } else {
-                    // For other days (future), it must be after now
                     idealDateTime.isAfter(now)
                 }
 
@@ -269,71 +264,74 @@ class ReminderSchedulingWorker constructor(
         val sortedIdealFutureDateTimes = idealFutureDateTimesSet.toList().sorted()
         Log.d(funcTag, "Final sortedIdealFutureDateTimes (size ${sortedIdealFutureDateTimes.size}): ${sortedIdealFutureDateTimes.map { it.toString() }}")
 
-
         // 4. Schedule New/Missing Reminders
-        sortedIdealFutureDateTimes.forEachIndexed { index, idealDateTime ->
+        for ((index, idealDateTime) in sortedIdealFutureDateTimes.withIndex()) {
             val existingReminderForThisTime = allExistingRemindersForPeriodMap[idealDateTime]
 
-            if (existingReminderForThisTime == null) {
-                Log.w(funcTag, "No existing reminder found in map for idealDateTime: $idealDateTime. Will schedule a new one.")
-                // No reminder exists in DB for this ideal time, schedule a new one
-                val reminderObjectToInsert = MedicationReminder(
-                    medicationId = medication.id,
-                    medicationScheduleId = schedule.id,
-                    reminderTime = idealDateTime.format(storableDateTimeFormatter),
-                    isTaken = false, takenAt = null, notificationId = null
-                )
-                val actualReminderIdFromDb = medicationReminderRepository.insertReminder(reminderObjectToInsert)
-                Log.i(funcTag, "Scheduling NEW reminder for idealDateTime: $idealDateTime, actualReminderIdFromDb: $actualReminderIdFromDb")
-                val reminderWithActualId = reminderObjectToInsert.copy(id = actualReminderIdFromDb.toInt())
-
-                val actualScheduledTimeMillis = idealDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                var nextDoseTimeForHelperMillis: Long? = null
-                if (index + 1 < sortedIdealFutureDateTimes.size) {
-                    nextDoseTimeForHelperMillis = sortedIdealFutureDateTimes[index + 1]
-                        .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                }
-
-                val isIntervalType = schedule.scheduleType == ScheduleType.INTERVAL
-
-                // New condition for actual alarm scheduling
-                if (actualScheduledTimeMillis > System.currentTimeMillis()) {
-                    Log.d(funcTag, "Preparing to schedule alarm with NotificationScheduler for future time: reminderId=${reminderWithActualId.id}, isInterval=$isIntervalType, nextDoseHelperMillis=$nextDoseTimeForHelperMillis, actualScheduledTimeMillis=$actualScheduledTimeMillis")
-                    try {
-                        notificationScheduler.scheduleNotification(
-                            applicationContext, reminderWithActualId, medication.name, medication.dosage ?: "",
-                            isIntervalType, nextDoseTimeForHelperMillis, actualScheduledTimeMillis
-                        )
-                        if (ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE) {
-                            // The pre-reminder target time is calculated inside schedulePreReminderServiceTrigger
-                            // and it also checks if it's in the past. So, direct call is fine.
-                            Log.d(funcTag, "Scheduling pre-reminder for reminderId ${reminderWithActualId.id}")
-                            notificationScheduler.schedulePreReminderServiceTrigger(
-                                applicationContext, reminderWithActualId, actualScheduledTimeMillis, medication.name
-                            )
-                        }
-                        Log.i(funcTag, "Successfully scheduled main alarm (and pre-reminder if applicable) for NEW reminder ID ${reminderWithActualId.id} at $idealDateTime.")
-                    } catch (e: IllegalStateException) {
-                        Log.e(funcTag, "ALARM LIMIT EXCEPTION for new reminder ID ${reminderWithActualId.id}: ${e.message}", e)
-                    } catch (e: Exception) {
-                        Log.e(funcTag, "Generic error scheduling alarm for new reminder ID ${reminderWithActualId.id}", e)
-                    }
-                } else {
-                    Log.w(funcTag, "Skipping actual alarm scheduling for reminder ID ${reminderWithActualId.id} because its time ($idealDateTime / $actualScheduledTimeMillis ms) is not in the future. DB entry was still created/updated.")
-                }
-            } else {
-                // A reminder already exists for this ideal time
+            if (existingReminderForThisTime != null) {
                 if (existingReminderForThisTime.isTaken) {
                     Log.i(funcTag, "Ideal reminder at $idealDateTime already exists and IS TAKEN (ID: ${existingReminderForThisTime.id}). Doing nothing.")
                 } else {
                     Log.i(funcTag, "Ideal reminder at $idealDateTime already exists and IS NOT TAKEN (ID: ${existingReminderForThisTime.id}). Doing nothing, should be already scheduled.")
                 }
+                continue
+            }
+
+            val dateString = idealDateTime.toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
+            val dosageForDate = medicationDosageRepository.getDosageForDate(medication.id, dateString)
+
+            if (dosageForDate == null) {
+                Log.e(funcTag, "No dosage found for medication ${medication.id} on date $dateString. Skipping reminder creation.")
+                continue
+            }
+
+            Log.w(funcTag, "No existing reminder found in map for idealDateTime: $idealDateTime. Will schedule a new one.")
+            val reminderObjectToInsert = MedicationReminder(
+                medicationId = medication.id,
+                medicationScheduleId = schedule.id,
+                medicationDosageId = dosageForDate.id,
+                reminderTime = idealDateTime.format(storableDateTimeFormatter),
+                isTaken = false, takenAt = null, notificationId = null
+            )
+            val actualReminderIdFromDb = medicationReminderRepository.insertReminder(reminderObjectToInsert)
+            Log.i(funcTag, "Scheduling NEW reminder for idealDateTime: $idealDateTime, actualReminderIdFromDb: $actualReminderIdFromDb")
+            val reminderWithActualId = reminderObjectToInsert.copy(id = actualReminderIdFromDb.toInt())
+
+            val actualScheduledTimeMillis = idealDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            var nextDoseTimeForHelperMillis: Long? = null
+            if (index + 1 < sortedIdealFutureDateTimes.size) {
+                nextDoseTimeForHelperMillis = sortedIdealFutureDateTimes[index + 1]
+                    .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            }
+
+            val isIntervalType = schedule.scheduleType == ScheduleType.INTERVAL
+
+            if (actualScheduledTimeMillis > System.currentTimeMillis()) {
+                Log.d(funcTag, "Preparing to schedule alarm with NotificationScheduler for future time: reminderId=${reminderWithActualId.id}, isInterval=$isIntervalType, nextDoseHelperMillis=$nextDoseTimeForHelperMillis, actualScheduledTimeMillis=$actualScheduledTimeMillis")
+                try {
+                    notificationScheduler.scheduleNotification(
+                        applicationContext, reminderWithActualId, medication.name, dosageForDate.dosage,
+                        isIntervalType, nextDoseTimeForHelperMillis, actualScheduledTimeMillis
+                    )
+                    if (ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE) {
+                        Log.d(funcTag, "Scheduling pre-reminder for reminderId ${reminderWithActualId.id}")
+                        notificationScheduler.schedulePreReminderServiceTrigger(
+                            applicationContext, reminderWithActualId, actualScheduledTimeMillis, medication.name
+                        )
+                    }
+                    Log.i(funcTag, "Successfully scheduled main alarm (and pre-reminder if applicable) for NEW reminder ID ${reminderWithActualId.id} at $idealDateTime.")
+                } catch (e: IllegalStateException) {
+                    Log.e(funcTag, "ALARM LIMIT EXCEPTION for new reminder ID ${reminderWithActualId.id}: ${e.message}", e)
+                } catch (e: Exception) {
+                    Log.e(funcTag, "Generic error scheduling alarm for new reminder ID ${reminderWithActualId.id}", e)
+                }
+            } else {
+                Log.w(funcTag, "Skipping actual alarm scheduling for reminder ID ${reminderWithActualId.id} because its time ($idealDateTime / $actualScheduledTimeMillis ms) is not in the future. DB entry was still created/updated.")
             }
         }
 
-        // 5. Cleanup Stale Reminders (using existingFutureUntakenRemindersMap)
-        // This logic remains the same, ensuring only UNTAKEN reminders that are no longer ideal are removed.
-        existingFutureUntakenRemindersMap.forEach { (dateTime, existingUntakenReminder) -> // Variable name changed for clarity
+        // 5. Cleanup Stale Reminders
+        existingFutureUntakenRemindersMap.forEach { (dateTime, existingUntakenReminder) ->
             if (!idealFutureDateTimesSet.contains(dateTime)) {
                 Log.i(funcTag, "STALE UNTAKEN reminder check: DateTime $dateTime (ReminderId: ${existingUntakenReminder.id}) is NOT in idealFutureDateTimesSet. Proceeding with deletion.")
                 notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingUntakenReminder.id)

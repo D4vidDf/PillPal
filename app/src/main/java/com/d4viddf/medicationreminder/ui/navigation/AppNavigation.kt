@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,40 +30,56 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.repository.UserPreferencesRepository
-import com.d4viddf.medicationreminder.ui.common.theme.MedicationColor
-import com.d4viddf.medicationreminder.ui.features.add_medication.screen.AddMedicationChoiceScreen
-import com.d4viddf.medicationreminder.ui.features.add_medication.screen.AddMedicationScreen
-import com.d4viddf.medicationreminder.ui.features.calendar.screen.CalendarScreen
-import com.d4viddf.medicationreminder.ui.features.home.screen.HomeScreen
-import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationDetailsScreen
-import com.d4viddf.medicationreminder.ui.features.medication_details.screen.MedicationInfoScreen
-import com.d4viddf.medicationreminder.ui.features.medication_history.screen.AllSchedulesScreen
-import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationGraphScreen
-import com.d4viddf.medicationreminder.ui.features.medication_history.screen.MedicationHistoryScreen
-import com.d4viddf.medicationreminder.ui.features.medicationvault.screen.MedicationVaultScreen
-import com.d4viddf.medicationreminder.ui.features.onboarding.screen.OnboardingScreen
+import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
+import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationChoiceScreen
+import com.d4viddf.medicationreminder.ui.features.medication.add.AddMedicationScreen
+import com.d4viddf.medicationreminder.ui.features.calendar.CalendarScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.BodyTemperatureScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.LogTemperatureScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.LogWaterScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.LogWeightScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.ManageWaterPresetsScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.WaterIntakeScreen
+import com.d4viddf.medicationreminder.ui.features.healthdata.WeightScreen
+import com.d4viddf.medicationreminder.ui.features.home.HomeScreen
+import com.d4viddf.medicationreminder.ui.features.settings.NutritionWeightSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.WaterIntakeGoalScreen
+import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationDetailsScreen
+import com.d4viddf.medicationreminder.ui.features.medication.details.MedicationInfoScreen
+import com.d4viddf.medicationreminder.ui.features.medication.dosage.ScheduleDosageChangeScreen
+import com.d4viddf.medicationreminder.ui.features.medication.schedules.AllSchedulesScreen
+import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphScreen
+import com.d4viddf.medicationreminder.ui.features.medication.history.MedicationHistoryScreen
+import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationVaultScreen
+import com.d4viddf.medicationreminder.ui.features.notifications.NotificationsScreen
+import com.d4viddf.medicationreminder.ui.features.onboarding.OnboardingScreen
 import com.d4viddf.medicationreminder.ui.features.profile.screen.ProfileScreen
 import com.d4viddf.medicationreminder.ui.features.settings.components.ResponsiveSettingsScaffold
-import com.d4viddf.medicationreminder.ui.features.connecteddevices.screen.ConnectedDevicesScreen // Import the new screen
+import com.d4viddf.medicationreminder.ui.features.synceddevices.screen.ConnectedDevicesScreen
+import com.d4viddf.medicationreminder.ui.features.todayschedules.TodaySchedulesScreen
+import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphViewModel
+import com.d4viddf.medicationreminder.ui.features.personalizehome.PersonalizeHomeScreen
+import java.time.format.DateTimeFormatter
 
-// Define the routes for navigation
-
-const val MEDICATION_ID_ARG = "medicationId" // Common argument name
-const val SHOW_TODAY_ARG = "showToday" // Argument for AllSchedulesScreen
+const val MEDICATION_ID_ARG = "medicationId"
+const val SHOW_TODAY_ARG = "showToday"
+// ** NEW: Argument key for the missed filter **
+const val SHOW_MISSED_ARG = "showMissed"
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
-    object MedicationVault : Screen("medicationVault") // Added MedicationVault
+    object MedicationVault : Screen("medicationVault")
     object AddMedication : Screen("addMedication")
     object AddMedicationChoice : Screen("addMedicationChoice")
     object MedicationDetails : Screen("medicationDetails/{$MEDICATION_ID_ARG}?enableSharedTransition={enableSharedTransition}") {
         fun createRoute(id: Int, enableSharedTransition: Boolean = true) = "medicationDetails/$id?enableSharedTransition=$enableSharedTransition"
     }
-    object Settings : Screen("settings") // Will be replaced by Analytics in UI, but route can remain for now if settings screen is complex
-    object Analysis : Screen("analysis") // Added Analysis screen
+    object Settings : Screen("settings")
+    object Analysis : Screen("analysis")
     object Calendar : Screen("calendar")
     object Profile : Screen("profile")
+    object Notifications : Screen("notifications")
     data object Onboarding : Screen("onboarding_screen")
 
     object AllSchedules : Screen("all_schedules_screen/{$MEDICATION_ID_ARG}/{colorName}?$SHOW_TODAY_ARG={$SHOW_TODAY_ARG}") {
@@ -86,101 +103,113 @@ sealed class Screen(val route: String) {
     object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
     }
-    object ConnectedDevices : Screen("connected_devices_screen") // New screen route
+    object ScheduleDosageChange : Screen("schedule_dosage_change/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "schedule_dosage_change/$medicationId"
+    }
+    object ConnectedDevices : Screen("connected_devices_screen")
+
+    // ** MODIFIED: Updated route definition to accept the optional 'showMissed' argument **
+    object TodaySchedules : Screen("today_schedules?$SHOW_MISSED_ARG={$SHOW_MISSED_ARG}") {
+        fun createRoute(showMissed: Boolean = false) = "today_schedules?$SHOW_MISSED_ARG=$showMissed"
+    }
+    object PersonalizeHome : Screen("personalizeHome")
+    object LogWater : Screen("logWater")
+    object LogWeight : Screen("logWeight")
+    object LogTemperature : Screen("logTemperature")
+    object Weight : Screen("weight")
+    object WaterIntake : Screen("waterIntake")
+    object BodyTemperature : Screen("bodyTemperature")
+    object ManageWaterPresets : Screen("manageWaterPresets")
+    object NutritionWeightSettings : Screen("nutritionWeightSettings")
+    object WaterIntakeGoal : Screen("waterIntakeGoal")
+    object WeightGoal : Screen("weightGoal")
+    object HeartRate : Screen("heartRate")
+    object HealthConnectSettings : Screen("healthConnectSettings")
+    object PrivacyPolicy : Screen("privacyPolicy")
+    object SaludConectadaEnHoy : Screen("salud_conectada_en_hoy")
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
-    navHostModifier: Modifier = Modifier, // Renamed from modifier
+    modifier: Modifier = Modifier,
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
-    isMainScaffold: Boolean, // Added parameter
-    userPreferencesRepository: UserPreferencesRepository, // Still needed for OnboardingScreen
-    startDestinationRoute: String, // Add this new parameter
-    hostScaffoldPadding: PaddingValues = PaddingValues() // New parameter for host's scaffold padding
+    isMainScaffold: Boolean,
+    userPreferencesRepository: UserPreferencesRepository,
+    startDestinationRoute: String,
+    hostScaffoldPadding: PaddingValues = PaddingValues()
 ) {
-    SharedTransitionLayout { // `this` is SharedTransitionScope
-        val currentSharedTransitionScope = this // Capture SharedTransitionScope
-
-        // val onboardingCompleted by userPreferencesRepository.onboardingCompletedFlow.collectAsState(initial = false) // REMOVE
-        // val startDestination = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route // REMOVE
+    SharedTransitionLayout {
+        val currentSharedTransitionScope = this
 
         NavHost(
             navController = navController,
-            startDestination = startDestinationRoute, // USE THE PARAMETER HERE
-            // Apply incoming navHostModifier and then conditional fillMaxSize based on isMainScaffold
-            modifier = navHostModifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier)
+            startDestination = startDestinationRoute,
+            modifier = modifier.then(if (isMainScaffold) Modifier.fillMaxSize() else Modifier),
         ) {
-            composable(Screen.Onboarding.route) { // Added route for OnboardingScreen
+            composable(Screen.Onboarding.route) {
                 OnboardingScreen(
                     navController = navController,
-                    userPreferencesRepository = userPreferencesRepository // Pass it here
                 )
             }
             composable(Screen.Home.route) {
-                // `this` is an AnimatedVisibilityScope
                 HomeScreen(
-                    navController = navController, // Added this line
-                    // Parameters for the new HomeScreen which does not show all medications
-                    // onMedicationClick, widthSizeClass, sharedTransitionScope, animatedVisibilityScope are removed
-                    // as they were for the old list-detail view of all medications.
-                    // The new HomeScreen is simpler in terms of these params.
+                    navController = navController,
+                    widthSizeClass = widthSizeClass,
                 )
             }
             composable(Screen.MedicationVault.route) {
-                // Assuming MedicationVaultScreen has a similar structure to the old HomeScreen for list/detail
                 MedicationVaultScreen(
                     navController = navController,
                     widthSizeClass = widthSizeClass,
                     sharedTransitionScope = currentSharedTransitionScope,
                     animatedVisibilityScope = this,
-                    hostPaddingValues = hostScaffoldPadding // Pass down the host's scaffold padding
+                    hostPaddingValues = hostScaffoldPadding
                 )
             }
-            composable(Screen.AddMedicationChoice.route) { // New entry
+            composable(Screen.Notifications.route) {
+                NotificationsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.AddMedicationChoice.route) {
                 AddMedicationChoiceScreen(
                     onSearchMedication = { navController.navigate(Screen.AddMedication.route) },
-                    onUseCamera = { /* Functionality to be added later */ },
-                    onClose = { navController.popBackStack() } // Add this line
+                    onUseCamera = { /* TODO */ },
+                    onClose = { navController.popBackStack() }
                 )
             }
             composable(Screen.AddMedication.route) {
-                // `this` is an AnimatedVisibilityScope
                 AddMedicationScreen(
-                    // onNavigateBack = { navController.popBackStack() }, // Remove this
-                    navController = navController, // Add this
-                    widthSizeClass = widthSizeClass // Pass the widthSizeClass
-                    // No animatedVisibilityScope passed
+                    navController = navController,
+                    widthSizeClass = widthSizeClass
                 )
             }
             composable(
                 Screen.MedicationDetails.route,
                 arguments = listOf(navArgument("enableSharedTransition") { type = NavType.BoolType; defaultValue = true })
             ) { backStackEntry ->
-                // `this` is an AnimatedVisibilityScope
                 val medicationId = backStackEntry.arguments?.getString(MEDICATION_ID_ARG)?.toIntOrNull()
                 val enableSharedTransition = backStackEntry.arguments?.getBoolean("enableSharedTransition") ?: true
                 if (medicationId != null) {
                     MedicationDetailsScreen(
                         medicationId = medicationId,
-                        navController = navController, // Added this line
+                        navController = navController,
                         onNavigateBack = {
                             navController.previousBackStackEntry?.savedStateHandle?.set("medicationDetailClosed", true)
                             navController.popBackStack()
                         },
-                        sharedTransitionScope = currentSharedTransitionScope, // Pass captured scope
-                        animatedVisibilityScope = this, // Pass scope
+                        sharedTransitionScope = currentSharedTransitionScope,
+                        animatedVisibilityScope = this,
                         isHostedInPane = false,
-                        widthSizeClass = widthSizeClass, // Add this line
-                        // Navigation callbacks for new screens from MedicationDetailScreen
+                        widthSizeClass = widthSizeClass,
                         onNavigateToAllSchedules = { medId, colorName ->
                             navController.navigate(
                                 Screen.AllSchedules.createRoute(medId, colorName, true)
                             )
-                        }, // Pass showToday = true from details screen
-
+                        },
                         onNavigateToMedicationHistory = { medId, colorName ->
                             navController.navigate(
                                 Screen.MedicationHistory.createRoute(medId, colorName)
@@ -201,7 +230,7 @@ fun AppNavigation(
             }
             composable(Screen.Settings.route) {
                 var currentSettingsTitleResId by remember { mutableStateOf(R.string.settings_screen_title) }
-                var currentSettingsBackAction by remember { mutableStateOf<() -> Unit>({ navController.popBackStack() }) } // Explicit lambda wrapping
+                var currentSettingsBackAction by remember { mutableStateOf<() -> Unit>({ navController.popBackStack() }) }
 
                 if (widthSizeClass == WindowWidthSizeClass.Compact) {
                     Scaffold(
@@ -212,7 +241,7 @@ fun AppNavigation(
                                     IconButton(onClick = { currentSettingsBackAction.invoke() }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
-                                            contentDescription = stringResource(id = R.string.back) // Generic back description
+                                            contentDescription = stringResource(id = R.string.back)
                                         )
                                     }
                                 }
@@ -226,50 +255,40 @@ fun AppNavigation(
                                 currentSettingsTitleResId = titleResId
                                 currentSettingsBackAction = backAction
                             },
-                            contentPadding = innerPadding, // Pass Scaffold's innerPadding
-                            modifier = Modifier.fillMaxSize() // Responsive scaffold should fill the content area
+                            contentPadding = innerPadding,
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 } else {
-                    // Tablet layout: ResponsiveSettingsScaffold manages its own TopAppBar.
-                    // updateTopBarActions and contentPadding are not strictly needed here as it manages its own Scaffold/TopAppBar.
-                    // However, to keep the call signature consistent or if some root modifier is needed:
                     ResponsiveSettingsScaffold(
                         widthSizeClass = widthSizeClass,
                         navController = navController,
-                        updateTopBarActions = { _, _ -> /* No-op for tablet as it handles its own top bar */ },
-                        // contentPadding can be default or specific if ResponsiveSettingsScaffold needs it
-                        modifier = Modifier.fillMaxSize() // Ensure it fills the designated area
+                        updateTopBarActions = { _, _ -> /* No-op */ },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
             composable(Screen.Calendar.route) {
-                // `this` is an AnimatedVisibilityScope
                 CalendarScreen(
                     navController = navController,
-                    widthSizeClass = widthSizeClass, // Added widthSizeClass
+                    widthSizeClass = widthSizeClass,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToMedicationDetail = { medicationId ->
                         navController.navigate(Screen.MedicationDetails.createRoute(medicationId, enableSharedTransition = false))
                     }
-                    // No sharedTransitionScope or animatedVisibilityScope passed
                 )
             }
             composable(Screen.Profile.route) {
-                // `this` is an AnimatedVisibilityScope
                 ProfileScreen(
                     onNavigateBack = { navController.popBackStack() }
-                    // No animatedVisibilityScope passed
                 )
             }
             composable(Screen.Analysis.route) {
-                // Placeholder for Analysis Screen
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Analysis Screen (Placeholder)")
                 }
             }
 
-            // Routes for the new screens
             composable(
                 Screen.AllSchedules.route,
                 arguments = listOf(
@@ -283,7 +302,7 @@ fun AppNavigation(
                 val showToday = backStackEntry.arguments?.getBoolean(SHOW_TODAY_ARG) ?: false
                 AllSchedulesScreen(
                     medicationId = medicationId,
-                    showToday = showToday, // Pass showToday argument
+                    showToday = showToday,
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name
                 )
@@ -301,13 +320,13 @@ fun AppNavigation(
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
                 val colorName = backStackEntry.arguments?.getString("colorName")
                 val selectedDate = backStackEntry.arguments?.getString("selectedDate")
-                val selectedMonth = backStackEntry.arguments?.getString("selectedMonth") // Extract selectedMonth
+                val selectedMonth = backStackEntry.arguments?.getString("selectedMonth")
                 MedicationHistoryScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
-                    selectedDate = selectedDate, // Pass the extracted selectedDate
-                    selectedMonth = selectedMonth // Pass selectedMonth
+                    selectedDate = selectedDate,
+                    selectedMonth = selectedMonth
                 )
             }
 
@@ -320,19 +339,19 @@ fun AppNavigation(
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
                 val colorName = backStackEntry.arguments?.getString("colorName")
-                val medicationGraphViewModel: com.d4viddf.medicationreminder.viewmodel.MedicationGraphViewModel = hiltViewModel()
+                val medicationGraphViewModel: MedicationGraphViewModel = hiltViewModel()
                 MedicationGraphScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
                     viewModel = medicationGraphViewModel,
-                    widthSizeClass = widthSizeClass, // Add this line
+                    widthSizeClass = widthSizeClass,
                     onNavigateToHistoryForDate = { medId, colorStr, date ->
                         navController.navigate(
                             Screen.MedicationHistory.createRoute(
                                 medicationId = medId,
                                 colorName = colorStr,
-                                selectedDate = date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                                selectedDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
                             )
                         )
                     },
@@ -341,7 +360,7 @@ fun AppNavigation(
                             Screen.MedicationHistory.createRoute(
                                 medicationId = medId,
                                 colorName = colorStr,
-                                selectedMonth = yearMonth.toString() // YearMonth.toString() is "YYYY-MM"
+                                selectedMonth = yearMonth.toString()
                             )
                         )
                     }
@@ -364,8 +383,97 @@ fun AppNavigation(
                 )
             }
 
+            composable(
+                Screen.ScheduleDosageChange.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val medicationId = backStackEntry.arguments?.getInt(MEDICATION_ID_ARG) ?: -1
+                ScheduleDosageChangeScreen(
+                    navController = navController,
+                    medicationId = medicationId
+                )
+            }
+
             composable(Screen.ConnectedDevices.route) {
                 ConnectedDevicesScreen(navController = navController)
+            }
+
+            // ** MODIFIED: Updated composable definition to handle the new argument **
+            composable(
+                route = Screen.TodaySchedules.route,
+                arguments = listOf(
+                    navArgument(SHOW_MISSED_ARG) {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    }
+                )
+            ) {
+                // The ViewModel will get the argument from the SavedStateHandle automatically.
+                // No need to pass it here.
+                TodaySchedulesScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToDetails = { medicationId ->
+                        navController.navigate(
+                            Screen.MedicationDetails.createRoute(
+                                medicationId,
+                                enableSharedTransition = true
+                            )
+                        )
+                    }
+                )
+            }
+
+            composable(Screen.PersonalizeHome.route) {
+                PersonalizeHomeScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.LogWater.route) {
+                LogWaterScreen(
+                    navController = navController,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.LogWeight.route) {
+                LogWeightScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable(Screen.LogTemperature.route) {
+                LogTemperatureScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable(Screen.Weight.route) {
+                WeightScreen(navController = navController, widthSizeClass = widthSizeClass)
+            }
+            composable(Screen.WaterIntake.route) {
+                WaterIntakeScreen(navController = navController, widthSizeClass = widthSizeClass)
+            }
+            composable(Screen.BodyTemperature.route) {
+                BodyTemperatureScreen(navController = navController, widthSizeClass = widthSizeClass)
+            }
+            composable(Screen.ManageWaterPresets.route) {
+                ManageWaterPresetsScreen(navController = navController)
+            }
+            composable(Screen.NutritionWeightSettings.route) {
+                NutritionWeightSettingsScreen(navController = navController)
+            }
+            composable(Screen.WaterIntakeGoal.route) {
+                WaterIntakeGoalScreen(navController = navController)
+            }
+            composable(Screen.WeightGoal.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.WeightGoalScreen(navController = navController)
+            }
+            composable(Screen.HeartRate.route) {
+                com.d4viddf.medicationreminder.ui.features.healthdata.HeartRateScreen(navController = navController)
+            }
+            composable(Screen.HealthConnectSettings.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(navController = navController)
+            }
+            composable(Screen.PrivacyPolicy.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.SaludConectadaEnHoy.route) {
+                com.d4viddf.medicationreminder.ui.features.settings.SaludConectadaEnHoyScreen(navController = navController)
             }
         }
     }

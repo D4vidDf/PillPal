@@ -33,11 +33,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.features.settings.screen.DeveloperSettingsScreen
-import com.d4viddf.medicationreminder.ui.features.settings.screen.GeneralSettingsScreen
-import com.d4viddf.medicationreminder.ui.features.settings.screen.SettingsListScreen
-import com.d4viddf.medicationreminder.ui.features.settings.screen.SoundSettingsScreen
-import com.d4viddf.medicationreminder.viewmodel.SettingsViewModel
+import com.d4viddf.medicationreminder.ui.features.settings.developer.DeveloperSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.general.GeneralSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.SettingsListScreen
+import com.d4viddf.medicationreminder.ui.features.settings.sound.SoundSettingsScreen
+import com.d4viddf.medicationreminder.ui.features.settings.SettingsViewModel
+import com.d4viddf.medicationreminder.ui.navigation.Screen
 
 // Define routes for sub-settings screens
 object SettingsDestinations {
@@ -45,15 +46,18 @@ object SettingsDestinations {
     const val GENERAL = "settings_general"
     const val SOUND = "settings_sound"
     const val DEVELOPER = "settings_developer"
+    const val HEALTH_CONNECT = "settings_health_connect"
+    const val PRIVACY_POLICY = "settings_privacy_policy"
+    const val GOALS = "settings_goals"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResponsiveSettingsScaffold(
+    modifier: Modifier = Modifier,
     widthSizeClass: WindowWidthSizeClass,
     navController: NavController,
     settingsViewModel: SettingsViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier,
     updateTopBarActions: (titleResId: Int, backAction: () -> Unit) -> Unit, // New parameter
     contentPadding: PaddingValues = PaddingValues(0.dp) // New parameter
 ) {
@@ -70,7 +74,9 @@ fun ResponsiveSettingsScaffold(
                 title = { Text(stringResource(id = R.string.settings_screen_title)) },
                 navigationIcon = {
                     if (selectedCategoryRoute != null && selectedCategoryRoute != SettingsDestinations.GENERAL) {
-                        IconButton(onClick = { selectedCategoryRoute = SettingsDestinations.GENERAL }) {
+                        IconButton(onClick = {
+                            selectedCategoryRoute = SettingsDestinations.GENERAL
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.rounded_arrow_back_ios_24),
                                 contentDescription = stringResource(id = R.string.back)
@@ -83,9 +89,23 @@ fun ResponsiveSettingsScaffold(
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.width(300.dp).fillMaxHeight()) {
                     SettingsListScreen(
-                        onNavigateToGeneral = { selectedCategoryRoute = SettingsDestinations.GENERAL },
+                        onNavigateToGeneral = {
+                            selectedCategoryRoute = SettingsDestinations.GENERAL
+                        },
                         onNavigateToSound = { selectedCategoryRoute = SettingsDestinations.SOUND },
-                        onNavigateToDeveloper = { selectedCategoryRoute = SettingsDestinations.DEVELOPER },
+                        onNavigateToDeveloper = {
+                            selectedCategoryRoute = SettingsDestinations.DEVELOPER
+                        },
+                        onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) },
+                        onNavigateToHealthConnect = {
+                            selectedCategoryRoute = SettingsDestinations.HEALTH_CONNECT
+                        },
+                        onNavigateToPrivacyPolicy = {
+                            selectedCategoryRoute = SettingsDestinations.PRIVACY_POLICY
+                        },
+                        onNavigateToGoals = {
+                            selectedCategoryRoute = SettingsDestinations.GOALS
+                        },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -93,10 +113,36 @@ fun ResponsiveSettingsScaffold(
                 Box(modifier = Modifier.weight(1f)) {
                     // selectedCategoryRoute is initialized to GENERAL, so this will always have a value.
                     when (selectedCategoryRoute) {
-                        SettingsDestinations.GENERAL -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // No showTopAppBar, onNavigateBack is {}
-                        SettingsDestinations.SOUND -> SoundSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
-                        SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel)
-                        else -> GeneralSettingsScreen(onNavigateBack = {}, viewModel = settingsViewModel) // Fallback, though selectedCategoryRoute is non-null
+                        SettingsDestinations.GENERAL -> GeneralSettingsScreen(
+                            onNavigateBack = {},
+                            viewModel = settingsViewModel
+                        ) // No showTopAppBar, onNavigateBack is {}
+                        SettingsDestinations.SOUND -> SoundSettingsScreen(
+                            onNavigateBack = {},
+                            viewModel = settingsViewModel
+                        )
+
+                        SettingsDestinations.DEVELOPER -> DeveloperSettingsScreen(
+                            onNavigateBack = {},
+                            viewModel = settingsViewModel
+                        )
+
+                        SettingsDestinations.HEALTH_CONNECT -> com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(
+                            navController = navController
+                        )
+
+                        SettingsDestinations.PRIVACY_POLICY -> com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(
+                            onBack = {}
+                        )
+
+                        SettingsDestinations.GOALS -> com.d4viddf.medicationreminder.ui.features.settings.GoalsSettingsScreen(
+                            navController = navController
+                        )
+
+                        else -> GeneralSettingsScreen(
+                            onNavigateBack = {},
+                            viewModel = settingsViewModel
+                        ) // Fallback, though selectedCategoryRoute is non-null
                     }
                 }
             }
@@ -111,14 +157,28 @@ fun ResponsiveSettingsScaffold(
                 SettingsDestinations.LIST -> {
                     updateTopBarActions(R.string.settings_screen_title) { navController.popBackStack() }
                 }
+
                 SettingsDestinations.GENERAL -> {
                     updateTopBarActions(R.string.settings_category_general) { localSettingsNavController.popBackStack() }
                 }
+
                 SettingsDestinations.SOUND -> {
                     updateTopBarActions(R.string.settings_category_sound) { localSettingsNavController.popBackStack() }
                 }
+
                 SettingsDestinations.DEVELOPER -> {
                     updateTopBarActions(R.string.settings_category_developer) { localSettingsNavController.popBackStack() }
+                }
+
+                SettingsDestinations.HEALTH_CONNECT -> {
+                    updateTopBarActions(R.string.health_connect_settings) { localSettingsNavController.popBackStack() }
+                }
+
+                SettingsDestinations.PRIVACY_POLICY -> {
+                    updateTopBarActions(R.string.privacy_policy_title) { localSettingsNavController.popBackStack() }
+                }
+                SettingsDestinations.GOALS -> {
+                    updateTopBarActions(R.string.goals) { localSettingsNavController.popBackStack() }
                 }
             }
         }
@@ -132,7 +192,23 @@ fun ResponsiveSettingsScaffold(
                 SettingsListScreen(
                     onNavigateToGeneral = { localSettingsNavController.navigate(SettingsDestinations.GENERAL) },
                     onNavigateToSound = { localSettingsNavController.navigate(SettingsDestinations.SOUND) },
-                    onNavigateToDeveloper = { localSettingsNavController.navigate(SettingsDestinations.DEVELOPER) }
+                    onNavigateToDeveloper = {
+                        localSettingsNavController.navigate(
+                            SettingsDestinations.DEVELOPER
+                        )
+                    },
+                    onNavigateToConnectedDevices = { navController.navigate(Screen.ConnectedDevices.route) },
+                    onNavigateToHealthConnect = {
+                        localSettingsNavController.navigate(
+                            SettingsDestinations.HEALTH_CONNECT
+                        )
+                    },
+                    onNavigateToPrivacyPolicy = {
+                        localSettingsNavController.navigate(
+                            SettingsDestinations.PRIVACY_POLICY
+                        )
+                    },
+                    onNavigateToGoals = { localSettingsNavController.navigate(SettingsDestinations.GOALS) }
                 )
             }
             composable(SettingsDestinations.GENERAL) {
@@ -151,11 +227,26 @@ fun ResponsiveSettingsScaffold(
                 DeveloperSettingsScreen(
                     onNavigateBack = { localSettingsNavController.popBackStack() },
                     viewModel = settingsViewModel
-                    )
-                }
+                )
+            }
+            composable(SettingsDestinations.HEALTH_CONNECT) {
+                com.d4viddf.medicationreminder.ui.features.settings.HealthConnectSettingsScreen(
+                    navController = navController
+                )
+            }
+            composable(SettingsDestinations.PRIVACY_POLICY) {
+                com.d4viddf.medicationreminder.ui.features.settings.PrivacyPolicyScreen(
+                    onBack = { localSettingsNavController.popBackStack() }
+                )
+            }
+            composable(SettingsDestinations.GOALS) {
+                com.d4viddf.medicationreminder.ui.features.settings.GoalsSettingsScreen(
+                    navController = localSettingsNavController
+                )
             }
         }
     }
+}
 
 // Previewing this responsive scaffold is complex due to NavController and WindowSizeClass.
 // Basic previews for each mode might be added later if needed.

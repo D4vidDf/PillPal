@@ -10,17 +10,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes // Added import
 import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.common.IntentActionConstants
-import com.d4viddf.medicationreminder.common.IntentExtraConstants
-import com.d4viddf.medicationreminder.common.NotificationConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
+import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
+import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
 import com.d4viddf.medicationreminder.receivers.SnoozeBroadcastReceiver // Ensure this import is present
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Now using IntentExtraConstants
 import java.util.concurrent.TimeUnit
@@ -65,12 +63,42 @@ object NotificationHelper {
                 // setSound(null, null) // Explicitly no sound for pre-reminders by default
             }
 
+            val medicationAlertsChannel = NotificationChannel(
+                NotificationConstants.MEDICATION_ALERTS_CHANNEL_ID,
+                context.getString(R.string.notification_channel_medication_alerts_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = context.getString(R.string.notification_channel_medication_alerts_description)
+            }
+
+            val lowMedicationChannel = NotificationChannel(
+                NotificationConstants.LOW_MEDICATION_CHANNEL_ID,
+                context.getString(R.string.notification_channel_low_medication_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = context.getString(R.string.notification_channel_low_medication_description)
+            }
+
+            val waterReminderChannel = NotificationChannel(
+                NotificationConstants.WATER_REMINDER_CHANNEL_ID,
+                context.getString(R.string.notification_channel_water_reminder_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = context.getString(R.string.notification_channel_water_reminder_description)
+            }
+
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(reminderChannelHigh)
             Log.d(TAG, "Notification channel ${NotificationConstants.REMINDER_CHANNEL_ID} created with HIGH importance and sound.")
             notificationManager.createNotificationChannel(preReminderChannelDefault)
             Log.d(TAG, "Notification channel ${NotificationConstants.PRE_REMINDER_CHANNEL_ID} created with DEFAULT importance.")
+            notificationManager.createNotificationChannel(medicationAlertsChannel)
+            Log.d(TAG, "Notification channel ${NotificationConstants.MEDICATION_ALERTS_CHANNEL_ID} created.")
+            notificationManager.createNotificationChannel(lowMedicationChannel)
+            Log.d(TAG, "Notification channel ${NotificationConstants.LOW_MEDICATION_CHANNEL_ID} created.")
+            notificationManager.createNotificationChannel(waterReminderChannel)
+            Log.d(TAG, "Notification channel ${NotificationConstants.WATER_REMINDER_CHANNEL_ID} created.")
         }
     }
 
