@@ -2,7 +2,7 @@
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability in this project, please report it to us by sending an email to `contact@example.com`.
+If you discover a security vulnerability in this project, please report it to us by sending an email to `david@d4viddf.com`.
 
 Please include the following information in your vulnerability report:
 
