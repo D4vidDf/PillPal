@@ -37,6 +37,7 @@ class NotificationsViewModel @Inject constructor(
 
             val mockNotifications = listOf(
                 Notification(title = "Ibuprofen", message = "Time to refill your Ibuprofen", timestamp = LocalDateTime.now(), type = "low_medication", icon = "pill", color = "LIGHT_BLUE"),
+                Notification(title = "Stay Hydrated!", message = "Time to drink a glass of water.", timestamp = LocalDateTime.now().minusMinutes(30), type = "water_reminder", icon = "water", color = null),
                 Notification(title = "Security Note", message = "La AEMPS informa que se ha retirado un lote de Paracetamol...", timestamp = LocalDateTime.now().minusHours(1), type = "security_alert", icon = "security", color = null),
                 Notification(title = "Amoxicillin", message = "Time to refill your Amoxicillin", timestamp = LocalDateTime.now().minusDays(1), type = "low_medication", icon = "capsule", color = "LIGHT_GREEN"),
                 Notification(title = "Security Note", message = "Actualización de seguridad importante sobre su tratamiento.", timestamp = LocalDateTime.now().minusDays(1).minusHours(2), type = "security_alert", icon = "security", color = null),

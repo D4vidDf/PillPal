@@ -151,6 +151,8 @@
     <string name="notification_channel_medication_alerts_description">Notifications about medication safety and security.</string>
     <string name="notification_channel_low_medication_name">Refill Reminders</string>
     <string name="notification_channel_low_medication_description">Notifications for when your medication is running low.</string>
+    <string name="notification_channel_water_reminder_name">Water Reminders</string>
+    <string name="notification_channel_water_reminder_description">Notifications to help you stay hydrated.</string>
 
 
     <!-- Day initialisms for medication summary -->
@@ -795,4 +797,5 @@
     <string name="notification_icon_cd_security">Security Alert Icon</string>
     <string name="notification_icon_cd_medication">Medication Icon</string>
     <string name="notification_icon_cd_general">Notification Icon</string>
+    <string name="notification_icon_cd_water">Water Reminder Icon</string>
 </resources>

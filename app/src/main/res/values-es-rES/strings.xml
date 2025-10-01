@@ -786,4 +786,7 @@
     <string name="notification_icon_cd_security">Icono de alerta de seguridad</string>
     <string name="notification_icon_cd_medication">Icono de medicación</string>
     <string name="notification_icon_cd_general">Icono de notificación</string>
+    <string name="notification_channel_water_reminder_name">Recordatorios de agua</string>
+    <string name="notification_channel_water_reminder_description">Notificaciones para ayudarte a mantenerte hidratado.</string>
+    <string name="notification_icon_cd_water">Icono de recordatorio de agua</string>
 </resources>

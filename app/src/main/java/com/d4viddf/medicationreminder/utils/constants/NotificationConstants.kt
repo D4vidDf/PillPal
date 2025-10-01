@@ -6,6 +6,7 @@ object NotificationConstants {
     const val PRE_REMINDER_CHANNEL_ID = "pre_medication_reminder_channel"
     const val MEDICATION_ALERTS_CHANNEL_ID = "medication_alerts_channel"
     const val LOW_MEDICATION_CHANNEL_ID = "low_medication_channel"
+    const val WATER_REMINDER_CHANNEL_ID = "water_reminder_channel"
 
 
     // Notification Actions (also see IntentActionConstants for broader actions)

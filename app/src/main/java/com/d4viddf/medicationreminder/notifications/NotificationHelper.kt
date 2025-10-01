@@ -79,6 +79,14 @@ object NotificationHelper {
                 description = context.getString(R.string.notification_channel_low_medication_description)
             }
 
+            val waterReminderChannel = NotificationChannel(
+                NotificationConstants.WATER_REMINDER_CHANNEL_ID,
+                context.getString(R.string.notification_channel_water_reminder_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = context.getString(R.string.notification_channel_water_reminder_description)
+            }
+
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(reminderChannelHigh)
@@ -89,6 +97,8 @@ object NotificationHelper {
             Log.d(TAG, "Notification channel ${NotificationConstants.MEDICATION_ALERTS_CHANNEL_ID} created.")
             notificationManager.createNotificationChannel(lowMedicationChannel)
             Log.d(TAG, "Notification channel ${NotificationConstants.LOW_MEDICATION_CHANNEL_ID} created.")
+            notificationManager.createNotificationChannel(waterReminderChannel)
+            Log.d(TAG, "Notification channel ${NotificationConstants.WATER_REMINDER_CHANNEL_ID} created.")
         }
     }
 

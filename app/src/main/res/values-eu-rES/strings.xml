@@ -715,4 +715,7 @@
     <string name="notification_icon_cd_security">Segurtasun alertaren ikonoa</string>
     <string name="notification_icon_cd_medication">Medikazioaren ikonoa</string>
     <string name="notification_icon_cd_general">Jakinarazpenaren ikonoa</string>
+    <string name="notification_channel_water_reminder_name">Ur-oroigarriak</string>
+    <string name="notification_channel_water_reminder_description">Hidratatuta egoten laguntzeko jakinarazpenak.</string>
+    <string name="notification_icon_cd_water">Ur-oroigarriaren ikonoa</string>
 </resources>

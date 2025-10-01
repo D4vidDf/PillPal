@@ -43,6 +43,24 @@ class NotificationManager @Inject constructor(
         showNotification(notification)
     }
 
+    fun sendWaterReminderNotification() {
+        val notification = Notification(
+            title = "Stay Hydrated!",
+            message = "Time to drink a glass of water.",
+            timestamp = LocalDateTime.now(),
+            type = "water_reminder",
+            icon = "water",
+            color = null,
+            isRead = false
+        )
+
+        coroutineScope.launch {
+            notificationRepository.insert(notification)
+        }
+
+        showNotification(notification)
+    }
+
     fun sendSecurityAlertNotification(title: String, message: String) {
         val notification = Notification(
             title = title,
@@ -65,6 +83,7 @@ class NotificationManager @Inject constructor(
         val channelId = when (notification.type) {
             "low_medication" -> NotificationConstants.LOW_MEDICATION_CHANNEL_ID
             "security_alert" -> NotificationConstants.MEDICATION_ALERTS_CHANNEL_ID
+            "water_reminder" -> NotificationConstants.WATER_REMINDER_CHANNEL_ID
             else -> return // Or a default channel
         }
 

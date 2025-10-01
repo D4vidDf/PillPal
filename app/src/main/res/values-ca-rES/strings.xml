@@ -712,4 +712,7 @@
     <string name="notification_icon_cd_security">Icona d\'alerta de seguretat</string>
     <string name="notification_icon_cd_medication">Icona de medicació</string>
     <string name="notification_icon_cd_general">Icona de notificació</string>
+    <string name="notification_channel_water_reminder_name">Recordatoris d\'aigua</string>
+    <string name="notification_channel_water_reminder_description">Notificacions per ajudar-te a mantenir-te hidratat.</string>
+    <string name="notification_icon_cd_water">Icona de recordatori d\'aigua</string>
 </resources>

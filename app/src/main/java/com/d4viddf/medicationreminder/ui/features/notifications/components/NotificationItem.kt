@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.toShape
@@ -149,6 +150,22 @@ private fun NotificationIcon(notification: Notification) {
                     painter = painterResource(id = imageResId),
                     contentDescription = stringResource(id = R.string.notification_icon_cd_medication),
                     tint = medicationColor.textColor,
+                    modifier = Modifier.size(iconSize * 0.6f)
+                )
+            }
+        }
+        "water_reminder" -> {
+            Box(
+                modifier = Modifier
+                    .size(iconSize)
+                    .clip(squircleShape)
+                    .background(MaterialTheme.colorScheme.tertiaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.water_full),
+                    contentDescription = stringResource(id = R.string.notification_icon_cd_water),
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier.size(iconSize * 0.6f)
                 )
             }
