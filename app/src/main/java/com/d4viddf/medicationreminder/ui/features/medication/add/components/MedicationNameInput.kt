@@ -193,7 +193,18 @@ fun MedicationNameInput(
                                 onMedicationSelected(
                                     MedicationSearchResult(
                                         name = medicationName,
-                                        nregistro = null
+                                        atcCode = null,
+                                        description = null,
+                                        safetyNotes = null,
+                                        documentUrls = emptyList(),
+                                        administrationRoutes = emptyList(),
+                                        dosage = null,
+                                        nregistro = null,
+                                        labtitular = null,
+                                        comercializado = false,
+                                        requiereReceta = false,
+                                        generico = false,
+                                        imageUrl = null
                                     )
                                 )
                                 focusManager.clearFocus()
