@@ -1,22 +1,31 @@
-# Medication Reminder App
+![PillPal Icon](https://github.com/D4vidDf/PillPal/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp)
+
+# PillPal
+
+![Version](https://img.shields.io/badge/version-0.6.0.16-blue)
 
 ## Description
 
-The Medication Reminder App helps users manage their medications and schedules, set reminders, and track medication intake. The app syncs data with Firebase and provides a user-friendly interface for managing medications and reminders.
+PillPal is a comprehensive medication management app that helps users stay on top of their health regimen. It allows for easy scheduling of medications, setting reminders, and tracking intake. With a user-friendly interface, PillPal simplifies medication management. The app now integrates with Health Connect to provide a holistic view of your health by syncing vital signs, and includes a companion Wear OS app for convenient access to your medication schedule on the go.
 
 ## Features
 
-* Manage medications and schedules
-* Set and receive reminders
-* Track medication intake
-* Sync data with Firebase
-* User-friendly interface
+*   **Medication Management:** Easily add, edit, and manage your medication schedules.
+*   **Reminders:** Set customizable reminders to ensure you never miss a dose.
+*   **Intake Tracking:** Log your medication intake with a single tap.
+*   **User-Friendly Interface:** A clean and intuitive design for a seamless user experience.
+*   **Health Connect Integration:** Sync and visualize your health data for a complete overview.
+    *   **Heart Rate:** Monitor your heart rate trends alongside your medication schedule.
+    *   **Water Intake:** Keep track of your hydration levels, which is crucial for overall health and medication efficacy.
+    *   **Weight:** Log and track your weight to observe how it correlates with your treatment plan.
+    *   **Body Temperature:** Monitor your body temperature to keep an eye on your well-being.
+*   **Wear OS Companion App:** Receive reminders and log your medication intake directly from your smartwatch.
 
 ## Development Environment Setup
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/D4vidDf/Medication_Reminder_App.git
+   git clone https://github.com/D4vidDf/PillPal.git
    ```
 2. Open the project in Android Studio.
 3. Ensure you have the latest version of Android Studio and the necessary SDKs installed.
@@ -33,7 +42,7 @@ The Medication Reminder App helps users manage their medications and schedules, 
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/D4vidDf/Medication_Reminder_App.git
+   git clone https://github.com/D4vidDf/PillPal.git
    ```
 2. Create a new branch for your feature or bug fix:
    ```sh
@@ -55,7 +64,7 @@ The Medication Reminder App helps users manage their medications and schedules, 
 1. Open an issue in the repository to discuss the changes you want to make.
 2. Once the issue is approved, clone the repository:
    ```sh
-   git clone https://github.com/D4vidDf/Medication_Reminder_App.git
+   git clone https://github.com/D4vidDf/PillPal.git
    ```
 3. Create a new branch for your feature or bug fix:
    ```sh
@@ -77,7 +86,7 @@ The Medication Reminder App helps users manage their medications and schedules, 
 1. Open an issue in the repository to discuss the changes you want to make.
 2. Once the issue is approved, clone the repository:
    ```sh
-   git clone https://github.com/D4vidDf/Medication_Reminder_App.git
+   git clone https://github.com/D4vidDf/PillPal.git
    ```
 3. Create a new branch for your feature or bug fix:
    ```sh
