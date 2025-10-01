@@ -82,8 +82,10 @@
     <string name="dialog_done_button">Hecho</string>
     <string name="dialog_ok_button">Aceptar</string>
     <string name="dialog_cancel_button">Cancelar</string>
-    <string name="medication_name_input_title">Introduce el nombre del medicamento</string>
-    <string name="medication_name_placeholder">Nombre del medicamento</string>
+    <string name="medication_name_input_title">Nombre del Medicamento</string>
+    <string name="medication_name_placeholder">Escribe aquí</string>
+    <string name="search_by_treatment">Buscar por Tratamiento</string>
+    <string name="add_medication_as_name">Añadir \"%1$s\" como nombre</string>
     <string name="medication_name_clear_search_acc">Limpiar búsqueda</string>
     <string name="medication_name_error">Por favor, introduce un nombre de medicamento válido</string>
     <string name="medication_type_selector_title">Selecciona el tipo de medicamento</string>
@@ -774,4 +776,22 @@
     <string name="next_dose_in_title">Próxima dosis en</string>
     <string name="last_missed_at_time">Última omisión a las %1$s</string>
     <string name="view_details_missed_reminders_cd">Ver detalles de los recordatorios omitidos</string>
+
+    <!-- Set Frequency Screen -->
+    <string name="set_frequency_title">Establecer Frecuencia</string>
+    <string name="daily_frequency_title">Diaria</string>
+    <string name="once_daily">Una vez, Diaria</string>
+    <string name="twice_daily">2 veces, Diaria</string>
+    <string name="thrice_daily">3 veces, Diaria</string>
+    <string name="more_than_thrice_daily">Más de 3 veces, Diaria</string>
+    <string name="custom_daily_pattern">Patrón diario personalizado</string>
+    <string name="periodic_frequency_title">Periódica</string>
+    <string name="specific_days_of_week">Días específicos de la semana</string>
+    <string name="every_x_hours">Cada X horas</string>
+    <string name="every_x_days_weeks_months">Cada X días / semanas / meses</string>
+    <string name="on_a_recurring_cycle">En un ciclo recurrente (p. ej., anticonceptivo)</string>
+    <string name="as_needed_frequency_title">Según necesidad</string>
+    <string name="as_needed">Según necesidad</string>
+    <string name="as_needed_then_every_x_hrs">Según necesidad, luego cada X horas</string>
+    <string name="work_in_progress">Esta función es un trabajo en progreso</string>
 </resources>

@@ -42,6 +42,21 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.features.home.components.MedicationSearchResultCard
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationSearchViewModel
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.sp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationNameInput(
@@ -55,7 +70,11 @@ fun MedicationNameInput(
 
     val coroutineScope = rememberCoroutineScope()
     // Handle nullable viewModel for preview
-    val searchResults by viewModel?.medicationSearchResults?.collectAsState() ?: remember { mutableStateOf(emptyList<MedicationSearchResult>()) }
+    val searchResults by viewModel?.medicationSearchResults?.collectAsState() ?: remember {
+        mutableStateOf(
+            emptyList<MedicationSearchResult>()
+        )
+    }
     val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) } // Collect isLoading
 
     var isInputValid by remember { mutableStateOf(true) }
@@ -71,9 +90,9 @@ fun MedicationNameInput(
     Column(modifier = modifier.padding(16.dp)) {
         Text(
             text = stringResource(id = R.string.medication_name_input_title),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         // OutlinedTextField for medication name
@@ -96,26 +115,37 @@ fun MedicationNameInput(
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
             textStyle = TextStyle(
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal
             ),
             singleLine = true,
             placeholder = {
                 Text(
                     text = stringResource(id = R.string.medication_name_placeholder),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.LightGray
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = stringResource(id = R.string.search_icon_content_description)
                 )
             },
             trailingIcon = {
-                IconButton(onClick = {
-                    onMedicationNameChange("")
-                    explicitlySelectedItem = null
-                    viewModel?.clearSearchResults() // Use null-safe call
-                    focusManager.clearFocus()
-                }) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.medication_name_clear_search_acc))
+                if (medicationName.isNotEmpty()) {
+                    IconButton(onClick = {
+                        onMedicationNameChange("")
+                        explicitlySelectedItem = null
+                        viewModel?.clearSearchResults() // Use null-safe call
+                        focusManager.clearFocus()
+                    }) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = stringResource(id = R.string.medication_name_clear_search_acc)
+                        )
+                    }
                 }
             },
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -126,8 +156,26 @@ fun MedicationNameInput(
                     focusManager.clearFocus()
                 }
             ),
-            isError =!isInputValid
+            isError = !isInputValid
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { /* Functionality to be added later */ },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_search),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = stringResource(id = R.string.search_by_treatment))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Scrollable list of search results
         LazyColumn(
@@ -136,8 +184,38 @@ fun MedicationNameInput(
                 .fillMaxHeight()
                 .then(searchResultsListModifier) // Apply the passed modifier
         ) {
+            if (medicationName.isNotEmpty() && displayedResults.isEmpty()) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onMedicationSelected(
+                                    MedicationSearchResult(
+                                        name = medicationName,
+                                        nregistro = null
+                                    )
+                                )
+                                focusManager.clearFocus()
+                            }
+                            .padding(vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                        Text(
+                            text = stringResource(
+                                id = R.string.add_medication_as_name,
+                                medicationName
+                            )
+                        )
+                    }
+                    HorizontalDivider()
+                }
+            }
             items(displayedResults, key = { it.nregistro ?: it.name }) { result -> // Use displayedResults
-                val isSelected = explicitlySelectedItem?.nregistro == result.nregistro && explicitlySelectedItem != null
+                val isSelected =
+                    explicitlySelectedItem?.nregistro == result.nregistro && explicitlySelectedItem != null
                 MedicationSearchResultCard(
                     medicationResult = result,
                     onClick = {

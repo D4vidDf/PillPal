@@ -82,8 +82,10 @@
     <string name="dialog_done_button">Eginda</string>
     <string name="dialog_ok_button">Ados</string>
     <string name="dialog_cancel_button">Utzi</string>
-    <string name="medication_name_input_title">Sartu botikaren izena</string>
-    <string name="medication_name_placeholder">Botikaren izena</string>
+    <string name="medication_name_input_title">Botikaren Izena</string>
+    <string name="medication_name_placeholder">Idatzi hemen</string>
+    <string name="search_by_treatment">Bilatu Tratamenduaren arabera</string>
+    <string name="add_medication_as_name">Gehitu \"%1$s\" izen bezala</string>
     <string name="medication_name_clear_search_acc">Garbitu bilaketa</string>
     <string name="medication_name_error">Mesedez, sartu botika-izen baliagarria</string>
     <string name="medication_type_selector_title">Hautatu botika mota</string>
@@ -703,4 +705,22 @@
     <string name="next_dose_in_title">Hurrengo dosia</string>
     <string name="last_missed_at_time">Azken hutsegitea %1$s(e)an</string>
     <string name="view_details_missed_reminders_cd">Ikusi galdutako abisuen xehetasunak</string>
+
+    <!-- Set Frequency Screen -->
+    <string name="set_frequency_title">Ezarri Maiztasuna</string>
+    <string name="daily_frequency_title">Egunero</string>
+    <string name="once_daily">Behin, Egunero</string>
+    <string name="twice_daily">2 aldiz, Egunero</string>
+    <string name="thrice_daily">3 aldiz, Egunero</string>
+    <string name="more_than_thrice_daily">3 aldiz baino gehiago, Egunero</string>
+    <string name="custom_daily_pattern">Eguneroko eredu pertsonalizatua</string>
+    <string name="periodic_frequency_title">Aldizkakoa</string>
+    <string name="specific_days_of_week">Asteko egun zehatzak</string>
+    <string name="every_x_hours">X orduro</string>
+    <string name="every_x_days_weeks_months">X egun / aste / hilabetez behin</string>
+    <string name="on_a_recurring_cycle">Ziklo errepikakor batean (adibidez, antisorgailua)</string>
+    <string name="as_needed_frequency_title">Behar den neurrian</string>
+    <string name="as_needed">Behar den neurrian</string>
+    <string name="as_needed_then_every_x_hrs">Behar den neurrian, gero X orduro</string>
+    <string name="work_in_progress">Funtzio hau garatzen ari da</string>
 </resources>

@@ -82,8 +82,10 @@
     <string name="dialog_done_button">Done</string>
     <string name="dialog_ok_button">OK</string>
     <string name="dialog_cancel_button">Cancel</string>
-    <string name="medication_name_input_title">Enter medication name</string>
-    <string name="medication_name_placeholder">Medication Name</string>
+    <string name="medication_name_input_title">Name Medication</string>
+    <string name="medication_name_placeholder">Type here</string>
+    <string name="search_by_treatment">Search by Treatment</string>
+    <string name="add_medication_as_name">Add \"%1$s\" as a name</string>
     <string name="medication_name_clear_search_acc">Clear search</string>
     <string name="medication_name_error">Please enter a valid medication name</string>
     <string name="medication_type_selector_title">Select type of medication</string>
@@ -779,4 +781,22 @@
     <string name="next_dose_in_title">Next Dose In</string>
     <string name="last_missed_at_time">Last missed at %1$s</string>
     <string name="view_details_missed_reminders_cd">View details for missed reminders</string>
+
+    <!-- Set Frequency Screen -->
+    <string name="set_frequency_title">Set Frequency</string>
+    <string name="daily_frequency_title">Daily</string>
+    <string name="once_daily">Once, Daily</string>
+    <string name="twice_daily">2 times, Daily</string>
+    <string name="thrice_daily">3 times, Daily</string>
+    <string name="more_than_thrice_daily">More than 3 times, Daily</string>
+    <string name="custom_daily_pattern">Custom, Daily pattern</string>
+    <string name="periodic_frequency_title">Periodic</string>
+    <string name="specific_days_of_week">Specific Days of the Week</string>
+    <string name="every_x_hours">Every X Hours</string>
+    <string name="every_x_days_weeks_months">Every X Days / Weeks / Months</string>
+    <string name="on_a_recurring_cycle">On a Recurring Cycle (e.g., Birth Control)</string>
+    <string name="as_needed_frequency_title">As needed</string>
+    <string name="as_needed">As needed</string>
+    <string name="as_needed_then_every_x_hrs">As needed, then every X hrs</string>
+    <string name="work_in_progress">This feature is a work in progress</string>
 </resources>

@@ -2,6 +2,7 @@ package com.d4viddf.medicationreminder.ui.features.medication.add
 
 import android.content.res.Configuration
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -63,16 +65,17 @@ import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
 import com.d4viddf.medicationreminder.data.model.ScheduleType
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
-import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.AddMedicationStepsIndicator
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.FrequencySelector
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationDosagePackageDateInput
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationNameInput
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
+import com.d4viddf.medicationreminder.ui.features.medication.add.components.SetFrequencyScreen
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.StepDetails
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -103,14 +106,11 @@ fun AddMedicationScreen(
             2,
             stringResource(R.string.step_title_type_color),
             R.drawable.rounded_palette_24
-        ), // Use new icon
-        StepDetails(3, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory), // Use new icon
-        StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time), // Use new icon
-        StepDetails(
-            5,
-            stringResource(R.string.step_title_summary),
-            R.drawable.ic_check
-        ) // Use new icon
+        ),
+        StepDetails(3, stringResource(R.string.set_frequency_title), R.drawable.ic_access_time),
+        StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time),
+        StepDetails(5, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory),
+        StepDetails(6, stringResource(R.string.step_title_summary), R.drawable.ic_check)
     )
 
     var currentStep by rememberSaveable { mutableIntStateOf(0) }
@@ -119,6 +119,8 @@ fun AddMedicationScreen(
     var selectedColor by rememberSaveable { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
     var startDate by rememberSaveable { mutableStateOf("") }
     var endDate by rememberSaveable { mutableStateOf("") }
+    var selectedFrequencyType by rememberSaveable { mutableStateOf<String?>(null) }
+
 
     // Resolve placeholder strings once
     val selectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
@@ -143,7 +145,7 @@ fun AddMedicationScreen(
 
     var medicationName by rememberSaveable { mutableStateOf("") }
     var dosage by rememberSaveable { mutableStateOf("") }
-    var packageSize by rememberSaveable { mutableStateOf("") }
+    var packageSize by rememberSaveable { mutableStateOf("0") }
     var saveRemainingFraction by rememberSaveable { mutableStateOf(false) }
     var medicationSearchResult by rememberSaveable { mutableStateOf<MedicationSearchResult?>(null) }
 
@@ -186,7 +188,7 @@ fun AddMedicationScreen(
                                 dosage = ""
                             }
                             currentStep--
-                            progress = (currentStep + 1) / 5f
+                            progress = (currentStep + 1) / 6f
                         }) {
                             Icon(painterResource(id = R.drawable.rounded_arrow_back_ios_24), contentDescription = stringResource(id = R.string.back))
                         }
@@ -210,21 +212,42 @@ fun AddMedicationScreen(
             )
         },
         bottomBar = {
+            val context = LocalContext.current
             Button(
                 onClick = {
-                    if (currentStep < 4 && medicationName.isNotBlank()) { // TODO: Add validation for each step
-                        currentStep++
-                        progress = (currentStep + 1) / 5f
-                    } else if (currentStep == 4) {
-                        coroutineScope.launch {
-                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                            val finalStartDate: String = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
-                                startDate
-                            } else {
-                                LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE).also {
-                                    Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $it")
-                                }
+                    if (currentStep == 2) { // Set Frequency screen
+                        when (selectedFrequencyType) {
+                            "once_daily", "custom_daily", "every_x_hours" -> {
+                                currentStep++
+                                progress = (currentStep + 1) / 6f
                             }
+                            else -> {
+                                Toast.makeText(
+                                    context,
+                                    R.string.work_in_progress,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    } else if (currentStep < 5 && medicationName.isNotBlank()) {
+                        currentStep++
+                        progress = (currentStep + 1) / 6f
+                    } else if (currentStep == 5) {
+                        coroutineScope.launch {
+                            val currentRegistrationDate =
+                                LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            val finalStartDate: String =
+                                if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
+                                    startDate
+                                } else {
+                                    LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                                        .also {
+                                            Log.d(
+                                                "AddMedScreen",
+                                                "User did not select a start date. Defaulting to today: $it"
+                                            )
+                                        }
+                                }
 
                             val medicationToInsert = Medication(
                                 name = medicationName,
@@ -252,21 +275,30 @@ fun AddMedicationScreen(
                                 startDate = finalStartDate, // Use the same start date
                                 intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
                                 intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
-                                daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { DayOfWeek.of(it) } else null,
+                                daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map {
+                                    DayOfWeek.of(
+                                        it
+                                    )
+                                } else null,
                                 specificTimes = when (scheduleType) {
                                     ScheduleType.DAILY -> onceADayTime?.let { listOf(it) }
                                     ScheduleType.CUSTOM_ALARMS -> selectedTimes
                                     else -> null
                                 },
-                                intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(timeFormatter) else null,
-                                intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(timeFormatter) else null
+                                intervalStartTime = if (scheduleType == ScheduleType.INTERVAL) intervalStartTime?.format(
+                                    timeFormatter
+                                ) else null,
+                                intervalEndTime = if (scheduleType == ScheduleType.INTERVAL) intervalEndTime?.format(
+                                    timeFormatter
+                                ) else null
                             )
 
-                            val (medicationId, _) = medicationViewModel.insertMedicationAndDosage(
-                                medication = medicationToInsert,
-                                schedule = scheduleToInsert,
-                                dosage = dosage
-                            )
+                            val (medicationId, _) =
+                                medicationViewModel.insertMedicationAndDosage(
+                                    medication = medicationToInsert,
+                                    schedule = scheduleToInsert,
+                                    dosage = dosage
+                                )
 
                             medicationId.let { medId ->
                                 val finalSchedule = scheduleToInsert.copy(medicationId = medId)
@@ -274,7 +306,10 @@ fun AddMedicationScreen(
 
                                 val appContext = localContext.applicationContext
                                 WorkerScheduler.scheduleRemindersForMedication(appContext, medId)
-                                Log.d("AddMedScreen", "Called WorkerScheduler.scheduleRemindersForMedication for medId: $medId after inserting medication and schedule.")
+                                Log.d(
+                                    "AddMedScreen",
+                                    "Called WorkerScheduler.scheduleRemindersForMedication for medId: $medId after inserting medication and schedule."
+                                )
                             }
 
                             navController.popBackStack()
@@ -287,9 +322,13 @@ fun AddMedicationScreen(
                     .padding(WindowInsets.navigationBars.asPaddingValues())
                     .height(60.dp),
                 shape = MaterialTheme.shapes.extraLarge,
-                enabled = medicationName.isNotBlank() && (currentStep != 2 || (packageSize.isNotBlank() && packageSize.toIntOrNull() != null))
+                enabled = medicationName.isNotBlank() && when (currentStep) {
+                    2 -> selectedFrequencyType != null
+                    4 -> packageSize.isNotBlank() && packageSize.toIntOrNull() != null
+                    else -> true
+                }
             ) {
-                Text(if (currentStep == 4) stringResource(id = R.string.confirm) else stringResource(id = R.string.next))
+                Text(if (currentStep == 5) stringResource(id = R.string.confirm) else stringResource(id = R.string.next))
             }
         }
     ) { innerPadding ->
@@ -347,6 +386,7 @@ fun AddMedicationScreen(
                         onTypeSelected = { selectedTypeId = it },
                         selectedColor = selectedColor,
                         onColorSelected = { selectedColor = it },
+                        onFrequencyTypeSelected = { selectedFrequencyType = it },
                         dosage = dosage,
                         onDosageChange = { dosage = it },
                         packageSize = packageSize,
@@ -392,7 +432,8 @@ fun AddMedicationScreen(
                         onIntervalEndTimeSelected = { intervalEndTime = it },
                         selectStartDatePlaceholder = selectStartDatePlaceholder,
                         selectEndDatePlaceholder = selectEndDatePlaceholder,
-                        isTablet = isTablet // Pass isTablet here
+                        isTablet = isTablet, // Pass isTablet here
+                        selectedFrequencyType = selectedFrequencyType
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -420,6 +461,7 @@ fun AddMedicationScreen(
                     onTypeSelected = { selectedTypeId = it },
                     selectedColor = selectedColor,
                     onColorSelected = { selectedColor = it },
+                    onFrequencyTypeSelected = { selectedFrequencyType = it },
                     dosage = dosage,
                     onDosageChange = { dosage = it },
                     packageSize = packageSize,
@@ -465,7 +507,8 @@ fun AddMedicationScreen(
                     onIntervalEndTimeSelected = { intervalEndTime = it },
                     selectStartDatePlaceholder = selectStartDatePlaceholder,
                         selectEndDatePlaceholder = selectEndDatePlaceholder,
-                        isTablet = isTablet // Pass isTablet here
+                        isTablet = isTablet, // Pass isTablet here
+                        selectedFrequencyType = selectedFrequencyType
                 )
             }
         }
@@ -482,6 +525,7 @@ private fun CurrentStepContent(
     onTypeSelected: (Int) -> Unit,
     selectedColor: MedicationColor,
     onColorSelected: (MedicationColor) -> Unit,
+    onFrequencyTypeSelected: (String) -> Unit,
     dosage: String,
     onDosageChange: (String) -> Unit,
     packageSize: String,
@@ -512,7 +556,8 @@ private fun CurrentStepContent(
     // Add placeholders passed from parent
     selectStartDatePlaceholder: String,
     selectEndDatePlaceholder: String,
-    isTablet: Boolean // Add this
+    isTablet: Boolean, // Add this
+    selectedFrequencyType: String?
 ) {
     when (currentStep) {
         0 -> {
@@ -536,35 +581,31 @@ private fun CurrentStepContent(
             )
         }
         1 -> {
-             Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 600.dp)) {
+            Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 600.dp)) {
                 MedicationTypeSelector(
                     selectedTypeId = selectedTypeId,
                     onTypeSelected = onTypeSelected,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     selectedColor = selectedColor
                 )
-                 ColorSelector(
-                     selectedColor = selectedColor,
-                     onColorSelected = onColorSelected,
-                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                 )
+                ColorSelector(
+                    selectedColor = selectedColor,
+                    onColorSelected = onColorSelected,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                )
             }
         }
         2 -> {
-            MedicationDosagePackageDateInput(
-                selectedTypeId = selectedTypeId,
-                dosage = dosage, onDosageChange = onDosageChange,
-                packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
-                saveRemainingFraction = saveRemainingFraction,
-                onSaveRemainingFractionChange = onSaveRemainingFractionChange,
-                medicationSearchResult = medicationSearchResult,
-                startDate = startDate, // Pass the potentially placeholder-containing state
-                onStartDateSelected = onStartDateSelected,
-                endDate = endDate, // Pass the potentially placeholder-containing state
-                onEndDateSelected = onEndDateSelected
-            )
+            SetFrequencyScreen(onFrequencySelected = onFrequencyTypeSelected)
         }
         3 -> {
+            LaunchedEffect(selectedFrequencyType) {
+                when (selectedFrequencyType) {
+                    "once_daily" -> onFrequencySelected(FrequencyType.ONCE_A_DAY)
+                    "custom_daily" -> onFrequencySelected(FrequencyType.MULTIPLE_TIMES_A_DAY)
+                    "every_x_hours" -> onFrequencySelected(FrequencyType.INTERVAL)
+                }
+            }
             FrequencySelector(
                 selectedFrequency = frequency,
                 onFrequencySelected = onFrequencySelected,
@@ -585,6 +626,20 @@ private fun CurrentStepContent(
             )
         }
         4 -> {
+            MedicationDosagePackageDateInput(
+                selectedTypeId = selectedTypeId,
+                dosage = dosage, onDosageChange = onDosageChange,
+                packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
+                saveRemainingFraction = saveRemainingFraction,
+                onSaveRemainingFractionChange = onSaveRemainingFractionChange,
+                medicationSearchResult = medicationSearchResult,
+                startDate = startDate, // Pass the potentially placeholder-containing state
+                onStartDateSelected = onStartDateSelected,
+                endDate = endDate, // Pass the potentially placeholder-containing state
+                onEndDateSelected = onEndDateSelected
+            )
+        }
+        5 -> {
             // Ensure placeholders are correctly passed if MedicationSummary uses them
             val summaryStartDate = if (startDate == selectStartDatePlaceholder) "" else startDate
             val summaryEndDate = if (endDate == selectEndDatePlaceholder) "" else endDate

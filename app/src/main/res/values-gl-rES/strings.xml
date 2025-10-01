@@ -82,8 +82,10 @@
     <string name="dialog_done_button">Feito</string>
     <string name="dialog_ok_button">Aceptar</string>
     <string name="dialog_cancel_button">Cancelar</string>
-    <string name="medication_name_input_title">Introduce o nome do medicamento</string>
-    <string name="medication_name_placeholder">Nome do medicamento</string>
+    <string name="medication_name_input_title">Nome do Medicamento</string>
+    <string name="medication_name_placeholder">Escribe aquí</string>
+    <string name="search_by_treatment">Buscar por Tratamento</string>
+    <string name="add_medication_as_name">Engadir \"%1$s\" como nome</string>
     <string name="medication_name_clear_search_acc">Limpar busca</string>
     <string name="medication_name_error">Introduce un nome de medicamento válido</string>
     <string name="medication_type_selector_title">Selecciona o tipo de medicamento</string>
@@ -701,4 +703,22 @@
     <string name="next_dose_in_title">Vindeira dose en</string>
     <string name="last_missed_at_time">Última omisión ás %1$s</string>
     <string name="view_details_missed_reminders_cd">Ver detalles dos recordatorios omitidos</string>
+
+    <!-- Set Frequency Screen -->
+    <string name="set_frequency_title">Establecer Frecuencia</string>
+    <string name="daily_frequency_title">Diaria</string>
+    <string name="once_daily">Unha vez, Diaria</string>
+    <string name="twice_daily">2 veces, Diaria</string>
+    <string name="thrice_daily">3 veces, Diaria</string>
+    <string name="more_than_thrice_daily">Máis de 3 veces, Diaria</string>
+    <string name="custom_daily_pattern">Patrón diario personalizado</string>
+    <string name="periodic_frequency_title">Periódica</string>
+    <string name="specific_days_of_week">Días específicos da semana</string>
+    <string name="every_x_hours">Cada X horas</string>
+    <string name="every_x_days_weeks_months">Cada X días / semanas / meses</string>
+    <string name="on_a_recurring_cycle">Nun ciclo recorrente (p. ex., anticonceptivo)</string>
+    <string name="as_needed_frequency_title">Segundo necesidade</string>
+    <string name="as_needed">Segundo necesidade</string>
+    <string name="as_needed_then_every_x_hrs">Segundo necesidade, logo cada X horas</string>
+    <string name="work_in_progress">Esta funcionalidade é un traballo en progreso</string>
 </resources>

@@ -700,4 +700,22 @@
     <string name="next_dose_in_title">Pròxima dosi en</string>
     <string name="last_missed_at_time">Darrera omissió a les %1$s</string>
     <string name="view_details_missed_reminders_cd">Veure detalls dels recordatoris omesos</string>
+
+    <!-- Set Frequency Screen -->
+    <string name="set_frequency_title">Estableix la Freqüència</string>
+    <string name="daily_frequency_title">Diària</string>
+    <string name="once_daily">Un cop, Diària</string>
+    <string name="twice_daily">2 cops, Diària</string>
+    <string name="thrice_daily">3 cops, Diària</string>
+    <string name="more_than_thrice_daily">Més de 3 cops, Diària</string>
+    <string name="custom_daily_pattern">Patró diari personalitzat</string>
+    <string name="periodic_frequency_title">Periòdica</string>
+    <string name="specific_days_of_week">Dies específics de la setmana</string>
+    <string name="every_x_hours">Cada X hores</string>
+    <string name="every_x_days_weeks_months">Cada X dies / setmanes / mesos</string>
+    <string name="on_a_recurring_cycle">En un cicle recurrent (p. ex., anticonceptiu)</string>
+    <string name="as_needed_frequency_title">Segons necessitat</string>
+    <string name="as_needed">Segons necessitat</string>
+    <string name="as_needed_then_every_x_hrs">Segons necessitat, després cada X hores</string>
+    <string name="work_in_progress">Aquesta funcionalitat està en desenvolupament</string>
 </resources>
