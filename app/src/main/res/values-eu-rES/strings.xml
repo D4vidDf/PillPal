@@ -703,4 +703,19 @@
     <string name="next_dose_in_title">Hurrengo dosia</string>
     <string name="last_missed_at_time">Azken hutsegitea %1$s(e)an</string>
     <string name="view_details_missed_reminders_cd">Ikusi galdutako abisuen xehetasunak</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_screen_title">Jakinarazpenak</string>
+    <string name="notifications_empty_state">Ez dago jakinarazpenik.</string>
+    <string name="notifications_clear_all">Garbitu dena</string>
+    <string name="notifications_clear_all_confirm_title">Jakinarazpen guztiak garbitu?</string>
+    <string name="notifications_clear_all_confirm_text">Honek zure gailuko jakinarazpen guztiak betiko ezabatuko ditu.</string>
+    <string name="date_header_today">Gaur</string>
+    <string name="date_header_yesterday">Atzo</string>
+    <string name="notification_icon_cd_security">Segurtasun alertaren ikonoa</string>
+    <string name="notification_icon_cd_medication">Medikazioaren ikonoa</string>
+    <string name="notification_icon_cd_general">Jakinarazpenaren ikonoa</string>
+    <string name="notification_channel_water_reminder_name">Ur-oroigarriak</string>
+    <string name="notification_channel_water_reminder_description">Hidratatuta egoten laguntzeko jakinarazpenak.</string>
+    <string name="notification_icon_cd_water">Ur-oroigarriaren ikonoa</string>
 </resources>

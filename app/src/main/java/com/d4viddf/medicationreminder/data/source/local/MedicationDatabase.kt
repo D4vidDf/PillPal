@@ -12,6 +12,7 @@ import com.d4viddf.medicationreminder.data.model.MedicationInfo
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationType
+import com.d4viddf.medicationreminder.data.model.Notification
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
 import com.d4viddf.medicationreminder.data.model.healthdata.WaterIntake
@@ -20,14 +21,30 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
-        WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class],
-    version = 13,
+        WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class, Notification::class],
+    version = 14,
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `notifications` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `message` TEXT NOT NULL,
+                        `timestamp` TEXT NOT NULL,
+                        `type` TEXT NOT NULL,
+                        `icon` TEXT NOT NULL,
+                        `color` TEXT,
+                        `isRead` INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+            }
+        }
         val MIGRATION_12_13 = object : Migration(12, 13) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE medications ADD COLUMN saveRemainingFraction INTEGER NOT NULL DEFAULT 0")
@@ -259,4 +276,5 @@ abstract class MedicationDatabase : RoomDatabase() {
     abstract fun medicationInfoDao(): MedicationInfoDao
     abstract fun firebaseSyncDao(): FirebaseSyncDao
     abstract fun healthDataDao(): HealthDataDao
+    abstract fun notificationDao(): NotificationDao
 }

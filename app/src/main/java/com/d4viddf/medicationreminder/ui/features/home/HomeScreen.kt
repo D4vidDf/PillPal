@@ -139,8 +139,7 @@ fun HomeScreen(
     val waterIntakeGoal by viewModel.waterIntakeGoal.collectAsState()
 
 
-    // A flag to indicate if there are unread alerts (you can wire this to a real data source)
-    val hasUnreadAlerts = false // TODO: Replace with a real data source
+    val unreadNotificationCount by viewModel.unreadNotificationCount.collectAsState()
 
     val showDosageMigrationDialog by viewModel.showDosageMigrationDialog.collectAsState()
 
@@ -175,7 +174,7 @@ fun HomeScreen(
         homeLayoutState = homeLayoutState,
         widthSizeClass = widthSizeClass,
         isRefreshing = isRefreshing,
-        hasUnreadAlerts = hasUnreadAlerts,
+        hasUnreadAlerts = unreadNotificationCount > 0,
         latestWeightState = latestWeightState,
         latestTemperatureState = latestTemperatureState,
         waterIntakeTodayState = waterIntakeTodayState,
@@ -294,7 +293,7 @@ internal fun HomeScreenContent(
                         }
                     }
                     IconButton(
-                        onClick = { /* TODO */ },
+                        onClick = { navController.navigate(Screen.Notifications.route) },
                         shapes = IconButtonDefaults.shapes(),
                         colors = IconButtonDefaults.filledTonalIconButtonColors()
                     ) {

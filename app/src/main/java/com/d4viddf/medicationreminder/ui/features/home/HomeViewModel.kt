@@ -16,6 +16,7 @@ import com.d4viddf.medicationreminder.data.repository.MedicationReminderReposito
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
+import com.d4viddf.medicationreminder.data.repository.NotificationRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.ui.features.home.model.NextDoseUiItem
 import com.d4viddf.medicationreminder.ui.features.home.model.WatchStatus
@@ -58,11 +59,15 @@ class HomeViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val medicationDosageRepository: MedicationDosageRepository,
     private val medicationTypeRepository: MedicationTypeRepository,
+    private val notificationRepository: NotificationRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
     userPreferencesRepository: UserPreferencesRepository,
     private val healthDataRepository: HealthDataRepository,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
+
+    val unreadNotificationCount: StateFlow<Int> = notificationRepository.getUnreadNotificationCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // --- UI State & Events ---
 
