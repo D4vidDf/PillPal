@@ -12,4 +12,7 @@ object IntentActionConstants {
 
     // Action for data sync
     const val ACTION_DATA_CHANGED = "com.d4viddf.medicationreminder.ACTION_DATA_CHANGED"
+
+    // Action for opening the notifications screen from a notification
+    const val ACTION_OPEN_NOTIFICATIONS_SCREEN = "com.d4viddf.medicationreminder.ACTION_OPEN_NOTIFICATIONS_SCREEN"
 }

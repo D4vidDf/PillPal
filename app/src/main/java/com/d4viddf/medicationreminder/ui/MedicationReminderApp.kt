@@ -27,10 +27,8 @@ fun MedicationReminderApp(
     themePreference: String,
     widthSizeClass: WindowWidthSizeClass,
     userPreferencesRepository: UserPreferencesRepository,
-    onboardingCompleted: Boolean
+    startDestination: String
 ) {
-    val startRoute = if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
-
     AppTheme(themePreference = themePreference) {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -57,7 +55,7 @@ fun MedicationReminderApp(
         ) || currentRoute.orEmpty().startsWith(Screen.AddMedication.route) ||
                 currentRoute.orEmpty().startsWith(Screen.MedicationDetails.route.substringBefore("/{")) || currentRoute.orEmpty().startsWith(Screen.LogWater.route) || currentRoute.orEmpty().startsWith(Screen.LogWeight.route) || currentRoute.orEmpty().startsWith(Screen.LogTemperature.route)
 
-        Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome, startRoute: $startRoute")
+        Log.d("MedicationReminderApp", "Current route: $currentRoute, isMainScreen: $isMainScreen, hideAllMainChrome: $hideAllMainChrome, startRoute: $startDestination")
 
         val showNavElements = !hideAllMainChrome
 
@@ -79,7 +77,7 @@ fun MedicationReminderApp(
                         widthSizeClass = widthSizeClass,
                         isMainScaffold = false,
                         userPreferencesRepository = userPreferencesRepository,
-                        startDestinationRoute = startRoute
+                        startDestinationRoute = startDestination
                     )
                 }
             } else {
@@ -107,7 +105,7 @@ fun MedicationReminderApp(
                         widthSizeClass = widthSizeClass,
                         isMainScaffold = true,
                         userPreferencesRepository = userPreferencesRepository,
-                        startDestinationRoute = startRoute
+                        startDestinationRoute = startDestination
                     )
                 }
             }

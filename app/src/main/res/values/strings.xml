@@ -147,6 +147,12 @@
     <string name="notification_channel_reminder_description">Notifications for medication intake reminders</string>
     <string name="notification_channel_prereminder_name">Pre-Medication Reminders</string>
     <string name="notification_channel_prereminder_description">Notifications that appear before medication is due.</string>
+    <string name="notification_channel_medication_alerts_name">Medication Alerts</string>
+    <string name="notification_channel_medication_alerts_description">Notifications about medication safety and security.</string>
+    <string name="notification_channel_low_medication_name">Refill Reminders</string>
+    <string name="notification_channel_low_medication_description">Notifications for when your medication is running low.</string>
+    <string name="notification_channel_water_reminder_name">Water Reminders</string>
+    <string name="notification_channel_water_reminder_description">Notifications to help you stay hydrated.</string>
 
 
     <!-- Day initialisms for medication summary -->
@@ -779,4 +785,17 @@
     <string name="next_dose_in_title">Next Dose In</string>
     <string name="last_missed_at_time">Last missed at %1$s</string>
     <string name="view_details_missed_reminders_cd">View details for missed reminders</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_screen_title">Notifications</string>
+    <string name="notifications_empty_state">There are no notifications.</string>
+    <string name="notifications_clear_all">Clear All</string>
+    <string name="notifications_clear_all_confirm_title">Clear all notifications?</string>
+    <string name="notifications_clear_all_confirm_text">This will permanently delete all notifications from your device.</string>
+    <string name="date_header_today">Today</string>
+    <string name="date_header_yesterday">Yesterday</string>
+    <string name="notification_icon_cd_security">Security Alert Icon</string>
+    <string name="notification_icon_cd_medication">Medication Icon</string>
+    <string name="notification_icon_cd_general">Notification Icon</string>
+    <string name="notification_icon_cd_water">Water Reminder Icon</string>
 </resources>

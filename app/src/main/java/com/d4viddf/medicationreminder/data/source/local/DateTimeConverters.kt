@@ -4,10 +4,27 @@ import androidx.room.TypeConverter
 import java.time.DateTimeException
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeParseException
 
 class DateTimeConverters {
+    @TypeConverter
+    fun fromLocalDateTime(dateTime: LocalDateTime?): String? {
+        return dateTime?.toString()
+    }
+
+    @TypeConverter
+    fun toLocalDateTime(dateTimeString: String?): LocalDateTime? {
+        return dateTimeString?.let {
+            try {
+                LocalDateTime.parse(it)
+            } catch (e: DateTimeParseException) {
+                null
+            }
+        }
+    }
+
     @TypeConverter
     fun fromDayOfWeekList(daysOfWeek: List<DayOfWeek>?): String? {
         return daysOfWeek?.map { it.value }?.joinToString(",")
