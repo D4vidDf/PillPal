@@ -159,23 +159,6 @@ fun MedicationNameInput(
             isError = !isInputValid
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { /* Functionality to be added later */ },
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_search),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(id = R.string.search_by_treatment))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Scrollable list of search results
         LazyColumn(
