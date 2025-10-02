@@ -39,7 +39,7 @@ class EditMedicationViewModel @Inject constructor(
         loadMedicationData()
     }
 
-    private fun loadMedicationData() {
+    fun loadMedicationData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val medication = medicationRepository.getMedicationById(medicationId)

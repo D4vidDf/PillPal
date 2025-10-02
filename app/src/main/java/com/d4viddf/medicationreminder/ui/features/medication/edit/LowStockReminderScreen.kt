@@ -24,7 +24,7 @@ fun LowStockReminderScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = uiState.selectedDays - 3)
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (uiState.selectedDays - 3).coerceAtLeast(0))
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
