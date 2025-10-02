@@ -119,8 +119,10 @@ import java.time.ZoneId
             ConfirmationDialog(
                 onDismissRequest = { viewModel.onDismissDeleteDialog() },
                 onConfirmation = {
-                    viewModel.confirmDelete()
-                    onNavigateBack() // Navigate back after deletion
+                    viewModel.confirmDelete {
+                        navController.popBackStack() // Pop EditMedicationScreen
+                        navController.popBackStack() // Pop MedicationDetailScreen
+                    }
                 },
                 dialogTitle = "Delete Treatment",
                 dialogText = "Are you sure you want to delete this treatment from the app? This action will permanently erase the data."

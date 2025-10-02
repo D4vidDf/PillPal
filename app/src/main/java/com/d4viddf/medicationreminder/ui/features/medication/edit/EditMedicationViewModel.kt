@@ -104,12 +104,13 @@ class EditMedicationViewModel @Inject constructor(
         }
     }
 
-    fun confirmDelete() {
+    fun confirmDelete(onDeletionComplete: () -> Unit) {
         viewModelScope.launch {
             _uiState.value.medication?.let {
                 medicationRepository.deleteMedication(it)
             }
             onDismissDeleteDialog()
+            onDeletionComplete()
         }
     }
 
