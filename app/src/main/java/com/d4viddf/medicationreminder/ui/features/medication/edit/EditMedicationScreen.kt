@@ -186,7 +186,7 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = state.medication?.name ?: "Loading...",
+                    text = state.medication?.name?.substringBefore(" ") ?: "Loading...",
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.height(16.dp))
