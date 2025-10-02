@@ -98,10 +98,7 @@ fun EditStockScreen(
                 Spacer(modifier = Modifier.height(48.dp))
                 Button(
                     onClick = {
-                        val medicationId = viewModel.savedStateHandle.get<Int>(MEDICATION_ID_ARG)
-                        medicationId?.let {
-                            navController.navigate(Screen.RefillStock.createRoute(it))
-                        }
+                        navController.navigate(Screen.RefillStock.createRoute(uiState.medicationId))
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,10 +127,7 @@ fun EditStockScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     OutlinedButton(
                         onClick = {
-                            val medicationId = viewModel.savedStateHandle.get<Int>(MEDICATION_ID_ARG)
-                            medicationId?.let {
-                                navController.navigate(Screen.StockReminder.createRoute(it))
-                            }
+                            navController.navigate(Screen.StockReminder.createRoute(uiState.medicationId))
                         },
                         modifier = Modifier.size(56.dp)
                     ) {

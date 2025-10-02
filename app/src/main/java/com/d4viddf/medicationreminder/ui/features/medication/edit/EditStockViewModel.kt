@@ -41,6 +41,7 @@ class EditStockViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
+                        medicationId = medication.id,
                         medicationName = medication.name,
                         remainingStock = medication.remainingDoses,
                         medicationUnit = medicationType?.name?.lowercase() ?: "doses"
