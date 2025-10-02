@@ -161,12 +161,22 @@ fun AddMedicationScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = if (medicationName.isBlank() || currentStep == 0) stringResource(id = R.string.new_medication_toolbar_title) else medicationName.substringBefore(" "),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                            // Removed onGloballyPositioned as titleWidth is not used
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text(
+                                text = "Name: ",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (medicationName.isBlank() || currentStep == 0) "" else medicationName,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
                         if (currentStep != 0) {
                             LinearProgressIndicator(
                                 progress = { progress },
