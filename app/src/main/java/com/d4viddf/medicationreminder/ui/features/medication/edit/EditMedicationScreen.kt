@@ -195,7 +195,7 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                         .fillMaxWidth()
                         .clickable {
                             state.medication?.let {
-                                navController.navigate(Screen.EditForm.createRoute(it.id))
+                                navController.navigate(Screen.EditFormAndColor.createRoute(it.id))
                             }
                         },
                     verticalAlignment = Alignment.CenterVertically,
@@ -207,7 +207,7 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = state.medicationType?.name ?: "",
+                            text = "${state.medicationType?.name ?: ""} | ${state.medication?.color ?: ""}",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -218,11 +218,6 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                ColorSelector(
-                    selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) } ?: MedicationColor.LIGHT_ORANGE,
-                    onColorSelected = { color -> viewModel.onColorSelected(color) }
-                )
             }
         }
     }

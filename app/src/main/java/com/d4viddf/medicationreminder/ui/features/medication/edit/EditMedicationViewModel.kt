@@ -66,15 +66,6 @@ class EditMedicationViewModel @Inject constructor(
         }
     }
 
-    fun onColorSelected(color: com.d4viddf.medicationreminder.ui.theme.MedicationColor) {
-        _uiState.update {
-            it.copy(
-                medication = it.medication?.copy(color = color.name)
-            )
-        }
-        checkForUnsavedChanges()
-    }
-
     private fun checkForUnsavedChanges() {
         val hasChanges = _uiState.value.medication != initialMedicationState
         _uiState.update { it.copy(hasUnsavedChanges = hasChanges) }
