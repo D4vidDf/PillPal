@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.activity.compose.BackHandler
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
@@ -155,6 +156,15 @@ fun AddMedicationScreen(
 
     val localContext = LocalContext.current // Get the current context
 
+    BackHandler(enabled = currentStep > 0) {
+        if (currentStep == 4) { // Dosage screen
+            dosage = ""
+            packageSize = "0"
+        }
+        currentStep--
+        progress = (currentStep + 1) / 6f
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -184,8 +194,9 @@ fun AddMedicationScreen(
                 navigationIcon = {
                     if (currentStep > 0) {
                         IconButton(onClick = {
-                            if (currentStep == 2) {
+                            if (currentStep == 4) { // Dosage screen
                                 dosage = ""
+                                packageSize = "0"
                             }
                             currentStep--
                             progress = (currentStep + 1) / 6f
