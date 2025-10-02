@@ -131,7 +131,7 @@ fun EditStockScreen(
                         },
                         modifier = Modifier.size(56.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Notifications, contentDescription = stringResource(R.string.edit_stock_reminders_button_cd), modifier = Modifier.size(36.dp))
+                        Icon(imageVector = Icons.Default.Notifications, contentDescription = stringResource(R.string.edit_stock_reminders_button_cd), modifier = Modifier.size(48.dp))
                     }
                 }
             }
