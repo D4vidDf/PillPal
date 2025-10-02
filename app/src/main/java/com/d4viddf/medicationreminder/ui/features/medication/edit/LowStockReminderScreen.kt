@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -35,19 +36,24 @@ fun LowStockReminderScreen(
                 uiState.selectedDays
             } else {
                 val viewportCenter = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2
-                val centerItem = visibleItemsInfo.minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - viewportCenter) }
-                (centerItem?.index ?: (uiState.selectedDays - 1)) + 1
+                val centerItem = visibleItemsInfo.minByOrNull { abs((it.offset + it.size / 2) - viewportCenter) }
+                // Day `d` is at index `d`. Spacers are at 0 and 32.
+                centerItem?.index?.coerceIn(1, 31) ?: uiState.selectedDays
             }
         }
     }
 
     LaunchedEffect(selectedDay) {
-        viewModel.onDaysChanged(selectedDay)
+        if (selectedDay != uiState.selectedDays) {
+            viewModel.onDaysChanged(selectedDay)
+        }
     }
 
+    // Initial scroll to the selected day's index.
     LaunchedEffect(Unit) {
-        listState.scrollToItem(uiState.selectedDays - 1)
+        listState.scrollToItem(uiState.selectedDays)
     }
+
 
     Scaffold(
         topBar = {
@@ -99,11 +105,10 @@ fun LowStockReminderScreen(
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier.fillMaxWidth(),
-                                contentPadding = PaddingValues(vertical = 80.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
                                 flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
                             ) {
+                                item { Spacer(modifier = Modifier.height(80.dp)) }
                                 items(31) { index ->
                                     val day = index + 1
                                     Text(
@@ -113,6 +118,7 @@ fun LowStockReminderScreen(
                                         modifier = Modifier.padding(vertical = 8.dp)
                                     )
                                 }
+                                item { Spacer(modifier = Modifier.height(80.dp)) }
                             }
                         }
                         Text(
