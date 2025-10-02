@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,17 +16,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun LowStockReminderScreen(
     viewModel: LowStockReminderViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (uiState.selectedDays - 3).coerceAtLeast(0))
-    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    val selectedDay by remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val visibleItemsInfo = layoutInfo.visibleItemsInfo
+            if (visibleItemsInfo.isEmpty()) {
+                uiState.selectedDays
+            } else {
+                val viewportCenter = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2
+                val centerItem = visibleItemsInfo.minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - viewportCenter) }
+                (centerItem?.index ?: (uiState.selectedDays - 1)) + 1
+            }
+        }
+    }
+
+    LaunchedEffect(selectedDay) {
+        viewModel.onDaysChanged(selectedDay)
+    }
+
+    LaunchedEffect(Unit) {
+        listState.scrollToItem(uiState.selectedDays - 1)
+    }
 
     Scaffold(
         topBar = {
@@ -73,29 +94,17 @@ fun LowStockReminderScreen(
                             state = listState,
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
+                            flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
                         ) {
-                            items(30) { index ->
+                            items(31) { index ->
                                 val day = index + 1
                                 Text(
                                     text = day.toString(),
-                                    fontSize = if (uiState.selectedDays == day) 48.sp else 32.sp,
-                                    color = if (uiState.selectedDays == day) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    fontSize = if (selectedDay == day) 48.sp else 32.sp,
+                                    color = if (selectedDay == day) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                     modifier = Modifier.padding(vertical = 8.dp)
                                 )
-                            }
-                        }
-                    }
-                    LaunchedEffect(listState.isScrollInProgress) {
-                        if (!listState.isScrollInProgress) {
-                            val centerItemIndex = listState.layoutInfo.visibleItemsInfo
-                                .minByOrNull { it.offset - listState.layoutInfo.viewportStartOffset }?.index
-                            centerItemIndex?.let {
-                                val selectedDay = it + 1
-                                viewModel.onDaysChanged(selectedDay)
-                                coroutineScope.launch {
-                                    listState.animateScrollToItem(selectedDay - 3)
-                                }
                             }
                         }
                     }
