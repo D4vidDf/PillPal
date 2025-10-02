@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -84,35 +85,48 @@ fun LowStockReminderScreen(
                     )
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            items(31) { index ->
-                                val day = index + 1
-                                Text(
-                                    text = day.toString(),
-                                    fontSize = if (selectedDay == day) 48.sp else 32.sp,
-                                    color = if (selectedDay == day) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(vertical = 80.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+                            ) {
+                                items(31) { index ->
+                                    val day = index + 1
+                                    Text(
+                                        text = day.toString(),
+                                        fontSize = if (selectedDay == day) 48.sp else 32.sp,
+                                        color = if (selectedDay == day) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
+                                }
                             }
                         }
+                        Text(
+                            text = "days before",
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
                     uiState.runsOutInDays?.let {
+                        val medicationFirstName = uiState.medicationName.substringBefore(" ")
                         Text(
-                            text = stringResource(R.string.low_stock_reminder_runs_out, uiState.medicationName, it),
+                            text = stringResource(R.string.low_stock_reminder_runs_out, medicationFirstName, it),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -120,21 +134,25 @@ fun LowStockReminderScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Button(
                         onClick = {
                             viewModel.onDisable()
                             onNavigateBack()
                         },
+                        modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Text(stringResource(R.string.disable))
                     }
-                    Button(onClick = {
-                        viewModel.onSave()
-                        onNavigateBack()
-                    }) {
+                    Button(
+                        onClick = {
+                            viewModel.onSave()
+                            onNavigateBack()
+                        },
+                        modifier = Modifier.weight(2f)
+                    ) {
                         Text(stringResource(R.string.dialog_done_button))
                     }
                 }
