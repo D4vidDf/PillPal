@@ -718,4 +718,60 @@
     <string name="notification_channel_water_reminder_name">Ur-oroigarriak</string>
     <string name="notification_channel_water_reminder_description">Hidratatuta egoten laguntzeko jakinarazpenak.</string>
     <string name="notification_icon_cd_water">Ur-oroigarriaren ikonoa</string>
+
+    <!-- Edit Medication Screen -->
+    <string name="edit_medication_title">Editatu Botika</string>
+
+    <!-- Edit Medication Screen Sections -->
+    <string name="edit_med_general_info_title">Informazio Orokorra</string>
+    <string name="edit_med_form_color">Forma eta Kolorea</string>
+    <string name="edit_med_schedule_title">Ordutegia</string>
+    <string name="edit_med_frequency">Maiztasuna</string>
+    <string name="edit_med_duration">Iraupena</string>
+    <string name="edit_med_dose_title">Dosia</string>
+    <string name="edit_med_amount">Kantitatea</string>
+    <string name="edit_med_details_title">Botikaren Xehetasunak</string>
+    <string name="edit_med_stock">Inbentarioa</string>
+    <string name="edit_med_archive_button">Artxibatu Botika</string>
+    <string name="edit_med_delete_button">Ezabatu Botika</string>
+    <string name="edit_med_end_treatment_button">Amaitu Tratamendua</string>
+    <string name="edit_med_suspend_treatment_button">Eten Tratamendua</string>
+    <string name="edit_med_restore_treatment_button">Berrezarri Tratamendua</string>
+
+    <!-- Dialogs -->
+    <string name="archive_treatment_dialog_title">Artxibatu Tratamendua</string>
+    <string name="archive_treatment_dialog_text">Tratamendu hau artxibatu nahi duzu? Tratamendua artxibatzeak abisuak gelditzen ditu baina datuak aplikazioan mantentzen ditu.</string>
+    <string name="delete_treatment_dialog_title">Ezabatu Tratamendua</string>
+    <string name="delete_treatment_dialog_text">Ziur zaude tratamendu hau aplikaziotik ezabatu nahi duzula? Ekintza honek datuak betiko ezabatuko ditu.</string>
+    <string name="save_changes_dialog_title">Gorde Aldaketak?</string>
+    <string name="save_changes_dialog_text">Gorde gabeko aldaketak dituzu. Gorde nahi dituzu irten aurretik?</string>
+    <string name="discard">Baztertu</string>
+
+    <!-- Edit Form & Color Screen -->
+    <string name="edit_form_color_title">Editatu Forma eta Kolorea</string>
+
+    <!-- Edit Stock Screen -->
+    <string name="edit_stock_units_left">%s geratzen dira</string>
+    <string name="edit_stock_refill_button">Birkargatu Inbentarioa</string>
+    <string name="edit_stock_edit_button">Editatu Inbentarioa</string>
+    <string name="edit_stock_reminders_button_cd">Inbentarioaren Abisuak</string>
+
+    <!-- Refill Stock Screen -->
+    <string name="refill_stock_title">Zenbat %s birkargatu nahi dituzu?</string>
+    <string name="refill_stock_current_stock">%d %s geratzen dira</string>
+    <string name="refill_stock_placeholder">+0 %s</string>
+    <string name="refill_stock_total">Guztira %d %s</string>
+
+    <!-- Stock Reminder Screen -->
+    <string name="stock_reminder_title">Inbentarioa Birkargatzeko Abisua</string>
+    <string name="stock_reminder_low_stock_title">Inbentario gutxi</string>
+    <string name="stock_reminder_low_stock_subtitle">Jakinarazi inbentariorik gabe geratu aurretik</string>
+    <string name="stock_reminder_empty_stock_title">Inbentarioa agortuta</string>
+    <string name="stock_reminder_empty_stock_subtitle">Jakinarazi inbentariorik gabe geratu ondoren</string>
+    <string name="none">Bat ere ez</string>
+
+    <!-- Low Stock Reminder Screen -->
+    <string name="low_stock_reminder_title">Zenbat egun lehenago jaso nahi duzu abisua agortu baino lehen?</string>
+    <string name="low_stock_reminder_runs_out">%1$s %2$d egun barru agortuko da</string>
+    <string name="disable">Desgaitu</string>
 </resources>

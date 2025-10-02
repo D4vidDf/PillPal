@@ -290,7 +290,7 @@ fun MedicationDetailsScreen(
                                         color = Color.Black.copy(alpha = 0.4f),
                                         shape = RoundedCornerShape(20.dp)
                                     )
-                                    .clickable { /* TODO: Handle edit action */ }
+                                    .clickable { navController.navigate(Screen.EditMedication.createRoute(medicationId)) }
                                     .padding(
                                         horizontal = 16.dp,
                                         vertical = 8.dp

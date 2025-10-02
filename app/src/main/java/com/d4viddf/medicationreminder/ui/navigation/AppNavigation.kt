@@ -103,6 +103,24 @@ sealed class Screen(val route: String) {
     object MedicationInfo : Screen("medication_info_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "medication_info_screen/$medicationId/$colorName"
     }
+    object EditMedication : Screen("edit_medication_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "edit_medication_screen/$medicationId"
+    }
+    object EditFormAndColor : Screen("edit_form_and_color_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "edit_form_and_color_screen/$medicationId"
+    }
+    object EditStock : Screen("edit_stock_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "edit_stock_screen/$medicationId"
+    }
+    object RefillStock : Screen("refill_stock_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "refill_stock_screen/$medicationId"
+    }
+    object StockReminder : Screen("stock_reminder_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "stock_reminder_screen/$medicationId"
+    }
+    object LowStockReminder : Screen("low_stock_reminder_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "low_stock_reminder_screen/$medicationId"
+    }
     object ScheduleDosageChange : Screen("schedule_dosage_change/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "schedule_dosage_change/$medicationId"
     }
@@ -174,6 +192,60 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+            composable(
+                Screen.StockReminder.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.StockReminderScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToLowStockSettings = { medicationId ->
+                        navController.navigate(Screen.LowStockReminder.createRoute(medicationId))
+                    }
+                )
+            }
+            composable(
+                Screen.LowStockReminder.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.LowStockReminderScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                Screen.RefillStock.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.RefillStockScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                Screen.EditStock.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.EditStockScreen(
+                    navController = navController,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                Screen.EditFormAndColor.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.EditFormAndColorScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
             composable(Screen.AddMedicationChoice.route) {
                 AddMedicationChoiceScreen(
                     onSearchMedication = { navController.navigate(Screen.AddMedication.route) },
@@ -227,6 +299,17 @@ fun AppNavigation(
                         }
                     )
                 }
+            }
+            composable(
+                Screen.EditMedication.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.EditMedicationScreen(
+                    navController = navController,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(Screen.Settings.route) {
                 var currentSettingsTitleResId by remember { mutableStateOf(R.string.settings_screen_title) }

@@ -789,4 +789,60 @@
     <string name="notification_channel_water_reminder_name">Recordatorios de agua</string>
     <string name="notification_channel_water_reminder_description">Notificaciones para ayudarte a mantenerte hidratado.</string>
     <string name="notification_icon_cd_water">Icono de recordatorio de agua</string>
+
+    <!-- Edit Medication Screen -->
+    <string name="edit_medication_title">Editar Medicamento</string>
+
+    <!-- Edit Medication Screen Sections -->
+    <string name="edit_med_general_info_title">Información General</string>
+    <string name="edit_med_form_color">Forma y Color</string>
+    <string name="edit_med_schedule_title">Horario</string>
+    <string name="edit_med_frequency">Frecuencia</string>
+    <string name="edit_med_duration">Duración</string>
+    <string name="edit_med_dose_title">Dosis</string>
+    <string name="edit_med_amount">Cantidad</string>
+    <string name="edit_med_details_title">Detalles del Medicamento</string>
+    <string name="edit_med_stock">Inventario</string>
+    <string name="edit_med_archive_button">Archivar Medicamento</string>
+    <string name="edit_med_delete_button">Eliminar Medicamento</string>
+    <string name="edit_med_end_treatment_button">Finalizar Tratamiento</string>
+    <string name="edit_med_suspend_treatment_button">Suspender Medicamento</string>
+    <string name="edit_med_restore_treatment_button">Restaurar Tratamiento</string>
+
+    <!-- Dialogs -->
+    <string name="archive_treatment_dialog_title">Archivar Tratamiento</string>
+    <string name="archive_treatment_dialog_text">¿Quieres archivar este tratamiento? Archivar el tratamiento detiene los recordatorios pero mantiene los datos en la app.</string>
+    <string name="delete_treatment_dialog_title">Eliminar Tratamiento</string>
+    <string name="delete_treatment_dialog_text">¿Estás seguro de que quieres eliminar este tratamiento de la app? Esta acción borrará los datos permanentemente.</string>
+    <string name="save_changes_dialog_title">¿Guardar Cambios?</string>
+    <string name="save_changes_dialog_text">Tienes cambios sin guardar. ¿Te gustaría guardarlos antes de salir?</string>
+    <string name="discard">Descartar</string>
+
+    <!-- Edit Form & Color Screen -->
+    <string name="edit_form_color_title">Editar Forma y Color</string>
+
+    <!-- Edit Stock Screen -->
+    <string name="edit_stock_units_left">%s restantes</string>
+    <string name="edit_stock_refill_button">Recargar Inventario</string>
+    <string name="edit_stock_edit_button">Editar Inventario</string>
+    <string name="edit_stock_reminders_button_cd">Recordatorios de Inventario</string>
+
+    <!-- Refill Stock Screen -->
+    <string name="refill_stock_title">¿Cuántas %s quieres recargar?</string>
+    <string name="refill_stock_current_stock">%d %s restantes</string>
+    <string name="refill_stock_placeholder">+0 %s</string>
+    <string name="refill_stock_total">Total %d %s</string>
+
+    <!-- Stock Reminder Screen -->
+    <string name="stock_reminder_title">Recordatorio de Recarga de Inventario</string>
+    <string name="stock_reminder_low_stock_title">Inventario bajo</string>
+    <string name="stock_reminder_low_stock_subtitle">Notificar antes de quedarse sin inventario</string>
+    <string name="stock_reminder_empty_stock_title">Inventario agotado</string>
+    <string name="stock_reminder_empty_stock_subtitle">Notificar después de quedarse sin inventario</string>
+    <string name="none">Ninguno</string>
+
+    <!-- Low Stock Reminder Screen -->
+    <string name="low_stock_reminder_title">¿Cuántos días antes de que se agote te gustaría recibir un recordatorio?</string>
+    <string name="low_stock_reminder_runs_out">%1$s se agota en %2$d días</string>
+    <string name="disable">Desactivar</string>
 </resources>
