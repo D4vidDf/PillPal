@@ -75,50 +75,48 @@ fun EditFormAndColorScreenContent(
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+        // The original code had a conditional layout root (if/else), which can cause issues with Scaffold.
+        // Wrapping the content in a Box ensures that Scaffold always has a consistent layout structure.
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (uiState.isLoading) {
                 CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
-                uiState.medicationTypeId?.let { selectedTypeId ->
-                    uiState.medicationColor?.let { selectedColor ->
-                        MedicationTypeSelector(
-                            selectedTypeId = selectedTypeId,
-                            onTypeSelected = onTypeSelected,
-                            selectedColor = selectedColor
-                        )
-                        ColorSelector(
-                            selectedColor = selectedColor,
-                            onColorSelected = onColorSelected
-                        )
-                    }
+            } else if (uiState.medicationTypeId != null && uiState.medicationColor != null) {
+                // By checking for null medicationTypeId and medicationColor, we prevent potential crashes
+                // if the data is not yet available, providing a more robust UI.
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    MedicationTypeSelector(
+                        selectedTypeId = uiState.medicationTypeId,
+                        onTypeSelected = onTypeSelected,
+                        selectedColor = uiState.medicationColor
+                    )
+                    ColorSelector(
+                        selectedColor = uiState.medicationColor,
+                        onColorSelected = onColorSelected
+                    )
                 }
             }
         }
     }
 }
 
-import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeViewModel
 
 @Preview(showBackground = true)
 @Composable
 fun EditFormAndColorScreenPreview() {
     AppTheme {
-        val previewState = EditFormAndColorState(
-            isLoading = false,
-            medicationTypeId = 1,
-            medicationColor = MedicationColor.LIGHT_PINK
-        )
         EditFormAndColorScreenContent(
-            uiState = previewState,
+            uiState = EditFormAndColorState(
+                isLoading = false,
+                medicationTypeId = 1,
+                medicationColor = MedicationColor.LIGHT_PINK
+            ),
             onNavigateBack = {},
             onSave = {},
             onTypeSelected = {},
