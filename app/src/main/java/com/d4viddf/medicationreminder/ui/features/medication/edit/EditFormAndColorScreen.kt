@@ -21,9 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,5 +87,13 @@ fun EditFormAndColorScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditFormAndColorScreenPreview() {
+    AppTheme {
+        EditFormAndColorScreen(onNavigateBack = {})
     }
 }

@@ -339,6 +339,15 @@ private fun DoseSection(state: EditMedicationState) {
     }
 }
 
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationDosage
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.MedicationType
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
+
 @Composable
 private fun MedicationDetailsSection(state: EditMedicationState, navController: NavController) {
     Column(
@@ -383,5 +392,38 @@ private fun MedicationDetailsSection(state: EditMedicationState, navController: 
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditMedicationScreenPreview() {
+    AppTheme {
+        val medication = Medication(
+            id = 1,
+            name = "Mestinon",
+            typeId = 1,
+            color = "LIGHT_PINK",
+            packageSize = 100,
+            remainingDoses = 90,
+            startDate = "2023-01-01",
+            endDate = null
+        )
+        val medicationType = MedicationType(id = 1, name = "Pill", imageUrl = "")
+        val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY)
+        val dosage = MedicationDosage(medicationId = 1, dosage = "1 pill")
+
+        val state = EditMedicationState(
+            isLoading = false,
+            medication = medication,
+            medicationType = medicationType,
+            schedule = schedule,
+            dose = dosage
+        )
+
+        EditMedicationScreen(
+            navController = rememberNavController(),
+            onNavigateBack = {}
+        )
     }
 }

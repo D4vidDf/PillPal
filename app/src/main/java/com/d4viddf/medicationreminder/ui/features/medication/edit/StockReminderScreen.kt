@@ -26,11 +26,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-
-import androidx.navigation.NavController
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +81,17 @@ fun StockReminderScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StockReminderScreenPreview() {
+    AppTheme {
+        StockReminderScreen(
+            onNavigateBack = {},
+            onNavigateToLowStockSettings = {}
+        )
     }
 }
 
