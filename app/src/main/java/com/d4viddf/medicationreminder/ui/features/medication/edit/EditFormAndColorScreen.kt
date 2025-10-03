@@ -106,6 +106,8 @@ fun EditFormAndColorScreenContent(
     }
 }
 
+import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeViewModel
+
 @Preview(showBackground = true)
 @Composable
 fun EditFormAndColorScreenPreview() {

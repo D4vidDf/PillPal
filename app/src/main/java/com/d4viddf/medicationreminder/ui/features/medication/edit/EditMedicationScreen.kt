@@ -1,52 +1,30 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.activity.compose.BackHandler
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.*
 import com.d4viddf.medicationreminder.ui.navigation.Screen
-import com.d4viddf.medicationreminder.data.model.MedicationDosage
-import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.model.MedicationType
-import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 
 @Composable
 fun EditMedicationScreen(
@@ -186,53 +164,6 @@ fun EditMedicationScreenContent(
                 onDiscardChanges = onDiscardChanges
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EditMedicationScreenPreview() {
-    AppTheme {
-        val medication = Medication(
-            id = 1,
-            name = "Mestinon",
-            typeId = 1,
-            color = "LIGHT_PINK",
-            packageSize = 100,
-            remainingDoses = 90,
-            startDate = "2023-01-01",
-            endDate = null
-        )
-        val medicationType = MedicationType(id = 1, name = "Pill", imageUrl = "")
-        val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf(java.time.LocalTime.of(8, 0)))
-        val dosage = MedicationDosage(medicationId = 1, dosage = "1 pill", startDate = "2023-01-01")
-
-        val state = EditMedicationState(
-            isLoading = false,
-            medication = medication,
-            medicationType = medicationType,
-            schedule = schedule,
-            dose = dosage
-        )
-
-        EditMedicationScreenContent(
-            state = state,
-            navController = rememberNavController(),
-            onBackClicked = {},
-            onArchiveClicked = {},
-            onDeleteClicked = {},
-            onEndTreatmentClicked = {},
-            onToggleSuspend = {},
-            onDismissArchiveDialog = {},
-            onConfirmArchive = {},
-            onDismissDeleteDialog = {},
-            onConfirmDelete = {},
-            onDismissEndTreatmentDialog = {},
-            onConfirmEndTreatment = {},
-            onDismissSaveDialog = {},
-            onConfirmSaveChanges = {},
-            onDiscardChanges = {}
-        )
     }
 }
 
@@ -421,15 +352,6 @@ private fun DoseSection(state: EditMedicationState) {
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
-import com.d4viddf.medicationreminder.data.model.Medication
-import com.d4viddf.medicationreminder.data.model.MedicationDosage
-import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.model.MedicationType
-import com.d4viddf.medicationreminder.data.model.ScheduleType
-import com.d4viddf.medicationreminder.ui.theme.AppTheme
-
 @Composable
 private fun MedicationDetailsSection(state: EditMedicationState, navController: NavController) {
     Column(
@@ -489,11 +411,18 @@ fun EditMedicationScreenPreview() {
             packageSize = 100,
             remainingDoses = 90,
             startDate = "2023-01-01",
-            endDate = null
+            endDate = null,
+            reminderTime = null,
+            registrationDate = null,
+            nregistro = null,
+            lowStockThreshold = null,
+            lowStockReminderDays = null,
+            isArchived = false,
+            isSuspended = false
         )
         val medicationType = MedicationType(id = 1, name = "Pill", imageUrl = "")
-        val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY)
-        val dosage = MedicationDosage(medicationId = 1, dosage = "1 pill")
+        val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY, startDate = "2023-01-01", intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = listOf(java.time.LocalTime.of(8, 0)), intervalStartTime = null, intervalEndTime = null)
+        val dosage = MedicationDosage(medicationId = 1, dosage = "1 pill", startDate = "2023-01-01")
 
         val state = EditMedicationState(
             isLoading = false,
@@ -503,9 +432,23 @@ fun EditMedicationScreenPreview() {
             dose = dosage
         )
 
-        EditMedicationScreen(
+        EditMedicationScreenContent(
+            state = state,
             navController = rememberNavController(),
-            onNavigateBack = {}
+            onBackClicked = {},
+            onArchiveClicked = {},
+            onDeleteClicked = {},
+            onEndTreatmentClicked = {},
+            onToggleSuspend = {},
+            onDismissArchiveDialog = {},
+            onConfirmArchive = {},
+            onDismissDeleteDialog = {},
+            onConfirmDelete = {},
+            onDismissEndTreatmentDialog = {},
+            onConfirmEndTreatment = {},
+            onDismissSaveDialog = {},
+            onConfirmSaveChanges = {},
+            onDiscardChanges = {}
         )
     }
 }
