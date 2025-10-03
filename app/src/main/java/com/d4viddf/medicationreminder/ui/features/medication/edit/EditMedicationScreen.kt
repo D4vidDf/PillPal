@@ -39,11 +39,15 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.data.model.MedicationDosage
+import com.d4viddf.medicationreminder.data.model.MedicationSchedule
+import com.d4viddf.medicationreminder.data.model.MedicationType
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditMedicationScreen(
     navController: NavController,
@@ -65,16 +69,65 @@ fun EditMedicationScreen(
         }
     }
 
-    BackHandler {
-        viewModel.onBackClicked(onNavigateBack)
-    }
+    EditMedicationScreenContent(
+        state = state,
+        navController = navController,
+        onBackClicked = { viewModel.onBackClicked(onNavigateBack) },
+        onArchiveClicked = viewModel::onArchiveClicked,
+        onDeleteClicked = viewModel::onDeleteClicked,
+        onEndTreatmentClicked = viewModel::onEndTreatmentClicked,
+        onToggleSuspend = viewModel::toggleSuspend,
+        onDismissArchiveDialog = viewModel::onDismissArchiveDialog,
+        onConfirmArchive = viewModel::confirmArchive,
+        onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
+        onConfirmDelete = {
+            viewModel.confirmDelete {
+                navController.popBackStack()
+                navController.popBackStack()
+            }
+        },
+        onDismissEndTreatmentDialog = viewModel::onDismissEndTreatmentDialog,
+        onConfirmEndTreatment = viewModel::confirmEndTreatment,
+        onDismissSaveDialog = viewModel::onDismissSaveDialog,
+        onConfirmSaveChanges = {
+            viewModel.confirmSaveChanges()
+            onNavigateBack()
+        },
+        onDiscardChanges = {
+            viewModel.onDismissSaveDialog()
+            onNavigateBack()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditMedicationScreenContent(
+    state: EditMedicationState,
+    navController: NavController,
+    onBackClicked: () -> Unit,
+    onArchiveClicked: () -> Unit,
+    onDeleteClicked: () -> Unit,
+    onEndTreatmentClicked: () -> Unit,
+    onToggleSuspend: () -> Unit,
+    onDismissArchiveDialog: () -> Unit,
+    onConfirmArchive: () -> Unit,
+    onDismissDeleteDialog: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissEndTreatmentDialog: () -> Unit,
+    onConfirmEndTreatment: (LocalDate) -> Unit,
+    onDismissSaveDialog: () -> Unit,
+    onConfirmSaveChanges: () -> Unit,
+    onDiscardChanges: () -> Unit
+) {
+    BackHandler { onBackClicked() }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.edit_medication_title)) },
                 navigationIcon = {
-                    IconButton(onClick = { viewModel.onBackClicked(onNavigateBack) }) {
+                    IconButton(onClick = onBackClicked) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
@@ -84,11 +137,6 @@ fun EditMedicationScreen(
             )
         }
     ) { paddingValues ->
-import com.d4viddf.medicationreminder.data.model.Medication
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-
         Column(modifier = Modifier.padding(paddingValues)) {
             GeneralInfoSection(state, navController)
             ScheduleSection(state)
@@ -97,19 +145,19 @@ import java.time.ZoneId
 
             Spacer(modifier = Modifier.weight(1f))
 
-            ActionButton(text = stringResource(R.string.edit_med_archive_button), onClick = { viewModel.onArchiveClicked() })
-            ActionButton(text = stringResource(R.string.edit_med_delete_button), onClick = { viewModel.onDeleteClicked() })
-            ActionButton(text = stringResource(R.string.edit_med_end_treatment_button), onClick = { viewModel.onEndTreatmentClicked() })
+            ActionButton(text = stringResource(R.string.edit_med_archive_button), onClick = onArchiveClicked)
+            ActionButton(text = stringResource(R.string.edit_med_delete_button), onClick = onDeleteClicked)
+            ActionButton(text = stringResource(R.string.edit_med_end_treatment_button), onClick = onEndTreatmentClicked)
             val suspendText = if (state.medication?.isSuspended == true) stringResource(R.string.edit_med_restore_treatment_button) else stringResource(R.string.edit_med_suspend_treatment_button)
-            ActionButton(text = suspendText, onClick = { viewModel.toggleSuspend() })
+            ActionButton(text = suspendText, onClick = onToggleSuspend)
 
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         if (state.showArchiveDialog) {
             ConfirmationDialog(
-                onDismissRequest = { viewModel.onDismissArchiveDialog() },
-                onConfirmation = { viewModel.confirmArchive() },
+                onDismissRequest = onDismissArchiveDialog,
+                onConfirmation = onConfirmArchive,
                 dialogTitle = "Archive Treatment",
                 dialogText = "Do you want to archive this treatment? Archiving treatment stops reminders but keeps the data in the app."
             )
@@ -117,13 +165,8 @@ import java.time.ZoneId
 
         if (state.showDeleteDialog) {
             ConfirmationDialog(
-                onDismissRequest = { viewModel.onDismissDeleteDialog() },
-                onConfirmation = {
-                    viewModel.confirmDelete {
-                        navController.popBackStack() // Pop EditMedicationScreen
-                        navController.popBackStack() // Pop MedicationDetailScreen
-                    }
-                },
+                onDismissRequest = onDismissDeleteDialog,
+                onConfirmation = onConfirmDelete,
                 dialogTitle = "Delete Treatment",
                 dialogText = "Are you sure you want to delete this treatment from the app? This action will permanently erase the data."
             )
@@ -131,26 +174,65 @@ import java.time.ZoneId
 
         if (state.showEndTreatmentDialog) {
             EndTreatmentDatePickerDialog(
-                onDismiss = { viewModel.onDismissEndTreatmentDialog() },
-                onConfirm = { selectedDate ->
-                    viewModel.confirmEndTreatment(selectedDate)
-                }
+                onDismiss = onDismissEndTreatmentDialog,
+                onConfirm = onConfirmEndTreatment
             )
         }
 
         if (state.showSaveDialog) {
             SaveChangesDialog(
-                onDismissRequest = { viewModel.onDismissSaveDialog() },
-                onSaveChanges = {
-                    viewModel.confirmSaveChanges()
-                    onNavigateBack()
-                },
-                onDiscardChanges = {
-                    viewModel.onDismissSaveDialog() // Hide dialog
-                    onNavigateBack() // Then navigate back
-                }
+                onDismissRequest = onDismissSaveDialog,
+                onSaveChanges = onConfirmSaveChanges,
+                onDiscardChanges = onDiscardChanges
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditMedicationScreenPreview() {
+    AppTheme {
+        val medication = Medication(
+            id = 1,
+            name = "Mestinon",
+            typeId = 1,
+            color = "LIGHT_PINK",
+            packageSize = 100,
+            remainingDoses = 90,
+            startDate = "2023-01-01",
+            endDate = null
+        )
+        val medicationType = MedicationType(id = 1, name = "Pill", imageUrl = "")
+        val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY, specificTimes = listOf(java.time.LocalTime.of(8, 0)))
+        val dosage = MedicationDosage(medicationId = 1, dosage = "1 pill", startDate = "2023-01-01")
+
+        val state = EditMedicationState(
+            isLoading = false,
+            medication = medication,
+            medicationType = medicationType,
+            schedule = schedule,
+            dose = dosage
+        )
+
+        EditMedicationScreenContent(
+            state = state,
+            navController = rememberNavController(),
+            onBackClicked = {},
+            onArchiveClicked = {},
+            onDeleteClicked = {},
+            onEndTreatmentClicked = {},
+            onToggleSuspend = {},
+            onDismissArchiveDialog = {},
+            onConfirmArchive = {},
+            onDismissDeleteDialog = {},
+            onConfirmDelete = {},
+            onDismissEndTreatmentDialog = {},
+            onConfirmEndTreatment = {},
+            onDismissSaveDialog = {},
+            onConfirmSaveChanges = {},
+            onDiscardChanges = {}
+        )
     }
 }
 

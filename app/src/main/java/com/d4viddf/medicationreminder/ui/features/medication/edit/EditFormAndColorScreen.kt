@@ -20,22 +20,38 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditFormAndColorScreen(
     viewModel: EditFormAndColorViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    EditFormAndColorScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onSave = viewModel::onSave,
+        onTypeSelected = viewModel::onTypeSelected,
+        onColorSelected = viewModel::onColorSelected
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditFormAndColorScreenContent(
+    uiState: EditFormAndColorState,
+    onNavigateBack: () -> Unit,
+    onSave: () -> Unit,
+    onTypeSelected: (Int) -> Unit,
+    onColorSelected: (MedicationColor) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,7 +66,7 @@ fun EditFormAndColorScreen(
                 },
                 actions = {
                     Button(onClick = {
-                        viewModel.onSave()
+                        onSave()
                         onNavigateBack()
                     }) {
                         Text(text = stringResource(id = R.string.save))
@@ -76,12 +92,12 @@ fun EditFormAndColorScreen(
                     uiState.medicationColor?.let { selectedColor ->
                         MedicationTypeSelector(
                             selectedTypeId = selectedTypeId,
-                            onTypeSelected = viewModel::onTypeSelected,
+                            onTypeSelected = onTypeSelected,
                             selectedColor = selectedColor
                         )
                         ColorSelector(
                             selectedColor = selectedColor,
-                            onColorSelected = viewModel::onColorSelected
+                            onColorSelected = onColorSelected
                         )
                     }
                 }
@@ -94,6 +110,17 @@ fun EditFormAndColorScreen(
 @Composable
 fun EditFormAndColorScreenPreview() {
     AppTheme {
-        EditFormAndColorScreen(onNavigateBack = {})
+        val previewState = EditFormAndColorState(
+            isLoading = false,
+            medicationTypeId = 1,
+            medicationColor = MedicationColor.LIGHT_PINK
+        )
+        EditFormAndColorScreenContent(
+            uiState = previewState,
+            onNavigateBack = {},
+            onSave = {},
+            onTypeSelected = {},
+            onColorSelected = {}
+        )
     }
 }

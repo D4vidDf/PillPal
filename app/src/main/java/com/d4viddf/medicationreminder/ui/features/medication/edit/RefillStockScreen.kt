@@ -31,21 +31,35 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RefillStockScreen(
     viewModel: RefillStockViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    RefillStockScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onAmountToAddChanged = viewModel::onAmountToAddChanged,
+        onSave = viewModel::onSave
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RefillStockScreenContent(
+    uiState: RefillStockState,
+    onNavigateBack: () -> Unit,
+    onAmountToAddChanged: (String) -> Unit,
+    onSave: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,7 +103,7 @@ fun RefillStockScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                     BasicTextField(
                         value = uiState.amountToAdd,
-                        onValueChange = viewModel::onAmountToAddChanged,
+                        onValueChange = onAmountToAddChanged,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -127,7 +141,7 @@ fun RefillStockScreen(
                 }
                 Button(
                     onClick = {
-                        viewModel.onSave()
+                        onSave()
                         onNavigateBack()
                     },
                     modifier = Modifier
@@ -146,6 +160,17 @@ fun RefillStockScreen(
 @Composable
 fun RefillStockScreenPreview() {
     AppTheme {
-        RefillStockScreen(onNavigateBack = {})
+        val previewState = RefillStockState(
+            isLoading = false,
+            currentStock = 90,
+            amountToAdd = "10",
+            medicationUnit = "pills"
+        )
+        RefillStockScreenContent(
+            uiState = previewState,
+            onNavigateBack = {},
+            onAmountToAddChanged = {},
+            onSave = {}
+        )
     }
 }

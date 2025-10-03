@@ -33,18 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.d4viddf.medicationreminder.R
-
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditStockScreen(
     navController: NavController,
@@ -52,7 +50,20 @@ fun EditStockScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    EditStockScreenContent(
+        uiState = uiState,
+        navController = navController,
+        onNavigateBack = onNavigateBack
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditStockScreenContent(
+    uiState: EditStockState,
+    navController: NavController,
+    onNavigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -146,7 +157,15 @@ fun EditStockScreen(
 @Composable
 fun EditStockScreenPreview() {
     AppTheme {
-        EditStockScreen(
+        val previewState = EditStockState(
+            isLoading = false,
+            medicationId = 1,
+            medicationName = "Mestinon",
+            remainingStock = 90,
+            medicationUnit = "pills"
+        )
+        EditStockScreenContent(
+            uiState = previewState,
             navController = rememberNavController(),
             onNavigateBack = {}
         )

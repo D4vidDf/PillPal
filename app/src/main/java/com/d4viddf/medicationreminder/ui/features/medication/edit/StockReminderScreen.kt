@@ -32,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockReminderScreen(
     viewModel: StockReminderViewModel = hiltViewModel(),
@@ -40,7 +39,20 @@ fun StockReminderScreen(
     onNavigateToLowStockSettings: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    StockReminderScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onNavigateToLowStockSettings = { onNavigateToLowStockSettings(viewModel.medicationId) }
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StockReminderScreenContent(
+    uiState: StockReminderState,
+    onNavigateBack: () -> Unit,
+    onNavigateToLowStockSettings: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -70,7 +82,7 @@ fun StockReminderScreen(
                         title = stringResource(R.string.stock_reminder_low_stock_title),
                         subtitle = stringResource(R.string.stock_reminder_low_stock_subtitle),
                         value = uiState.lowStockReminderValue,
-                        onClick = { onNavigateToLowStockSettings(viewModel.medicationId) }
+                        onClick = onNavigateToLowStockSettings
                     )
                     ReminderRow(
                         title = stringResource(R.string.stock_reminder_empty_stock_title),
@@ -88,7 +100,12 @@ fun StockReminderScreen(
 @Composable
 fun StockReminderScreenPreview() {
     AppTheme {
-        StockReminderScreen(
+        val previewState = StockReminderState(
+            lowStockReminderValue = "7 days",
+            emptyStockReminderValue = "None"
+        )
+        StockReminderScreenContent(
+            uiState = previewState,
             onNavigateBack = {},
             onNavigateToLowStockSettings = {}
         )

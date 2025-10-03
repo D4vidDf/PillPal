@@ -13,21 +13,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun LowStockReminderScreen(
     viewModel: LowStockReminderViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    LowStockReminderScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onDaysChanged = viewModel::onDaysChanged,
+        onSave = viewModel::onSave,
+        onDisable = viewModel::onDisable
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun LowStockReminderScreenContent(
+    uiState: LowStockReminderState,
+    onNavigateBack: () -> Unit,
+    onDaysChanged: (Int) -> Unit,
+    onSave: () -> Unit,
+    onDisable: () -> Unit
+) {
     val listState = rememberLazyListState()
 
     val selectedDay by remember {
@@ -39,7 +56,6 @@ fun LowStockReminderScreen(
             } else {
                 val viewportCenter = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2
                 val centerItem = visibleItemsInfo.minByOrNull { abs((it.offset + it.size / 2) - viewportCenter) }
-                // Day `d` is at index `d`. Spacers are at 0 and 32.
                 centerItem?.index?.coerceIn(1, 31) ?: uiState.selectedDays
             }
         }
@@ -47,15 +63,13 @@ fun LowStockReminderScreen(
 
     LaunchedEffect(selectedDay) {
         if (selectedDay != uiState.selectedDays) {
-            viewModel.onDaysChanged(selectedDay)
+            onDaysChanged(selectedDay)
         }
     }
 
-    // Initial scroll to the selected day's index.
     LaunchedEffect(Unit) {
         listState.scrollToItem(uiState.selectedDays)
     }
-
 
     Scaffold(
         topBar = {
@@ -107,6 +121,7 @@ fun LowStockReminderScreen(
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(vertical = 80.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
                             ) {
@@ -146,7 +161,7 @@ fun LowStockReminderScreen(
                 ) {
                     Button(
                         onClick = {
-                            viewModel.onDisable()
+                            onDisable()
                             onNavigateBack()
                         },
                         modifier = Modifier.weight(1f),
@@ -156,7 +171,7 @@ fun LowStockReminderScreen(
                     }
                     Button(
                         onClick = {
-                            viewModel.onSave()
+                            onSave()
                             onNavigateBack()
                         },
                         modifier = Modifier.weight(2f)
@@ -173,6 +188,18 @@ fun LowStockReminderScreen(
 @Composable
 fun LowStockReminderScreenPreview() {
     AppTheme {
-        LowStockReminderScreen(onNavigateBack = {})
+        val previewState = LowStockReminderState(
+            isLoading = false,
+            medicationName = "Mestinon",
+            runsOutInDays = 18,
+            selectedDays = 7
+        )
+        LowStockReminderScreenContent(
+            uiState = previewState,
+            onNavigateBack = {},
+            onDaysChanged = {},
+            onSave = {},
+            onDisable = {}
+        )
     }
 }
