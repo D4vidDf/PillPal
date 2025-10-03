@@ -1,6 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
-data class EditStockState(
+data class EditStockUiState(
     val isLoading: Boolean = true,
     val medicationId: Int = 0,
     val medicationName: String = "",

@@ -60,7 +60,7 @@ fun EditStockScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditStockScreenContent(
-    uiState: EditStockState,
+    uiState: EditStockUiState,
     navController: NavController,
     onNavigateBack: () -> Unit
 ) {
@@ -157,7 +157,7 @@ fun EditStockScreenContent(
 @Composable
 fun EditStockScreenPreview() {
     AppTheme {
-        val previewState = EditStockState(
+        val previewState = EditStockUiState(
             isLoading = false,
             medicationId = 1,
             medicationName = "Mestinon",

@@ -21,8 +21,8 @@ class EditStockViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(EditStockState())
-    val uiState: StateFlow<EditStockState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EditStockUiState())
+    val uiState: StateFlow<EditStockUiState> = _uiState.asStateFlow()
 
     private val medicationId: Int = savedStateHandle.get<Int>(MEDICATION_ID_ARG)!!
 

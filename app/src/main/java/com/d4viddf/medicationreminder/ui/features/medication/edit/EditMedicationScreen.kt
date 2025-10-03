@@ -410,6 +410,7 @@ fun EditMedicationScreenPreview() {
             color = "LIGHT_PINK",
             packageSize = 100,
             remainingDoses = 90,
+            saveRemainingFraction = false,
             startDate = "2023-01-01",
             endDate = null,
             reminderTime = null,
