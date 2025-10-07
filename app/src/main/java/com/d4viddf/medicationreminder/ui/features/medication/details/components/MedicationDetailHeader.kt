@@ -73,18 +73,6 @@ fun MedicationDetailHeader(
                 fontWeight = FontWeight.SemiBold,
                 color = colorScheme.textColor
             )
-            if (!cimaDosage.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Reference: $cimaDosage",
-                    fontSize = 14.sp,
-                    color = colorScheme.textColor.copy(alpha = 0.7f)
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { onNavigateToScheduleDosageChange(medicationId) }) {
-                Text("Change Dosage")
-            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Image(

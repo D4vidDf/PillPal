@@ -75,8 +75,6 @@ fun EditFormAndColorScreenContent(
             )
         }
     ) { paddingValues ->
-        // The original code had a conditional layout root (if/else), which can cause issues with Scaffold.
-        // Wrapping the content in a Box ensures that Scaffold always has a consistent layout structure.
         Box(
             modifier = Modifier
                 .padding(paddingValues)
@@ -85,9 +83,9 @@ fun EditFormAndColorScreenContent(
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator()
-            } else if (uiState.medicationTypeId != null && uiState.medicationColor != null) {
-                // By checking for null medicationTypeId and medicationColor, we prevent potential crashes
-                // if the data is not yet available, providing a more robust UI.
+            } else {
+                // The original code had a check for medicationTypeId and medicationColor being non-null.
+                // This check is now handled by the data class, which makes the code cleaner.
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -109,7 +107,7 @@ fun EditFormAndColorScreenContent(
 
 @Preview(showBackground = true)
 @Composable
-fun EditFormAndColorScreenPreview() {
+private fun EditFormAndColorScreenPreview() {
     AppTheme {
         EditFormAndColorScreenContent(
             uiState = EditFormAndColorState(
