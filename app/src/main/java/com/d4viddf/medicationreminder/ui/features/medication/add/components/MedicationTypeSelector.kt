@@ -42,7 +42,7 @@ import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeV
 @Composable
 fun MedicationTypeSelector(
     modifier: Modifier = Modifier, // This modifier comes from AddMedicationScreen (e.g., .fillMaxWidth().height(400.dp))
-    selectedTypeId: Int,
+    selectedTypeId: Int?,
     onTypeSelected: (Int) -> Unit,
     viewModel: MedicationTypeViewModel = hiltViewModel(),
     selectedColor: MedicationColor? = null,

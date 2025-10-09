@@ -36,7 +36,9 @@ fun LowStockReminderScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun LowStockReminderScreenContent(
     uiState: LowStockReminderState,
@@ -76,11 +78,12 @@ fun LowStockReminderScreenContent(
             TopAppBar(
                 title = { /* No title */ },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -88,7 +91,7 @@ fun LowStockReminderScreenContent(
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularWavyProgressIndicator()
             }
         } else {
             Column(
@@ -164,8 +167,9 @@ fun LowStockReminderScreenContent(
                             onDisable()
                             onNavigateBack()
                         },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        modifier = Modifier.weight(1f).heightIn(ButtonDefaults.MediumContainerHeight),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(stringResource(R.string.disable))
                     }
@@ -174,7 +178,8 @@ fun LowStockReminderScreenContent(
                             onSave()
                             onNavigateBack()
                         },
-                        modifier = Modifier.weight(2f)
+                        modifier = Modifier.weight(2f).heightIn(ButtonDefaults.MediumContainerHeight),
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(stringResource(R.string.dialog_done_button))
                     }

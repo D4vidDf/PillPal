@@ -14,8 +14,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,7 +48,7 @@ fun StockReminderScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun StockReminderScreenContent(
     uiState: StockReminderState,
@@ -58,11 +60,13 @@ fun StockReminderScreenContent(
             TopAppBar(
                 title = { Text(stringResource(R.string.stock_reminder_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes(),
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -75,22 +79,30 @@ fun StockReminderScreenContent(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp)
             ) {
-                Column {
+
                     ReminderRow(
                         title = stringResource(R.string.stock_reminder_low_stock_title),
                         subtitle = stringResource(R.string.stock_reminder_low_stock_subtitle),
                         value = uiState.lowStockReminderValue,
                         onClick = onNavigateToLowStockSettings
                     )
+
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(6.dp,6.dp,12.dp,12.dp)
+            ) {
+
                     ReminderRow(
                         title = stringResource(R.string.stock_reminder_empty_stock_title),
                         subtitle = stringResource(R.string.stock_reminder_empty_stock_subtitle),
                         value = uiState.emptyStockReminderValue,
                         onClick = { /* Not implemented */ }
                     )
-                }
+
             }
         }
     }

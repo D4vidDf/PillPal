@@ -73,7 +73,6 @@ import com.d4viddf.medicationreminder.ui.features.medication.add.components.Medi
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationNameInput
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.StepDetails
-import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek

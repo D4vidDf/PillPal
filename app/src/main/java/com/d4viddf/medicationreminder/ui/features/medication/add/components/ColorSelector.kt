@@ -45,14 +45,16 @@ import com.d4viddf.medicationreminder.ui.theme.medicationColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ColorSelector(
-    selectedColor: MedicationColor,
+    selectedColor: MedicationColor?,
     onColorSelected: (MedicationColor) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
 
     // Color selection row
-    val selectedColorAccText = stringResource(id = R.string.color_selector_selected_color_acc, selectedColor.colorName)
+    val selectedColorAccText = stringResource(id = R.string.color_selector_selected_color_acc,
+        selectedColor?.colorName ?: R.string.color_orange
+    )
     val expandAccText = stringResource(id = R.string.color_selector_expand_acc)
     val colorSelectorTitleText = stringResource(id = R.string.color_selector_title)
 
@@ -69,13 +71,13 @@ fun ColorSelector(
             Box(
                 modifier = Modifier
                     .size(24.dp)
-                    .background(selectedColor.backgroundColor, CircleShape)
+                    .background(selectedColor?.backgroundColor ?: MedicationColor.ORANGE.backgroundColor, CircleShape)
                     .semantics{
                         contentDescription = selectedColorAccText
                     }
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(selectedColor.colorName) // colorName itself is likely fine as it's a property of MedicationColor
+            selectedColor?.colorName?.let { Text(it) } // colorName itself is likely fine as it's a property of MedicationColor
             Spacer(modifier = Modifier.width(8.dp))
             Icon(painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24), contentDescription = expandAccText)
         }

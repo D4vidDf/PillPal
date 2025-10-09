@@ -7,16 +7,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -52,7 +56,7 @@ fun RefillStockScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RefillStockScreenContent(
     uiState: RefillStockState,
@@ -65,11 +69,13 @@ fun RefillStockScreenContent(
             TopAppBar(
                 title = { /* No title */ },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes(),
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -80,7 +86,7 @@ fun RefillStockScreenContent(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularWavyProgressIndicator()
             }
         } else {
             Column(
@@ -100,7 +106,7 @@ fun RefillStockScreenContent(
                         text = stringResource(R.string.refill_stock_current_stock, uiState.currentStock, uiState.medicationUnit),
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(64.dp))
                     BasicTextField(
                         value = uiState.amountToAdd,
                         onValueChange = onAmountToAddChanged,
@@ -108,7 +114,7 @@ fun RefillStockScreenContent(
                         singleLine = true,
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         textStyle = LocalTextStyle.current.copy(
-                            fontSize = 48.sp,
+                            fontSize = 64.sp,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface
                         ),
@@ -121,7 +127,7 @@ fun RefillStockScreenContent(
                                     Text(
                                         text = stringResource(R.string.refill_stock_placeholder, uiState.medicationUnit),
                                         style = LocalTextStyle.current.copy(
-                                            fontSize = 48.sp,
+                                            fontSize = 64.sp,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                         )
                                     )
@@ -146,7 +152,8 @@ fun RefillStockScreenContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .heightIn(ButtonDefaults.MediumContainerHeight),
+                    shapes = ButtonDefaults.shapes(),
                     enabled = uiState.amountToAdd.isNotBlank() && uiState.amountToAdd.toIntOrNull() ?: 0 > 0
                 ) {
                     Text(text = stringResource(R.string.add))

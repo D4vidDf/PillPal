@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,7 +45,7 @@ fun EditFormAndColorScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EditFormAndColorScreenContent(
     uiState: EditFormAndColorState,
@@ -57,11 +59,12 @@ fun EditFormAndColorScreenContent(
             TopAppBar(
                 title = { Text(stringResource(R.string.edit_form_color_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 },
                 actions = {
@@ -82,7 +85,7 @@ fun EditFormAndColorScreenContent(
             contentAlignment = Alignment.Center
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator()
+                CircularWavyProgressIndicator()
             } else {
                 // The original code had a check for medicationTypeId and medicationColor being non-null.
                 // This check is now handled by the data class, which makes the code cleaner.
@@ -92,7 +95,8 @@ fun EditFormAndColorScreenContent(
                     MedicationTypeSelector(
                         selectedTypeId = uiState.medicationTypeId,
                         onTypeSelected = onTypeSelected,
-                        selectedColor = uiState.medicationColor
+                        selectedColor = uiState.medicationColor,
+                        modifier = Modifier.weight(0.1f)
                     )
                     ColorSelector(
                         selectedColor = uiState.medicationColor,

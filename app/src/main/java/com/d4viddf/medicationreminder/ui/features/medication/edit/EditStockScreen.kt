@@ -8,21 +8,23 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,7 +59,7 @@ fun EditStockScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EditStockScreenContent(
     uiState: EditStockUiState,
@@ -69,11 +71,13 @@ fun EditStockScreenContent(
             TopAppBar(
                 title = { /* No title */ },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes(),
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -96,7 +100,7 @@ fun EditStockScreenContent(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = uiState.medicationName,
+                    text = uiState.medicationName.split(" ")[0],
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -110,13 +114,14 @@ fun EditStockScreenContent(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.height(48.dp))
-                Button(
+                FilledTonalButton(
                     onClick = {
                         navController.navigate(Screen.RefillStock.createRoute(uiState.medicationId))
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .heightIn(ButtonDefaults.LargeContainerHeight),
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -128,24 +133,30 @@ fun EditStockScreenContent(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = { /* TODO: Handle Edit Stock click */ },
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp)
-                    ) {
+                            .heightIn(ButtonDefaults.MediumContainerHeight),
+                        shapes = ButtonDefaults.shapes(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        ) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.edit_stock_edit_button))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = stringResource(R.string.edit_stock_edit_button))
                     }
                     Spacer(modifier = Modifier.width(16.dp))
-                    OutlinedButton(
+                    FilledTonalIconButton(
                         onClick = {
                             navController.navigate(Screen.StockReminder.createRoute(uiState.medicationId))
                         },
-                        modifier = Modifier.size(56.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.Notifications, contentDescription = stringResource(R.string.edit_stock_reminders_button_cd), modifier = Modifier.size(48.dp))
+                        modifier = Modifier.weight(1f)
+                            .heightIn(ButtonDefaults.MediumContainerHeight),
+                        shapes = IconButtonDefaults.shapes(),
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                        ) {
+                        Icon(imageVector = Icons.Default.Notifications, contentDescription = stringResource(R.string.edit_stock_reminders_button_cd))
                     }
                 }
             }

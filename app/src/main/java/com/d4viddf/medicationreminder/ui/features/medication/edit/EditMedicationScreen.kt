@@ -78,7 +78,7 @@ fun EditMedicationScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EditMedicationScreenContent(
     state: EditMedicationState,
@@ -105,11 +105,12 @@ fun EditMedicationScreenContent(
             TopAppBar(
                 title = { Text(text = stringResource(R.string.edit_medication_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClicked) {
+                    FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -124,11 +125,19 @@ fun EditMedicationScreenContent(
             Spacer(modifier = Modifier.weight(1f))
 
             ActionButton(text = stringResource(R.string.edit_med_archive_button), onClick = onArchiveClicked)
-            ActionButton(text = stringResource(R.string.edit_med_delete_button), onClick = onDeleteClicked)
             ActionButton(text = stringResource(R.string.edit_med_end_treatment_button), onClick = onEndTreatmentClicked)
-            val suspendText = if (state.medication?.isSuspended == true) stringResource(R.string.edit_med_restore_treatment_button) else stringResource(R.string.edit_med_suspend_treatment_button)
-            ActionButton(text = suspendText, onClick = onToggleSuspend)
 
+            FilledTonalButton(
+                onClick = onDeleteClicked,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(ButtonDefaults.ExtraSmallContainerHeight)
+                    .padding(horizontal = 16.dp),
+                shapes= ButtonDefaults.shapes(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)
+            ) {
+                Text(stringResource(R.string.edit_med_delete_button))
+            }
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -167,13 +176,16 @@ fun EditMedicationScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionButton(text: String, onClick: () -> Unit) {
-    Button(
+    FilledTonalButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .heightIn(ButtonDefaults.ExtraSmallContainerHeight)
+            .padding(horizontal = 16.dp),
+        shapes= ButtonDefaults.shapes()
     ) {
         Text(text)
     }
@@ -193,45 +205,95 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text(
-                    text = state.medication?.name?.substringBefore(" ") ?: "Loading...",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            state.medication?.let {
-                                navController.navigate(Screen.EditFormAndColor.createRoute(it.id))
-                            }
-                        },
+                Row(modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(stringResource(R.string.label_name),style = MaterialTheme.typography.bodyLarge
+                    )
                     Text(
-                        text = stringResource(R.string.edit_med_form_color),
+                        text = state.medication?.name?.substringBefore(" ") ?: "Loading...",
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "${state.medicationType?.name ?: ""} | ${state.medication?.color ?: ""}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
                 }
             }
+        }
+        Spacer(Modifier.height(4.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(6.dp),
+            onClick = {
+                state.medication?.let {
+                    navController.navigate(Screen.EditFormAndColor.createRoute(it.id))
+                }
+            }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.edit_med_form_color),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = state.medicationType?.name ?: "",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+        }
+        Spacer(Modifier.height(4.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(6.dp,6.dp,12.dp,12.dp),
+            onClick = {
+                state.medication?.let {
+                    navController.navigate(Screen.EditFormAndColor.createRoute(it.id))
+                }
+            },
+            colors = CardDefaults.cardColors()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.edit_med_form_color),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = state.medication?.color ?: "",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
         }
     }
 }
@@ -250,7 +312,8 @@ private fun ScheduleSection(state: EditMedicationState) {
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp),
+            onClick = {}
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -258,8 +321,7 @@ private fun ScheduleSection(state: EditMedicationState) {
                 // Frequency Row
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { /* TODO: Navigate to frequency selection */ },
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -277,12 +339,21 @@ private fun ScheduleSection(state: EditMedicationState) {
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(6.dp,6.dp,12.dp,12.dp),
+            onClick = {}
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
                 // Duration Row
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { /* TODO: Navigate to duration selection */ },
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
