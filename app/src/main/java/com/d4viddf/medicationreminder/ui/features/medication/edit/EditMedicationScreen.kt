@@ -1,6 +1,7 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -38,6 +39,7 @@ fun EditMedicationScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    var showColorSheet by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -78,8 +80,10 @@ fun EditMedicationScreen(
             viewModel.onDismissSaveDialog()
             onNavigateBack()
         },
-        onColorPickerClicked = viewModel::onColorPickerClicked,
-        onColorSelected = viewModel::onColorSelected
+        onColorPickerClicked = { showColorSheet = true },
+        onDismissColorPicker = { showColorSheet = false },
+        onColorSelected = viewModel::onColorSelected,
+        showColorSheet = showColorSheet
     )
 }
 
@@ -102,7 +106,9 @@ fun EditMedicationScreenContent(
     onConfirmSaveChanges: () -> Unit,
     onDiscardChanges: () -> Unit,
     onColorPickerClicked: () -> Unit,
-    onColorSelected: (MedicationColor) -> Unit
+    onDismissColorPicker: () -> Unit,
+    onColorSelected: (MedicationColor) -> Unit,
+    showColorSheet: Boolean
 ) {
     BackHandler { onBackClicked() }
 
@@ -111,21 +117,29 @@ fun EditMedicationScreenContent(
             TopAppBar(
                 title = { Text(text = stringResource(R.string.edit_medication_title)) },
                 navigationIcon = {
-                    FilledTonalIconButton (onClick = navController::popBackStack, shapes = IconButtonDefaults.shapes()) {
+                    IconButton(onClick = onBackClicked) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
-
                     }
                 }
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier
-            .padding(paddingValues)
-            .verticalScroll(rememberScrollState())) {
-            GeneralInfoSection(state, navController, onColorPickerClicked, onColorSelected)
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+        ) {
+            GeneralInfoSection(
+                state = state,
+                navController = navController,
+                onColorPickerClicked = onColorPickerClicked,
+                onDismissColorPicker = onDismissColorPicker,
+                onColorSelected = onColorSelected,
+                showColorSheet = showColorSheet
+            )
             ScheduleSection(state)
             DoseSection(state)
             MedicationDetailsSection(state, navController)
@@ -142,8 +156,10 @@ fun EditMedicationScreenContent(
                     .fillMaxWidth()
                     .heightIn(ButtonDefaults.MediumContainerHeight)
                     .padding(horizontal = 16.dp),
-                shapes= ButtonDefaults.shapes(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
             ) {
                 Text(stringResource(R.string.edit_med_delete_button))
             }
@@ -154,8 +170,8 @@ fun EditMedicationScreenContent(
             ConfirmationDialog(
                 onDismissRequest = onDismissArchiveDialog,
                 onConfirmation = onConfirmArchive,
-                dialogTitle = "Archive Treatment",
-                dialogText = "Do you want to archive this treatment? Archiving treatment stops reminders but keeps the data in the app."
+                dialogTitle = stringResource(R.string.dialog_archive_title),
+                dialogText = stringResource(R.string.dialog_archive_text)
             )
         }
 
@@ -163,8 +179,8 @@ fun EditMedicationScreenContent(
             ConfirmationDialog(
                 onDismissRequest = onDismissDeleteDialog,
                 onConfirmation = onConfirmDelete,
-                dialogTitle = "Delete Treatment",
-                dialogText = "Are you sure you want to delete this treatment from the app? This action will permanently erase the data."
+                dialogTitle = stringResource(R.string.dialog_delete_title),
+                dialogText = stringResource(R.string.dialog_delete_text)
             )
         }
 
@@ -182,12 +198,9 @@ fun EditMedicationScreenContent(
                 onDiscardChanges = onDiscardChanges
             )
         }
-
-        // No more modal bottom sheet
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionButton(text: String, onClick: () -> Unit) {
     FilledTonalButton(
@@ -195,8 +208,7 @@ private fun ActionButton(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(ButtonDefaults.MediumContainerHeight)
-            .padding(horizontal = 16.dp),
-        shapes= ButtonDefaults.shapes()
+            .padding(horizontal = 16.dp)
     ) {
         Text(text)
     }
@@ -207,7 +219,9 @@ private fun GeneralInfoSection(
     state: EditMedicationState,
     navController: NavController,
     onColorPickerClicked: () -> Unit,
-    onColorSelected: (MedicationColor) -> Unit
+    onDismissColorPicker: () -> Unit,
+    onColorSelected: (MedicationColor) -> Unit,
+    showColorSheet: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -223,23 +237,21 @@ private fun GeneralInfoSection(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp, 12.dp, 6.dp, 6.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        stringResource(R.string.label_name),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = state.medication?.name?.substringBefore(" ") ?: "Loading...",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+                Text(
+                    stringResource(R.string.label_name),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = state.medication?.name ?: "Loading...",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
         }
         Spacer(Modifier.height(4.dp))
@@ -284,63 +296,16 @@ private fun GeneralInfoSection(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp),
-            onClick = onColorPickerClicked,
-            colors = CardDefaults.cardColors()
+            onClick = onColorPickerClicked
         ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.label_color),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val color = state.medication?.color?.let { MedicationColor.valueOf(it) }
-                        if (color != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .background(
-                                        color = color.colorValue,
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = color.colorName,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(id = R.string.not_set),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
+            val selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) }
 
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                if (state.isColorSelectorExpanded) {
-                    ColorSelector(
-                        selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) } ?: MedicationColor.LIGHT_ORANGE,
-                        onColorSelected = {
-                            onColorSelected(it)
-                            onColorPickerClicked()
-                        }
-                    )
-                }
-            }
+            ColorSelector(
+                selectedColor = selectedColor,
+                onColorSelected = onColorSelected,
+                showBottomSheet = showColorSheet,
+                onDismiss = onDismissColorPicker
+            )
         }
     }
 }
@@ -359,69 +324,61 @@ private fun ScheduleSection(state: EditMedicationState) {
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp),
+            shape = RoundedCornerShape(12.dp, 12.dp, 6.dp, 6.dp),
             onClick = {}
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Frequency Row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = stringResource(R.string.edit_med_frequency), style = MaterialTheme.typography.bodyLarge)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = state.schedule?.getFormattedSchedule() ?: stringResource(id = R.string.not_set),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                Text(text = stringResource(R.string.edit_med_frequency), style = MaterialTheme.typography.bodyLarge)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = state.schedule?.getFormattedSchedule() ?: stringResource(id = R.string.not_set),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(6.dp,6.dp,12.dp,12.dp),
+            shape = RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp),
             onClick = {}
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Duration Row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = stringResource(R.string.edit_med_duration), style = MaterialTheme.typography.bodyLarge)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val durationText = if (state.medication?.startDate != null) {
-                            "${state.medication.startDate} - ${state.medication.endDate ?: "Ongoing"}"
-                        } else {
-                            "Not set"
-                        }
-                        Text(
-                            text = durationText,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                Text(text = stringResource(R.string.edit_med_duration), style = MaterialTheme.typography.bodyLarge)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val durationText = if (state.medication?.startDate != null) {
+                        "${state.medication.startDate} - ${state.medication.endDate ?: "Ongoing"}"
+                    } else {
+                        "Not set"
                     }
+                    Text(
+                        text = durationText,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
@@ -568,7 +525,9 @@ fun EditMedicationScreenPreview() {
             onConfirmSaveChanges = {},
             onDiscardChanges = {},
             onColorPickerClicked = {},
-            onColorSelected = {}
+            onDismissColorPicker = {},
+            onColorSelected = {},
+            showColorSheet = false
         )
     }
 }

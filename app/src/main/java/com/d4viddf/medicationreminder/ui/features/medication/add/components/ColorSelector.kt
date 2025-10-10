@@ -18,6 +18,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,45 +50,48 @@ import com.d4viddf.medicationreminder.ui.theme.medicationColors
 fun ColorSelector(
     selectedColor: MedicationColor?,
     onColorSelected: (MedicationColor) -> Unit,
+    showBottomSheet: Boolean,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showBottomSheet by remember { mutableStateOf(false) }
-
-    // Color selection row
     val selectedColorAccText = stringResource(id = R.string.color_selector_selected_color_acc,
-        selectedColor?.colorName ?: R.string.color_orange
+        selectedColor?.colorName ?: stringResource(id = R.string.color_orange)
     )
     val expandAccText = stringResource(id = R.string.color_selector_expand_acc)
     val colorSelectorTitleText = stringResource(id = R.string.color_selector_title)
 
+    // This Row is just for display purposes inside the card.
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { showBottomSheet = true }
-            .padding(16.dp),
+            .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(colorSelectorTitleText, modifier = Modifier.weight(1f))
-        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
+        Text(stringResource(R.string.label_color), modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
                     .size(24.dp)
                     .background(selectedColor?.backgroundColor ?: MedicationColor.ORANGE.backgroundColor, CircleShape)
-                    .semantics{
+                    .semantics {
                         contentDescription = selectedColorAccText
                     }
             )
             Spacer(modifier = Modifier.width(8.dp))
-            selectedColor?.colorName?.let { Text(it) } // colorName itself is likely fine as it's a property of MedicationColor
+            selectedColor?.colorName?.let { Text(it) }
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24), contentDescription = expandAccText)
+            Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = expandAccText)
         }
     }
-    // Bottom sheet with color grid
+
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
+            onDismissRequest = onDismiss,
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -117,14 +123,14 @@ fun ColorSelector(
                                 .background(color.backgroundColor, cornerShape)
                                 .clickable {
                                     onColorSelected(color)
-                                    showBottomSheet = false
+                                    onDismiss()
                                 }
-                                .semantics{
+                                .semantics {
                                     contentDescription = itemColorAccText
                                 },
                             contentAlignment = Alignment.Center,
 
-                        ) {
+                            ) {
                             if (isSelected) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_check),
@@ -142,14 +148,24 @@ fun ColorSelector(
     }
 }
 
-@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 36)
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 36)
+@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ColorSelectorPreview() {
     AppTheme(dynamicColor = false) {
-        ColorSelector(
-            selectedColor = medicationColors[0],
-            onColorSelected = {}
-        )
+        var selectedColor by remember { mutableStateOf<MedicationColor?>(medicationColors[0]) }
+        var showSheet by remember { mutableStateOf(false) }
+
+        Column {
+            Button(onClick = { showSheet = true }) {
+                Text("Show Color Selector")
+            }
+            ColorSelector(
+                selectedColor = selectedColor,
+                onColorSelected = { selectedColor = it },
+                showBottomSheet = showSheet,
+                onDismiss = { showSheet = false }
+            )
+        }
     }
 }
