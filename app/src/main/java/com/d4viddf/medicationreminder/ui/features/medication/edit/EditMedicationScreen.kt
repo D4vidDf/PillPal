@@ -255,7 +255,7 @@ private fun GeneralInfoSection(
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 state.medication?.let {
-                    navController.navigate(Screen.EditForm.createRoute(it.id))
+                    navController.navigate(Screen.EditForm.createRoute(it.id, it.color))
                 }
             }
         ) {

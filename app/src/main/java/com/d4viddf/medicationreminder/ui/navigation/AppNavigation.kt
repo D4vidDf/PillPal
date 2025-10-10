@@ -109,6 +109,9 @@ sealed class Screen(val route: String) {
     object EditForm : Screen("edit_form_screen/{$MEDICATION_ID_ARG}/{colorName}") {
         fun createRoute(medicationId: Int, colorName: String) = "edit_form_screen/$medicationId/$colorName"
     }
+    object EditStock : Screen("edit_stock_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "edit_stock_screen/$medicationId"
+    }
     object RefillStock : Screen("refill_stock_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "refill_stock_screen/$medicationId"
     }
@@ -186,6 +189,17 @@ fun AppNavigation(
             }
             composable(Screen.Notifications.route) {
                 NotificationsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                Screen.EditStock.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.EditStockScreen(
+                    navController = navController,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

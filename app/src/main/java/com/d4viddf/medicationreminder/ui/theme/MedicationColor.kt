@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.toArgb
 // Define an enum for the color options
 enum class MedicationColor(
     val colorName: String, // Add a field for the color name
+    val colorValue: Color,
     val backgroundColor: Color,
     val textColor: Color,
     val cardColor: Color,
@@ -16,6 +17,7 @@ enum class MedicationColor(
 ) {
     ORANGE(
         colorName = "Orange", // Set the color name
+        colorValue = Color(0xFFd96126),
         backgroundColor = Color(0xFFd96126),
         textColor = Color(0xFFfffdf3),
         cardColor = Color(0xFF2c1407),
@@ -25,6 +27,7 @@ enum class MedicationColor(
     ),
     PINK(
         colorName = "Pink",
+        colorValue = Color(0xFFd6418c),
         backgroundColor = Color(0xFFd6418c),
         textColor = Color(0xFFfffdff),
         cardColor = Color(0xFF2c0d1d),
@@ -34,6 +37,7 @@ enum class MedicationColor(
     ),
     GREEN(
         colorName = "Dark Green",
+        colorValue = Color(0xFF009965),
         backgroundColor = Color(0xFF009965),
         textColor = Color(0xFFe2fffa),
         cardColor = Color(0xFF001f13),
@@ -43,6 +47,7 @@ enum class MedicationColor(
     ),
     BLUE(
         colorName = "Blue",
+        colorValue = Color(0xFF269dd8),
         backgroundColor = Color(0xFF269dd8),
         textColor = Color(0xFFfeffff),
         cardColor = Color(0xFF071f2c),
@@ -52,6 +57,7 @@ enum class MedicationColor(
     ),
     PURPLE(
         colorName = "Purple",
+        colorValue = Color(0xFF6b5eee),
         backgroundColor = Color(0xFF6b5eee),
         textColor = Color(0xFFfffeff),
         cardColor = Color(0xFF15122e),
@@ -61,6 +67,7 @@ enum class MedicationColor(
     ),
     YELLOW(
         colorName = "Golden",
+        colorValue = Color(0xFFf0b300),
         backgroundColor = Color(0xFFf0b300),
         textColor = Color(0xFF0D0D0D),
         cardColor = Color(0xFF312400),
@@ -70,6 +77,7 @@ enum class MedicationColor(
     ),
     LIGHT_YELLOW(
         colorName = "Light Yellow",
+        colorValue = Color(0xFFfcdd82),
         backgroundColor = Color(0xFFfcdd82),
         textColor = Color(0xFF372c11),
         cardColor = Color(0xFF322d19),
@@ -79,6 +87,7 @@ enum class MedicationColor(
     ),
     LIGHT_ORANGE(
         colorName = "Light Orange",
+        colorValue = Color(0xFFfcc793),
         backgroundColor = Color(0xFFfcc793),
         textColor = Color(0xFF33281f),
         cardColor = Color(0xFF2e251c),
@@ -88,6 +97,7 @@ enum class MedicationColor(
     ),
     LIGHT_PINK(
         colorName = "Light Pink",
+        colorValue = Color(0xFFf7c8ee),
         backgroundColor = Color(0xFFf7c8ee),
         textColor = Color(0xFF2f2631),
         cardColor = Color(0xFF312730),
@@ -97,6 +107,7 @@ enum class MedicationColor(
     ),
     LIGHT_PURPLE(
         colorName = "Light Purple",
+        colorValue = Color(0xFFd3cffb),
         backgroundColor = Color(0xFFd3cffb),
         textColor = Color(0xFF302e40),
         cardColor = Color(0xFF2a2932),
@@ -106,6 +117,7 @@ enum class MedicationColor(
     ),
     LIGHT_GREEN(
         colorName = "Light Green",
+        colorValue = Color(0xFFbae0b7),
         backgroundColor = Color(0xFFbae0b7),
         textColor = Color(0xFF2a2f27),
         cardColor = Color(0xFF262d25),
@@ -115,6 +127,7 @@ enum class MedicationColor(
     ),
     LIGHT_BLUE(
         colorName = "Light Blue",
+        colorValue = Color(0xFFc5dfec),
         backgroundColor = Color(0xFFc5dfec),
         textColor = Color(0xFF262f36),
         cardColor = Color(0xFF292d2e),
