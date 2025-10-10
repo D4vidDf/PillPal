@@ -53,7 +53,12 @@ class RefillStockViewModel @Inject constructor(
 
     fun onAmountToAddChanged(amount: String) {
         if (amount.all { it.isDigit() }) {
-            _uiState.update { it.copy(amountToAdd = amount) }
+            val newAmount = amount.toIntOrNull()
+            if (newAmount != null && newAmount >= 0) {
+                _uiState.update { it.copy(amountToAdd = amount) }
+            } else if (amount.isEmpty()) {
+                _uiState.update { it.copy(amountToAdd = "") }
+            }
         }
     }
 

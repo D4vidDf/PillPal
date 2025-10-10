@@ -145,7 +145,7 @@ fun RefillStockScreenContent(
                         .fillMaxWidth()
                         .heightIn(ButtonDefaults.MediumContainerHeight),
                     shapes = ButtonDefaults.shapes(),
-                    enabled = uiState.amountToAdd.isNotBlank() && uiState.amountToAdd != "0"
+                    enabled = uiState.amountToAdd.isNotBlank() && (uiState.amountToAdd.toIntOrNull() ?: 0) > 0
                 ) {
                     Text(text = stringResource(R.string.add))
                 }

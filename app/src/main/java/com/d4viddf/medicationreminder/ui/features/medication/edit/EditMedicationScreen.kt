@@ -315,7 +315,7 @@ private fun GeneralInfoSection(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = color.name,
+                            text = color.colorName,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary
                         )

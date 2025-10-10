@@ -193,17 +193,6 @@ fun AppNavigation(
                 )
             }
             composable(
-                Screen.EditStock.route,
-                arguments = listOf(
-                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
-                )
-            ) {
-                com.d4viddf.medicationreminder.ui.features.medication.edit.EditStockScreen(
-                    navController = navController,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable(
                 Screen.StockReminder.route,
                 arguments = listOf(
                     navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
