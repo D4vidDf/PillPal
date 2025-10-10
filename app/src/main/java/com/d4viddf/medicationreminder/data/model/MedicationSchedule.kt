@@ -51,7 +51,7 @@ fun MedicationSchedule.getFormattedSchedule(): String {
             val end = intervalEndTime?.let { LocalTime.parse(it).format(timeFormatter) } ?: "N/A"
             val hours = intervalHours ?: 0
             val minutes = intervalMinutes ?: 0
-            "Every ${hours}h ${minutes}m from $start to $end"
+            "Every ${hours}h ${minutes}m"
         }
         ScheduleType.AS_NEEDED -> "As needed"
         ScheduleType.CUSTOM_ALARMS -> {

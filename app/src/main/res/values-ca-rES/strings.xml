@@ -22,19 +22,19 @@
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Nou medicament</string>
     <string name="medication_summary_title">Resum de la medicació</string>
-    <string name="label_name">Nom:</string>
-    <string name="label_dosage">Dosi:</string>
-    <string name="label_package_size">Mida de l\'envàs:</string>
-    <string name="label_start_date">Data d\'inici:</string>
-    <string name="label_end_date">Data de fi:</string>
-    <string name="label_color">Color:</string>
+    <string name="label_name">Nom</string>
+    <string name="label_dosage">Dosi</string>
+    <string name="label_package_size">Mida de l\'envàs</string>
+    <string name="label_start_date">Data d\'inici</string>
+    <string name="label_end_date">Data de fi</string>
+    <string name="label_color">Color</string>
     <string name="reminder_details_title">Detalls del recordatori</string>
-    <string name="label_frequency">Freqüència:</string>
-    <string name="label_time">Hora:</string>
-    <string name="label_days">Dies:</string>
-    <string name="label_alarm_numbered">Alarma %1$d:</string>
-    <string name="label_alarms">Alarmes:</string>
-    <string name="label_interval">Interval:</string>
+    <string name="label_frequency">Freqüència</string>
+    <string name="label_time">Hora</string>
+    <string name="label_days">Dies</string>
+    <string name="label_alarm_numbered">Alarma %1$d</string>
+    <string name="label_alarms">Alarmes</string>
+    <string name="label_interval">Interval</string>
     <string name="interval_details">Cada %1$d h %2$d min</string>
     <string name="label_daily_start_time">Inici diari:</string>
     <string name="label_daily_end_time">Fi diari:</string>
@@ -715,4 +715,73 @@
     <string name="notification_channel_water_reminder_name">Recordatoris d\'aigua</string>
     <string name="notification_channel_water_reminder_description">Notificacions per ajudar-te a mantenir-te hidratat.</string>
     <string name="notification_icon_cd_water">Icona de recordatori d\'aigua</string>
+
+    <!-- Edit Medication Screen -->
+    <string name="edit_medication_title">Editar Medicament</string>
+
+    <!-- Edit Medication Screen Sections -->
+    <string name="edit_med_general_info_title">Informació General</string>
+    <string name="edit_med_form_color">Forma</string>
+    <string name="edit_med_schedule_title">Horari</string>
+    <string name="edit_med_frequency">Freqüència</string>
+    <string name="edit_med_duration">Durada</string>
+    <string name="edit_med_dose_title">Dosi</string>
+    <string name="edit_med_amount">Quantitat</string>
+    <string name="edit_med_details_title">Detalls del Medicament</string>
+    <string name="edit_med_stock">Inventari</string>
+    <string name="edit_med_archive_button">Arxivar Medicament</string>
+    <string name="edit_med_delete_button">Eliminar Medicament</string>
+    <string name="edit_med_end_treatment_button">Finalitzar Tractament</string>
+    <string name="edit_med_suspend_treatment_button">Suspendre Medicament</string>
+    <string name="edit_med_restore_treatment_button">Restaurar Tractament</string>
+
+    <!-- Dialogs -->
+    <string name="archive_treatment_dialog_title">Arxivar Tractament</string>
+    <string name="archive_treatment_dialog_text">Vols arxivar aquest tractament? Arxivar el tractament atura els recordatoris però manté les dades a l\'app.</string>
+    <string name="delete_treatment_dialog_title">Eliminar Tractament</string>
+    <string name="delete_treatment_dialog_text">Estàs segur que vols eliminar aquest tractament de l\'app? Aquesta acció esborrarà les dades permanentment.</string>
+    <string name="end_treatment_dialog_title">Finalitzar Tractament</string>
+    <string name="end_treatment_dialog_text">Selecciona la data de finalització per a aquest tractament.</string>
+    <string name="save_changes_dialog_title">Desar Canvis?</string>
+    <string name="save_changes_dialog_text">Tens canvis sense desar. T\'agradaria desar-los abans de sortir?</string>
+    <string name="discard">Descartar</string>
+
+    <!-- Edit Form & Color Screen -->
+    <string name="edit_form_color_title">Editar Forma i Color</string>
+
+    <!-- Edit Stock Screen -->
+    <string name="edit_stock_units_left">%s restants</string>
+    <string name="edit_stock_refill_button">Recarregar Inventari</string>
+    <string name="edit_stock_reminders_button_cd">Recordatoris d\'Inventari</string>
+
+    <!-- Refill Stock Screen -->
+    <string name="refill_stock_title">Quantes %s vols recarregar?</string>
+    <string name="refill_stock_current_stock">%d %s restants</string>
+    <string name="refill_stock_placeholder">+0 %s</string>
+    <string name="refill_stock_total">Total %d %s</string>
+
+    <!-- Stock Reminder Screen -->
+    <string name="stock_reminder_title">Recordatori de Recàrrega d\'Inventari</string>
+    <string name="stock_reminder_low_stock_title">Inventari baix</string>
+    <string name="stock_reminder_low_stock_subtitle">Notificar abans de quedar-se sense inventari</string>
+    <string name="stock_reminder_empty_stock_title">Inventari esgotat</string>
+    <string name="stock_reminder_empty_stock_subtitle">Notificar després de quedar-se sense inventari</string>
+    <string name="none">Cap</string>
+
+    <!-- Low Stock Reminder Screen -->
+    <string name="low_stock_reminder_title">Quants dies abans que s\'esgoti t\'agradaria rebre un recordatori?</string>
+    <string name="low_stock_reminder_runs_out">%1$s s\'esgota en %2$d dies</string>
+    <string name="disable">Desactivar</string>
+
+    <!-- Medication Types -->
+    <string name="medication_type_tablet">Tauleta</string>
+    <string name="medication_type_pill">Píndola</string>
+    <string name="medication_type_powder">Pols</string>
+    <string name="medication_type_syringe">Xeringa</string>
+    <string name="medication_type_creme">Crema</string>
+    <string name="medication_type_spray">Aerosol</string>
+    <string name="medication_type_liquid">Líquid</string>
+    <string name="medication_type_suppositorium">Supositori</string>
+    <string name="medication_type_patch">Pegat</string>
+
 </resources>

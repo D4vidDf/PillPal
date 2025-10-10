@@ -22,13 +22,50 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 @Database(
     entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
         WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class, Notification::class],
-    version = 14,
+    version = 15,
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Create a new table with the desired schema
+                db.execSQL("""
+                    CREATE TABLE `medications_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `typeId` INTEGER,
+                        `color` TEXT NOT NULL,
+                        `packageSize` INTEGER NOT NULL,
+                        `remainingDoses` INTEGER NOT NULL,
+                        `saveRemainingFraction` INTEGER NOT NULL DEFAULT 0,
+                        `startDate` TEXT,
+                        `endDate` TEXT,
+                        `reminderTime` TEXT,
+                        `registrationDate` TEXT,
+                        `nregistro` TEXT,
+                        `lowStockThreshold` INTEGER,
+                        `lowStockReminderDays` INTEGER,
+                        `isArchived` INTEGER NOT NULL DEFAULT 0,
+                        `isSuspended` INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+
+                // Copy the data from the old table to the new one
+                db.execSQL("""
+                    INSERT INTO medications_new (id, name, typeId, color, packageSize, remainingDoses, saveRemainingFraction, startDate, endDate, reminderTime, registrationDate, nregistro)
+                    SELECT id, name, typeId, color, packageSize, remainingDoses, saveRemainingFraction, startDate, endDate, reminderTime, registrationDate, nregistro FROM medications
+                """)
+
+                // Drop the old table
+                db.execSQL("DROP TABLE medications")
+
+                // Rename the new table to the old table's name
+                db.execSQL("ALTER TABLE medications_new RENAME TO medications")
+            }
+        }
         val MIGRATION_13_14 = object : Migration(13, 14) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""

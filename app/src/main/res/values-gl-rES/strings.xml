@@ -22,19 +22,19 @@
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Novo medicamento</string>
     <string name="medication_summary_title">Resumo da medicación</string>
-    <string name="label_name">Nome:</string>
-    <string name="label_dosage">Dose:</string>
-    <string name="label_package_size">Tamaño do envase:</string>
-    <string name="label_start_date">Data de inicio:</string>
-    <string name="label_end_date">Data de fin:</string>
-    <string name="label_color">Cor:</string>
+    <string name="label_name">Nome</string>
+    <string name="label_dosage">Dose</string>
+    <string name="label_package_size">Tamaño do envase</string>
+    <string name="label_start_date">Data de inicio</string>
+    <string name="label_end_date">Data de fin</string>
+    <string name="label_color">Cor</string>
     <string name="reminder_details_title">Detalles do recordatorio</string>
-    <string name="label_frequency">Frecuencia:</string>
-    <string name="label_time">Hora:</string>
-    <string name="label_days">Días:</string>
-    <string name="label_alarm_numbered">Alarma %1$d:</string>
-    <string name="label_alarms">Alarmas:</string>
-    <string name="label_interval">Intervalo:</string>
+    <string name="label_frequency">Frecuencia</string>
+    <string name="label_time">Hora</string>
+    <string name="label_days">Días</string>
+    <string name="label_alarm_numbered">Alarma %1$d</string>
+    <string name="label_alarms">Alarmas</string>
+    <string name="label_interval">Intervalo</string>
     <string name="interval_details">Cada %1$d h %2$d min</string>
     <string name="label_daily_start_time">Inicio diario:</string>
     <string name="label_daily_end_time">Fin diario:</string>
@@ -716,4 +716,73 @@
     <string name="notification_channel_water_reminder_name">Recordatorios de auga</string>
     <string name="notification_channel_water_reminder_description">Notificacións para axudarche a manterte hidratado.</string>
     <string name="notification_icon_cd_water">Icona de recordatorio de auga</string>
+
+    <!-- Edit Medication Screen -->
+    <string name="edit_medication_title">Editar Medicamento</string>
+
+    <!-- Edit Medication Screen Sections -->
+    <string name="edit_med_general_info_title">Información Xeral</string>
+    <string name="edit_med_form_color">Forma</string>
+    <string name="edit_med_schedule_title">Horario</string>
+    <string name="edit_med_frequency">Frecuencia</string>
+    <string name="edit_med_duration">Duración</string>
+    <string name="edit_med_dose_title">Dose</string>
+    <string name="edit_med_amount">Cantidade</string>
+    <string name="edit_med_details_title">Detalles do Medicamento</string>
+    <string name="edit_med_stock">Inventario</string>
+    <string name="edit_med_archive_button">Arquivar Medicamento</string>
+    <string name="edit_med_delete_button">Eliminar Medicamento</string>
+    <string name="edit_med_end_treatment_button">Finalizar Tratamento</string>
+    <string name="edit_med_suspend_treatment_button">Suspender Medicamento</string>
+    <string name="edit_med_restore_treatment_button">Restaurar Tratamento</string>
+
+    <!-- Dialogs -->
+    <string name="archive_treatment_dialog_title">Arquivar Tratamento</string>
+    <string name="archive_treatment_dialog_text">Queres arquivar este tratamento? Arquivar o tratamento detén os recordatorios pero mantén os datos na app.</string>
+    <string name="delete_treatment_dialog_title">Eliminar Tratamento</string>
+    <string name="delete_treatment_dialog_text">Estás seguro de que queres eliminar este tratamento da app? Esta acción borrará os datos permanentemente.</string>
+    <string name="end_treatment_dialog_title">Finalizar Tratamento</string>
+    <string name="end_treatment_dialog_text">Selecciona a data de finalización para este tratamento.</string>
+    <string name="save_changes_dialog_title">Gardar Cambios?</string>
+    <string name="save_changes_dialog_text">Tes cambios sen gardar. Gustaríache gardalos antes de saír?</string>
+    <string name="discard">Descartar</string>
+
+    <!-- Edit Form & Color Screen -->
+    <string name="edit_form_color_title">Editar Forma e Cor</string>
+
+    <!-- Edit Stock Screen -->
+    <string name="edit_stock_units_left">%s restantes</string>
+    <string name="edit_stock_refill_button">Recargar Inventario</string>
+    <string name="edit_stock_reminders_button_cd">Recordatorios de Inventario</string>
+
+    <!-- Refill Stock Screen -->
+    <string name="refill_stock_title">Cantas %s queres recargar?</string>
+    <string name="refill_stock_current_stock">%d %s restantes</string>
+    <string name="refill_stock_placeholder">+0 %s</string>
+    <string name="refill_stock_total">Total %d %s</string>
+
+    <!-- Stock Reminder Screen -->
+    <string name="stock_reminder_title">Recordatorio de Recarga de Inventario</string>
+    <string name="stock_reminder_low_stock_title">Inventario baixo</string>
+    <string name="stock_reminder_low_stock_subtitle">Notificar antes de quedar sen inventario</string>
+    <string name="stock_reminder_empty_stock_title">Inventario esgotado</string>
+    <string name="stock_reminder_empty_stock_subtitle">Notificar despois de quedar sen inventario</string>
+    <string name="none">Ningún</string>
+
+    <!-- Low Stock Reminder Screen -->
+    <string name="low_stock_reminder_title">Cantos días antes de que se esgote che gustaría recibir un recordatorio?</string>
+    <string name="low_stock_reminder_runs_out">%1$s esgótase en %2$d días</string>
+    <string name="disable">Desactivar</string>
+
+    <!-- Medication Types -->
+    <string name="medication_type_tablet">Tableta</string>
+    <string name="medication_type_pill">Pílula</string>
+    <string name="medication_type_powder">Po</string>
+    <string name="medication_type_syringe">Xiringa</string>
+    <string name="medication_type_creme">Crema</string>
+    <string name="medication_type_spray">Aerosol</string>
+    <string name="medication_type_liquid">Líquido</string>
+    <string name="medication_type_suppositorium">Supositorio</string>
+    <string name="medication_type_patch">Parche</string>
+
 </resources>

@@ -14,8 +14,8 @@ android {
         applicationId = "com.d4viddf.medicationreminder"
         minSdk = 26
         targetSdk = 36
-        versionCode = 47
-        versionName = "0.6.0.16"
+        versionCode = 48
+        versionName = "0.6.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -150,10 +150,10 @@ dependencies {
     implementation(libs.play.services.wearable)
 
     // Explicitly add Gson for JSON serialization
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.2")
 
     // Coroutines support for Play Services Tasks (for .await())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1") // Or use libs.kotlinx.coroutines.play.services if defined
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2") // Or use libs.kotlinx.coroutines.play.services if defined
 
     // Health Connect
     implementation("androidx.health.connect:connect-client:1.1.0-alpha02")

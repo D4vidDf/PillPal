@@ -10,7 +10,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 kotlinxCoroutinesCore = "1.10.2"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.10.1"
+activityCompose = "1.11.0"
 composeBom = "2025.05.01"
 okhttp = "4.12.0"
 room = "2.7.1"
@@ -96,7 +96,7 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.4.0-alpha15" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.5.0-alpha06" }
 
 # Room Database
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
@@ -175,7 +175,7 @@ androidx-wear-tiles-tooling-preview = { module = "androidx.wear.tiles:tiles-tool
 horologist-tiles = { module = "com.google.android.horologist:horologist-tiles", version.ref = "horologist" }
 androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }
 androidx-concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures", version.ref = "concurrentFutures" }
-google-guava = { group = "com.google.guava", name = "guava", version.ref = "guavaVersion" }
+google-guava = { group = "com.google.guava", name = "guava", version = "33.5.0-android" }
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures", version.ref = "concurrentFuturesVersion" }
 kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
 horologist-compose-layout = { group = "com.google.android.horologist", name = "horologist-compose-layout", version.ref = "horologistComposeLayout" }

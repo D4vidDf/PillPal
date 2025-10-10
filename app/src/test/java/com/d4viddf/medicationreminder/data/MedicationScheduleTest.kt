@@ -65,7 +65,6 @@ class MedicationScheduleTest {
         assertEquals("Daily at N/A", schedule.getFormattedSchedule())
     }
 
-import java.time.DayOfWeek
 
     @Test
     fun testGetFormattedSchedule_weekly_validData() {

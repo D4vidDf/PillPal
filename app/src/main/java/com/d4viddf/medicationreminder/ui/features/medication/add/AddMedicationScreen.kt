@@ -3,47 +3,15 @@ package com.d4viddf.medicationreminder.ui.features.medication.add
 import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,16 +31,9 @@ import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
 import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.ui.features.medication.add.components.*
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.AddMedicationStepsIndicator
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.FrequencySelector
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationDosagePackageDateInput
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationNameInput
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.StepDetails
-import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -83,34 +44,19 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMedicationScreen(
-    // onNavigateBack: () -> Unit, // Remove this
-    navController: NavHostController, // Add this
+    navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     medicationViewModel: MedicationViewModel = hiltViewModel(),
     medicationScheduleViewModel: MedicationScheduleViewModel = hiltViewModel()
-    // medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel() // Removed parameter
 ) {
-    // val windowSizeClass = LocalWindowSizeClass.current // REMOVE THIS
-    val isTablet = widthSizeClass >= WindowWidthSizeClass.Medium // Ensure this uses the parameter
+    val isTablet = widthSizeClass >= WindowWidthSizeClass.Medium
 
     val stepDetailsList = listOf(
-        StepDetails(
-            1,
-            stringResource(R.string.step_title_medication_name),
-            R.drawable.ic_pill_placeholder
-        ),
-        StepDetails(
-            2,
-            stringResource(R.string.step_title_type_color),
-            R.drawable.rounded_palette_24
-        ), // Use new icon
-        StepDetails(3, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory), // Use new icon
-        StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time), // Use new icon
-        StepDetails(
-            5,
-            stringResource(R.string.step_title_summary),
-            R.drawable.ic_check
-        ) // Use new icon
+        StepDetails(1, stringResource(R.string.step_title_medication_name), R.drawable.ic_pill_placeholder),
+        StepDetails(2, stringResource(R.string.step_title_type_color), R.drawable.rounded_palette_24),
+        StepDetails(3, stringResource(R.string.step_title_dosage_package), R.drawable.ic_inventory),
+        StepDetails(4, stringResource(R.string.step_title_frequency), R.drawable.ic_access_time),
+        StepDetails(5, stringResource(R.string.step_title_summary), R.drawable.ic_check)
     )
 
     var currentStep by rememberSaveable { mutableIntStateOf(0) }
@@ -119,27 +65,19 @@ fun AddMedicationScreen(
     var selectedColor by rememberSaveable { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
     var startDate by rememberSaveable { mutableStateOf("") }
     var endDate by rememberSaveable { mutableStateOf("") }
+    var showColorSheet by remember { mutableStateOf(false) }
 
-    // Resolve placeholder strings once
     val selectStartDatePlaceholder = stringResource(id = R.string.select_start_date_placeholder)
     val selectEndDatePlaceholder = stringResource(id = R.string.select_end_date_placeholder)
 
-    // Frequency related states
     var frequency by rememberSaveable { mutableStateOf(FrequencyType.ONCE_A_DAY) }
     var selectedDays by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
-
-    // FrequencyType.ONCE_A_DAY specific state
     var onceADayTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
-
-    // "Multiple times a day" specific state
     var selectedTimes by rememberSaveable { mutableStateOf<List<LocalTime>>(emptyList()) }
-
-    // "Interval" specific states
-    var intervalHours by rememberSaveable { mutableIntStateOf(1) } // Default to 1 hour
+    var intervalHours by rememberSaveable { mutableIntStateOf(1) }
     var intervalMinutes by rememberSaveable { mutableIntStateOf(0) }
     var intervalStartTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
     var intervalEndTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
-
 
     var medicationName by rememberSaveable { mutableStateOf("") }
     var dosage by rememberSaveable { mutableStateOf("") }
@@ -149,9 +87,8 @@ fun AddMedicationScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val timeFormatter = remember { DateTimeFormatter.ISO_LOCAL_TIME } // For storing LocalTime as String
-
-    val localContext = LocalContext.current // Get the current context
+    val timeFormatter = remember { DateTimeFormatter.ISO_LOCAL_TIME }
+    val localContext = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -161,12 +98,17 @@ fun AddMedicationScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = if (medicationName.isBlank() || currentStep == 0) stringResource(id = R.string.new_medication_toolbar_title) else medicationName.substringBefore(" "),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                            // Removed onGloballyPositioned as titleWidth is not used
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text(
+                                text = if (medicationName.isBlank() || currentStep == 0) "" else medicationName.split(" ").first(),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
                         if (currentStep != 0) {
                             LinearProgressIndicator(
                                 progress = { progress },
@@ -175,7 +117,7 @@ fun AddMedicationScreen(
                                     .padding(top = 8.dp, start = 16.dp, end = 16.dp)
                             )
                         } else {
-                            Spacer(Modifier.height(4.dp + 8.dp)) // Placeholder for progress bar height
+                            Spacer(Modifier.height(4.dp + 8.dp))
                         }
                     }
                 },
@@ -191,19 +133,13 @@ fun AddMedicationScreen(
                             Icon(painterResource(id = R.drawable.rounded_arrow_back_ios_24), contentDescription = stringResource(id = R.string.back))
                         }
                     } else {
-                        // If on step 0, this back button could also navigate back past the choice screen
-                        // Or simply pop AddMedicationScreen, leading to AddMedicationChoiceScreen
-                        // For consistency with the close button, let's make it pop AddMedicationScreen only.
-                        // The user would then be on AddMedicationChoiceScreen and can use its new close button.
-                         IconButton(onClick = { navController.popBackStack() }) { // Pops AddMedicationScreen
-                             Icon(painterResource(id = R.drawable.rounded_arrow_back_ios_24), contentDescription = stringResource(id = R.string.back))
-                         }
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(painterResource(id = R.drawable.rounded_arrow_back_ios_24), contentDescription = stringResource(id = R.string.back))
+                        }
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                         navController.popBackStack()
-                    }) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(painterResource(id = R.drawable.rounded_close_24), contentDescription = stringResource(id = R.string.close))
                     }
                 }
@@ -212,7 +148,7 @@ fun AddMedicationScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    if (currentStep < 4 && medicationName.isNotBlank()) { // TODO: Add validation for each step
+                    if (currentStep < 4 && medicationName.isNotBlank()) {
                         currentStep++
                         progress = (currentStep + 1) / 5f
                     } else if (currentStep == 4) {
@@ -247,9 +183,9 @@ fun AddMedicationScreen(
                             }
 
                             val scheduleToInsert = MedicationSchedule(
-                                medicationId = 0, // Placeholder
+                                medicationId = 0,
                                 scheduleType = scheduleType,
-                                startDate = finalStartDate, // Use the same start date
+                                startDate = finalStartDate,
                                 intervalHours = if (scheduleType == ScheduleType.INTERVAL) intervalHours else null,
                                 intervalMinutes = if (scheduleType == ScheduleType.INTERVAL) intervalMinutes else null,
                                 daysOfWeek = if (scheduleType == ScheduleType.DAILY) selectedDays.map { DayOfWeek.of(it) } else null,
@@ -282,8 +218,8 @@ fun AddMedicationScreen(
                     }
                 },
                 modifier = Modifier
-                    .then(if (isTablet) Modifier.widthIn(max = 300.dp) else Modifier.fillMaxWidth()) // Apply conditional width
-                    .padding(16.dp) // Keep overall padding
+                    .then(if (isTablet) Modifier.widthIn(max = 300.dp) else Modifier.fillMaxWidth())
+                    .padding(16.dp)
                     .padding(WindowInsets.navigationBars.asPaddingValues())
                     .height(60.dp),
                 shape = MaterialTheme.shapes.extraLarge,
@@ -298,16 +234,13 @@ fun AddMedicationScreen(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    // .verticalScroll(scrollState) // Vertical scroll might need to be applied to individual columns if they overflow
                     .padding(WindowInsets.safeDrawing.asPaddingValues())
             ) {
-                // Left Column (Steps Indicator)
                 Column(
                     modifier = Modifier
-                        .weight(0.3f) // Adjust weight as needed
-                        .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 16.dp) // Adjusted padding
-                        .fillMaxHeight() // Ensure it takes full height for the line connectors
-                    // .verticalScroll(rememberScrollState()) // Removed as the indicator itself should manage its height or be non-scrolling if designed to fit
+                        .weight(0.3f)
+                        .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 16.dp)
+                        .fillMaxHeight()
                 ) {
                     AddMedicationStepsIndicator(
                         currentStep = currentStep,
@@ -316,24 +249,20 @@ fun AddMedicationScreen(
                     )
                 }
 
-                // Right Column (Content based on currentStep)
-                val rightColumnModifier = if (currentStep == 0) { // Step 0 is MedicationNameInput with LazyColumn
+                val rightColumnModifier = if (currentStep == 0) {
                     Modifier
                         .weight(0.7f)
                         .padding(16.dp)
-                        // NO verticalScroll for step 0 on tablet, LazyColumn in MedicationNameInput will handle scroll
-                        .fillMaxHeight() // Ensure this column takes up available height for LazyColumn to fill
+                        .fillMaxHeight()
                 } else {
                     Modifier
                         .weight(0.7f)
                         .padding(16.dp)
-                        .verticalScroll(scrollState) // Existing scrollState for other steps
+                        .verticalScroll(scrollState)
                 }
 
-                Column(
-                    modifier = rightColumnModifier
-                ) {
-                    CurrentStepContent( // Extracted the when block into a new Composable
+                Column(modifier = rightColumnModifier) {
+                    CurrentStepContent(
                         currentStep = currentStep,
                         medicationName = medicationName,
                         onMedicationNameChange = { medicationName = it },
@@ -361,7 +290,6 @@ fun AddMedicationScreen(
                         frequency = frequency,
                         onFrequencySelected = { newFrequency ->
                             frequency = newFrequency
-                            // Reset states logic...
                             if (newFrequency != FrequencyType.ONCE_A_DAY) {
                                 onceADayTime = null
                                 selectedDays = emptyList()
@@ -392,13 +320,15 @@ fun AddMedicationScreen(
                         onIntervalEndTimeSelected = { intervalEndTime = it },
                         selectStartDatePlaceholder = selectStartDatePlaceholder,
                         selectEndDatePlaceholder = selectEndDatePlaceholder,
-                        isTablet = isTablet // Pass isTablet here
+                        isTablet = isTablet,
+                        onShowColorSheet = { showColorSheet = true },
+                        onDismissColorSheet = { showColorSheet = false },
+                        showColorSheet = showColorSheet
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         } else {
-            // Phone layout (existing Column structure)
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -406,7 +336,7 @@ fun AddMedicationScreen(
                     .fillMaxHeight()
                     .verticalScroll(scrollState)
             ) {
-                CurrentStepContent( // Use the extracted Composable here too
+                CurrentStepContent(
                     currentStep = currentStep,
                     medicationName = medicationName,
                     onMedicationNameChange = { medicationName = it },
@@ -434,7 +364,6 @@ fun AddMedicationScreen(
                     frequency = frequency,
                     onFrequencySelected = { newFrequency ->
                         frequency = newFrequency
-                        // Reset states logic...
                         if (newFrequency != FrequencyType.ONCE_A_DAY) {
                             onceADayTime = null
                             selectedDays = emptyList()
@@ -464,8 +393,11 @@ fun AddMedicationScreen(
                     intervalEndTime = intervalEndTime,
                     onIntervalEndTimeSelected = { intervalEndTime = it },
                     selectStartDatePlaceholder = selectStartDatePlaceholder,
-                        selectEndDatePlaceholder = selectEndDatePlaceholder,
-                        isTablet = isTablet // Pass isTablet here
+                    selectEndDatePlaceholder = selectEndDatePlaceholder,
+                    isTablet = isTablet,
+                    onShowColorSheet = { showColorSheet = true },
+                    onDismissColorSheet = { showColorSheet = false },
+                    showColorSheet = showColorSheet
                 )
             }
         }
@@ -509,10 +441,12 @@ private fun CurrentStepContent(
     onIntervalStartTimeSelected: (LocalTime?) -> Unit,
     intervalEndTime: LocalTime?,
     onIntervalEndTimeSelected: (LocalTime?) -> Unit,
-    // Add placeholders passed from parent
     selectStartDatePlaceholder: String,
     selectEndDatePlaceholder: String,
-    isTablet: Boolean // Add this
+    isTablet: Boolean,
+    onShowColorSheet: () -> Unit,
+    onDismissColorSheet: () -> Unit,
+    showColorSheet: Boolean
 ) {
     when (currentStep) {
         0 -> {
@@ -522,10 +456,9 @@ private fun CurrentStepContent(
             val searchResultsListModifier = if (isTablet) {
                 Modifier.fillMaxHeight()
             } else if (isLandscape) {
-                // More constrained height for phone landscape to avoid conflict with TextField & outer scroll
-                Modifier.heightIn(max = 300.dp) // Adjusted from 100dp to give a bit more space
-            } else { // Phone Portrait
-                Modifier.heightIn(min = 200.dp, max = 600.dp) // Adjusted from 200dp
+                Modifier.heightIn(max = 300.dp)
+            } else {
+                Modifier.heightIn(min = 200.dp, max = 600.dp)
             }
 
             MedicationNameInput(
@@ -536,18 +469,30 @@ private fun CurrentStepContent(
             )
         }
         1 -> {
-             Column(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 600.dp)) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 600.dp)) {
                 MedicationTypeSelector(
                     selectedTypeId = selectedTypeId,
                     onTypeSelected = onTypeSelected,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     selectedColor = selectedColor
                 )
-                 ColorSelector(
-                     selectedColor = selectedColor,
-                     onColorSelected = onColorSelected,
-                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                 )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .clickable { onShowColorSheet() }
+                ) {
+                    ColorSelector(
+                        selectedColor = selectedColor,
+                        onColorSelected = onColorSelected,
+                        showBottomSheet = showColorSheet,
+                        onDismiss = onDismissColorSheet
+                    )
+                }
             }
         }
         2 -> {
@@ -558,9 +503,9 @@ private fun CurrentStepContent(
                 saveRemainingFraction = saveRemainingFraction,
                 onSaveRemainingFractionChange = onSaveRemainingFractionChange,
                 medicationSearchResult = medicationSearchResult,
-                startDate = startDate, // Pass the potentially placeholder-containing state
+                startDate = startDate,
                 onStartDateSelected = onStartDateSelected,
-                endDate = endDate, // Pass the potentially placeholder-containing state
+                endDate = endDate,
                 onEndDateSelected = onEndDateSelected
             )
         }
@@ -585,13 +530,12 @@ private fun CurrentStepContent(
             )
         }
         4 -> {
-            // Ensure placeholders are correctly passed if MedicationSummary uses them
             val summaryStartDate = if (startDate == selectStartDatePlaceholder) "" else startDate
             val summaryEndDate = if (endDate == selectEndDatePlaceholder) "" else endDate
             MedicationSummary(
                 typeId = selectedTypeId, medicationName = medicationName, color = selectedColor.backgroundColor,
                 dosage = dosage, packageSize = packageSize, frequency = frequency,
-                startDate = summaryStartDate, endDate = summaryEndDate, // Use resolved values
+                startDate = summaryStartDate, endDate = summaryEndDate,
                 onceADayTime = onceADayTime,
                 selectedTimes = selectedTimes,
                 intervalHours = intervalHours,
@@ -601,7 +545,18 @@ private fun CurrentStepContent(
                 selectedDays = selectedDays
             )
             Spacer(modifier = Modifier.height(16.dp))
-            ColorSelector(selectedColor = selectedColor, onColorSelected = onColorSelected)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowColorSheet() }
+            ) {
+                ColorSelector(
+                    selectedColor = selectedColor,
+                    onColorSelected = onColorSelected,
+                    showBottomSheet = showColorSheet,
+                    onDismiss = onDismissColorSheet
+                )
+            }
         }
     }
 }
@@ -611,9 +566,8 @@ private fun CurrentStepContent(
 fun AddMedicationScreenPreview() {
     AppTheme {
         AddMedicationScreen(
-            // onNavigateBack = {}, // Remove
-            navController = rememberNavController(), // Add
-            widthSizeClass = WindowWidthSizeClass.Compact // Provide a default for preview
+            navController = rememberNavController(),
+            widthSizeClass = WindowWidthSizeClass.Compact
         )
     }
 }
@@ -653,7 +607,7 @@ fun InfoRowPreview() {
 @Composable
 fun MedicationSummary(
     typeId: Int, medicationName: String, color: Color, dosage: String, packageSize: String,
-    frequency: FrequencyType, // Changed to FrequencyType
+    frequency: FrequencyType,
     startDate: String, endDate: String,
     onceADayTime: LocalTime?,
     selectedTimes: List<LocalTime>,
@@ -682,7 +636,9 @@ fun MedicationSummary(
         .replace(".0", "")
         .trim()
 
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)) {
         Text(stringResource(id = R.string.medication_summary_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
         InfoRow(stringResource(id = R.string.label_name), medicationName)
@@ -693,11 +649,13 @@ fun MedicationSummary(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
             Text(stringResource(id = R.string.label_color), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Spacer(Modifier.width(8.dp))
-            Box(Modifier.size(24.dp).background(color, CircleShape))
+            Box(Modifier
+                .size(24.dp)
+                .background(color, CircleShape))
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
         Text(stringResource(id = R.string.reminder_details_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
-        InfoRow(stringResource(id = R.string.label_frequency), stringResource(id = frequency.stringResId)) // Display localized frequency name
+        InfoRow(stringResource(id = R.string.label_frequency), stringResource(id = frequency.stringResId))
 
         when (frequency) {
             FrequencyType.ONCE_A_DAY -> {
@@ -726,7 +684,9 @@ fun MedicationSummary(
 
 @Composable
 fun InfoRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+    Row(Modifier
+        .fillMaxWidth()
+        .padding(vertical = 2.dp)) {
         Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.4f))
         Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(0.6f))
     }

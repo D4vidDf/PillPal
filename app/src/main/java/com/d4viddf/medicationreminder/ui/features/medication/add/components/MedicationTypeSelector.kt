@@ -42,10 +42,10 @@ import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeV
 @Composable
 fun MedicationTypeSelector(
     modifier: Modifier = Modifier, // This modifier comes from AddMedicationScreen (e.g., .fillMaxWidth().height(400.dp))
-    selectedTypeId: Int,
+    selectedTypeId: Int?,
     onTypeSelected: (Int) -> Unit,
     viewModel: MedicationTypeViewModel = hiltViewModel(),
-    selectedColor: MedicationColor,
+    selectedColor: MedicationColor? = null,
 ) {
     val medicationTypes by viewModel.medicationTypes.collectAsState(initial = emptyList())
 
@@ -183,17 +183,20 @@ fun MedicationTypeSelectorPreview() {
 fun MedicationTypeItem(
     type: MedicationType,
     isSelected: Boolean,
-    selectedColor: MedicationColor,
+    selectedColor: MedicationColor?,
     cornerRadius: RoundedCornerShape,
     onClick: () -> Unit
 ) {
+    val backgroundColor = if (isSelected) selectedColor?.backgroundColor ?: MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val textColor = if (isSelected) selectedColor?.textColor ?: MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+
     Column(
         modifier = Modifier
             .padding(4.dp) // Outer padding for spacing between items
             .fillMaxWidth() // Item takes full width of its grid cell
             .aspectRatio(1f) // Make item square or desired aspect ratio
             .background(
-                color = if (isSelected) selectedColor.backgroundColor else MaterialTheme.colorScheme.surfaceVariant, // Use surfaceVariant for non-selected
+                color = backgroundColor,
                 shape = cornerRadius
             )
             .clickable(onClick = onClick)
@@ -213,7 +216,7 @@ fun MedicationTypeItem(
         Text(
             text = type.name,
             style = MaterialTheme.typography.bodySmall, // Adjusted for potentially smaller space
-            color = if (isSelected) selectedColor.textColor else MaterialTheme.colorScheme.onSurface,
+            color = textColor,
             textAlign = TextAlign.Center,
             maxLines = 1
         )
