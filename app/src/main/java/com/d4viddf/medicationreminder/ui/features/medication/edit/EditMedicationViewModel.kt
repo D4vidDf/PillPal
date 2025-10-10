@@ -100,8 +100,19 @@ class EditMedicationViewModel @Inject constructor(
     }
 
     fun onColorSelected(color: MedicationColor) {
-        val updatedMedication = _uiState.value.medication?.copy(color = color.name)
-        _uiState.update { it.copy(medication = updatedMedication, hasUnsavedChanges = true, isColorSelectorExpanded = false) }
+        viewModelScope.launch {
+            _uiState.value.medication?.let {
+                val updatedMedication = it.copy(color = color.name)
+                medicationRepository.updateMedication(updatedMedication)
+                _uiState.update { state ->
+                    state.copy(
+                        medication = updatedMedication,
+                        isColorSelectorExpanded = false
+                    )
+                }
+                initialMedicationState = updatedMedication
+            }
+        }
     }
 
     // --- Actions ---
