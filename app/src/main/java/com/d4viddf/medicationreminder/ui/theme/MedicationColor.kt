@@ -1,12 +1,14 @@
 package com.d4viddf.medicationreminder.ui.theme
 
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.d4viddf.medicationreminder.R
 
 // Define an enum for the color options
 enum class MedicationColor(
-    val colorName: String, // Add a field for the color name
+    @StringRes val colorNameResId: Int, // Add a field for the color name
     val colorValue: Color,
     val backgroundColor: Color,
     val textColor: Color,
@@ -16,7 +18,7 @@ enum class MedicationColor(
     val progressBarColor: Color,
 ) {
     ORANGE(
-        colorName = "Orange", // Set the color name
+        colorNameResId = R.string.color_orange,
         colorValue = Color(0xFFd96126),
         backgroundColor = Color(0xFFd96126),
         textColor = Color(0xFFfffdf3),
@@ -26,7 +28,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xFFFFFFFF)
     ),
     PINK(
-        colorName = "Pink",
+        colorNameResId = R.string.color_pink,
         colorValue = Color(0xFFd6418c),
         backgroundColor = Color(0xFFd6418c),
         textColor = Color(0xFFfffdff),
@@ -36,7 +38,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xFFFFFFFF)
     ),
     GREEN(
-        colorName = "Dark Green",
+        colorNameResId = R.string.color_green,
         colorValue = Color(0xFF009965),
         backgroundColor = Color(0xFF009965),
         textColor = Color(0xFFe2fffa),
@@ -46,7 +48,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xFFFFFFFF)
     ),
     BLUE(
-        colorName = "Blue",
+        colorNameResId = R.string.color_blue,
         colorValue = Color(0xFF269dd8),
         backgroundColor = Color(0xFF269dd8),
         textColor = Color(0xFFfeffff),
@@ -56,7 +58,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xFFFFFFFF)
     ),
     PURPLE(
-        colorName = "Purple",
+        colorNameResId = R.string.color_purple,
         colorValue = Color(0xFF6b5eee),
         backgroundColor = Color(0xFF6b5eee),
         textColor = Color(0xFFfffeff),
@@ -66,7 +68,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xFFFFFFFF)
     ),
     YELLOW(
-        colorName = "Golden",
+        colorNameResId = R.string.color_yellow,
         colorValue = Color(0xFFf0b300),
         backgroundColor = Color(0xFFf0b300),
         textColor = Color(0xFF0D0D0D),
@@ -76,7 +78,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xFFFFFFFF)
     ),
     LIGHT_YELLOW(
-        colorName = "Light Yellow",
+        colorNameResId = R.string.color_light_yellow,
         colorValue = Color(0xFFfcdd82),
         backgroundColor = Color(0xFFfcdd82),
         textColor = Color(0xFF372c11),
@@ -86,7 +88,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xff2e2918)
     ),
     LIGHT_ORANGE(
-        colorName = "Light Orange",
+        colorNameResId = R.string.color_light_orange,
         colorValue = Color(0xFFfcc793),
         backgroundColor = Color(0xFFfcc793),
         textColor = Color(0xFF33281f),
@@ -96,7 +98,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xff2e251c)
     ),
     LIGHT_PINK(
-        colorName = "Light Pink",
+        colorNameResId = R.string.color_light_pink,
         colorValue = Color(0xFFf7c8ee),
         backgroundColor = Color(0xFFf7c8ee),
         textColor = Color(0xFF2f2631),
@@ -106,7 +108,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xff2d262c)
     ),
     LIGHT_PURPLE(
-        colorName = "Light Purple",
+        colorNameResId = R.string.color_light_purple,
         colorValue = Color(0xFFd3cffb),
         backgroundColor = Color(0xFFd3cffb),
         textColor = Color(0xFF302e40),
@@ -116,7 +118,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xff26262d)
     ),
     LIGHT_GREEN(
-        colorName = "Light Green",
+        colorNameResId = R.string.color_light_green,
         colorValue = Color(0xFFbae0b7),
         backgroundColor = Color(0xFFbae0b7),
         textColor = Color(0xFF2a2f27),
@@ -126,7 +128,7 @@ enum class MedicationColor(
         progressBarColor = Color(0xff232822)
     ),
     LIGHT_BLUE(
-        colorName = "Light Blue",
+        colorNameResId = R.string.color_light_blue,
         colorValue = Color(0xFFc5dfec),
         backgroundColor = Color(0xFFc5dfec),
         textColor = Color(0xFF262f36),

@@ -298,7 +298,13 @@ private fun GeneralInfoSection(
             shape = RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp),
             onClick = onColorPickerClicked
         ) {
-            val selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) }
+            val selectedColor = state.medication?.color?.let {
+                try {
+                    MedicationColor.valueOf(it)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
 
             ColorSelector(
                 selectedColor = selectedColor,

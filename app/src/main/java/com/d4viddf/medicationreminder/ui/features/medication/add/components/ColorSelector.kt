@@ -54,9 +54,8 @@ fun ColorSelector(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val selectedColorAccText = stringResource(id = R.string.color_selector_selected_color_acc,
-        selectedColor?.colorName ?: stringResource(id = R.string.color_orange)
-    )
+    val selectedColorName = selectedColor?.let { stringResource(id = it.colorNameResId) } ?: stringResource(id = R.string.color_orange)
+    val selectedColorAccText = stringResource(id = R.string.color_selector_selected_color_acc, selectedColorName)
     val expandAccText = stringResource(id = R.string.color_selector_expand_acc)
     val colorSelectorTitleText = stringResource(id = R.string.color_selector_title)
 
@@ -83,7 +82,7 @@ fun ColorSelector(
                     }
             )
             Spacer(modifier = Modifier.width(8.dp))
-            selectedColor?.colorName?.let { Text(it) }
+            Text(selectedColorName)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = expandAccText)
         }
@@ -106,7 +105,8 @@ fun ColorSelector(
                     items(medicationColors.size) { index ->
                         val color = medicationColors[index]
                         val isSelected = color == selectedColor
-                        val itemColorAccText = stringResource(id = R.string.color_selector_selected_color_acc, color.colorName)
+                        val itemColorName = stringResource(id = color.colorNameResId)
+                        val itemColorAccText = stringResource(id = R.string.color_selector_selected_color_acc, itemColorName)
                         val itemSelectedAccText = stringResource(id = R.string.color_selector_selected_acc)
 
                         val cornerShape = when (index) {
