@@ -22,7 +22,7 @@
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Novo medicamento</string>
     <string name="medication_summary_title">Resumo da medicación</string>
-    <string name="label_name">Nome:</string>
+    <string name="label_name">Nome</string>
     <string name="label_dosage">Dose:</string>
     <string name="label_package_size">Tamaño do envase:</string>
     <string name="label_start_date">Data de inicio:</string>
@@ -741,6 +741,8 @@
     <string name="archive_treatment_dialog_text">Queres arquivar este tratamento? Arquivar o tratamento detén os recordatorios pero mantén os datos na app.</string>
     <string name="delete_treatment_dialog_title">Eliminar Tratamento</string>
     <string name="delete_treatment_dialog_text">Estás seguro de que queres eliminar este tratamento da app? Esta acción borrará os datos permanentemente.</string>
+    <string name="end_treatment_dialog_title">Finalizar Tratamento</string>
+    <string name="end_treatment_dialog_text">Selecciona a data de finalización para este tratamento.</string>
     <string name="save_changes_dialog_title">Gardar Cambios?</string>
     <string name="save_changes_dialog_text">Tes cambios sen gardar. Gustaríache gardalos antes de saír?</string>
     <string name="discard">Descartar</string>
@@ -772,4 +774,15 @@
     <string name="low_stock_reminder_title">Cantos días antes de que se esgote che gustaría recibir un recordatorio?</string>
     <string name="low_stock_reminder_runs_out">%1$s esgótase en %2$d días</string>
     <string name="disable">Desactivar</string>
+
+    <!-- Medication Types -->
+    <string name="medication_type_tablet">Tableta</string>
+    <string name="medication_type_pill">Pílula</string>
+    <string name="medication_type_powder">Po</string>
+    <string name="medication_type_syringe">Xiringa</string>
+    <string name="medication_type_creme">Crema</string>
+    <string name="medication_type_spray">Aerosol</string>
+    <string name="medication_type_liquid">Líquido</string>
+    <string name="medication_type_suppositorium">Supositorio</string>
+    <string name="medication_type_patch">Parche</string>
 </resources>

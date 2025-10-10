@@ -123,15 +123,6 @@ fun RefillStockScreenContent(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (uiState.amountToAdd.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.refill_stock_placeholder, uiState.medicationUnit),
-                                        style = LocalTextStyle.current.copy(
-                                            fontSize = 64.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                        )
-                                    )
-                                }
                                 innerTextField()
                             }
                         }
@@ -154,8 +145,7 @@ fun RefillStockScreenContent(
                         .fillMaxWidth()
                         .heightIn(ButtonDefaults.MediumContainerHeight),
                     shapes = ButtonDefaults.shapes(),
-                    enabled = uiState.amountToAdd.isNotBlank() && (uiState.amountToAdd.toIntOrNull()
-                        ?: 0) > 0
+                    enabled = uiState.amountToAdd.isNotBlank() && uiState.amountToAdd != "0"
                 ) {
                     Text(text = stringResource(R.string.add))
                 }

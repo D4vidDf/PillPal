@@ -9,6 +9,7 @@ import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.ui.navigation.MEDICATION_ID_ARG
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -92,6 +93,20 @@ class EditMedicationViewModel @Inject constructor(
 
     fun onDismissSaveDialog() {
         _uiState.update { it.copy(showSaveDialog = false) }
+    }
+
+    fun onColorPickerClicked() {
+        _uiState.update { it.copy(showColorPicker = true) }
+    }
+
+    fun onDismissColorPicker() {
+        _uiState.update { it.copy(showColorPicker = false) }
+    }
+
+    fun onColorSelected(color: MedicationColor) {
+        val updatedMedication = _uiState.value.medication?.copy(color = color.name)
+        _uiState.update { it.copy(medication = updatedMedication, hasUnsavedChanges = true) }
+        onDismissColorPicker()
     }
 
     // --- Actions ---

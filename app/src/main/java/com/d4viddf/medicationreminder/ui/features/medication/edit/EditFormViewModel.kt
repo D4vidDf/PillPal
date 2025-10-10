@@ -15,15 +15,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class EditFormAndColorViewModel @Inject constructor(
+class EditFormViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(EditFormAndColorState())
-    val uiState: StateFlow<EditFormAndColorState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EditFormState())
+    val uiState: StateFlow<EditFormState> = _uiState.asStateFlow()
 
     private val medicationId: Int = savedStateHandle.get<Int>(MEDICATION_ID_ARG)!!
+    private val colorName: String? = savedStateHandle.get<String>("colorName")
 
     init {
         loadInitialData()
@@ -37,7 +38,7 @@ class EditFormAndColorViewModel @Inject constructor(
                     currentState.copy(
                         isLoading = false,
                         medicationTypeId = it.typeId,
-                        medicationColor = MedicationColor.valueOf(it.color)
+                        medicationColor = colorName?.let { MedicationColor.valueOf(it) }
                     )
                 }
             }
@@ -48,18 +49,13 @@ class EditFormAndColorViewModel @Inject constructor(
         _uiState.update { it.copy(medicationTypeId = typeId) }
     }
 
-    fun onColorSelected(color: MedicationColor) {
-        _uiState.update { it.copy(medicationColor = color) }
-    }
-
     fun onSave() {
         viewModelScope.launch {
             val currentState = _uiState.value
             val medication = medicationRepository.getMedicationById(medicationId)
             medication?.let {
                 val updatedMedication = it.copy(
-                    typeId = currentState.medicationTypeId,
-                    color = currentState.medicationColor?.name ?: it.color
+                    typeId = currentState.medicationTypeId
                 )
                 medicationRepository.updateMedication(updatedMedication)
             }

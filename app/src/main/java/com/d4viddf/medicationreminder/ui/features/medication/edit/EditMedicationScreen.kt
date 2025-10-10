@@ -23,8 +23,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.*
+import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import java.time.LocalDate
 
 @Composable
@@ -74,11 +76,14 @@ fun EditMedicationScreen(
         onDiscardChanges = {
             viewModel.onDismissSaveDialog()
             onNavigateBack()
-        }
+        },
+        onColorPickerClicked = viewModel::onColorPickerClicked,
+        onDismissColorPicker = viewModel::onDismissColorPicker,
+        onColorSelected = viewModel::onColorSelected
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditMedicationScreenContent(
     state: EditMedicationState,
@@ -95,7 +100,10 @@ fun EditMedicationScreenContent(
     onConfirmEndTreatment: (LocalDate) -> Unit,
     onDismissSaveDialog: () -> Unit,
     onConfirmSaveChanges: () -> Unit,
-    onDiscardChanges: () -> Unit
+    onDiscardChanges: () -> Unit,
+    onColorPickerClicked: () -> Unit,
+    onDismissColorPicker: () -> Unit,
+    onColorSelected: (MedicationColor) -> Unit
 ) {
     BackHandler { onBackClicked() }
 
@@ -118,7 +126,7 @@ fun EditMedicationScreenContent(
         Column(modifier = Modifier
             .padding(paddingValues)
             .verticalScroll(rememberScrollState())) {
-            GeneralInfoSection(state, navController)
+            GeneralInfoSection(state, navController, onColorPickerClicked)
             ScheduleSection(state)
             DoseSection(state)
             MedicationDetailsSection(state, navController)
@@ -175,6 +183,15 @@ fun EditMedicationScreenContent(
                 onDiscardChanges = onDiscardChanges
             )
         }
+
+        if (state.showColorPicker) {
+            ModalBottomSheet(onDismissRequest = onDismissColorPicker) {
+                ColorSelector(
+                    selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) } ?: MedicationColor.LIGHT_ORANGE,
+                    onColorSelected = onColorSelected
+                )
+            }
+        }
     }
 }
 
@@ -194,7 +211,11 @@ private fun ActionButton(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun GeneralInfoSection(state: EditMedicationState, navController: NavController) {
+private fun GeneralInfoSection(
+    state: EditMedicationState,
+    navController: NavController,
+    onColorPickerClicked: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -207,15 +228,19 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp)
+            shape = RoundedCornerShape(12.dp, 12.dp, 6.dp, 6.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Row(modifier = Modifier.fillMaxWidth(),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(R.string.label_name),style = MaterialTheme.typography.bodyLarge
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        stringResource(R.string.label_name),
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         text = state.medication?.name?.substringBefore(" ") ?: "Loading...",
@@ -230,7 +255,7 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 state.medication?.let {
-                    navController.navigate(Screen.EditFormAndColor.createRoute(it.id))
+                    navController.navigate(Screen.EditForm.createRoute(it.id))
                 }
             }
         ) {
@@ -258,17 +283,12 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                     )
                 }
             }
-
         }
         Spacer(Modifier.height(4.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(6.dp,6.dp,12.dp,12.dp),
-            onClick = {
-                state.medication?.let {
-                    navController.navigate(Screen.EditFormAndColor.createRoute(it.id))
-                }
-            },
+            shape = RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp),
+            onClick = onColorPickerClicked,
             colors = CardDefaults.cardColors()
         ) {
             Row(
@@ -279,15 +299,34 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.edit_med_form_color),
+                    text = stringResource(R.string.label_color),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = state.medication?.color ?: "",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    val color = state.medication?.color?.let { MedicationColor.valueOf(it) }
+                    if (color != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(
+                                    color = color.colorValue,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = color.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.not_set),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
@@ -295,7 +334,6 @@ private fun GeneralInfoSection(state: EditMedicationState, navController: NavCon
                     )
                 }
             }
-
         }
     }
 }
@@ -521,7 +559,10 @@ fun EditMedicationScreenPreview() {
             onConfirmEndTreatment = {},
             onDismissSaveDialog = {},
             onConfirmSaveChanges = {},
-            onDiscardChanges = {}
+            onDiscardChanges = {},
+            onColorPickerClicked = {},
+            onDismissColorPicker = {},
+            onColorSelected = {}
         )
     }
 }

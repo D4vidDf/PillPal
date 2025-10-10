@@ -25,34 +25,31 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
 @Composable
-fun EditFormAndColorScreen(
-    viewModel: EditFormAndColorViewModel = hiltViewModel(),
+fun EditFormScreen(
+    viewModel: EditFormViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    EditFormAndColorScreenContent(
+    EditFormScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onSave = viewModel::onSave,
-        onTypeSelected = viewModel::onTypeSelected,
-        onColorSelected = viewModel::onColorSelected
+        onTypeSelected = viewModel::onTypeSelected
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditFormAndColorScreenContent(
-    uiState: EditFormAndColorState,
+fun EditFormScreenContent(
+    uiState: EditFormState,
     onNavigateBack: () -> Unit,
     onSave: () -> Unit,
-    onTypeSelected: (Int) -> Unit,
-    onColorSelected: (MedicationColor) -> Unit
+    onTypeSelected: (Int) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -87,8 +84,6 @@ fun EditFormAndColorScreenContent(
             if (uiState.isLoading) {
                 CircularWavyProgressIndicator()
             } else {
-                // The original code had a check for medicationTypeId and medicationColor being non-null.
-                // This check is now handled by the data class, which makes the code cleaner.
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -97,10 +92,6 @@ fun EditFormAndColorScreenContent(
                         onTypeSelected = onTypeSelected,
                         selectedColor = uiState.medicationColor,
                         modifier = Modifier.weight(0.1f)
-                    )
-                    ColorSelector(
-                        selectedColor = uiState.medicationColor,
-                        onColorSelected = onColorSelected
                     )
                 }
             }
@@ -113,16 +104,15 @@ fun EditFormAndColorScreenContent(
 @Composable
 private fun EditFormAndColorScreenPreview() {
     AppTheme {
-        EditFormAndColorScreenContent(
-            uiState = EditFormAndColorState(
+        EditFormScreenContent(
+            uiState = EditFormState(
                 isLoading = false,
                 medicationTypeId = 1,
                 medicationColor = MedicationColor.LIGHT_PINK
             ),
             onNavigateBack = {},
             onSave = {},
-            onTypeSelected = {},
-            onColorSelected = {}
+            onTypeSelected = {}
         )
     }
 }

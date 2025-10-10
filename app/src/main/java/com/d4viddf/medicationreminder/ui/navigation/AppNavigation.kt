@@ -106,11 +106,8 @@ sealed class Screen(val route: String) {
     object EditMedication : Screen("edit_medication_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "edit_medication_screen/$medicationId"
     }
-    object EditFormAndColor : Screen("edit_form_and_color_screen/{$MEDICATION_ID_ARG}") {
-        fun createRoute(medicationId: Int) = "edit_form_and_color_screen/$medicationId"
-    }
-    object EditStock : Screen("edit_stock_screen/{$MEDICATION_ID_ARG}") {
-        fun createRoute(medicationId: Int) = "edit_stock_screen/$medicationId"
+    object EditForm : Screen("edit_form_screen/{$MEDICATION_ID_ARG}/{colorName}") {
+        fun createRoute(medicationId: Int, colorName: String) = "edit_form_screen/$medicationId/$colorName"
     }
     object RefillStock : Screen("refill_stock_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "refill_stock_screen/$medicationId"
@@ -237,12 +234,13 @@ fun AppNavigation(
                 )
             }
             composable(
-                Screen.EditFormAndColor.route,
+                Screen.EditForm.route,
                 arguments = listOf(
-                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType },
+                    navArgument("colorName") { type = NavType.StringType }
                 )
             ) {
-                com.d4viddf.medicationreminder.ui.features.medication.edit.EditFormAndColorScreen(
+                com.d4viddf.medicationreminder.ui.features.medication.edit.EditFormScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

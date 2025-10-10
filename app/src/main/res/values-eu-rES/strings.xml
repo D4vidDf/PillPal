@@ -22,7 +22,7 @@
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Botika berria</string>
     <string name="medication_summary_title">Botiken laburpena</string>
-    <string name="label_name">Izena:</string>
+    <string name="label_name">Izena</string>
     <string name="label_dosage">Dosia:</string>
     <string name="label_package_size">Ontziaren tamaina:</string>
     <string name="label_start_date">Hasiera-data:</string>
@@ -743,6 +743,8 @@
     <string name="archive_treatment_dialog_text">Tratamendu hau artxibatu nahi duzu? Tratamendua artxibatzeak abisuak gelditzen ditu baina datuak aplikazioan mantentzen ditu.</string>
     <string name="delete_treatment_dialog_title">Ezabatu Tratamendua</string>
     <string name="delete_treatment_dialog_text">Ziur zaude tratamendu hau aplikaziotik ezabatu nahi duzula? Ekintza honek datuak betiko ezabatuko ditu.</string>
+    <string name="end_treatment_dialog_title">Amaitu Tratamendua</string>
+    <string name="end_treatment_dialog_text">Hautatu tratamendu honen amaiera-data.</string>
     <string name="save_changes_dialog_title">Gorde Aldaketak?</string>
     <string name="save_changes_dialog_text">Gorde gabeko aldaketak dituzu. Gorde nahi dituzu irten aurretik?</string>
     <string name="discard">Baztertu</string>
@@ -774,4 +776,15 @@
     <string name="low_stock_reminder_title">Zenbat egun lehenago jaso nahi duzu abisua agortu baino lehen?</string>
     <string name="low_stock_reminder_runs_out">%1$s %2$d egun barru agortuko da</string>
     <string name="disable">Desgaitu</string>
+
+    <!-- Medication Types -->
+    <string name="medication_type_tablet">Tableta</string>
+    <string name="medication_type_pill">Pilula</string>
+    <string name="medication_type_powder">Hautsa</string>
+    <string name="medication_type_syringe">Xiringa</string>
+    <string name="medication_type_creme">Krema</string>
+    <string name="medication_type_spray">Aerosola</string>
+    <string name="medication_type_liquid">Likidoa</string>
+    <string name="medication_type_suppositorium">Supositorioa</string>
+    <string name="medication_type_patch">Partxea</string>
 </resources>

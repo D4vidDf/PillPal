@@ -27,10 +27,10 @@ class EditStockViewModel @Inject constructor(
     private val medicationId: Int = savedStateHandle.get<Int>(MEDICATION_ID_ARG)!!
 
     init {
-        loadStockData()
+        loadMedicationData()
     }
 
-    private fun loadStockData() {
+    fun loadMedicationData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val medication = medicationRepository.getMedicationById(medicationId)

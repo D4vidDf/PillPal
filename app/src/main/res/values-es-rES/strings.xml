@@ -22,7 +22,7 @@
     <!-- AddMedicationScreen & Components -->
     <string name="new_medication_toolbar_title">Nuevo medicamento</string>
     <string name="medication_summary_title">Resumen de medicación</string>
-    <string name="label_name">Nombre:</string>
+    <string name="label_name">Nombre</string>
     <string name="label_dosage">Dosis:</string>
     <string name="label_package_size">Tamaño del envase:</string>
     <string name="label_start_date">Fecha de inicio:</string>
@@ -814,6 +814,8 @@
     <string name="archive_treatment_dialog_text">¿Quieres archivar este tratamiento? Archivar el tratamiento detiene los recordatorios pero mantiene los datos en la app.</string>
     <string name="delete_treatment_dialog_title">Eliminar Tratamiento</string>
     <string name="delete_treatment_dialog_text">¿Estás seguro de que quieres eliminar este tratamiento de la app? Esta acción borrará los datos permanentemente.</string>
+    <string name="end_treatment_dialog_title">Finalizar Tratamiento</string>
+    <string name="end_treatment_dialog_text">Selecciona la fecha de finalización para este tratamiento.</string>
     <string name="save_changes_dialog_title">¿Guardar Cambios?</string>
     <string name="save_changes_dialog_text">Tienes cambios sin guardar. ¿Te gustaría guardarlos antes de salir?</string>
     <string name="discard">Descartar</string>
@@ -845,4 +847,15 @@
     <string name="low_stock_reminder_title">¿Cuántos días antes de que se agote te gustaría recibir un recordatorio?</string>
     <string name="low_stock_reminder_runs_out">%1$s se agota en %2$d días</string>
     <string name="disable">Desactivar</string>
+
+    <!-- Medication Types -->
+    <string name="medication_type_tablet">Tableta</string>
+    <string name="medication_type_pill">Píldora</string>
+    <string name="medication_type_powder">Polvo</string>
+    <string name="medication_type_syringe">Jeringa</string>
+    <string name="medication_type_creme">Crema</string>
+    <string name="medication_type_spray">Aerosol</string>
+    <string name="medication_type_liquid">Líquido</string>
+    <string name="medication_type_suppositorium">Supositorio</string>
+    <string name="medication_type_patch">Parche</string>
 </resources>
