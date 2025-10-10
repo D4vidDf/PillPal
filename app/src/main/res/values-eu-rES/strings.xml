@@ -791,18 +791,4 @@
     <string name="medication_type_suppositorium">Supositorioa</string>
     <string name="medication_type_patch">Partxea</string>
 
-    <!-- Color Names -->
-    <string name="color_orange">Laranja</string>
-    <string name="color_pink">Arrosa</string>
-    <string name="color_green">Berde Iluna</string>
-    <string name="color_blue">Urdina</string>
-    <string name="color_purple">Morea</string>
-    <string name="color_yellow">Urre kolorea</string>
-    <string name="color_light_yellow">Hori Argia</string>
-    <string name="color_light_orange">Laranja Argia</string>
-    <string name="color_light_pink">Arrosa Argia</string>
-    <string name="color_light_purple">Morea Argia</string>
-    <string name="color_light_green">Berde Argia</string>
-    <string name="color_light_blue">Urdin Argia</string>
-    <string name="color_no_color">Kolorerik gabe</string>
 </resources>

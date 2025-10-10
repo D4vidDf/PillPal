@@ -785,18 +785,4 @@
     <string name="medication_type_suppositorium">Supositorio</string>
     <string name="medication_type_patch">Parche</string>
 
-    <!-- Color Names -->
-    <string name="color_orange">Laranxa</string>
-    <string name="color_pink">Rosa</string>
-    <string name="color_green">Verde Escuro</string>
-    <string name="color_blue">Azul</string>
-    <string name="color_purple">Morado</string>
-    <string name="color_yellow">Dourado</string>
-    <string name="color_light_yellow">Amarelo Claro</string>
-    <string name="color_light_orange">Laranxa Claro</string>
-    <string name="color_light_pink">Rosa Claro</string>
-    <string name="color_light_purple">Morado Claro</string>
-    <string name="color_light_green">Verde Claro</string>
-    <string name="color_light_blue">Azul Claro</string>
-    <string name="color_no_color">Sen cor</string>
 </resources>

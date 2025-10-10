@@ -784,18 +784,4 @@
     <string name="medication_type_suppositorium">Supositori</string>
     <string name="medication_type_patch">Pegat</string>
 
-    <!-- Color Names -->
-    <string name="color_orange">Taronja</string>
-    <string name="color_pink">Rosa</string>
-    <string name="color_green">Verd Fosc</string>
-    <string name="color_blue">Blau</string>
-    <string name="color_purple">Lila</string>
-    <string name="color_yellow">Daurat</string>
-    <string name="color_light_yellow">Groc Clar</string>
-    <string name="color_light_orange">Taronja Clar</string>
-    <string name="color_light_pink">Rosa Clar</string>
-    <string name="color_light_purple">Lila Clar</string>
-    <string name="color_light_green">Verd Clar</string>
-    <string name="color_light_blue">Blau Clar</string>
-    <string name="color_no_color">Sense color</string>
 </resources>

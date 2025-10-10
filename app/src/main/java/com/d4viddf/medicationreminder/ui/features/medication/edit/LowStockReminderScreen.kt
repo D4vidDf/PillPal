@@ -129,6 +129,7 @@ fun LowStockReminderScreenContent(
                                 flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
                             ) {
                                 item { Spacer(modifier = Modifier.height(80.dp)) }
+                                // TO DO fix
                                 items(31) { index ->
                                     val day = index + 1
                                     Text(

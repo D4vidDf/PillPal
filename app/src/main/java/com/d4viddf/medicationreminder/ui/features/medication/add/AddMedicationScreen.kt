@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -73,7 +74,7 @@ fun AddMedicationScreen(
     var selectedDays by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
     var onceADayTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
     var selectedTimes by rememberSaveable { mutableStateOf<List<LocalTime>>(emptyList()) }
-    var intervalHours by rememberSaveable { mutableIntState of(1) }
+    var intervalHours by rememberSaveable { mutableIntStateOf(1) }
     var intervalMinutes by rememberSaveable { mutableIntStateOf(0) }
     var intervalStartTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
     var intervalEndTime by rememberSaveable { mutableStateOf<LocalTime?>(null) }
