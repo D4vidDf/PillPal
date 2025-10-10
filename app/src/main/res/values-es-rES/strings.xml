@@ -826,7 +826,6 @@
     <!-- Edit Stock Screen -->
     <string name="edit_stock_units_left">%s restantes</string>
     <string name="edit_stock_refill_button">Recargar Inventario</string>
-    <string name="edit_stock_edit_button">Editar Inventario</string>
     <string name="edit_stock_reminders_button_cd">Recordatorios de Inventario</string>
 
     <!-- Refill Stock Screen -->

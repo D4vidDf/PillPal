@@ -158,9 +158,9 @@ fun EditStockScreenContent(
                         shapes = ButtonDefaults.shapes(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.edit_stock_edit_button))
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.edit_stock_edit_button))
+                        Text(text = stringResource(R.string.edit))
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     FilledTonalIconButton(

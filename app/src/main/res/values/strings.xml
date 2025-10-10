@@ -835,7 +835,6 @@
     <!-- Edit Stock Screen -->
     <string name="edit_stock_units_left">%s left</string>
     <string name="edit_stock_refill_button">Refill Stock</string>
-    <string name="edit_stock_edit_button">Edit Stock</string>
     <string name="edit_stock_reminders_button_cd">Stock Reminders</string>
 
     <!-- Refill Stock Screen -->

@@ -755,7 +755,6 @@
     <!-- Edit Stock Screen -->
     <string name="edit_stock_units_left">%s geratzen dira</string>
     <string name="edit_stock_refill_button">Birkargatu Inbentarioa</string>
-    <string name="edit_stock_edit_button">Editatu Inbentarioa</string>
     <string name="edit_stock_reminders_button_cd">Inbentarioaren Abisuak</string>
 
     <!-- Refill Stock Screen -->
