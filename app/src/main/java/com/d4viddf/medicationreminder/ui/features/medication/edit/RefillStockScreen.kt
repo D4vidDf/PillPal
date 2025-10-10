@@ -154,7 +154,8 @@ fun RefillStockScreenContent(
                         .fillMaxWidth()
                         .heightIn(ButtonDefaults.MediumContainerHeight),
                     shapes = ButtonDefaults.shapes(),
-                    enabled = uiState.amountToAdd.isNotBlank() && uiState.amountToAdd.toIntOrNull() ?: 0 > 0
+                    enabled = uiState.amountToAdd.isNotBlank() && (uiState.amountToAdd.toIntOrNull()
+                        ?: 0) > 0
                 ) {
                     Text(text = stringResource(R.string.add))
                 }
@@ -171,6 +172,25 @@ fun RefillStockScreenPreview() {
             isLoading = false,
             currentStock = 90,
             amountToAdd = "10",
+            medicationUnit = "pills"
+        )
+        RefillStockScreenContent(
+            uiState = previewState,
+            onNavigateBack = {},
+            onAmountToAddChanged = {},
+            onSave = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RefillEmptyStockScreenPreview() {
+    AppTheme {
+        val previewState = RefillStockState(
+            isLoading = false,
+            currentStock = 90,
+            amountToAdd = "0",
             medicationUnit = "pills"
         )
         RefillStockScreenContent(

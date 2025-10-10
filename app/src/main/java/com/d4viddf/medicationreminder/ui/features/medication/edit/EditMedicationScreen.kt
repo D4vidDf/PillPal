@@ -3,7 +3,9 @@ package com.d4viddf.medicationreminder.ui.features.medication.edit
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -11,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,7 +34,7 @@ fun EditMedicationScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -54,7 +55,6 @@ fun EditMedicationScreen(
         onArchiveClicked = viewModel::onArchiveClicked,
         onDeleteClicked = viewModel::onDeleteClicked,
         onEndTreatmentClicked = viewModel::onEndTreatmentClicked,
-        onToggleSuspend = viewModel::toggleSuspend,
         onDismissArchiveDialog = viewModel::onDismissArchiveDialog,
         onConfirmArchive = viewModel::confirmArchive,
         onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
@@ -87,7 +87,6 @@ fun EditMedicationScreenContent(
     onArchiveClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
     onEndTreatmentClicked: () -> Unit,
-    onToggleSuspend: () -> Unit,
     onDismissArchiveDialog: () -> Unit,
     onConfirmArchive: () -> Unit,
     onDismissDeleteDialog: () -> Unit,
@@ -116,22 +115,25 @@ fun EditMedicationScreenContent(
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
+        Column(modifier = Modifier
+            .padding(paddingValues)
+            .verticalScroll(rememberScrollState())) {
             GeneralInfoSection(state, navController)
             ScheduleSection(state)
             DoseSection(state)
             MedicationDetailsSection(state, navController)
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             ActionButton(text = stringResource(R.string.edit_med_archive_button), onClick = onArchiveClicked)
+            Spacer(modifier = Modifier.height(8.dp))
             ActionButton(text = stringResource(R.string.edit_med_end_treatment_button), onClick = onEndTreatmentClicked)
-
+            Spacer(modifier = Modifier.height(8.dp))
             FilledTonalButton(
                 onClick = onDeleteClicked,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(ButtonDefaults.ExtraSmallContainerHeight)
+                    .heightIn(ButtonDefaults.MediumContainerHeight)
                     .padding(horizontal = 16.dp),
                 shapes= ButtonDefaults.shapes(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)
@@ -183,7 +185,7 @@ private fun ActionButton(text: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(ButtonDefaults.ExtraSmallContainerHeight)
+            .heightIn(ButtonDefaults.MediumContainerHeight)
             .padding(horizontal = 16.dp),
         shapes= ButtonDefaults.shapes()
     ) {
@@ -511,7 +513,6 @@ fun EditMedicationScreenPreview() {
             onArchiveClicked = {},
             onDeleteClicked = {},
             onEndTreatmentClicked = {},
-            onToggleSuspend = {},
             onDismissArchiveDialog = {},
             onConfirmArchive = {},
             onDismissDeleteDialog = {},

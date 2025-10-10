@@ -82,11 +82,10 @@ fun ColorSelector(
             Icon(painter = painterResource(id = R.drawable.rounded_arrow_forward_ios_24), contentDescription = expandAccText)
         }
     }
-
     // Bottom sheet with color grid
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false }
+            onDismissRequest = { showBottomSheet = false },
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -143,8 +142,8 @@ fun ColorSelector(
     }
 }
 
-@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 36)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 36)
 @Composable
 fun ColorSelectorPreview() {
     AppTheme(dynamicColor = false) {
