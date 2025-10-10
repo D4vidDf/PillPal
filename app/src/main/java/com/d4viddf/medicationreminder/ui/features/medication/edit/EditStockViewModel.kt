@@ -44,7 +44,7 @@ class EditStockViewModel @Inject constructor(
                         medicationId = medication.id,
                         medicationName = medication.name,
                         remainingStock = medication.remainingDoses,
-                        medicationUnit = medicationType?.name?.lowercase() ?: "doses"
+                        medicationUnit = medication.typeId.toString()
                     )
                 }
             } else {

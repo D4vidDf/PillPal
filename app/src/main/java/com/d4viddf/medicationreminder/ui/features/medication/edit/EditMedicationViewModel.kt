@@ -96,22 +96,12 @@ class EditMedicationViewModel @Inject constructor(
     }
 
     fun onColorPickerClicked() {
-        _uiState.update { it.copy(showColorPicker = true) }
-    }
-
-    fun onDismissColorPicker() {
-        _uiState.update { it.copy(showColorPicker = false) }
+        _uiState.update { it.copy(isColorSelectorExpanded = !it.isColorSelectorExpanded) }
     }
 
     fun onColorSelected(color: MedicationColor) {
-        viewModelScope.launch {
-            val updatedMedication = _uiState.value.medication?.copy(color = color.name)
-            if (updatedMedication != null) {
-                medicationRepository.updateMedication(updatedMedication)
-            }
-            _uiState.update { it.copy(medication = updatedMedication, hasUnsavedChanges = false) }
-            onDismissColorPicker()
-        }
+        val updatedMedication = _uiState.value.medication?.copy(color = color.name)
+        _uiState.update { it.copy(medication = updatedMedication, hasUnsavedChanges = true, isColorSelectorExpanded = false) }
     }
 
     // --- Actions ---

@@ -23,18 +23,18 @@
     <string name="new_medication_toolbar_title">Nuevo medicamento</string>
     <string name="medication_summary_title">Resumen de medicación</string>
     <string name="label_name">Nombre</string>
-    <string name="label_dosage">Dosis:</string>
-    <string name="label_package_size">Tamaño del envase:</string>
-    <string name="label_start_date">Fecha de inicio:</string>
-    <string name="label_end_date">Fecha de fin:</string>
-    <string name="label_color">Color:</string>
+    <string name="label_dosage">Dosis</string>
+    <string name="label_package_size">Tamaño del envase</string>
+    <string name="label_start_date">Fecha de inicio</string>
+    <string name="label_end_date">Fecha de fin</string>
+    <string name="label_color">Color</string>
     <string name="reminder_details_title">Detalles del recordatorio</string>
-    <string name="label_frequency">Frecuencia:</string>
-    <string name="label_time">Hora:</string>
-    <string name="label_days">Días:</string>
-    <string name="label_alarm_numbered">Alarma %1$d:</string>
-    <string name="label_alarms">Alarmas:</string>
-    <string name="label_interval">Intervalo:</string>
+    <string name="label_frequency">Frecuencia</string>
+    <string name="label_time">Hora</string>
+    <string name="label_days">Días</string>
+    <string name="label_alarm_numbered">Alarma %1$d</string>
+    <string name="label_alarms">Alarmas</string>
+    <string name="label_interval">Intervalo</string>
     <string name="interval_details">Cada %1$d h %2$d min</string>
     <string name="label_daily_start_time">Inicio diario:</string>
     <string name="label_daily_end_time">Fin diario:</string>
@@ -795,7 +795,7 @@
 
     <!-- Edit Medication Screen Sections -->
     <string name="edit_med_general_info_title">Información General</string>
-    <string name="edit_med_form_color">Forma y Color</string>
+    <string name="edit_med_form_color">Forma</string>
     <string name="edit_med_schedule_title">Horario</string>
     <string name="edit_med_frequency">Frecuencia</string>
     <string name="edit_med_duration">Duración</string>

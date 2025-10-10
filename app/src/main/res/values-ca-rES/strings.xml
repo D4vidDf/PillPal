@@ -23,18 +23,18 @@
     <string name="new_medication_toolbar_title">Nou medicament</string>
     <string name="medication_summary_title">Resum de la medicació</string>
     <string name="label_name">Nom</string>
-    <string name="label_dosage">Dosi:</string>
-    <string name="label_package_size">Mida de l\'envàs:</string>
-    <string name="label_start_date">Data d\'inici:</string>
-    <string name="label_end_date">Data de fi:</string>
-    <string name="label_color">Color:</string>
+    <string name="label_dosage">Dosi</string>
+    <string name="label_package_size">Mida de l\'envàs</string>
+    <string name="label_start_date">Data d\'inici</string>
+    <string name="label_end_date">Data de fi</string>
+    <string name="label_color">Color</string>
     <string name="reminder_details_title">Detalls del recordatori</string>
-    <string name="label_frequency">Freqüència:</string>
-    <string name="label_time">Hora:</string>
-    <string name="label_days">Dies:</string>
-    <string name="label_alarm_numbered">Alarma %1$d:</string>
-    <string name="label_alarms">Alarmes:</string>
-    <string name="label_interval">Interval:</string>
+    <string name="label_frequency">Freqüència</string>
+    <string name="label_time">Hora</string>
+    <string name="label_days">Dies</string>
+    <string name="label_alarm_numbered">Alarma %1$d</string>
+    <string name="label_alarms">Alarmes</string>
+    <string name="label_interval">Interval</string>
     <string name="interval_details">Cada %1$d h %2$d min</string>
     <string name="label_daily_start_time">Inici diari:</string>
     <string name="label_daily_end_time">Fi diari:</string>
@@ -721,7 +721,7 @@
 
     <!-- Edit Medication Screen Sections -->
     <string name="edit_med_general_info_title">Informació General</string>
-    <string name="edit_med_form_color">Forma i Color</string>
+    <string name="edit_med_form_color">Forma</string>
     <string name="edit_med_schedule_title">Horari</string>
     <string name="edit_med_frequency">Freqüència</string>
     <string name="edit_med_duration">Durada</string>

@@ -42,7 +42,7 @@ class RefillStockViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         currentStock = medication.remainingDoses,
-                        medicationUnit = medicationType?.name?.lowercase() ?: "doses"
+                        medicationUnit = medication.typeId.toString()
                     )
                 }
             } else {

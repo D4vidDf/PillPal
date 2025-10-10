@@ -17,5 +17,5 @@ data class EditMedicationState(
     val showEndTreatmentDialog: Boolean = false,
     val showSaveDialog: Boolean = false,
     val hasUnsavedChanges: Boolean = false,
-    val showColorPicker: Boolean = false
+    val isColorSelectorExpanded: Boolean = false
 )

@@ -27,6 +27,7 @@ import com.d4viddf.medicationreminder.ui.features.medication.add.components.Colo
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
+import com.d4viddf.medicationreminder.utils.getMedicationTypeStringResource
 import java.time.LocalDate
 
 @Composable
@@ -78,7 +79,6 @@ fun EditMedicationScreen(
             onNavigateBack()
         },
         onColorPickerClicked = viewModel::onColorPickerClicked,
-        onDismissColorPicker = viewModel::onDismissColorPicker,
         onColorSelected = viewModel::onColorSelected
     )
 }
@@ -102,7 +102,6 @@ fun EditMedicationScreenContent(
     onConfirmSaveChanges: () -> Unit,
     onDiscardChanges: () -> Unit,
     onColorPickerClicked: () -> Unit,
-    onDismissColorPicker: () -> Unit,
     onColorSelected: (MedicationColor) -> Unit
 ) {
     BackHandler { onBackClicked() }
@@ -126,7 +125,7 @@ fun EditMedicationScreenContent(
         Column(modifier = Modifier
             .padding(paddingValues)
             .verticalScroll(rememberScrollState())) {
-            GeneralInfoSection(state, navController, onColorPickerClicked)
+            GeneralInfoSection(state, navController, onColorPickerClicked, onColorSelected)
             ScheduleSection(state)
             DoseSection(state)
             MedicationDetailsSection(state, navController)
@@ -184,14 +183,7 @@ fun EditMedicationScreenContent(
             )
         }
 
-        if (state.showColorPicker) {
-            ModalBottomSheet(onDismissRequest = onDismissColorPicker) {
-                ColorSelector(
-                    selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) } ?: MedicationColor.LIGHT_ORANGE,
-                    onColorSelected = onColorSelected
-                )
-            }
-        }
+        // No more modal bottom sheet
     }
 }
 
@@ -214,7 +206,8 @@ private fun ActionButton(text: String, onClick: () -> Unit) {
 private fun GeneralInfoSection(
     state: EditMedicationState,
     navController: NavController,
-    onColorPickerClicked: () -> Unit
+    onColorPickerClicked: () -> Unit,
+    onColorSelected: (MedicationColor) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -271,8 +264,11 @@ private fun GeneralInfoSection(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val medicationType = state.medicationType?.let {
+                        stringResource(id = getMedicationTypeStringResource(it.id))
+                    } ?: ""
                     Text(
-                        text = state.medicationType?.name ?: "",
+                        text = medicationType,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -291,46 +287,57 @@ private fun GeneralInfoSection(
             onClick = onColorPickerClicked,
             colors = CardDefaults.cardColors()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.label_color),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val color = state.medication?.color?.let { MedicationColor.valueOf(it) }
-                    if (color != null) {
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .background(
-                                    color = color.colorValue,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = color.colorName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(id = R.string.not_set),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_color),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val color = state.medication?.color?.let { MedicationColor.valueOf(it) }
+                        if (color != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .background(
+                                        color = color.colorValue,
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = color.colorName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(id = R.string.not_set),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                }
+                if (state.isColorSelectorExpanded) {
+                    ColorSelector(
+                        selectedColor = state.medication?.color?.let { MedicationColor.valueOf(it) } ?: MedicationColor.LIGHT_ORANGE,
+                        onColorSelected = {
+                            onColorSelected(it)
+                            onColorPickerClicked()
+                        }
                     )
                 }
             }
@@ -561,7 +568,6 @@ fun EditMedicationScreenPreview() {
             onConfirmSaveChanges = {},
             onDiscardChanges = {},
             onColorPickerClicked = {},
-            onDismissColorPicker = {},
             onColorSelected = {}
         )
     }

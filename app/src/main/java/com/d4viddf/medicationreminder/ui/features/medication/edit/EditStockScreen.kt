@@ -47,6 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
+import com.d4viddf.medicationreminder.utils.getMedicationTypeStringResource
 
 @Composable
 fun EditStockScreen(
@@ -126,8 +127,11 @@ fun EditStockScreenContent(
                     fontSize = 80.sp,
                     fontWeight = FontWeight.Bold
                 )
+                val medicationUnit = uiState.medicationUnit?.let {
+                    stringResource(id = getMedicationTypeStringResource(it.toInt()))
+                } ?: ""
                 Text(
-                    text = stringResource(R.string.edit_stock_units_left, uiState.medicationUnit),
+                    text = stringResource(R.string.edit_stock_units_left, medicationUnit),
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.height(48.dp))

@@ -23,18 +23,18 @@
     <string name="new_medication_toolbar_title">Botika berria</string>
     <string name="medication_summary_title">Botiken laburpena</string>
     <string name="label_name">Izena</string>
-    <string name="label_dosage">Dosia:</string>
-    <string name="label_package_size">Ontziaren tamaina:</string>
-    <string name="label_start_date">Hasiera-data:</string>
-    <string name="label_end_date">Amaiera-data:</string>
-    <string name="label_color">Kolorea:</string>
+    <string name="label_dosage">Dosia</string>
+    <string name="label_package_size">Ontziaren tamaina</string>
+    <string name="label_start_date">Hasiera-data</string>
+    <string name="label_end_date">Amaiera-data</string>
+    <string name="label_color">Kolorea</string>
     <string name="reminder_details_title">Abisuaren xehetasunak</string>
-    <string name="label_frequency">Maiztasuna:</string>
-    <string name="label_time">Ordua:</string>
-    <string name="label_days">Egunak:</string>
-    <string name="label_alarm_numbered">Alarma %1$d:</string>
-    <string name="label_alarms">Alarmak:</string>
-    <string name="label_interval">Tartea:</string>
+    <string name="label_frequency">Maiztasuna</string>
+    <string name="label_time">Ordua</string>
+    <string name="label_days">Egunak</string>
+    <string name="label_alarm_numbered">Alarma %1$d</string>
+    <string name="label_alarms">Alarmak</string>
+    <string name="label_interval">Tartea</string>
     <string name="interval_details">%1$d h eta %2$d min behin</string>
     <string name="label_daily_start_time">Eguneko hasiera:</string>
     <string name="label_daily_end_time">Eguneko amaiera:</string>
@@ -724,7 +724,7 @@
 
     <!-- Edit Medication Screen Sections -->
     <string name="edit_med_general_info_title">Informazio Orokorra</string>
-    <string name="edit_med_form_color">Forma eta Kolorea</string>
+    <string name="edit_med_form_color">Forma</string>
     <string name="edit_med_schedule_title">Ordutegia</string>
     <string name="edit_med_frequency">Maiztasuna</string>
     <string name="edit_med_duration">Iraupena</string>
@@ -748,6 +748,10 @@
     <string name="save_changes_dialog_title">Gorde Aldaketak?</string>
     <string name="save_changes_dialog_text">Gorde gabeko aldaketak dituzu. Gorde nahi dituzu irten aurretik?</string>
     <string name="discard">Baztertu</string>
+    <string name="archive_dialog_title">Artxibatu Tratamendua</string>
+    <string name="archive_dialog_text">Tratamendu hau artxibatu nahi duzu? Tratamendua artxibatzeak abisuak gelditzen ditu baina datuak aplikazioan mantentzen ditu.</string>
+    <string name="delete_dialog_title">Ezabatu Tratamendua</string>
+    <string name="delete_dialog_text">Ziur zaude tratamendu hau aplikaziotik ezabatu nahi duzula? Ekintza honek datuak betiko ezabatuko ditu.</string>
 
     <!-- Edit Form & Color Screen -->
     <string name="edit_form_color_title">Editatu Forma eta Kolorea</string>
