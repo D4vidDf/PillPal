@@ -170,8 +170,8 @@ fun EditMedicationScreenContent(
             ConfirmationDialog(
                 onDismissRequest = onDismissArchiveDialog,
                 onConfirmation = onConfirmArchive,
-                dialogTitle = stringResource(R.string.dialog_archive_title),
-                dialogText = stringResource(R.string.dialog_archive_text)
+                dialogTitle = stringResource(R.string.archive_treatment_dialog_title),
+                dialogText = stringResource(R.string.archive_treatment_dialog_text)
             )
         }
 
@@ -179,8 +179,8 @@ fun EditMedicationScreenContent(
             ConfirmationDialog(
                 onDismissRequest = onDismissDeleteDialog,
                 onConfirmation = onConfirmDelete,
-                dialogTitle = stringResource(R.string.dialog_delete_title),
-                dialogText = stringResource(R.string.dialog_delete_text)
+                dialogTitle = stringResource(R.string.delete_treatment_dialog_title),
+                dialogText = stringResource(R.string.delete_treatment_dialog_text)
             )
         }
 
