@@ -104,12 +104,7 @@ fun AddMedicationScreen(
                             horizontalArrangement = Arrangement.Start
                         ) {
                             Text(
-                                text = "Name: ",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = if (medicationName.isBlank() || currentStep == 0) "" else medicationName,
+                                text = if (medicationName.isBlank() || currentStep == 0) "" else medicationName.split(" ").first(),
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Normal
                             )
