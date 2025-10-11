@@ -75,6 +75,8 @@ class MedicationViewModelTest {
         coEvery { medicationRepository.getMedicationById(1) } returns medication
         coEvery { scheduleRepository.getSchedulesForMedication(1) } returns flowOf(listOf(schedule))
         coEvery { reminderRepository.getRemindersForMedication(1) } returns flowOf(reminders)
+        coEvery { medicationRepository.getAllMedications() } returns flowOf(emptyList())
+
 
         viewModel.observeMedicationAndRemindersForDailyProgress(1)
         testDispatcher.scheduler.advanceUntilIdle()
