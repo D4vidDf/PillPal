@@ -40,7 +40,7 @@ class MedicationDaoTest {
 
     @Test
     fun `insert and retrieve medication`() = runBlocking {
-        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10)
+        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null)
         medicationDao.insertMedication(medication)
 
         val retrievedMedication = medicationDao.getMedicationById(1)
@@ -49,7 +49,7 @@ class MedicationDaoTest {
 
     @Test
     fun `update medication`() = runBlocking {
-        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10)
+        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null)
         medicationDao.insertMedication(medication)
 
         val updatedMedication = medication.copy(name = "Ibuprofen")
@@ -61,7 +61,7 @@ class MedicationDaoTest {
 
     @Test
     fun `delete medication`() = runBlocking {
-        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10)
+        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null)
         medicationDao.insertMedication(medication)
         medicationDao.deleteMedication(medication)
 
@@ -71,8 +71,8 @@ class MedicationDaoTest {
 
     @Test
     fun `get all medications`() = runBlocking {
-        val medication1 = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10)
-        val medication2 = Medication(id = 2, name = "Ibuprofen", typeId = 2, color = "#00FF00", packageSize = 20, remainingDoses = 20)
+        val medication1 = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null)
+        val medication2 = Medication(id = 2, name = "Ibuprofen", typeId = 2, color = "#00FF00", packageSize = 20, remainingDoses = 20, startDate = null, endDate = null, reminderTime = null)
         medicationDao.insertMedication(medication1)
         medicationDao.insertMedication(medication2)
 
@@ -82,7 +82,7 @@ class MedicationDaoTest {
 
     @Test
     fun `get medication by id flow`() = runBlocking {
-        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10)
+        val medication = Medication(id = 1, name = "Aspirin", typeId = 1, color = "#FF0000", packageSize = 10, remainingDoses = 10, startDate = null, endDate = null, reminderTime = null)
         medicationDao.insertMedication(medication)
 
         val retrievedMedication = medicationDao.getMedicationByIdFlow(1).first()

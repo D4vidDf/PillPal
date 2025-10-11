@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -25,17 +25,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
 class MedicationViewModelTest {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = TestCoroutineDispatcher()
+    private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var viewModel: MedicationViewModel
     private val medicationRepository: MedicationRepository = mockk()
@@ -59,15 +62,14 @@ class MedicationViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test
     fun `calculate daily progress correctly`() = runBlocking {
-        val medication = Medication(id = 1, name = "Aspirin", startDate = "01/01/2024", endDate = "31/12/2024", typeId = 1, color = "", packageSize = 1, remainingDoses = 1)
+        val medication = Medication(id = 1, name = "Aspirin", startDate = "01/01/2024", endDate = "31/12/2024", typeId = 1, color = "", packageSize = 1, remainingDoses = 1, reminderTime = null)
         val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY, startDate = "01/01/2024", specificTimes = listOf(LocalTime.of(8, 0)), daysOfWeek = emptyList(), intervalHours = null, intervalMinutes = null, intervalStartTime = null, intervalEndTime = null)
         val reminders = listOf(
-            MedicationReminder(medicationId = 1, reminderTime = LocalDateTime.now().withHour(8).withMinute(0).format(ReminderCalculator.storableDateTimeFormatter), isTaken = true)
+            MedicationReminder(medicationId = 1, reminderTime = LocalDateTime.now().withHour(8).withMinute(0).format(ReminderCalculator.storableDateTimeFormatter), isTaken = true, medicationScheduleId = 1, medicationDosageId = 1, takenAt = null, notificationId = 1)
         )
 
         coEvery { medicationRepository.getMedicationById(1) } returns medication
@@ -75,6 +77,7 @@ class MedicationViewModelTest {
         coEvery { reminderRepository.getRemindersForMedication(1) } returns flowOf(reminders)
 
         viewModel.observeMedicationAndRemindersForDailyProgress(1)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         val progressDetails = viewModel.medicationProgressDetails.value
         assertEquals(1, progressDetails?.taken)

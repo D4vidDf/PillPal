@@ -20,7 +20,8 @@ class ReminderCalculatorTest {
         packageSize = 30,
         remainingDoses = 30,
         startDate = "01/01/2024",
-        endDate = "31/12/2024"
+        endDate = "31/12/2024",
+        reminderTime = null
     )
 
     @Test

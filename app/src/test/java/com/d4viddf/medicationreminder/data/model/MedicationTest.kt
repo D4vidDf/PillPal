@@ -52,7 +52,10 @@ class MedicationTest {
             typeId = 2,
             color = "#000000",
             packageSize = 30,
-            remainingDoses = 30
+            remainingDoses = 30,
+            startDate = null,
+            endDate = null,
+            reminderTime = null
         )
 
         assertEquals(2, medication.id)
