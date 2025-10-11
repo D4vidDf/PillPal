@@ -12,6 +12,7 @@ import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,7 +28,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -50,6 +50,8 @@ class MedicationViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        // Mock the call made in the ViewModel's init block
+        every { medicationRepository.getAllMedications() } returns flowOf(emptyList())
         viewModel = MedicationViewModel(
             medicationRepository,
             reminderRepository,
@@ -75,7 +77,6 @@ class MedicationViewModelTest {
         coEvery { medicationRepository.getMedicationById(1) } returns medication
         coEvery { scheduleRepository.getSchedulesForMedication(1) } returns flowOf(listOf(schedule))
         coEvery { reminderRepository.getRemindersForMedication(1) } returns flowOf(reminders)
-        coEvery { medicationRepository.getAllMedications() } returns flowOf(emptyList())
 
 
         viewModel.observeMedicationAndRemindersForDailyProgress(1)
