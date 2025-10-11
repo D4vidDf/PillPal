@@ -86,7 +86,7 @@
     <string name="medication_name_placeholder">Nom del medicament</string>
     <string name="medication_name_clear_search_acc">Neteja la cerca</string>
     <string name="medication_name_error">Introdueix un nom de medicament vàlid</string>
-    <string name="medication_type_selector_title">Selecciona el tipus de medicament</string>
+    <string name="medication_type_selector_title">Selecciona la forma del medicament</string>
 
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Avui</string>
@@ -783,5 +783,7 @@
     <string name="medication_type_liquid">Líquid</string>
     <string name="medication_type_suppositorium">Supositori</string>
     <string name="medication_type_patch">Pegat</string>
-
+    <string name="medication_type_inhaler">Inhalador</string>
+    <string name="medication_type_drops">Gotes</string>
+    <string name="medication_type_other">Altre</string>
 </resources>

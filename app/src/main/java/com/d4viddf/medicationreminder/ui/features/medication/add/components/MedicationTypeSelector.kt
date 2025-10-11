@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,25 +42,25 @@ import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeV
 
 @Composable
 fun MedicationTypeSelector(
-    modifier: Modifier = Modifier, // This modifier comes from AddMedicationScreen (e.g., .fillMaxWidth().height(400.dp))
+    modifier: Modifier = Modifier,
     selectedTypeId: Int?,
     onTypeSelected: (Int) -> Unit,
     viewModel: MedicationTypeViewModel = hiltViewModel(),
     selectedColor: MedicationColor? = null,
+    widthSizeClass: WindowWidthSizeClass,
 ) {
     val medicationTypes by viewModel.medicationTypes.collectAsState(initial = emptyList())
 
     if (medicationTypes.isEmpty()) {
         Box(
-            modifier = modifier.fillMaxSize(), // Use fillMaxSize within the bounds of the passed modifier
+            modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
         }
     } else {
-        // The incoming modifier (which includes .height(400.dp)) is applied to this Column.
         Column(
-            modifier = modifier.fillMaxHeight(), // This Column now has the fixed height (e.g., 400dp)
+            modifier = modifier.fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -72,22 +73,33 @@ fun MedicationTypeSelector(
                     .fillMaxWidth()
             )
 
+            val columns = if (widthSizeClass == WindowWidthSizeClass.Compact) 3 else 5
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp) // Add some padding
+                columns = GridCells.Fixed(columns),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
             ) {
-                items(medicationTypes.size) { index -> // Changed from type to index for clarity
+                items(medicationTypes.size) { index ->
                     val type = medicationTypes[index]
-                    // Logic for cornerShape can remain, but ensure it doesn't depend on 'type' as index if list changes
-                    val cornerShape = when (index) { // Assuming medicationTypes list order is stable for this
-                        0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
-                        2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
-                        // Adjust these indices based on a 3-column grid if they refer to specific visual positions
-                        medicationTypes.size - 3 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 8.dp) // Example for bottom-left-ish
-                        medicationTypes.size - 1 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp) // Example for bottom-right
-                        else -> RoundedCornerShape(8.dp)
+                    val cornerShape = when {
+                        columns == 5 -> {
+                            when (index) {
+                                0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                                4 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
+                                medicationTypes.size - 5 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                                medicationTypes.size - 1 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp)
+                                else -> RoundedCornerShape(8.dp)
+                            }
+                        }
+                        else -> { // columns == 3
+                            when (index) {
+                                0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                                2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
+                                medicationTypes.size - 3 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                                medicationTypes.size - 1 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp)
+                                else -> RoundedCornerShape(8.dp)
+                            }
+                        }
                     }
                     MedicationTypeItem(
                         type = type,
@@ -105,12 +117,12 @@ fun MedicationTypeSelector(
 // --- Preview Code ---
 
 private val sampleMedicationTypes = listOf(
-    MedicationType(id = 1, name = "Tablet", imageUrl = "https://example.com/tablet.png"),
-    MedicationType(id = 2, name = "Capsule", imageUrl = "https://example.com/capsule.png"),
-    MedicationType(id = 3, name = "Liquid", imageUrl = "https://example.com/liquid.png"),
-    MedicationType(id = 4, name = "Injection", imageUrl = "https://example.com/injection.png"),
-    MedicationType(id = 5, name = "Cream", imageUrl = "https://example.com/cream.png"),
-    MedicationType(id = 6, name = "Drops", imageUrl = "https://example.com/drops.png")
+    MedicationType(id = 1, nameResId = R.string.medication_type_tablet, imageUrl = "https://example.com/tablet.png"),
+    MedicationType(id = 2, nameResId = R.string.medication_type_pill, imageUrl = "https://example.com/capsule.png"),
+    MedicationType(id = 3, nameResId = R.string.medication_type_liquid, imageUrl = "https://example.com/liquid.png"),
+    MedicationType(id = 4, nameResId = R.string.medication_type_syringe, imageUrl = "https://example.com/injection.png"),
+    MedicationType(id = 5, nameResId = R.string.medication_type_creme, imageUrl = "https://example.com/cream.png"),
+    MedicationType(id = 6, nameResId = R.string.medication_type_drops, imageUrl = "https://example.com/drops.png")
 )
 
 @Preview(showBackground = true)
@@ -189,6 +201,7 @@ fun MedicationTypeItem(
 ) {
     val backgroundColor = if (isSelected) selectedColor?.backgroundColor ?: MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
     val textColor = if (isSelected) selectedColor?.textColor ?: MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val typeName = stringResource(id = type.nameResId)
 
     Column(
         modifier = Modifier
@@ -206,7 +219,7 @@ fun MedicationTypeItem(
     ) {
         AsyncImage(
             model = type.imageUrl,
-            contentDescription = type.name,
+            contentDescription = typeName,
             modifier = Modifier
                 .fillMaxSize(0.6f) // Image takes a portion of the item size
                 .aspectRatio(1f),
@@ -214,7 +227,7 @@ fun MedicationTypeItem(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = type.name,
+            text = typeName,
             style = MaterialTheme.typography.bodySmall, // Adjusted for potentially smaller space
             color = textColor,
             textAlign = TextAlign.Center,

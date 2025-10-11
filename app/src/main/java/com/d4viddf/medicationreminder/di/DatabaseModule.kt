@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration // Import Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.source.local.FirebaseSyncDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationDao
@@ -65,46 +66,22 @@ object DatabaseModule {
 
                     if (count == 0) {
                         val defaultTypes = listOf(
-                            MedicationType(
-                                name = "Tablet",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Pill",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Powder",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Syringe",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Creme",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Spray",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Liquid",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Suppositoriun",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Patch",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
+                            MedicationType(nameResId = R.string.medication_type_tablet, imageUrl = "file:///android_asset/medication_types/tablet.webp"),
+                            MedicationType(nameResId = R.string.medication_type_pill, imageUrl = "file:///android_asset/medication_types/pill.webp"),
+                            MedicationType(nameResId = R.string.medication_type_powder, imageUrl = "file:///android_asset/medication_types/powder.webp"),
+                            MedicationType(nameResId = R.string.medication_type_syringe, imageUrl = "file:///android_asset/medication_types/syringe.webp"),
+                            MedicationType(nameResId = R.string.medication_type_creme, imageUrl = "file:///android_asset/medication_types/creme.webp"),
+                            MedicationType(nameResId = R.string.medication_type_spray, imageUrl = "file:///android_asset/medication_types/spray.webp"),
+                            MedicationType(nameResId = R.string.medication_type_liquid, imageUrl = "file:///android_asset/medication_types/liquid.webp"),
+                            MedicationType(nameResId = R.string.medication_type_suppositorium, imageUrl = "file:///android_asset/medication_types/suppositorium.webp"),
+                            MedicationType(nameResId = R.string.medication_type_patch, imageUrl = "file:///android_asset/medication_types/patch.webp"),
+                            MedicationType(nameResId = R.string.medication_type_inhaler, imageUrl = "file:///android_asset/medication_types/inhaler.webp"),
+                            MedicationType(nameResId = R.string.medication_type_drops, imageUrl = "file:///android_asset/medication_types/drops.webp"),
+                            MedicationType(nameResId = R.string.medication_type_other, imageUrl = "file:///android_asset/medication_types/other.webp"),
                         )
                         db.execSQL(
-                            "INSERT INTO medication_types (name, imageUrl) VALUES " +
-                                    defaultTypes.joinToString(", ") { "('${it.name}', '${it.imageUrl}')" }
+                            "INSERT INTO medication_types (nameResId, imageUrl) VALUES " +
+                                    defaultTypes.joinToString(", ") { "(${it.nameResId}, '${it.imageUrl}')" }
                         )
                     }
                 }

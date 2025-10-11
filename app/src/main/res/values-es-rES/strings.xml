@@ -86,7 +86,7 @@
     <string name="medication_name_placeholder">Nombre del medicamento</string>
     <string name="medication_name_clear_search_acc">Limpiar búsqueda</string>
     <string name="medication_name_error">Por favor, introduce un nombre de medicamento válido</string>
-    <string name="medication_type_selector_title">Selecciona el tipo de medicamento</string>
+    <string name="medication_type_selector_title">Selecciona la forma del medicamento</string>
 
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Hoy</string>
@@ -857,5 +857,7 @@
     <string name="medication_type_liquid">Líquido</string>
     <string name="medication_type_suppositorium">Supositorio</string>
     <string name="medication_type_patch">Parche</string>
-
+    <string name="medication_type_inhaler">Inhalador</string>
+    <string name="medication_type_drops">Gotas</string>
+    <string name="medication_type_other">Otro</string>
 </resources>

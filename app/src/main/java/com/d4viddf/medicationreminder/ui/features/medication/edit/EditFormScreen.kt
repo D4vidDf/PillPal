@@ -14,6 +14,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,68 +29,61 @@ import com.d4viddf.medicationreminder.ui.features.medication.add.components.Medi
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun EditFormScreen(
     viewModel: EditFormViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val windowSizeClass = calculateWindowSizeClass()
+
     EditFormScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onSave = viewModel::onSave,
-        onTypeSelected = viewModel::onTypeSelected
+        onTypeSelected = viewModel::onTypeSelected,
+        widthSizeClass = windowSizeClass.widthSizeClass
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+
 @Composable
 fun EditFormScreenContent(
     uiState: EditFormState,
     onNavigateBack: () -> Unit,
     onSave: () -> Unit,
-    onTypeSelected: (Int) -> Unit
+    onTypeSelected: (Int) -> Unit,
+    widthSizeClass: WindowWidthSizeClass
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.edit_form_color_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
-                    }
-                },
-                actions = {
-                    Button(onClick = {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (uiState.isLoading) {
+            CircularProgressIndicator()
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                MedicationTypeSelector(
+                    modifier = Modifier.weight(1f),
+                    selectedTypeId = uiState.medicationTypeId,
+                    onTypeSelected = onTypeSelected,
+                    selectedColor = uiState.medicationColor,
+                    widthSizeClass = widthSizeClass
+                )
+                Button(
+                    onClick = {
                         onSave()
                         onNavigateBack()
-                    }) {
-                        Text(text = stringResource(id = R.string.save))
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxSize()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    MedicationTypeSelector(
-                        selectedTypeId = uiState.medicationTypeId,
-                        onTypeSelected = onTypeSelected,
-                        selectedColor = uiState.medicationColor
-                    )
+                    Text(text = stringResource(id = R.string.save))
                 }
             }
         }
@@ -108,7 +103,8 @@ private fun EditFormScreenPreview() {
             ),
             onNavigateBack = {},
             onSave = {},
-            onTypeSelected = {}
+            onTypeSelected = {},
+            widthSizeClass = WindowWidthSizeClass.Compact
         )
     }
 }

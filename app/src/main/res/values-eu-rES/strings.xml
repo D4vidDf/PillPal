@@ -86,7 +86,7 @@
     <string name="medication_name_placeholder">Botikaren izena</string>
     <string name="medication_name_clear_search_acc">Garbitu bilaketa</string>
     <string name="medication_name_error">Mesedez, sartu botika-izen baliagarria</string>
-    <string name="medication_type_selector_title">Hautatu botika mota</string>
+    <string name="medication_type_selector_title">Hautatu botikaren forma</string>
 
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Gaur</string>
@@ -790,5 +790,7 @@
     <string name="medication_type_liquid">Likidoa</string>
     <string name="medication_type_suppositorium">Supositorioa</string>
     <string name="medication_type_patch">Partxea</string>
-
+    <string name="medication_type_inhaler">Inhalagailua</string>
+    <string name="medication_type_drops">Tantak</string>
+    <string name="medication_type_other">Beste bat</string>
 </resources>
