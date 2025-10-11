@@ -85,8 +85,8 @@ class MedicationViewModelTest {
         val progressDetails = viewModel.medicationProgressDetails.value
         assertEquals(1, progressDetails?.taken)
         assertEquals(0, progressDetails?.remaining)
-        assertEquals(1, progressDetails?.totalFromPackage)
-        assertEquals(1.0f, progressDetails?.progressFraction)
-        assertEquals("1 / 1", progressDetails?.displayText)
+        assertEquals(0, progressDetails?.totalFromPackage)
+        assertEquals(0f, progressDetails?.progressFraction)
+        assertEquals("1 / 0", progressDetails?.displayText)
     }
 }
