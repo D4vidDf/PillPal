@@ -129,7 +129,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                             val medication = localMedicationRepository.getMedicationById(reminder.medicationId)
                             if (medication != null) {
                                 medicationColorHex = medication.color
-                                medicationTypeName = medication.medicationForm.name
+                                medicationTypeName = context.getString(medication.medicationForm.nameResId)
                                 val fetchedDetailsLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Fetched details for notification: Color=$medicationColorHex, TypeName=$medicationTypeName for MedicationId=${medication.id}"
                                 Log.d(TAG, fetchedDetailsLog)
                                 FileLogger.log(TAG, fetchedDetailsLog)
