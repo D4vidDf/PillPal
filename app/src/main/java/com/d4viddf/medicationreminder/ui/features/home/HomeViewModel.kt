@@ -14,7 +14,6 @@ import com.d4viddf.medicationreminder.data.repository.HealthDataRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.data.repository.NotificationRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator

@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.medication.add.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
+@SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun MedicationFormSelector(

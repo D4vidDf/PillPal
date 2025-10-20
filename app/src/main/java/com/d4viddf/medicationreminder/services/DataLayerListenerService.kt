@@ -22,7 +22,6 @@ import com.d4viddf.medicationreminder.data.model.MedicationReminderSyncItem
 import com.d4viddf.medicationreminder.data.model.MedicationTypeSyncItem
 import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable

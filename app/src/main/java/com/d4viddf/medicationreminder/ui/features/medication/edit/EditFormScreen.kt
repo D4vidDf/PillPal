@@ -3,14 +3,22 @@ package com.d4viddf.medicationreminder.ui.features.medication.edit
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -21,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationForm
@@ -42,7 +51,7 @@ fun EditFormScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EditFormScreenContent(
     uiState: EditFormState,
@@ -55,11 +64,12 @@ fun EditFormScreenContent(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
                         )
+
                     }
                 }
             )
@@ -71,7 +81,7 @@ fun EditFormScreenContent(
                 .fillMaxSize()
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator()
+                CircularWavyProgressIndicator()
             } else {
                 MedicationFormSelector(
                     modifier = Modifier.weight(1f),
@@ -79,14 +89,15 @@ fun EditFormScreenContent(
                     onFormSelected = onFormSelected,
                     selectedColor = uiState.medicationColor
                 )
-                Button(
+                FilledTonalButton(
                     onClick = {
                         onSave()
                         onNavigateBack()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .heightIn(ButtonDefaults.MediumContainerHeight)
+                        .padding(16.dp),
                 ) {
                     Text(text = stringResource(id = R.string.save))
                 }

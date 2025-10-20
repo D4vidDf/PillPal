@@ -11,7 +11,6 @@ import com.d4viddf.medicationreminder.data.model.MedicationDosage
 import com.d4viddf.medicationreminder.data.model.MedicationInfo
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.model.Notification
 import com.d4viddf.medicationreminder.data.model.healthdata.BodyTemperature
 import com.d4viddf.medicationreminder.data.model.healthdata.HeartRate
