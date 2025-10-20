@@ -932,7 +932,7 @@ private fun WeekProgressContent(
                                 navController.navigate(
                                     Screen.MedicationHistory.createRoute(
                                         medicationId = medicationId,
-                                        colorName = color.name,
+                                        colorName = color.name ?: MedicationColor.LIGHT_ORANGE.name,
                                         selectedDate = selectedDateStr
                                     )
                                 )
