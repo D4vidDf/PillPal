@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.FrequencyType
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
 import com.d4viddf.medicationreminder.data.model.ScheduleType
@@ -477,8 +478,7 @@ private fun CurrentStepContent(
                     onFormSelected = onFormSelected,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    selectedColor = selectedColor
+                        .weight(1f)
                 )
                 Card(
                     modifier = Modifier
@@ -577,7 +577,7 @@ fun AddMedicationScreenPreview() {
 fun MedicationSummaryPreview() {
     AppTheme {
         MedicationSummary(
-            typeId = 1,
+            form = MedicationForm.TABLET,
             medicationName = "Medication Name",
             color = Color.Cyan,
             dosage = "1 pill",

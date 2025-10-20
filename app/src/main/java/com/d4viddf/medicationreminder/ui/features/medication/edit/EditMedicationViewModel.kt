@@ -7,7 +7,6 @@ import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.ui.navigation.MEDICATION_ID_ARG
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import dagger.hilt.android.lifecycle.HiltViewModel

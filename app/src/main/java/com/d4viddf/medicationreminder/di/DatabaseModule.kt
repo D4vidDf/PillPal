@@ -5,7 +5,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration // Import Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.source.local.FirebaseSyncDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationDatabase
@@ -13,7 +12,6 @@ import com.d4viddf.medicationreminder.data.source.local.MedicationDosageDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationInfoDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationReminderDao
 import com.d4viddf.medicationreminder.data.source.local.MedicationScheduleDao
-import com.d4viddf.medicationreminder.data.source.local.MedicationTypeDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,60 +53,6 @@ object DatabaseModule {
             MedicationDatabase::class.java,
             "medications.db"
         )
-            .addCallback(object : RoomDatabase.Callback() {
-                override fun onOpen(db: SupportSQLiteDatabase) {
-                    super.onOpen(db)
-
-                    val cursor = db.query("SELECT COUNT(*) FROM medication_types")
-                    val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
-                    cursor.close()
-
-                    if (count == 0) {
-                        val defaultTypes = listOf(
-                            MedicationType(
-                                name = "Tablet",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Pill",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Powder",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Syringe",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Creme",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Spray",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Liquid",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Suppositoriun",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                            MedicationType(
-                                name = "Patch",
-                                imageUrl = "https://placehold.co/600x400.png"
-                            ),
-                        )
-                        db.execSQL(
-                            "INSERT INTO medication_types (name, imageUrl) VALUES " +
-                                    defaultTypes.joinToString(", ") { "('${it.name}', '${it.imageUrl}')" }
-                        )
-                    }
-                }
-            })
             .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10, MedicationDatabase.MIGRATION_10_11, MedicationDatabase.MIGRATION_11_12, MedicationDatabase.MIGRATION_12_13, MedicationDatabase.MIGRATION_13_14, MedicationDatabase.MIGRATION_14_15, MedicationDatabase.MIGRATION_15_16)
             .fallbackToDestructiveMigration(false) // Added this line
             .build()

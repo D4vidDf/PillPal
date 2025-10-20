@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
@@ -77,12 +78,13 @@ fun MedicationDetailCountersPreview() {
                 color = "LIGHT_ORANGE",
                 reminderTime = "10:00 AM", // Not specified to change, kept as is
                 // Updated parameters as per request
-                typeId = 1,
+                medicationForm = MedicationForm.TABLET,
                 packageSize = 0,
                 remainingDoses = 0,
                 startDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
                 endDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             ),
+            medicationForm = MedicationForm.TABLET,
             schedule = MedicationSchedule(
                 medicationId = 1,
                 scheduleType = ScheduleType.AS_NEEDED, // Consistent with AS_NEEDED
@@ -104,6 +106,7 @@ fun MedicationDetailCounters(
     activeDosage: String?,
     medication: Medication?,
     schedule: MedicationSchedule?,
+    medicationForm: MedicationForm,
     modifier: Modifier = Modifier // Este modifier se aplicará al Row principal de contadores
 ) {
     // --- Lógica de cálculo de datos para los contadores ---

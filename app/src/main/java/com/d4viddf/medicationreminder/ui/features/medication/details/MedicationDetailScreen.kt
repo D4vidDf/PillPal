@@ -71,8 +71,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.model.TodayScheduleItem
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
@@ -622,7 +622,8 @@ private fun MedicationHeaderAndProgress(
                                 colorScheme = color,
                                 activeDosage = activeDosage?.dosage,
                                 medication = medicationState,
-                                schedule = scheduleState
+                                schedule = scheduleState,
+                                medicationForm = medicationState.medicationForm
                             )
                         }
                     }
@@ -649,6 +650,7 @@ private fun MedicationHeaderAndProgress(
                         activeDosage = activeDosage?.dosage,
                         medication = medicationState,
                         schedule = scheduleState,
+                        medicationForm = medicationState.medicationForm,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }

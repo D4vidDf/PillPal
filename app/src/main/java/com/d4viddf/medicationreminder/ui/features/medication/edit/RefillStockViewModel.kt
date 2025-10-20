@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.ui.navigation.MEDICATION_ID_ARG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
