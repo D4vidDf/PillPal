@@ -86,7 +86,7 @@
     <string name="medication_name_placeholder">Nom del medicament</string>
     <string name="medication_name_clear_search_acc">Neteja la cerca</string>
     <string name="medication_name_error">Introdueix un nom de medicament vàlid</string>
-    <string name="medication_type_selector_title">Selecciona el tipus de medicament</string>
+    <string name="medication_type_selector_title">Selecciona la forma del medicament</string>
 
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Avui</string>
@@ -773,15 +773,16 @@
     <string name="low_stock_reminder_runs_out">%1$s s\'esgota en %2$d dies</string>
     <string name="disable">Desactivar</string>
 
-    <!-- Medication Types -->
-    <string name="medication_type_tablet">Tauleta</string>
-    <string name="medication_type_pill">Píndola</string>
-    <string name="medication_type_powder">Pols</string>
-    <string name="medication_type_syringe">Xeringa</string>
-    <string name="medication_type_creme">Crema</string>
-    <string name="medication_type_spray">Aerosol</string>
-    <string name="medication_type_liquid">Líquid</string>
-    <string name="medication_type_suppositorium">Supositori</string>
-    <string name="medication_type_patch">Pegat</string>
+    <!-- Medication Forms -->
+    <string name="medication_form_tablet">Tauleta</string>
+    <string name="medication_form_pill">Píndola</string>
+    <string name="medication_form_powder">Pols</string>
+    <string name="medication_form_injection">Injecció</string>
+    <string name="medication_form_ointment">Pomada</string>
+    <string name="medication_form_inhaler">Inhalador</string>
+    <string name="medication_form_liquid">Líquid</string>
+    <string name="medication_form_suppository">Supositori</string>
+    <string name="medication_form_drops">Gotes</string>
+    <string name="medication_form_other">Altres</string>
 
 </resources>

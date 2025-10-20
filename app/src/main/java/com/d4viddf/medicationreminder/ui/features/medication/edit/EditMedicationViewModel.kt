@@ -7,7 +7,6 @@ import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.d4viddf.medicationreminder.ui.navigation.MEDICATION_ID_ARG
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +23,6 @@ import javax.inject.Inject
 @HiltViewModel
 class EditMedicationViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
-    private val medicationTypeRepository: MedicationTypeRepository,
     private val scheduleRepository: MedicationScheduleRepository,
     private val dosageRepository: MedicationDosageRepository,
     savedStateHandle: SavedStateHandle
@@ -46,9 +44,6 @@ class EditMedicationViewModel @Inject constructor(
             val medication = medicationRepository.getMedicationById(medicationId)
             initialMedicationState = medication // Store initial state
             if (medication != null) {
-                val medicationType = medication.typeId?.let {
-                    medicationTypeRepository.getMedicationTypeById(it)
-                }
                 val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
                 val activeDosage = dosageRepository.getActiveDosage(medicationId)
 
@@ -56,7 +51,6 @@ class EditMedicationViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         medication = medication,
-                        medicationType = medicationType,
                         schedule = schedule,
                         dose = activeDosage
                     )

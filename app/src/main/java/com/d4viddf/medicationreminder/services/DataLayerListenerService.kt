@@ -22,7 +22,6 @@ import com.d4viddf.medicationreminder.data.model.MedicationReminderSyncItem
 import com.d4viddf.medicationreminder.data.model.MedicationTypeSyncItem
 import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationTypeRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
@@ -55,8 +54,6 @@ class DataLayerListenerService : WearableListenerService() {
     lateinit var medicationRepository: MedicationRepository
     @Inject
     lateinit var scheduleRepository: MedicationScheduleRepository
-    @Inject
-    lateinit var medicationTypeRepository: MedicationTypeRepository
     @Inject
     lateinit var medicationInfoRepository: MedicationInfoRepository
     @Inject
@@ -259,11 +256,6 @@ class DataLayerListenerService : WearableListenerService() {
                 continue
             }
 
-            val medType = if (medication.typeId != null) {
-                medicationTypeRepository.getMedicationTypeById(medication.typeId)
-            } else {
-                null
-            }
             val medInfo = medicationInfoRepository.getMedicationInfoById(medication.id)
             val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
             val activeDosage = dosageRepository.getActiveDosage(medication.id)
@@ -274,13 +266,11 @@ class DataLayerListenerService : WearableListenerService() {
                     name = medication.name,
                     dosage = activeDosage?.dosage,
                     color = medication.color,
-                    type = medType?.let {
-                        MedicationTypeSyncItem(
-                            id = it.id,
-                            name = it.name,
-                            iconUrl = it.imageUrl
-                        )
-                    },
+                    type = MedicationTypeSyncItem(
+                        id = medication.medicationForm.ordinal,
+                        name = medication.medicationForm.name,
+                        iconUrl = medication.medicationForm.imageUrl.toString()
+                    ),
                     info = medInfo?.let {
                         MedicationInfoSyncItem(
                             medicationId = it.medicationId,

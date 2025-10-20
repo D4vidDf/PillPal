@@ -48,15 +48,14 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationDosage
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.data.model.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
-import com.d4viddf.medicationreminder.utils.getMedicationTypeStringResource
 import java.time.LocalDate
 
 @Composable
@@ -306,11 +305,11 @@ private fun GeneralInfoSection(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val medicationType = state.medicationType?.let {
-                        stringResource(id = getMedicationTypeStringResource(it.id))
+                    val medicationForm = state.medication?.medicationForm?.let {
+                        stringResource(id = it.nameResId)
                     } ?: ""
                     Text(
-                        text = medicationType,
+                        text = medicationForm,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -517,7 +516,7 @@ fun EditMedicationScreenPreview() {
         val medication = Medication(
             id = 1,
             name = "Mestinon",
-            typeId = 1,
+            medicationForm = MedicationForm.TABLET,
             color = "LIGHT_PINK",
             packageSize = 100,
             remainingDoses = 90,
@@ -532,14 +531,12 @@ fun EditMedicationScreenPreview() {
             isArchived = false,
             isSuspended = false
         )
-        val medicationType = MedicationType(id = 1, name = "Pill", imageUrl = "")
         val schedule = MedicationSchedule(medicationId = 1, scheduleType = ScheduleType.DAILY, startDate = "2023-01-01", intervalHours = null, intervalMinutes = null, daysOfWeek = null, specificTimes = listOf(java.time.LocalTime.of(8, 0)), intervalStartTime = null, intervalEndTime = null)
         val dosage = MedicationDosage(medicationId = 1, dosage = "1 pill", startDate = "2023-01-01")
 
         val state = EditMedicationState(
             isLoading = false,
             medication = medication,
-            medicationType = medicationType,
             schedule = schedule,
             dose = dosage
         )

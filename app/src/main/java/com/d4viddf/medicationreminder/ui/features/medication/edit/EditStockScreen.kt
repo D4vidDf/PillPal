@@ -45,9 +45,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
-import com.d4viddf.medicationreminder.utils.getMedicationTypeStringResource
 
 @Composable
 fun EditStockScreen(
@@ -128,7 +128,7 @@ fun EditStockScreenContent(
                     fontWeight = FontWeight.Bold
                 )
                 val medicationUnit = uiState.medicationUnit?.let {
-                    stringResource(id = getMedicationTypeStringResource(it.toInt()))
+                    stringResource(id = it.nameResId)
                 } ?: ""
                 Text(
                     text = stringResource(R.string.edit_stock_units_left, medicationUnit),
@@ -194,7 +194,7 @@ fun EditStockScreenPreview() {
             medicationId = 1,
             medicationName = "Mestinon",
             remainingStock = 90,
-            medicationUnit = "pills"
+            medicationUnit = MedicationForm.PILL
         )
         EditStockScreenContent(
             uiState = previewState,

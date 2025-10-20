@@ -71,8 +71,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.model.MedicationType
 import com.d4viddf.medicationreminder.data.model.TodayScheduleItem
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
@@ -89,7 +89,6 @@ import com.d4viddf.medicationreminder.ui.features.medication.graph.ChartyGraphEn
 import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphViewModel
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationReminderViewModel
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationScheduleViewModel
-import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -177,7 +176,6 @@ fun MedicationDetailsScreen(
     animatedVisibilityScope: AnimatedVisibilityScope?,
     viewModel: MedicationViewModel = hiltViewModel(),
     scheduleViewModel: MedicationScheduleViewModel = hiltViewModel(),
-    medicationTypeViewModel: MedicationTypeViewModel = hiltViewModel(),
     medicationReminderViewModel: MedicationReminderViewModel = hiltViewModel(),
     graphViewModel: MedicationGraphViewModel? = hiltViewModel(),
     isHostedInPane: Boolean,
@@ -190,7 +188,6 @@ fun MedicationDetailsScreen(
 ) {
     var medicationState by remember { mutableStateOf<Medication?>(null) }
     var scheduleState by remember { mutableStateOf<MedicationSchedule?>(null) }
-    var medicationTypeState by remember { mutableStateOf<MedicationType?>(null) }
     var internalShowTwoPanesState by remember { mutableStateOf(false) } // Added state variable
 
     val progressDetails by viewModel.medicationProgressDetails.collectAsState()
@@ -223,12 +220,6 @@ fun MedicationDetailsScreen(
             viewModel.observeMedicationAndRemindersForDailyProgress(med.id)
             viewModel.loadActiveDosage(med.id)
             medicationReminderViewModel.loadTodaySchedule(medicationId)
-
-            med.typeId?.let { typeId ->
-                medicationTypeViewModel.medicationTypes.collect { types ->
-                    medicationTypeState = types.find { it.id == typeId }
-                }
-            }
         }
     }
 
@@ -345,7 +336,6 @@ fun MedicationDetailsScreen(
                                 MedicationHeaderAndProgress(
                                     medicationState = medicationState,
                                     progressDetails = progressDetails,
-                                    medicationTypeState = medicationTypeState,
                                     activeDosage = finalActiveDosage,
                                     cimaMedicationInfo = cimaMedicationInfo,
                                     color = color,
@@ -412,7 +402,6 @@ fun MedicationDetailsScreen(
                         MedicationHeaderAndProgress(
                             medicationState = medicationState,
                             progressDetails = progressDetails,
-                            medicationTypeState = medicationTypeState,
                             activeDosage = finalActiveDosage,
                             cimaMedicationInfo = cimaMedicationInfo,
                             color = color,
@@ -500,7 +489,6 @@ fun MedicationDetailsScreen(
 private fun MedicationHeaderAndProgress(
     medicationState: Medication?,
     progressDetails: ProgressDetails?,
-    medicationTypeState: MedicationType?,
     activeDosage: com.d4viddf.medicationreminder.data.model.MedicationDosage?,
     cimaMedicationInfo: com.d4viddf.medicationreminder.data.model.CimaMedicationDetail?,
     color: MedicationColor,
@@ -567,7 +555,7 @@ private fun MedicationHeaderAndProgress(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
-                                    painter = rememberAsyncImagePainter(model = medicationTypeState?.imageUrl ?: "https://placehold.co/100x100.png"),
+                                    painter = rememberAsyncImagePainter(model = medicationState?.medicationForm?.imageUrl ?: "https://placehold.co/100x100.png"),
                                     contentDescription = stringResource(id = R.string.medication_detail_header_image_acc),
                                     modifier = Modifier.size(180.dp)
                                 )
@@ -633,7 +621,8 @@ private fun MedicationHeaderAndProgress(
                                 colorScheme = color,
                                 activeDosage = activeDosage?.dosage,
                                 medication = medicationState,
-                                schedule = scheduleState
+                                schedule = scheduleState,
+                                medicationForm = medicationState.medicationForm
                             )
                         }
                     }
@@ -644,7 +633,7 @@ private fun MedicationHeaderAndProgress(
                         medicationName = medicationState.name,
                         userDosage = activeDosage?.dosage,
                         cimaDosage = cimaMedicationInfo?.pactivos,
-                        medicationImageUrl = medicationTypeState?.imageUrl,
+                        medicationImageUrl = medicationState.medicationForm.imageUrl,
                         colorScheme = color,
                         onNavigateToScheduleDosageChange = onNavigateToScheduleDosageChange
                     )
@@ -660,6 +649,7 @@ private fun MedicationHeaderAndProgress(
                         activeDosage = activeDosage?.dosage,
                         medication = medicationState,
                         schedule = scheduleState,
+                        medicationForm = medicationState.medicationForm,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
@@ -942,7 +932,7 @@ private fun WeekProgressContent(
                                 navController.navigate(
                                     Screen.MedicationHistory.createRoute(
                                         medicationId = medicationId,
-                                        colorName = color.name,
+                                        colorName = color.name ?: MedicationColor.LIGHT_ORANGE.name,
                                         selectedDate = selectedDateStr
                                     )
                                 )

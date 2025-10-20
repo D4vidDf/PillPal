@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationDosage
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationWithDosage
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
@@ -130,7 +131,7 @@ fun MedicationCardPreview() {
                     name = "Amoxicillin Long Name For Testing Ellipsis",
                     color = "LIGHT_BLUE",
                     reminderTime = "10:00 AM",
-                    typeId = 1,
+                    medicationForm = MedicationForm.TABLET,
                     packageSize = 0,
                     remainingDoses = 0,
                     startDate = null,

@@ -34,7 +34,7 @@ fun MedicationDetailHeader(
     medicationName: String?,
     userDosage: String?,
     cimaDosage: String?,
-    medicationImageUrl: String?,
+    medicationImageUrl: Int?,
     colorScheme: MedicationColor,
     onNavigateToScheduleDosageChange: (Int) -> Unit,
     modifier: Modifier = Modifier

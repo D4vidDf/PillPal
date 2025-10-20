@@ -18,10 +18,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
-import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.text.SimpleDateFormat
 import java.util.*
@@ -29,7 +28,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationDosagePackageDateInput(
-    selectedTypeId: Int,
+    selectedForm: MedicationForm,
     dosage: String,
     onDosageChange: (String) -> Unit,
     packageSize: String,
@@ -41,10 +40,7 @@ fun MedicationDosagePackageDateInput(
     onStartDateSelected: (String) -> Unit,
     endDate: String,
     onEndDateSelected: (String) -> Unit,
-    viewModel: MedicationTypeViewModel = hiltViewModel()
 ) {
-    val medicationTypes by viewModel.medicationTypes.collectAsState(initial = emptyList())
-    val medicationType = medicationTypes.find { it.id == selectedTypeId }
     var showDosageModal by remember { mutableStateOf(false) }
 
     val strDosagePackageDatesTitle = stringResource(id = R.string.dosage_package_dates_title)
@@ -87,7 +83,7 @@ fun MedicationDosagePackageDateInput(
                 .padding(bottom = 16.dp)
                 .clickable { showDosageModal = true }
         ) {
-            val displayDosage = remember(dosage, medicationSearchResult, medicationType, strDosageWholePill, strDosageMg, strDosageMl, strDosageSprays, strDosageSuppositories, strDosagePatches, strDosageTapToSet) {
+            val displayDosage = remember(dosage, medicationSearchResult, selectedForm, strDosageWholePill, strDosageMg, strDosageMl, strDosageSprays, strDosageSuppositories, strDosagePatches, strDosageTapToSet) {
                 val formattedDosage = dosage
                     .replace(".5", " ½")
                     .replace(".33", " ⅓")
@@ -97,15 +93,14 @@ fun MedicationDosagePackageDateInput(
                 formattedDosage.ifEmpty {
                     if (medicationSearchResult?.dosage != null) medicationSearchResult.dosage
                     else {
-                        when (medicationType?.name) {
-                            "Tablet", "Pill" -> strDosageWholePill
-                            "Cream", "Creme" -> "10 $strDosageMg"
-                            "Liquid" -> "10 $strDosageMl"
-                            "Powder" -> "100 $strDosageMg"
-                            "Syringe" -> "1 $strDosageMl"
-                            "Spray" -> "1 $strDosageSprays"
-                            "Suppository", "Suppositorium" -> "1 $strDosageSuppositories"
-                            "Patch" -> "1 $strDosagePatches"
+                        when (selectedForm) {
+                            MedicationForm.TABLET, MedicationForm.PILL -> strDosageWholePill
+                            MedicationForm.OINTMENT -> "10 $strDosageMg"
+                            MedicationForm.LIQUID -> "10 $strDosageMl"
+                            MedicationForm.POWDER -> "100 $strDosageMg"
+                            MedicationForm.INJECTION -> "1 $strDosageMl"
+                            MedicationForm.INHALER -> "1 $strDosageSprays"
+                            MedicationForm.SUPPOSITORY -> "1 $strDosageSuppositories"
                             else -> strDosageTapToSet
                         }
                     }
@@ -215,8 +210,8 @@ fun MedicationDosagePackageDateInput(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        when (medicationType?.name) {
-                            "Tablet", "Pill" -> {
+                        when (selectedForm) {
+                            MedicationForm.TABLET, MedicationForm.PILL -> {
                                 var numPills by remember(dosage) { mutableStateOf(dosage.split(".").firstOrNull()?.filter { it.isDigit() } ?: "") }
                                 var selectedFraction by remember(dosage) {
                                     mutableStateOf(
@@ -259,7 +254,7 @@ fun MedicationDosagePackageDateInput(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            "Cream", "Creme" -> {
+                            MedicationForm.OINTMENT -> {
                                 val parts = dosage.split(" ")
                                 var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
                                 var unit by remember { mutableStateOf(CreamUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: CreamUnit.MG) }
@@ -288,7 +283,7 @@ fun MedicationDosagePackageDateInput(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            "Liquid" -> {
+                            MedicationForm.LIQUID -> {
                                 val parts = dosage.split(" ")
                                 var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
                                 var unit by remember { mutableStateOf(LiquidUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: LiquidUnit.ML) }
@@ -317,7 +312,7 @@ fun MedicationDosagePackageDateInput(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            "Powder" -> {
+                            MedicationForm.POWDER -> {
                                 val parts = dosage.split(" ")
                                 var amount by remember { mutableStateOf(parts.firstOrNull() ?: "") }
                                 var unit by remember { mutableStateOf(PowderUnit.values().find { it.displayValue == parts.getOrNull(1) } ?: PowderUnit.MG) }
@@ -346,12 +341,11 @@ fun MedicationDosagePackageDateInput(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            "Syringe", "Suppository", "Suppositorium", "Spray", "Patch" -> {
-                                val (unitLabel, unitSuffix) = when(medicationType?.name) {
-                                    "Syringe" -> SyringeUnit.ML.displayValue to " ${SyringeUnit.ML.displayValue}"
-                                    "Spray" -> strDosageSprays to " $strDosageSprays"
-                                    "Suppository", "Suppositorium" -> strDosageSuppositories to " $strDosageSuppositories"
-                                    "Patch" -> strDosagePatches to " $strDosagePatches"
+                            MedicationForm.INJECTION, MedicationForm.SUPPOSITORY, MedicationForm.INHALER -> {
+                                val (unitLabel, unitSuffix) = when(selectedForm) {
+                                    MedicationForm.INJECTION -> SyringeUnit.ML.displayValue to " ${SyringeUnit.ML.displayValue}"
+                                    MedicationForm.INHALER -> strDosageSprays to " $strDosageSprays"
+                                    MedicationForm.SUPPOSITORY -> strDosageSuppositories to " $strDosageSuppositories"
                                     else -> "" to ""
                                 }
                                 var amount by remember(dosage) { mutableStateOf(dosage.removeSuffix(unitSuffix)) }
@@ -381,7 +375,7 @@ fun MedicationDosagePackageDateInput(
                         }
                     }
 
-                    if (medicationType?.name in listOf("Tablet", "Pill")) {
+                    if (selectedForm in listOf(MedicationForm.TABLET, MedicationForm.PILL)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -597,7 +591,7 @@ enum class SyringeUnit(val displayValue: String) {
 fun MedicationDosagePackageDateInputPreview() {
     AppTheme(dynamicColor = false) {
         MedicationDosagePackageDateInput(
-            selectedTypeId = 1,
+            selectedForm = MedicationForm.PILL,
             dosage = "1 pill",
             onDosageChange = {},
             packageSize = "30",

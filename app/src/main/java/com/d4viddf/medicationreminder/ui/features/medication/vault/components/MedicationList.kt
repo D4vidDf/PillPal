@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationDosage
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.ui.common.model.UiItemState
 import com.d4viddf.medicationreminder.ui.features.medication.vault.MedicationWithDosage
 import com.d4viddf.medicationreminder.ui.features.medication.vault.components.skeletons.MedicationCardSkeleton
@@ -137,7 +138,7 @@ fun MedicationListPreview() {
                         name = "Amoxicillin",
                         color = "LIGHT_BLUE",
                         reminderTime = "10:00 AM",
-                        typeId = 1,
+                        medicationForm = MedicationForm.TABLET,
                         packageSize = 30,
                         remainingDoses = 20,
                         startDate = todayDate,
@@ -154,7 +155,7 @@ fun MedicationListPreview() {
                         name = "Vitamin C",
                         color = "LIGHT_ORANGE",
                         reminderTime = "08:00 AM",
-                        typeId = 1,
+                        medicationForm = MedicationForm.TABLET,
                         packageSize = 100,
                         remainingDoses = 50,
                         startDate = todayDate,

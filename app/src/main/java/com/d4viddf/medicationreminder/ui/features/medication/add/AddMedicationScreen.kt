@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.FrequencyType
 import com.d4viddf.medicationreminder.data.model.Medication
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
 import com.d4viddf.medicationreminder.data.model.MedicationSearchResult
 import com.d4viddf.medicationreminder.data.model.ScheduleType
@@ -61,7 +62,7 @@ fun AddMedicationScreen(
 
     var currentStep by rememberSaveable { mutableIntStateOf(0) }
     var progress by rememberSaveable { mutableFloatStateOf(0f) }
-    var selectedTypeId by rememberSaveable { mutableIntStateOf(1) }
+    var selectedForm by rememberSaveable { mutableStateOf(MedicationForm.TABLET) }
     var selectedColor by rememberSaveable { mutableStateOf(MedicationColor.LIGHT_ORANGE) }
     var startDate by rememberSaveable { mutableStateOf("") }
     var endDate by rememberSaveable { mutableStateOf("") }
@@ -164,7 +165,7 @@ fun AddMedicationScreen(
 
                             val medicationToInsert = Medication(
                                 name = medicationName,
-                                typeId = selectedTypeId,
+                                medicationForm = selectedForm,
                                 color = selectedColor.toString(),
                                 packageSize = packageSize.toIntOrNull() ?: 0,
                                 remainingDoses = packageSize.toIntOrNull() ?: 0,
@@ -272,8 +273,8 @@ fun AddMedicationScreen(
                                 medicationName = result.name
                             }
                         },
-                        selectedTypeId = selectedTypeId,
-                        onTypeSelected = { selectedTypeId = it },
+                        selectedForm = selectedForm,
+                        onFormSelected = { selectedForm = it },
                         selectedColor = selectedColor,
                         onColorSelected = { selectedColor = it },
                         dosage = dosage,
@@ -346,8 +347,8 @@ fun AddMedicationScreen(
                             medicationName = result.name
                         }
                     },
-                    selectedTypeId = selectedTypeId,
-                    onTypeSelected = { selectedTypeId = it },
+                    selectedForm = selectedForm,
+                    onFormSelected = { selectedForm = it },
                     selectedColor = selectedColor,
                     onColorSelected = { selectedColor = it },
                     dosage = dosage,
@@ -410,8 +411,8 @@ private fun CurrentStepContent(
     medicationName: String,
     onMedicationNameChange: (String) -> Unit,
     onMedicationSelected: (MedicationSearchResult?) -> Unit,
-    selectedTypeId: Int,
-    onTypeSelected: (Int) -> Unit,
+    selectedForm: MedicationForm,
+    onFormSelected: (MedicationForm) -> Unit,
     selectedColor: MedicationColor,
     onColorSelected: (MedicationColor) -> Unit,
     dosage: String,
@@ -472,13 +473,12 @@ private fun CurrentStepContent(
             Column(modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = 600.dp)) {
-                MedicationTypeSelector(
-                    selectedTypeId = selectedTypeId,
-                    onTypeSelected = onTypeSelected,
+                MedicationFormSelector(
+                    selectedForm = selectedForm,
+                    onFormSelected = onFormSelected,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    selectedColor = selectedColor
+                        .weight(1f)
                 )
                 Card(
                     modifier = Modifier
@@ -497,7 +497,7 @@ private fun CurrentStepContent(
         }
         2 -> {
             MedicationDosagePackageDateInput(
-                selectedTypeId = selectedTypeId,
+                selectedForm = selectedForm,
                 dosage = dosage, onDosageChange = onDosageChange,
                 packageSize = packageSize, onPackageSizeChange = onPackageSizeChange,
                 saveRemainingFraction = saveRemainingFraction,
@@ -533,7 +533,7 @@ private fun CurrentStepContent(
             val summaryStartDate = if (startDate == selectStartDatePlaceholder) "" else startDate
             val summaryEndDate = if (endDate == selectEndDatePlaceholder) "" else endDate
             MedicationSummary(
-                typeId = selectedTypeId, medicationName = medicationName, color = selectedColor.backgroundColor,
+                form = selectedForm, medicationName = medicationName, color = selectedColor.backgroundColor,
                 dosage = dosage, packageSize = packageSize, frequency = frequency,
                 startDate = summaryStartDate, endDate = summaryEndDate,
                 onceADayTime = onceADayTime,
@@ -577,7 +577,7 @@ fun AddMedicationScreenPreview() {
 fun MedicationSummaryPreview() {
     AppTheme {
         MedicationSummary(
-            typeId = 1,
+            form = MedicationForm.TABLET,
             medicationName = "Medication Name",
             color = Color.Cyan,
             dosage = "1 pill",
@@ -606,7 +606,7 @@ fun InfoRowPreview() {
 
 @Composable
 fun MedicationSummary(
-    typeId: Int, medicationName: String, color: Color, dosage: String, packageSize: String,
+    form: MedicationForm, medicationName: String, color: Color, dosage: String, packageSize: String,
     frequency: FrequencyType,
     startDate: String, endDate: String,
     onceADayTime: LocalTime?,
