@@ -37,7 +37,7 @@ class RefillStockViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         currentStock = medication.remainingDoses,
-                        medicationUnit = medication.medicationForm.name
+                        medicationUnit = medication.medicationForm
                     )
                 }
             } else {

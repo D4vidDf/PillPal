@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
-import com.d4viddf.medicationreminder.utils.getMedicationTypeStringResource
 
 @Composable
 fun RefillStockScreen(
@@ -99,7 +99,7 @@ fun RefillStockScreenContent(
             ) {
                 Column {
                     val medicationUnit = uiState.medicationUnit?.let {
-                        stringResource(id = getMedicationTypeStringResource(it.toInt()))
+                        stringResource(id = it.nameResId)
                     } ?: ""
                     Text(
                         text = stringResource(R.string.refill_stock_title, medicationUnit),
@@ -166,7 +166,7 @@ fun RefillStockScreenPreview() {
             isLoading = false,
             currentStock = 90,
             amountToAdd = "10",
-            medicationUnit = "pills"
+            medicationUnit = MedicationForm.PILL
         )
         RefillStockScreenContent(
             uiState = previewState,
@@ -185,7 +185,7 @@ fun RefillEmptyStockScreenPreview() {
             isLoading = false,
             currentStock = 90,
             amountToAdd = "0",
-            medicationUnit = "pills"
+            medicationUnit = MedicationForm.PILL
         )
         RefillStockScreenContent(
             uiState = previewState,

@@ -89,7 +89,6 @@ import com.d4viddf.medicationreminder.ui.features.medication.graph.ChartyGraphEn
 import com.d4viddf.medicationreminder.ui.features.medication.graph.MedicationGraphViewModel
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationReminderViewModel
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationScheduleViewModel
-import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationTypeViewModel
 import com.d4viddf.medicationreminder.ui.features.medication.add.MedicationViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -282,7 +281,7 @@ fun MedicationDetailsScreen(
                                         color = Color.Black.copy(alpha = 0.4f),
                                         shape = RoundedCornerShape(20.dp)
                                     )
-                                    .clickable { navController.navigate(Screen.EditMedication.createRoute(medicationId)) }
+                                    .clickable { navController.navigate(Screen.EditMedication.createRoute(medicationId, color.name)) }
                                     .padding(
                                         horizontal = 16.dp,
                                         vertical = 8.dp
