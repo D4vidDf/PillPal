@@ -133,8 +133,11 @@ fun RefillStockScreenContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     val total = uiState.currentStock + (uiState.amountToAdd.toIntOrNull() ?: 0)
+                    val medicationUnit = uiState.medicationUnit?.let {
+                        stringResource(id = it.nameResId)
+                    } ?: ""
                     Text(
-                        text = stringResource(R.string.refill_stock_total, total, uiState.medicationUnit),
+                        text = stringResource(R.string.refill_stock_total, total, medicationUnit),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium

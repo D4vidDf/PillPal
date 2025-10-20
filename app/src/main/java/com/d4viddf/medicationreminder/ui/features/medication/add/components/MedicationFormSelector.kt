@@ -24,9 +24,11 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
+import android.app.Activity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +49,7 @@ fun MedicationFormSelector(
     onFormSelected: (MedicationForm) -> Unit,
     selectedColor: MedicationColor? = null
 ) {
-    val windowSizeClass = calculateWindowSizeClass()
+    val windowSizeClass = calculateWindowSizeClass(LocalContext.current as Activity)
     val columns = when (windowSizeClass.widthSizeClass) {
         WindowWidthSizeClass.Compact -> 3
         else -> 5
