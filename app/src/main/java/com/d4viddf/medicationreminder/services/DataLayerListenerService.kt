@@ -56,8 +56,6 @@ class DataLayerListenerService : WearableListenerService() {
     @Inject
     lateinit var scheduleRepository: MedicationScheduleRepository
     @Inject
-    lateinit var medicationTypeRepository: MedicationTypeRepository
-    @Inject
     lateinit var medicationInfoRepository: MedicationInfoRepository
     @Inject
     lateinit var dosageRepository: MedicationDosageRepository
@@ -259,11 +257,6 @@ class DataLayerListenerService : WearableListenerService() {
                 continue
             }
 
-            val medType = if (medication.typeId != null) {
-                medicationTypeRepository.getMedicationTypeById(medication.typeId)
-            } else {
-                null
-            }
             val medInfo = medicationInfoRepository.getMedicationInfoById(medication.id)
             val reminders = medicationReminderRepository.getRemindersForMedication(medication.id).firstOrNull() ?: emptyList()
             val activeDosage = dosageRepository.getActiveDosage(medication.id)
@@ -274,13 +267,11 @@ class DataLayerListenerService : WearableListenerService() {
                     name = medication.name,
                     dosage = activeDosage?.dosage,
                     color = medication.color,
-                    type = medType?.let {
-                        MedicationTypeSyncItem(
-                            id = it.id,
-                            name = it.name,
-                            iconUrl = it.imageUrl
-                        )
-                    },
+                    type = MedicationTypeSyncItem(
+                        id = medication.medicationForm.ordinal,
+                        name = medication.medicationForm.name,
+                        iconUrl = medication.medicationForm.imageUrl.toString()
+                    ),
                     info = medInfo?.let {
                         MedicationInfoSyncItem(
                             medicationId = it.medicationId,

@@ -17,7 +17,6 @@ import javax.inject.Inject
 @HiltViewModel
 class RefillStockViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
-    private val medicationTypeRepository: MedicationTypeRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -35,14 +34,11 @@ class RefillStockViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val medication = medicationRepository.getMedicationById(medicationId)
             if (medication != null) {
-                val medicationType = medication.typeId?.let {
-                    medicationTypeRepository.getMedicationTypeById(it)
-                }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         currentStock = medication.remainingDoses,
-                        medicationUnit = medication.typeId.toString()
+                        medicationUnit = medication.medicationForm.name
                     )
                 }
             } else {

@@ -58,7 +58,6 @@ class HomeViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val medicationDosageRepository: MedicationDosageRepository,
-    private val medicationTypeRepository: MedicationTypeRepository,
     private val notificationRepository: NotificationRepository,
     private val wearConnectivityHelper: WearConnectivityHelper,
     userPreferencesRepository: UserPreferencesRepository,
@@ -347,14 +346,13 @@ class HomeViewModel @Inject constructor(
     private suspend fun mapToNextDoseUiItem(reminder: MedicationReminder): NextDoseUiItem? {
         return medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
             val dosage = medicationDosageRepository.getActiveDosage(med.id)
-            val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
             NextDoseUiItem(
                 reminderId = reminder.id,
                 medicationId = med.id,
                 medicationName = med.name,
                 medicationDosage = dosage?.dosage ?: "",
                 medicationColorName = med.color,
-                medicationImageUrl = type?.imageUrl,
+                medicationImageUrl = med.medicationForm.imageUrl.toString(),
                 rawReminderTime = reminder.reminderTime,
                 formattedReminderTime = formatTime(reminder.reminderTime)
             )
@@ -365,14 +363,13 @@ class HomeViewModel @Inject constructor(
         return reminders.mapNotNull { reminder ->
             medicationRepository.getMedicationById(reminder.medicationId)?.let { med ->
                 val dosage = medicationDosageRepository.getActiveDosage(med.id)
-                val type = med.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
                 TodayScheduleUiItem(
                     reminder = reminder,
                     medicationName = med.name,
                     medicationDosage = dosage?.dosage ?: "",
                     medicationColorName = med.color,
-                    medicationIconUrl = type?.imageUrl,
-                    medicationTypeName = type?.name,
+                    medicationIconUrl = med.medicationForm.imageUrl.toString(),
+                    medicationTypeName = application.getString(med.medicationForm.nameResId),
                     formattedReminderTime = formatTime(reminder.reminderTime)
                 )
             }

@@ -24,7 +24,6 @@ import javax.inject.Inject
 @HiltViewModel
 class EditMedicationViewModel @Inject constructor(
     private val medicationRepository: MedicationRepository,
-    private val medicationTypeRepository: MedicationTypeRepository,
     private val scheduleRepository: MedicationScheduleRepository,
     private val dosageRepository: MedicationDosageRepository,
     savedStateHandle: SavedStateHandle
@@ -46,9 +45,6 @@ class EditMedicationViewModel @Inject constructor(
             val medication = medicationRepository.getMedicationById(medicationId)
             initialMedicationState = medication // Store initial state
             if (medication != null) {
-                val medicationType = medication.typeId?.let {
-                    medicationTypeRepository.getMedicationTypeById(it)
-                }
                 val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
                 val activeDosage = dosageRepository.getActiveDosage(medicationId)
 
@@ -56,7 +52,6 @@ class EditMedicationViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         medication = medication,
-                        medicationType = medicationType,
                         schedule = schedule,
                         dose = activeDosage
                     )

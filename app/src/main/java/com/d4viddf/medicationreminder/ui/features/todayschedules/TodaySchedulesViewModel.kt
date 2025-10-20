@@ -33,7 +33,6 @@ import javax.inject.Inject
 class TodaySchedulesViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
-    private val medicationTypeRepository: MedicationTypeRepository,
     private val dosageRepository: MedicationDosageRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -138,15 +137,14 @@ class TodaySchedulesViewModel @Inject constructor(
     private suspend fun mapToTodayScheduleUiItem(reminders: List<MedicationReminder>): List<TodayScheduleUiItem> {
         return reminders.mapNotNull { reminder ->
             medicationRepository.getMedicationById(reminder.medicationId)?.let { medication ->
-                val typeDetails = medication.typeId?.let { medicationTypeRepository.getMedicationTypeById(it) }
                 val activeDosage = dosageRepository.getActiveDosage(medication.id)
                 TodayScheduleUiItem(
                     reminder = reminder,
                     medicationName = medication.name,
                     medicationDosage = activeDosage?.dosage ?: "",
                     medicationColorName = medication.color,
-                    medicationIconUrl = typeDetails?.imageUrl,
-                    medicationTypeName = typeDetails?.name,
+                    medicationIconUrl = medication.medicationForm.imageUrl.toString(),
+                    medicationTypeName = medication.medicationForm.name,
                     formattedReminderTime = formatTime(reminder.reminderTime)
                 )
             }
