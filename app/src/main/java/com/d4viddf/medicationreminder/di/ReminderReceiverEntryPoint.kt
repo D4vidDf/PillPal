@@ -15,6 +15,5 @@ interface ReminderReceiverEntryPoint {
     fun reminderRepository(): MedicationReminderRepository
     fun medicationRepository(): MedicationRepository
     fun medicationDosageRepository(): MedicationDosageRepository
-    fun medicationTypeRepository(): MedicationTypeRepository
     fun notificationScheduler(): NotificationScheduler
 }

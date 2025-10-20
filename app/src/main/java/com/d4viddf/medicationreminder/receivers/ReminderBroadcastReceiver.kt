@@ -88,7 +88,6 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         val localReminderRepository = entryPoint.reminderRepository()
         val localNotificationScheduler = entryPoint.notificationScheduler()
         val localMedicationRepository = entryPoint.medicationRepository()
-        val localMedicationTypeRepository = entryPoint.medicationTypeRepository()
 
         when (intent.action) {
             IntentActionConstants.ACTION_SHOW_REMINDER -> {
@@ -130,10 +129,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                             val medication = localMedicationRepository.getMedicationById(reminder.medicationId)
                             if (medication != null) {
                                 medicationColorHex = medication.color
-                                medication.typeId?.let { actualTypeId ->
-                                    val medicationType = localMedicationTypeRepository.getMedicationTypeById(actualTypeId)
-                                    medicationTypeName = medicationType?.name
-                                }
+                                medicationTypeName = medication.medicationForm.name
                                 val fetchedDetailsLog = "${IntentActionConstants.ACTION_SHOW_REMINDER}: Fetched details for notification: Color=$medicationColorHex, TypeName=$medicationTypeName for MedicationId=${medication.id}"
                                 Log.d(TAG, fetchedDetailsLog)
                                 FileLogger.log(TAG, fetchedDetailsLog)
