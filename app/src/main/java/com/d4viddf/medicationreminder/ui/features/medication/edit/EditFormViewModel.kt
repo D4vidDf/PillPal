@@ -37,7 +37,7 @@ class EditFormViewModel @Inject constructor(
                 _uiState.update { currentState ->
                     currentState.copy(
                         isLoading = false,
-                        medicationTypeId = it.typeId,
+                        medicationForm = it.medicationForm,
                         medicationColor = colorName?.let { MedicationColor.valueOf(it) }
                     )
                 }
@@ -45,8 +45,8 @@ class EditFormViewModel @Inject constructor(
         }
     }
 
-    fun onTypeSelected(typeId: Int) {
-        _uiState.update { it.copy(medicationTypeId = typeId) }
+    fun onFormSelected(form: MedicationForm) {
+        _uiState.update { it.copy(medicationForm = form) }
     }
 
     fun onSave() {
@@ -55,7 +55,7 @@ class EditFormViewModel @Inject constructor(
             val medication = medicationRepository.getMedicationById(medicationId)
             medication?.let {
                 val updatedMedication = it.copy(
-                    typeId = currentState.medicationTypeId
+                    medicationForm = currentState.medicationForm ?: it.medicationForm
                 )
                 medicationRepository.updateMedication(updatedMedication)
             }

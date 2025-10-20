@@ -86,7 +86,7 @@
     <string name="medication_name_placeholder">Nombre del medicamento</string>
     <string name="medication_name_clear_search_acc">Limpiar búsqueda</string>
     <string name="medication_name_error">Por favor, introduce un nombre de medicamento válido</string>
-    <string name="medication_type_selector_title">Selecciona el tipo de medicamento</string>
+    <string name="medication_type_selector_title">Selecciona la forma del medicamento</string>
 
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Hoy</string>
@@ -847,15 +847,16 @@
     <string name="low_stock_reminder_runs_out">%1$s se agota en %2$d días</string>
     <string name="disable">Desactivar</string>
 
-    <!-- Medication Types -->
-    <string name="medication_type_tablet">Tableta</string>
-    <string name="medication_type_pill">Píldora</string>
-    <string name="medication_type_powder">Polvo</string>
-    <string name="medication_type_syringe">Jeringa</string>
-    <string name="medication_type_creme">Crema</string>
-    <string name="medication_type_spray">Aerosol</string>
-    <string name="medication_type_liquid">Líquido</string>
-    <string name="medication_type_suppositorium">Supositorio</string>
-    <string name="medication_type_patch">Parche</string>
+    <!-- Medication Forms -->
+    <string name="medication_form_tablet">Tableta</string>
+    <string name="medication_form_pill">Píldora</string>
+    <string name="medication_form_powder">Polvo</string>
+    <string name="medication_form_injection">Inyección</string>
+    <string name="medication_form_ointment">Pomada</string>
+    <string name="medication_form_inhaler">Inhalador</string>
+    <string name="medication_form_liquid">Líquido</string>
+    <string name="medication_form_suppository">Supositorio</string>
+    <string name="medication_form_drops">Gotas</string>
+    <string name="medication_form_other">Otros</string>
 
 </resources>

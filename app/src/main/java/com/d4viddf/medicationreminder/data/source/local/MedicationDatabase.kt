@@ -20,15 +20,67 @@ import com.d4viddf.medicationreminder.data.model.healthdata.WaterPreset
 import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 
 @Database(
-    entities = [Medication::class, MedicationType::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
+    entities = [Medication::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
         WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class, Notification::class],
-    version = 15,
+    version = 16,
     exportSchema = false
 )
-@TypeConverters(DateTimeConverters::class)
+@TypeConverters(DateTimeConverters::class, Converters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medications ADD COLUMN medicationForm TEXT NOT NULL DEFAULT 'PILL'")
+
+                db.execSQL("""
+                    UPDATE medications SET medicationForm = CASE typeId
+                        WHEN 1 THEN 'TABLET'
+                        WHEN 2 THEN 'PILL'
+                        WHEN 3 THEN 'LIQUID'
+                        WHEN 4 THEN 'INJECTION'
+                        WHEN 5 THEN 'INHALER'
+                        WHEN 6 THEN 'DROPS'
+                        WHEN 7 THEN 'SUPPOSITORY'
+                        WHEN 8 THEN 'POWDER'
+                        WHEN 9 THEN 'OINTMENT'
+                        ELSE 'OTHER'
+                    END
+                """)
+
+                db.execSQL("DROP TABLE medication_types")
+
+                db.execSQL("""
+                    CREATE TABLE `medications_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `medicationForm` TEXT NOT NULL,
+                        `color` TEXT NOT NULL,
+                        `packageSize` INTEGER NOT NULL,
+                        `remainingDoses` INTEGER NOT NULL,
+                        `saveRemainingFraction` INTEGER NOT NULL,
+                        `startDate` TEXT,
+                        `endDate` TEXT,
+                        `reminderTime` TEXT,
+                        `registrationDate` TEXT,
+                        `nregistro` TEXT,
+                        `lowStockThreshold` INTEGER,
+                        `lowStockReminderDays` INTEGER,
+                        `isArchived` INTEGER NOT NULL,
+                        `isSuspended` INTEGER NOT NULL
+                    )
+                """)
+
+                db.execSQL("""
+                    INSERT INTO medications_new (id, name, medicationForm, color, packageSize, remainingDoses, saveRemainingFraction, startDate, endDate, reminderTime, registrationDate, nregistro, lowStockThreshold, lowStockReminderDays, isArchived, isSuspended)
+                    SELECT id, name, medicationForm, color, packageSize, remainingDoses, saveRemainingFraction, startDate, endDate, reminderTime, registrationDate, nregistro, lowStockThreshold, lowStockReminderDays, isArchived, isSuspended FROM medications
+                """)
+
+                db.execSQL("DROP TABLE medications")
+
+                db.execSQL("ALTER TABLE medications_new RENAME TO medications")
+            }
+        }
         val MIGRATION_14_15 = object : Migration(14, 15) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Create a new table with the desired schema
@@ -306,7 +358,6 @@ abstract class MedicationDatabase : RoomDatabase() {
     }
 
     abstract fun medicationDao(): MedicationDao
-    abstract fun medicationTypeDao(): MedicationTypeDao
     abstract fun medicationScheduleDao(): MedicationScheduleDao
     abstract fun medicationReminderDao(): MedicationReminderDao
     abstract fun medicationDosageDao(): MedicationDosageDao

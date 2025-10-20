@@ -86,7 +86,7 @@
     <string name="medication_name_placeholder">Medication Name</string>
     <string name="medication_name_clear_search_acc">Clear search</string>
     <string name="medication_name_error">Please enter a valid medication name</string>
-    <string name="medication_type_selector_title">Select type of medication</string>
+    <string name="medication_type_selector_title">Select form of medication</string>
 
     <!-- MedicationDetailScreen & Components -->
     <string name="medication_detail_today_title">Today</string>
@@ -856,14 +856,15 @@
     <string name="low_stock_reminder_runs_out">%1$s runs out in %2$d days</string>
     <string name="disable">Disable</string>
 
-    <!-- Medication Types -->
-    <string name="medication_type_tablet">Tablet</string>
-    <string name="medication_type_pill">Pill</string>
-    <string name="medication_type_powder">Powder</string>
-    <string name="medication_type_syringe">Syringe</string>
-    <string name="medication_type_creme">Creme</string>
-    <string name="medication_type_spray">Spray</string>
-    <string name="medication_type_liquid">Liquid</string>
-    <string name="medication_type_suppositorium">Suppositorium</string>
-    <string name="medication_type_patch">Patch</string>
+    <!-- Medication Forms -->
+    <string name="medication_form_tablet">Tablet</string>
+    <string name="medication_form_pill">Pill</string>
+    <string name="medication_form_powder">Powder</string>
+    <string name="medication_form_injection">Injection</string>
+    <string name="medication_form_ointment">Ointment</string>
+    <string name="medication_form_inhaler">Inhaler</string>
+    <string name="medication_form_liquid">Liquid</string>
+    <string name="medication_form_suppository">Suppository</string>
+    <string name="medication_form_drops">Drops</string>
+    <string name="medication_form_other">Other</string>
 </resources>

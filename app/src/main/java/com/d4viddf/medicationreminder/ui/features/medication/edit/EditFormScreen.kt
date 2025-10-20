@@ -23,7 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
-import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationTypeSelector
+import com.d4viddf.medicationreminder.data.model.MedicationForm
+import com.d4viddf.medicationreminder.ui.features.medication.add.components.MedicationFormSelector
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 
@@ -37,7 +38,7 @@ fun EditFormScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onSave = viewModel::onSave,
-        onTypeSelected = viewModel::onTypeSelected
+        onFormSelected = viewModel::onFormSelected
     )
 }
 
@@ -47,48 +48,33 @@ fun EditFormScreenContent(
     uiState: EditFormState,
     onNavigateBack: () -> Unit,
     onSave: () -> Unit,
-    onTypeSelected: (Int) -> Unit
+    onFormSelected: (MedicationForm) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.edit_form_color_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
-                    }
-                },
-                actions = {
-                    Button(onClick = {
-                        onSave()
-                        onNavigateBack()
-                    }) {
-                        Text(text = stringResource(id = R.string.save))
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
+    Scaffold { paddingValues ->
+        Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator()
             } else {
-                Column(
-                    modifier = Modifier.fillMaxSize()
+                MedicationFormSelector(
+                    modifier = Modifier.weight(1f),
+                    selectedForm = uiState.medicationForm,
+                    onFormSelected = onFormSelected,
+                    selectedColor = uiState.medicationColor
+                )
+                Button(
+                    onClick = {
+                        onSave()
+                        onNavigateBack()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    MedicationTypeSelector(
-                        selectedTypeId = uiState.medicationTypeId,
-                        onTypeSelected = onTypeSelected,
-                        selectedColor = uiState.medicationColor
-                    )
+                    Text(text = stringResource(id = R.string.save))
                 }
             }
         }
@@ -103,12 +89,12 @@ private fun EditFormScreenPreview() {
         EditFormScreenContent(
             uiState = EditFormState(
                 isLoading = false,
-                medicationTypeId = 1,
+                medicationForm = MedicationForm.TABLET,
                 medicationColor = MedicationColor.LIGHT_PINK
             ),
             onNavigateBack = {},
             onSave = {},
-            onTypeSelected = {}
+            onFormSelected = {}
         )
     }
 }
