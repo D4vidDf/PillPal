@@ -8,16 +8,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -78,10 +75,16 @@ fun EditFormScreenContent(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
+                .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
             if (uiState.isLoading) {
-                CircularWavyProgressIndicator()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularWavyProgressIndicator()
+                }
             } else {
                 MedicationFormSelector(
                     modifier = Modifier.weight(1f),
@@ -96,8 +99,7 @@ fun EditFormScreenContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(ButtonDefaults.MediumContainerHeight)
-                        .padding(16.dp),
+                        .heightIn(ButtonDefaults.MediumContainerHeight),
                 ) {
                     Text(text = stringResource(id = R.string.save))
                 }

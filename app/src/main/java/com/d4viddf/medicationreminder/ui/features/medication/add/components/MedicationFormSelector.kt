@@ -1,10 +1,11 @@
 package com.d4viddf.medicationreminder.ui.features.medication.add.components
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,8 +24,6 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.Image
-import android.app.Activity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -36,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
@@ -67,7 +64,6 @@ fun MedicationFormSelector(
                 fontWeight = FontWeight.Bold
             ),
             modifier = Modifier
-                .padding(16.dp)
                 .fillMaxWidth()
         )
 
@@ -75,10 +71,10 @@ fun MedicationFormSelector(
             columns = GridCells.Fixed(columns),
             modifier = Modifier
                 .fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+            contentPadding = PaddingValues( vertical = 8.dp)
         ) {
-            items(MedicationForm.values().size) { index ->
-                val form = MedicationForm.values()[index]
+            items(MedicationForm.entries.size) { index ->
+                val form = MedicationForm.entries[index]
                 val cornerShape = when {
                     columns == 5 -> {
                         when (index) {
@@ -93,8 +89,8 @@ fun MedicationFormSelector(
                         when (index) {
                             0 -> RoundedCornerShape(topStart = 16.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp)
                             2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 16.dp, bottomEnd = 8.dp)
-                            MedicationForm.values().size - 3 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 8.dp)
-                            MedicationForm.values().size - 1 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp)
+                            8 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 8.dp, bottomEnd = 16.dp)
+                            9-> RoundedCornerShape(topStart = 8.dp, bottomStart = 16.dp, topEnd = 8.dp, bottomEnd = 16.dp)
                             else -> RoundedCornerShape(8.dp)
                         }
                     }
@@ -131,8 +127,7 @@ fun MedicationFormItem(
                 color = backgroundColor,
                 shape = cornerRadius
             )
-            .clickable(onClick = onClick)
-            .padding(8.dp),
+            .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
