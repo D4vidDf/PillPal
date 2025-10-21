@@ -48,25 +48,21 @@ fun MedicationDurationScreen(
     )
 
     if (uiState.showStartDatePicker) {
-        val startDate = LocalDate.parse(uiState.startDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        val endDate = if (uiState.endDate != "Ongoing") LocalDate.parse(uiState.endDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")) else null
         DatePickerModal(
             onDismiss = viewModel::onDismissStartDatePicker,
             onDateSelected = viewModel::onStartDateSelected,
-            initialDate = startDate,
-            maxDate = endDate
+            initialDate = uiState.startDate,
+            maxDate = uiState.endDate
         )
     }
 
     if (uiState.showEndDatePicker) {
-        val startDate = LocalDate.parse(uiState.startDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        val endDate = if (uiState.endDate != "Ongoing") LocalDate.parse(uiState.endDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")) else null
         DatePickerModal(
             onDismiss = viewModel::onDismissEndDatePicker,
             onDateSelected = viewModel::onEndDateSelected,
             onClearDate = { viewModel.onEndDateSelected(null) },
-            initialDate = endDate,
-            minDate = startDate
+            initialDate = uiState.endDate,
+            minDate = uiState.startDate
         )
     }
 }
@@ -104,8 +100,8 @@ fun MedicationDurationScreenContent(
                 shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp)
             ) {
                 DurationRow(
-                    title = "Start Date",
-                    value = uiState.startDate,
+                    title = stringResource(R.string.start_date_label),
+                    value = uiState.startDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
                     onClick = onStartDateClick
                 )
             }
@@ -115,8 +111,8 @@ fun MedicationDurationScreenContent(
                 shape = RoundedCornerShape(6.dp,6.dp,12.dp,12.dp)
             ) {
                 DurationRow(
-                    title = "End Date",
-                    value = uiState.endDate,
+                    title = stringResource(R.string.end_date_label),
+                    value = uiState.endDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "Ongoing",
                     onClick = onEndDateClick
                 )
             }
@@ -155,7 +151,7 @@ private fun DurationRow(
 fun MedicationDurationScreenPreview() {
     AppTheme {
         MedicationDurationScreenContent(
-            uiState = MedicationDurationState(startDate = "10/10/2024", endDate = "Ongoing"),
+            uiState = MedicationDurationState(startDate = LocalDate.now(), endDate = null),
             onNavigateBack = {},
             onStartDateClick = {},
             onEndDateClick = {}

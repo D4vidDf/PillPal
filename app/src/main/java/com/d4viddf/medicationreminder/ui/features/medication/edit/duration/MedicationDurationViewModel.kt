@@ -29,8 +29,8 @@ class MedicationDurationViewModel @Inject constructor(
             medicationRepository.getMedicationByIdFlow(medicationId).collectLatest { medication ->
                 medication?.let {
                     _uiState.value = MedicationDurationState(
-                        startDate = it.startDate?.let { LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: "",
-                        endDate = it.endDate?.let { LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: "Ongoing"
+                        startDate = it.startDate?.let { LocalDate.parse(it) },
+                        endDate = it.endDate?.let { LocalDate.parse(it) }
                     )
                 }
             }

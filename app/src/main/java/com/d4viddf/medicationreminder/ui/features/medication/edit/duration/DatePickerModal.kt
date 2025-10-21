@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.d4viddf.medicationreminder.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -53,19 +55,19 @@ fun DatePickerModal(
                     onDismiss()
                 }
             ) {
-                Text("Select new date")
+                Text(stringResource(R.string.select_new_date))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.dialog_cancel_button))
             }
             if (onClearDate != null) {
                 TextButton(onClick = {
                     onClearDate()
                     onDismiss()
                 }) {
-                    Text("No end date")
+                    Text(stringResource(R.string.no_end_date))
                 }
             }
         },

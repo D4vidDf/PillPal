@@ -6,6 +6,10 @@
     <string name="add">Add</string>
     <string name="back">Back</string>
     <string name="duration_screen_title">Duration</string>
+    <string name="select_new_date">Select new date</string>
+    <string name="no_end_date">No end date</string>
+    <string name="start_date_label">Start Date</string>
+    <string name="end_date_label">End Date</string>
     <string name="back_button_cd">Back</string> <!-- Added new string resource -->
     <string name="close">Close</string>
     <string name="next">Next</string>
