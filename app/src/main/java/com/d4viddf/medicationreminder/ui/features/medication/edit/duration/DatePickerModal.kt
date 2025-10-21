@@ -6,9 +6,11 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -29,7 +31,14 @@ fun DatePickerModal(
 ) {
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = initialDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
-            ?: Instant.now().toEpochMilli()
+            ?: Instant.now().toEpochMilli(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val date = Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                return (minDate == null || date.isAfter(minDate) || date.isEqual(minDate)) &&
+                        (maxDate == null || date.isBefore(maxDate) || date.isEqual(maxDate))
+            }
+        }
     )
 
     DatePickerDialog(
@@ -62,12 +71,7 @@ fun DatePickerModal(
         },
     ) {
         DatePicker(
-            state = datePickerState,
-            dateValidator = { timestamp ->
-                val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                (minDate == null || date.isAfter(minDate) || date.isEqual(minDate)) &&
-                        (maxDate == null || date.isBefore(maxDate) || date.isEqual(maxDate))
-            }
+            state = datePickerState
         )
     }
 }

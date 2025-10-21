@@ -29,8 +29,8 @@ class MedicationDurationViewModel @Inject constructor(
             medicationRepository.getMedicationByIdFlow(medicationId).collectLatest { medication ->
                 medication?.let {
                     _uiState.value = MedicationDurationState(
-                        startDate = it.startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                        endDate = it.endDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "Ongoing"
+                        startDate = it.startDate?.let { LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: "",
+                        endDate = it.endDate?.let { LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: "Ongoing"
                     )
                 }
             }
@@ -41,7 +41,7 @@ class MedicationDurationViewModel @Inject constructor(
         viewModelScope.launch {
             val medication = medicationRepository.getMedicationById(medicationId)
             medication?.let {
-                val updatedMedication = it.copy(startDate = date)
+                val updatedMedication = it.copy(startDate = date.toString())
                 medicationRepository.updateMedication(updatedMedication)
             }
         }
@@ -51,7 +51,7 @@ class MedicationDurationViewModel @Inject constructor(
         viewModelScope.launch {
             val medication = medicationRepository.getMedicationById(medicationId)
             medication?.let {
-                val updatedMedication = it.copy(endDate = date)
+                val updatedMedication = it.copy(endDate = date?.toString())
                 medicationRepository.updateMedication(updatedMedication)
             }
         }
