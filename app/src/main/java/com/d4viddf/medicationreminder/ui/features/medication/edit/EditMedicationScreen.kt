@@ -168,7 +168,7 @@ fun EditMedicationScreenContent(
                 onColorSelected = onColorSelected,
                 showColorSheet = showColorSheet
             )
-            ScheduleSection(state)
+            ScheduleSection(state, navController)
             DoseSection(state)
             MedicationDetailsSection(state, navController)
 
@@ -346,7 +346,7 @@ private fun GeneralInfoSection(
 }
 
 @Composable
-private fun ScheduleSection(state: EditMedicationState) {
+private fun ScheduleSection(state: EditMedicationState, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -388,7 +388,11 @@ private fun ScheduleSection(state: EditMedicationState) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp),
-            onClick = {}
+            onClick = {
+                state.medication?.let {
+                    navController.navigate(Screen.MedicationDuration.createRoute(it.id))
+                }
+            }
         ) {
             Row(
                 modifier = Modifier
