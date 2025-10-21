@@ -860,3 +860,7 @@
     <string name="medication_form_other">Otros</string>
 
 </resources>
+
+    <string name="select_new_date">Seleccionar nueva fecha</string>
+    <string name="no_end_date">Sin fecha de fin</string>
+    <string name="ongoing">En curso</string>

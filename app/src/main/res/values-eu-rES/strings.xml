@@ -793,3 +793,7 @@
     <string name="medication_form_other">Beste batzuk</string>
 
 </resources>
+
+    <string name="select_new_date">Hautatu data berria</string>
+    <string name="no_end_date">Amaiera-datarik ez</string>
+    <string name="ongoing">Abian</string>

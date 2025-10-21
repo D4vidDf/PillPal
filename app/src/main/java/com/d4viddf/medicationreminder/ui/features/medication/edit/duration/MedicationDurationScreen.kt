@@ -112,7 +112,7 @@ fun MedicationDurationScreenContent(
             ) {
                 DurationRow(
                     title = stringResource(R.string.end_date_label),
-                    value = uiState.endDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "Ongoing",
+                    value = uiState.endDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: stringResource(R.string.ongoing),
                     onClick = onEndDateClick
                 )
             }
