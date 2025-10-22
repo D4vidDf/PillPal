@@ -791,5 +791,10 @@
     <string name="medication_form_suppository">Supositorioa</string>
     <string name="medication_form_drops">Tantak</string>
     <string name="medication_form_other">Beste batzuk</string>
+    <string name="select_new_date">Hautatu data berria</string>
+    <string name="no_end_date">Amaiera-datarik ez</string>
+    <string name="ongoing">Abian</string>
+    <string name="end_date_dialog_text">Zer egin nahi duzu amaiera-datarekin?</string>
 
+    <string name="duration_screen_title">Iraupena</string>
 </resources>

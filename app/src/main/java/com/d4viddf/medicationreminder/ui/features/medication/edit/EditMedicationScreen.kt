@@ -57,6 +57,7 @@ import com.d4viddf.medicationreminder.ui.navigation.Screen
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun EditMedicationScreen(
@@ -168,7 +169,7 @@ fun EditMedicationScreenContent(
                 onColorSelected = onColorSelected,
                 showColorSheet = showColorSheet
             )
-            ScheduleSection(state)
+            ScheduleSection(state, navController)
             DoseSection(state)
             MedicationDetailsSection(state, navController)
 
@@ -346,7 +347,7 @@ private fun GeneralInfoSection(
 }
 
 @Composable
-private fun ScheduleSection(state: EditMedicationState) {
+private fun ScheduleSection(state: EditMedicationState, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -388,7 +389,11 @@ private fun ScheduleSection(state: EditMedicationState) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp),
-            onClick = {}
+            onClick = {
+                state.medication?.let {
+                    navController.navigate(Screen.MedicationDuration.createRoute(it.id))
+                }
+            }
         ) {
             Row(
                 modifier = Modifier
@@ -400,9 +405,11 @@ private fun ScheduleSection(state: EditMedicationState) {
                 Text(text = stringResource(R.string.edit_med_duration), style = MaterialTheme.typography.bodyLarge)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val durationText = if (state.medication?.startDate != null) {
-                        "${state.medication.startDate} - ${state.medication.endDate ?: "Ongoing"}"
+                        val startDate = LocalDate.parse(state.medication.startDate).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        val endDate = state.medication.endDate?.let { LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: stringResource(R.string.ongoing)
+                        "$startDate - $endDate"
                     } else {
-                        "Not set"
+                        stringResource(R.string.not_set)
                     }
                     Text(
                         text = durationText,

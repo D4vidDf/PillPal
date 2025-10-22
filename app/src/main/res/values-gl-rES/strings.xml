@@ -785,5 +785,10 @@
     <string name="medication_form_suppository">Supositorio</string>
     <string name="medication_form_drops">Gotas</string>
     <string name="medication_form_other">Outros</string>
+    <string name="select_new_date">Seleccionar nova data</string>
+    <string name="no_end_date">Sen data de fin</string>
+    <string name="ongoing">En curso</string>
+    <string name="end_date_dialog_text">Que che gustaría facer coa data de fin?</string>
+    <string name="duration_screen_title">Duración</string>
 
 </resources>

@@ -121,6 +121,9 @@ sealed class Screen(val route: String) {
     object LowStockReminder : Screen("low_stock_reminder_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "low_stock_reminder_screen/$medicationId"
     }
+    object MedicationDuration : Screen("medication_duration_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "medication_duration_screen/$medicationId"
+    }
     object ScheduleDosageChange : Screen("schedule_dosage_change/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "schedule_dosage_change/$medicationId"
     }
@@ -189,6 +192,16 @@ fun AppNavigation(
             }
             composable(Screen.Notifications.route) {
                 NotificationsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                Screen.MedicationDuration.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.duration.MedicationDurationScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
