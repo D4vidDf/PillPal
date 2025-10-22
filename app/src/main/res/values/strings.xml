@@ -74,9 +74,7 @@
     <string name="dosage_prefilled_info">(Pre-filled from CIMA, tap to edit)</string>
     <string name="package_size_label">Package Size</string>
     <string name="package_units_label">Units</string>
-    <string name="start_date_label">Start Date</string>
     <string name="select_start_date_placeholder">Select Start Date</string>
-    <string name="end_date_label">End Date</string>
     <string name="select_end_date_placeholder">Select End Date</string>
     <string name="select_dosage_dialog_title">Select Dosage</string>
     <string name="dosage_whole_pill">Whole</string>
