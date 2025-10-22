@@ -861,6 +861,7 @@
     <string name="select_new_date">Seleccionar nueva fecha</string>
     <string name="no_end_date">Sin fecha de fin</string>
     <string name="ongoing">En curso</string>
+    <string name="end_date_dialog_text">¿Qué te gustaría hacer con la fecha de fin?</string>
     <string name="duration_screen_title">Duración</string>
     <string name="start_date_label">Fecha de inicio</string>
     <string name="end_date_label">Fecha de fin</string>

@@ -11,6 +11,7 @@
     <string name="start_date_label">Start Date</string>
     <string name="end_date_label">End Date</string>
     <string name="ongoing">Ongoing</string>
+    <string name="end_date_dialog_text">What would you like to do with the end date?</string>
     <string name="back_button_cd">Back</string> <!-- Added new string resource -->
     <string name="close">Close</string>
     <string name="next">Next</string>

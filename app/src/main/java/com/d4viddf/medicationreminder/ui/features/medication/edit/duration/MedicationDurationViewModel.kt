@@ -66,10 +66,18 @@ class MedicationDurationViewModel @Inject constructor(
     }
 
     fun onShowEndDatePicker() {
-        _uiState.value = _uiState.value.copy(showEndDatePicker = true)
+        _uiState.value = _uiState.value.copy(showEndDatePicker = true, showEndDateConfirmationDialog = false)
     }
 
     fun onDismissEndDatePicker() {
         _uiState.value = _uiState.value.copy(showEndDatePicker = false)
+    }
+
+    fun onShowEndDateConfirmationDialog() {
+        _uiState.value = _uiState.value.copy(showEndDateConfirmationDialog = true)
+    }
+
+    fun onDismissEndDateConfirmationDialog() {
+        _uiState.value = _uiState.value.copy(showEndDateConfirmationDialog = false)
     }
 }

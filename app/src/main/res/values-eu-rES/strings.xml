@@ -794,6 +794,7 @@
     <string name="select_new_date">Hautatu data berria</string>
     <string name="no_end_date">Amaiera-datarik ez</string>
     <string name="ongoing">Abian</string>
+    <string name="end_date_dialog_text">Zer egin nahi duzu amaiera-datarekin?</string>
 
     <string name="duration_screen_title">Iraupena</string>
 </resources>

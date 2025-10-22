@@ -1,4 +1,4 @@
-package com.d4viddf.medicationreminder.ui.features.medication.edit.duration
+package com.d4viddf.medicationreminder.ui.common.component
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -24,7 +24,8 @@ fun DatePickerModal(
     onClearDate: (() -> Unit)? = null,
     initialDate: LocalDate? = null,
     minDate: LocalDate? = null,
-    maxDate: LocalDate? = null
+    maxDate: LocalDate? = null,
+    showNoEndDateButton: Boolean = true
 ) {
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = initialDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
@@ -57,7 +58,7 @@ fun DatePickerModal(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.dialog_cancel_button))
             }
-            if (onClearDate != null) {
+            if (onClearDate != null && showNoEndDateButton) {
                 TextButton(onClick = {
                     onClearDate()
                     onDismiss()

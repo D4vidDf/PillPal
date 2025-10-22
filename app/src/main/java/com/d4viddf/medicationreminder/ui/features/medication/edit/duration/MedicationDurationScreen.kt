@@ -30,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.common.component.DatePickerModal
+import com.d4viddf.medicationreminder.ui.common.component.EndDateConfirmationDialog
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,7 +46,7 @@ fun MedicationDurationScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onStartDateClick = viewModel::onShowStartDatePicker,
-        onEndDateClick = viewModel::onShowEndDatePicker
+        onEndDateClick = viewModel::onShowEndDateConfirmationDialog
     )
 
     if (uiState.showStartDatePicker) {
@@ -62,7 +64,16 @@ fun MedicationDurationScreen(
             onDateSelected = viewModel::onEndDateSelected,
             onClearDate = { viewModel.onEndDateSelected(null) },
             initialDate = uiState.endDate,
-            minDate = uiState.startDate
+            minDate = uiState.startDate,
+            showNoEndDateButton = false
+        )
+    }
+
+    if(uiState.showEndDateConfirmationDialog){
+        EndDateConfirmationDialog(
+            onDismissRequest = viewModel::onDismissEndDateConfirmationDialog,
+            onSelectDate = viewModel::onShowEndDatePicker,
+            onNoEndDate = { viewModel.onEndDateSelected(null) }
         )
     }
 }
