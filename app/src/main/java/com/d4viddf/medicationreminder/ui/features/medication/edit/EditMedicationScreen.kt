@@ -54,6 +54,7 @@ import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.data.model.getFormattedSchedule
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.ColorSelector
 import com.d4viddf.medicationreminder.ui.navigation.Screen
+import com.d4viddf.medicationreminder.utils.DateUtils
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import java.time.LocalDate
@@ -405,8 +406,8 @@ private fun ScheduleSection(state: EditMedicationState, navController: NavContro
                 Text(text = stringResource(R.string.edit_med_duration), style = MaterialTheme.typography.bodyLarge)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val durationText = if (state.medication?.startDate != null) {
-                        val startDate = LocalDate.parse(state.medication.startDate).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                        val endDate = state.medication.endDate?.let { LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: stringResource(R.string.ongoing)
+                        val startDate = DateUtils.parseDate(state.medication.startDate!!).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        val endDate = state.medication.endDate?.let { DateUtils.parseDate(it).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: stringResource(R.string.ongoing)
                         "$startDate - $endDate"
                     } else {
                         stringResource(R.string.not_set)
