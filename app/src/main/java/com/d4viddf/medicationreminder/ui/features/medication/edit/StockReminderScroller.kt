@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
@@ -27,29 +26,38 @@ fun StockReminderScroller(
 ) {
     val listState = rememberLazyListState()
 
-    val selectedDay by remember {
+    // Animate to the selectedDays value whenever it's updated from outside (e.g., dialog)
+    LaunchedEffect(selectedDays) {
+        val indexToScroll = (selectedDays - range.first).coerceIn(0, range.count() - 1)
+        listState.animateScrollToItem(indexToScroll)
+    }
+
+    val selectedIndex by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
             val visibleItemsInfo = layoutInfo.visibleItemsInfo
             if (visibleItemsInfo.isEmpty()) {
-                selectedDays
+                -1
             } else {
-                val viewportCenter = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2
-                val centerItem = visibleItemsInfo.minByOrNull { abs((it.offset + it.size / 2) - viewportCenter) }
-                centerItem?.index?.coerceIn(range.first, range.last) ?: selectedDays
+                val viewportCenter =
+                    (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2f
+                val centerItem =
+                    visibleItemsInfo.minByOrNull { abs((it.offset + it.size / 2f) - viewportCenter) }
+                centerItem?.index ?: -1
             }
         }
     }
 
-    LaunchedEffect(selectedDay) {
-        if (selectedDay != selectedDays) {
-            onDaysChanged(selectedDay)
+    // When scrolling stops, if the centered item is different from the state, update the state
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (!listState.isScrollInProgress && selectedIndex != -1) {
+            val newDay = range.first + selectedIndex
+            if (newDay != selectedDays) {
+                onDaysChanged(newDay)
+            }
         }
     }
 
-    LaunchedEffect(Unit) {
-        listState.scrollToItem(selectedDays)
-    }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -76,12 +84,13 @@ fun StockReminderScroller(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
                 ) {
-                    items(range.last + 1) { index ->
-                        val day = index
+                    items(range.count()) { index ->
+                        val day = range.first + index
+                        val isSelected = selectedIndex == index
                         Text(
                             text = day.toString(),
-                            fontSize = if (selectedDay == day) 48.sp else 32.sp,
-                            color = if (selectedDay == day) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = if (isSelected) 48.sp else 32.sp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -29,7 +30,8 @@ import com.d4viddf.medicationreminder.R
 fun NumberPickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
-    initialValue: Int
+    initialValue: Int,
+    range: IntRange = 1..31
 ) {
     var selectedNumber by remember { mutableStateOf(initialValue) }
 
@@ -47,7 +49,7 @@ fun NumberPickerDialog(
                 TextField(
                     value = selectedNumber.toString(),
                     onValueChange = {
-                        selectedNumber = it.toIntOrNull()?.coerceIn(1, 31) ?: 1
+                        selectedNumber = it.toIntOrNull()?.coerceIn(range) ?: range.first
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true

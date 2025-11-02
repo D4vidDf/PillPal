@@ -346,9 +346,11 @@ open class NotificationScheduler @Inject constructor() {
             val triggerAtMillis = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)
             alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, newPendingIntent)
         } else {
-            val triggerAtMillis = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)
-            val intervalMillis = TimeUnit.DAYS.toMillis(days.toLong())
-            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, newPendingIntent)
+            if (days > 0) {
+                val triggerAtMillis = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)
+                val intervalMillis = TimeUnit.DAYS.toMillis(days.toLong())
+                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, newPendingIntent)
+            }
         }
     }
 }

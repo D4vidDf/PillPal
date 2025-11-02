@@ -860,6 +860,7 @@
     <string name="low_stock_reminder_title">How many days before empty would you like to get a reminder?</string>
     <string name="low_stock_reminder_runs_out">%1$s runs out in %2$d days</string>
     <string name="disable">Disable</string>
+    <string name="days_before">days before</string>
     <string name="low_stock_reminder_dialog_title">Enter days</string>
 
     <!-- Empty Stock Reminder Screen -->

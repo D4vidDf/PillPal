@@ -778,6 +778,7 @@
     <!-- Empty Stock Reminder Screen -->
     <string name="empty_stock_reminder_title">Amb quina freqüència t\'agradaria rebre un recordatori quan l\'inventari estigui buit?</string>
     <string name="days">dies</string>
+    <string name="none">Cap</string>
 
     <!-- Stock Reminder Notification -->
     <string name="stock_reminder_notification_low_title">Recordatori d\'Inventari Baix</string>
