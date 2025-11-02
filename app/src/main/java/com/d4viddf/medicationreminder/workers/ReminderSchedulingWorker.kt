@@ -52,6 +52,7 @@ class ReminderSchedulingWorker constructor(
         return try {
             if (isDailyRefresh) {
                 Log.d(TAG, "Performing daily refresh for all active medications.")
+                scheduleStockReminders()
                 val allMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
                 Log.i(TAG, "Daily refresh: Found ${allMedications.size} medications to process.")
                 if (allMedications.isEmpty()) {
@@ -341,5 +342,64 @@ class ReminderSchedulingWorker constructor(
             }
         }
         Log.i(funcTag, "Reminder scheduling/synchronization complete.")
+    }
+
+    private suspend fun scheduleStockReminders() {
+        val medications = medicationRepository.getAllMedications().firstOrNull() ?: return
+
+        for (medication in medications) {
+            // Low stock reminder
+            medication.lowStockReminderDays?.let { days ->
+                val dosesPerDay = calculateDosesPerDay(medication)
+                if (dosesPerDay > 0) {
+                    val runsOutInDays = ceil(medication.remainingDoses / dosesPerDay).toInt()
+                    if (runsOutInDays <= days) {
+                        notificationScheduler.scheduleStockReminder(
+                            applicationContext,
+                            medication.id,
+                            medication.name,
+                            "low",
+                            runsOutInDays
+                        )
+                    }
+                }
+            }
+
+            // Empty stock reminder
+            medication.emptyStockReminderDays?.let { days ->
+                if (medication.remainingDoses <= 0) {
+                    notificationScheduler.scheduleStockReminder(
+                        applicationContext,
+                        medication.id,
+                        medication.name,
+                        "empty",
+                        0
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun calculateDosesPerDay(medication: Medication): Double {
+        val schedule = medicationScheduleRepository.getSchedulesForMedication(medication.id).firstOrNull()?.firstOrNull() ?: return 0.0
+        val dosage = medicationDosageRepository.getActiveDosage(medication.id) ?: return 0.0
+        val dosageAmount = dosage.dosage.filter { it.isDigit() || it == '.' }.toDoubleOrNull() ?: 1.0
+
+        return when (schedule.scheduleType) {
+            ScheduleType.DAILY, ScheduleType.CUSTOM_ALARMS -> (schedule.specificTimes?.size ?: 0) * dosageAmount
+            ScheduleType.WEEKLY -> ((schedule.specificTimes?.size ?: 0) * (schedule.daysOfWeek?.size ?: 0) / 7.0) * dosageAmount
+            ScheduleType.INTERVAL -> {
+                val startTime = schedule.intervalStartTime?.let { java.time.LocalTime.parse(it) } ?: return 0.0
+                val endTime = schedule.intervalEndTime?.let { java.time.LocalTime.parse(it) } ?: return 0.0
+                val intervalHours = schedule.intervalHours ?: 0
+                val intervalMinutes = schedule.intervalMinutes ?: 0
+                val totalIntervalMinutes = intervalHours * 60 + intervalMinutes
+                if (totalIntervalMinutes == 0) return 0.0
+
+                val durationMinutes = java.time.Duration.between(startTime, endTime).toMinutes()
+                (durationMinutes / totalIntervalMinutes.toDouble()) * dosageAmount
+            }
+            ScheduleType.AS_NEEDED -> 0.0
+        }
     }
 }

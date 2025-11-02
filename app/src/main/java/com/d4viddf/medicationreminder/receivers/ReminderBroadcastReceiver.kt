@@ -294,6 +294,22 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                     FileLogger.log(TAG, invalidIdReceivedLog)
                 }
             }
+            IntentActionConstants.ACTION_SHOW_STOCK_REMINDER -> {
+                val medicationId = intent.getIntExtra(IntentExtraConstants.EXTRA_MEDICATION_ID, -1)
+                val medicationName = intent.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME) ?: "Medication"
+                val reminderType = intent.getStringExtra(IntentExtraConstants.EXTRA_STOCK_REMINDER_TYPE) ?: ""
+                val days = intent.getIntExtra(IntentExtraConstants.EXTRA_STOCK_REMINDER_DAYS, 0)
+
+                if (medicationId != -1) {
+                    NotificationHelper.showStockReminderNotification(
+                        context,
+                        medicationId,
+                        medicationName,
+                        reminderType,
+                        days
+                    )
+                }
+            }
             else -> {
                 val unhandledActionLog = "Received unhandled action: ${intent.action}"
                 Log.w(TAG, unhandledActionLog)

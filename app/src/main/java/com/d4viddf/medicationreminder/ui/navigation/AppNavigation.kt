@@ -121,6 +121,9 @@ sealed class Screen(val route: String) {
     object LowStockReminder : Screen("low_stock_reminder_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "low_stock_reminder_screen/$medicationId"
     }
+    object EmptyStockReminder : Screen("empty_stock_reminder_screen/{$MEDICATION_ID_ARG}") {
+        fun createRoute(medicationId: Int) = "empty_stock_reminder_screen/$medicationId"
+    }
     object MedicationDuration : Screen("medication_duration_screen/{$MEDICATION_ID_ARG}") {
         fun createRoute(medicationId: Int) = "medication_duration_screen/$medicationId"
     }
@@ -196,6 +199,16 @@ fun AppNavigation(
                 )
             }
             composable(
+                Screen.EmptyStockReminder.route,
+                arguments = listOf(
+                    navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
+                )
+            ) {
+                com.d4viddf.medicationreminder.ui.features.medication.edit.EmptyStockReminderScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
                 Screen.MedicationDuration.route,
                 arguments = listOf(
                     navArgument(MEDICATION_ID_ARG) { type = NavType.IntType }
@@ -215,6 +228,9 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToLowStockSettings = { medicationId ->
                         navController.navigate(Screen.LowStockReminder.createRoute(medicationId))
+                    },
+                    onNavigateToEmptyStockSettings = { medicationId ->
+                        navController.navigate(Screen.EmptyStockReminder.createRoute(medicationId))
                     }
                 )
             }

@@ -773,6 +773,18 @@
     <string name="low_stock_reminder_title">Cantos días antes de que se esgote che gustaría recibir un recordatorio?</string>
     <string name="low_stock_reminder_runs_out">%1$s esgótase en %2$d días</string>
     <string name="disable">Desactivar</string>
+    <string name="low_stock_reminder_dialog_title">Introducir días</string>
+    <string name="days_before">días antes</string>
+
+    <!-- Empty Stock Reminder Screen -->
+    <string name="empty_stock_reminder_title">Con que frecuencia che gustaría recibir un recordatorio cando o inventario estea baleiro?</string>
+    <string name="days">días</string>
+
+    <!-- Stock Reminder Notification -->
+    <string name="stock_reminder_notification_low_title">Recordatorio de Inventario Baixo</string>
+    <string name="stock_reminder_notification_low_text">O teu subministro de %1$s estase a esgotar. Quédanche aproximadamente %2$d días.</string>
+    <string name="stock_reminder_notification_empty_title">Recordatorio de Inventario Baleiro</string>
+    <string name="stock_reminder_notification_empty_text">O teu subministro de %1$s está baleiro. Por favor, recarga.</string>
 
     <!-- Medication Forms -->
     <string name="medication_form_tablet">Tableta</string>

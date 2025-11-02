@@ -34,7 +34,7 @@ class StockReminderViewModel @Inject constructor(
             medication?.let {
                 _uiState.update { currentState ->
                     currentState.copy(
-                        lowStockReminderValue = it.lowStockReminderDays?.toString() ?: "None"
+                        lowStockReminderValue = it.lowStockReminderDays?.let { days -> "$days ${R.string.days_before}" } ?: "None"
                     )
                 }
             }
@@ -49,7 +49,7 @@ class StockReminderViewModel @Inject constructor(
                 medicationRepository.updateMedication(updatedMedication)
                 _uiState.update { currentState ->
                     currentState.copy(
-                        lowStockReminderValue = days?.toString() ?: "None"
+                        lowStockReminderValue = days?.let { "$it ${R.string.days_before}" } ?: "None"
                     )
                 }
             }

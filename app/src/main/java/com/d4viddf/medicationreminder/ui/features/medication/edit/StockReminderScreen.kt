@@ -38,13 +38,15 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 fun StockReminderScreen(
     viewModel: StockReminderViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToLowStockSettings: (Int) -> Unit
+    onNavigateToLowStockSettings: (Int) -> Unit,
+    onNavigateToEmptyStockSettings: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     StockReminderScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
-        onNavigateToLowStockSettings = { onNavigateToLowStockSettings(viewModel.medicationId) }
+        onNavigateToLowStockSettings = { onNavigateToLowStockSettings(viewModel.medicationId) },
+        onNavigateToEmptyStockSettings = { onNavigateToEmptyStockSettings(viewModel.medicationId) }
     )
 }
 
@@ -53,7 +55,8 @@ fun StockReminderScreen(
 fun StockReminderScreenContent(
     uiState: StockReminderState,
     onNavigateBack: () -> Unit,
-    onNavigateToLowStockSettings: () -> Unit
+    onNavigateToLowStockSettings: () -> Unit,
+    onNavigateToEmptyStockSettings: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -100,7 +103,7 @@ fun StockReminderScreenContent(
                         title = stringResource(R.string.stock_reminder_empty_stock_title),
                         subtitle = stringResource(R.string.stock_reminder_empty_stock_subtitle),
                         value = uiState.emptyStockReminderValue,
-                        onClick = { /* Not implemented */ }
+                        onClick = onNavigateToEmptyStockSettings
                     )
 
             }
@@ -119,7 +122,8 @@ fun StockReminderScreenPreview() {
         StockReminderScreenContent(
             uiState = previewState,
             onNavigateBack = {},
-            onNavigateToLowStockSettings = {}
+            onNavigateToLowStockSettings = {},
+            onNavigateToEmptyStockSettings = {}
         )
     }
 }

@@ -23,8 +23,8 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlin.math.abs
 
 @Composable
-fun LowStockReminderScreen(
-    viewModel: LowStockReminderViewModel = hiltViewModel(),
+fun EmptyStockReminderScreen(
+    viewModel: EmptyStockReminderViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -41,7 +41,7 @@ fun LowStockReminderScreen(
         )
     }
 
-    LowStockReminderScreenContent(
+    EmptyStockReminderScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onDaysChanged = viewModel::onDaysChanged,
@@ -55,8 +55,8 @@ fun LowStockReminderScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LowStockReminderScreenContent(
-    uiState: LowStockReminderState,
+fun EmptyStockReminderScreenContent(
+    uiState: EmptyStockReminderState,
     onNavigateBack: () -> Unit,
     onDaysChanged: (Int) -> Unit,
     onSave: () -> Unit,
@@ -92,21 +92,13 @@ fun LowStockReminderScreenContent(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 StockReminderScroller(
-                    title = stringResource(R.string.low_stock_reminder_title),
-                    subtitle = stringResource(R.string.days_before),
+                    title = stringResource(R.string.empty_stock_reminder_title),
+                    subtitle = stringResource(R.string.days),
                     selectedDays = uiState.selectedDays,
-                    range = 1..31,
+                    range = 0..31,
                     onDaysChanged = onDaysChanged,
                     onNumberClick = onNumberClick
                 )
-
-                uiState.runsOutInDays?.let {
-                    val medicationFirstName = uiState.medicationName.substringBefore(" ")
-                    Text(
-                        text = stringResource(R.string.low_stock_reminder_runs_out, medicationFirstName, it),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -139,15 +131,14 @@ fun LowStockReminderScreenContent(
 
 @Preview(showBackground = true)
 @Composable
-fun LowStockReminderScreenPreview() {
+fun EmptyStockReminderScreenPreview() {
     AppTheme {
-        val previewState = LowStockReminderState(
+        val previewState = EmptyStockReminderState(
             isLoading = false,
             medicationName = "Mestinon",
-            runsOutInDays = 18,
             selectedDays = 7
         )
-        LowStockReminderScreenContent(
+        EmptyStockReminderScreenContent(
             uiState = previewState,
             onNavigateBack = {},
             onDaysChanged = {},

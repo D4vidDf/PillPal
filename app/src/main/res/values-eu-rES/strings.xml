@@ -779,6 +779,18 @@
     <string name="low_stock_reminder_title">Zenbat egun lehenago jaso nahi duzu abisua agortu baino lehen?</string>
     <string name="low_stock_reminder_runs_out">%1$s %2$d egun barru agortuko da</string>
     <string name="disable">Desgaitu</string>
+    <string name="low_stock_reminder_dialog_title">Sartu egunak</string>
+    <string name="days_before">egun lehenago</string>
+
+    <!-- Empty Stock Reminder Screen -->
+    <string name="empty_stock_reminder_title">Zenbatero jaso nahi duzu abisua inbentarioa hutsik dagoenean?</string>
+    <string name="days">egun</string>
+
+    <!-- Stock Reminder Notification -->
+    <string name="stock_reminder_notification_low_title">Inbentario Baxuaren Abisua</string>
+    <string name="stock_reminder_notification_low_text">Zure %1$s hornidura agortzen ari da. Gutxi gorabehera %2$d egun geratzen zaizkizu.</string>
+    <string name="stock_reminder_notification_empty_title">Inbentario Hutsaren Abisua</string>
+    <string name="stock_reminder_notification_empty_text">Zure %1$s hornidura hutsik dago. Mesedez, birkargatu.</string>
 
     <!-- Medication Forms -->
     <string name="medication_form_tablet">Tableta</string>

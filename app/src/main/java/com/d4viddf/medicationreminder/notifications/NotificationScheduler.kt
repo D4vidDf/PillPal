@@ -305,4 +305,50 @@ open class NotificationScheduler @Inject constructor() {
             FileLogger.log(TAG, errorStopIntentLog, e)
         }
     }
+
+    fun scheduleStockReminder(
+        context: Context,
+        medicationId: Int,
+        medicationName: String,
+        reminderType: String,
+        days: Int
+    ) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
+            action = IntentActionConstants.ACTION_SHOW_STOCK_REMINDER
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_ID, medicationId)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
+            putExtra(IntentExtraConstants.EXTRA_STOCK_REMINDER_TYPE, reminderType)
+            putExtra(IntentExtraConstants.EXTRA_STOCK_REMINDER_DAYS, days)
+        }
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_NO_CREATE
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(context, medicationId, intent, pendingIntentFlags)
+
+        if (pendingIntent != null && reminderType == "low") {
+            // Low stock reminder already scheduled
+            return
+        }
+
+        val newPendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        val newPendingIntent = PendingIntent.getBroadcast(context, medicationId, intent, newPendingIntentFlags)
+
+        if (reminderType == "low") {
+            val triggerAtMillis = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, newPendingIntent)
+        } else {
+            val triggerAtMillis = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)
+            val intervalMillis = TimeUnit.DAYS.toMillis(days.toLong())
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, newPendingIntent)
+        }
+    }
 }
