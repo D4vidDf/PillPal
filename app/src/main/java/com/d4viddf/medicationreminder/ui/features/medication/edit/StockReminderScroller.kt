@@ -33,7 +33,8 @@ fun StockReminderScroller(
     selectedDays: Int,
     range: IntRange,
     onDaysChanged: (Int) -> Unit,
-    onNumberClick: () -> Unit
+    onNumberClick: () -> Unit,
+    labelFormatter: (Int) -> String = { it.toString() }
 ) {
     val listState = rememberLazyListState()
 
@@ -44,7 +45,7 @@ fun StockReminderScroller(
             if (visibleItems.isEmpty()) {
                 -1
             } else {
-                val viewportCenter = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 3
+                val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
                 visibleItems.minByOrNull { abs((it.offset + it.size / 2) - viewportCenter) }?.index ?: -1
             }
         }
@@ -61,7 +62,9 @@ fun StockReminderScroller(
 
     LaunchedEffect(selectedDays) {
         val targetIndex = (selectedDays - range.first).coerceIn(0, range.count() - 1)
-        listState.animateScrollToItem(targetIndex)
+        if (targetIndex != centeredIndex) {
+            listState.animateScrollToItem(targetIndex)
+        }
     }
 
     Row(
@@ -86,7 +89,7 @@ fun StockReminderScroller(
                     val day = range.first + index
                     val isSelected = index == centeredIndex
                     Text(
-                        text = day.toString(),
+                        text = labelFormatter(day),
                         fontSize = if (isSelected) 44.sp else 32.sp,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier.padding(vertical = 8.dp)
