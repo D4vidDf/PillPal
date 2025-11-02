@@ -766,7 +766,6 @@
     <string name="stock_reminder_low_stock_subtitle">Notificar abans de quedar-se sense inventari</string>
     <string name="stock_reminder_empty_stock_title">Inventari esgotat</string>
     <string name="stock_reminder_empty_stock_subtitle">Notificar després de quedar-se sense inventari</string>
-    <string name="none">Cap</string>
 
     <!-- Low Stock Reminder Screen -->
     <string name="low_stock_reminder_title">Quants dies abans que s\'esgoti t\'agradaria rebre un recordatori?</string>

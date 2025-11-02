@@ -86,12 +86,12 @@ fun StockReminderScreenContent(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            val lowStockValue = if (uiState.lowStockReminderValue != null) {
+            val lowStockValue = if (uiState.lowStockReminderValue != null || uiState.lowStockReminderValue != "" || uiState.lowStockReminderValue != "0") {
                 "${uiState.lowStockReminderValue} ${stringResource(id = R.string.days)}"
             } else {
                 stringResource(id = R.string.none)
             }
-            val emptyStockValue = if (uiState.emptyStockReminderValue != null) {
+            val emptyStockValue = if (uiState.emptyStockReminderValue != null || uiState.emptyStockReminderValue != "" || uiState.emptyStockReminderValue != "0") {
                 "${uiState.emptyStockReminderValue} ${stringResource(id = R.string.days)}"
             } else {
                 stringResource(id = R.string.none)
@@ -134,7 +134,7 @@ fun StockReminderScreenPreview() {
     AppTheme {
         val previewState = StockReminderState(
             lowStockReminderValue = "7",
-            emptyStockReminderValue = null
+            emptyStockReminderValue = ""
         )
         StockReminderScreenContent(
             uiState = previewState,

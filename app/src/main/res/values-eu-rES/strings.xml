@@ -785,7 +785,6 @@
     <!-- Empty Stock Reminder Screen -->
     <string name="empty_stock_reminder_title">Zenbatero jaso nahi duzu abisua inbentarioa hutsik dagoenean?</string>
     <string name="days">egun</string>
-    <string name="none">Bat ere ez</string>
 
     <!-- Stock Reminder Notification -->
     <string name="stock_reminder_notification_low_title">Inbentario Baxuaren Abisua</string>

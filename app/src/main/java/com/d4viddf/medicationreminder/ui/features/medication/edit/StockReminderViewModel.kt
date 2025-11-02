@@ -35,8 +35,8 @@ class StockReminderViewModel @Inject constructor(
                 medication?.let {
                     _uiState.update { currentState ->
                         currentState.copy(
-                            lowStockReminderValue = it.lowStockReminderDays?.toString(),
-                            emptyStockReminderValue = it.emptyStockReminderDays?.toString()
+                            lowStockReminderValue = it.lowStockReminderDays.toString(),
+                            emptyStockReminderValue = it.emptyStockReminderDays.toString()
                         )
                     }
                 }

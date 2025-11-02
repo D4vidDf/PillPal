@@ -47,7 +47,7 @@ fun EmptyStockReminderScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EmptyStockReminderScreenContent(
     uiState: EmptyStockReminderState,
@@ -74,7 +74,7 @@ fun EmptyStockReminderScreenContent(
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularWavyProgressIndicator()
             }
         } else {
             Column(
@@ -108,7 +108,7 @@ fun EmptyStockReminderScreenContent(
                         }
                         Text(
                             text = stringResource(R.string.days),
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineSmallEmphasized,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
@@ -125,7 +125,7 @@ fun EmptyStockReminderScreenContent(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .heightIn(ButtonDefaults.MinHeight),
+                            .heightIn(ButtonDefaults.MediumContainerHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Text(stringResource(R.string.disable))
@@ -137,7 +137,7 @@ fun EmptyStockReminderScreenContent(
                         },
                         modifier = Modifier
                             .weight(2f)
-                            .heightIn(ButtonDefaults.MinHeight)
+                            .heightIn(ButtonDefaults.MediumContainerHeight)
                     ) {
                         Text(stringResource(R.string.dialog_done_button))
                     }

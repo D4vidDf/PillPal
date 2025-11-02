@@ -1,11 +1,34 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
-import android.util.Log
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,7 +71,7 @@ fun LowStockReminderScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LowStockReminderScreenContent(
     uiState: LowStockReminderState,
@@ -75,7 +98,7 @@ fun LowStockReminderScreenContent(
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularWavyProgressIndicator()
             }
         } else {
             Column(
@@ -89,7 +112,7 @@ fun LowStockReminderScreenContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(R.string.low_stock_reminder_title),
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineSmallEmphasized,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(32.dp))
@@ -135,7 +158,7 @@ fun LowStockReminderScreenContent(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .heightIn(ButtonDefaults.MinHeight),
+                            .heightIn(ButtonDefaults.MediumContainerHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Text(stringResource(R.string.disable))
@@ -147,7 +170,7 @@ fun LowStockReminderScreenContent(
                         },
                         modifier = Modifier
                             .weight(2f)
-                            .heightIn(ButtonDefaults.MinHeight)
+                            .heightIn(ButtonDefaults.MediumContainerHeight)
                     ) {
                         Text(stringResource(R.string.dialog_done_button))
                     }

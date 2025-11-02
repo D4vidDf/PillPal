@@ -779,7 +779,6 @@
     <!-- Empty Stock Reminder Screen -->
     <string name="empty_stock_reminder_title">Con que frecuencia che gustaría recibir un recordatorio cando o inventario estea baleiro?</string>
     <string name="days">días</string>
-    <string name="none">Ningún</string>
 
     <!-- Stock Reminder Notification -->
     <string name="stock_reminder_notification_low_title">Recordatorio de Inventario Baixo</string>

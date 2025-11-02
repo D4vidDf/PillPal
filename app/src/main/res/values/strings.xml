@@ -688,7 +688,7 @@
     <!-- Missing resources added by Agent -->
     <string name="all_reminders_header">All Reminders</string>
     <string name="medication_vault_title">Vault</string>
-    <string name="analysis_screen_title" translatable="false">Analysis</string>
+    <string name="analysis_screen_title">Analysis</string>
     <string name="notification_action_snooze">Snooze (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
     <string name="next_dose_card_cd">Next dose card</string>
@@ -884,4 +884,5 @@
     <string name="medication_form_suppository">Suppository</string>
     <string name="medication_form_drops">Drops</string>
     <string name="medication_form_other">Other</string>
+
 </resources>
