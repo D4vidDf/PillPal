@@ -4,5 +4,5 @@ data class LowStockReminderState(
     val isLoading: Boolean = true,
     val medicationName: String = "",
     val runsOutInDays: Int? = null,
-    val selectedDays: Int = 7 // Default to 7 days
+    val selectedDays: Int = 1 // Default to 1 day
 )
