@@ -98,16 +98,12 @@ fun EmptyStockReminderScreenContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        val noneString = stringResource(id = R.string.none)
                         Box(modifier = Modifier.fillMaxWidth(0.4f)) {
                             StockReminderScroller(
                                 selectedDays = uiState.selectedDays,
                                 range = 0..31,
                                 onDaysChanged = onDaysChanged,
-                                onNumberClick = onNumberClick,
-                                labelFormatter = { day ->
-                                    if (day == 0) noneString else day.toString()
-                                }
+                                onNumberClick = onNumberClick
                             )
                         }
                         Text(
