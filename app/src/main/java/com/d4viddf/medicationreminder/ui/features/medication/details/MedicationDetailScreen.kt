@@ -70,6 +70,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.utils.DateUtils
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
@@ -101,8 +102,7 @@ import java.util.Locale
 fun Medication?.isPastEndDate(): Boolean {
     if (this?.endDate.isNullOrBlank()) return false
     return try {
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-        val endDateValue = LocalDate.parse(this.endDate, formatter)
+        val endDateValue = DateUtils.parseDate(this.endDate!!)
         endDateValue.isBefore(LocalDate.now())
     } catch (e: Exception) {
         Log.e("MedicationDetailScreen", "Error parsing endDate in isPastEndDate: ${this.endDate}", e)

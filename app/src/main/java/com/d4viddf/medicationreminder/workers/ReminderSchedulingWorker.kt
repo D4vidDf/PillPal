@@ -18,6 +18,7 @@ import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
+import com.d4viddf.medicationreminder.utils.DateUtils
 import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
@@ -58,7 +59,7 @@ class ReminderSchedulingWorker constructor(
                 }
                 allMedications.forEach { medication ->
                     Log.d(TAG, "Daily refresh: Processing medication ID: ${medication.id}, Name: ${medication.name}")
-                    val medicationEndDate = medication.endDate?.let { LocalDate.parse(it) }
+                    val medicationEndDate = medication.endDate?.let { DateUtils.parseDate(it) }
                     if (medicationEndDate == null || !LocalDate.now().isAfter(medicationEndDate)) {
                         scheduleNextReminderForMedication(medication)
                     } else {
@@ -126,8 +127,8 @@ class ReminderSchedulingWorker constructor(
         }
 
         val now = LocalDateTime.now()
-        val medicationStartDate = medication.startDate?.let { LocalDate.parse(it) } ?: now.toLocalDate()
-        val medicationEndDate = medication.endDate?.let { LocalDate.parse(it) }
+        val medicationStartDate = medication.startDate?.let { DateUtils.parseDate(it) } ?: now.toLocalDate()
+        val medicationEndDate = medication.endDate?.let { DateUtils.parseDate(it) }
         Log.d(funcTag, "Current datetime (now): $now, Medication StartDate: $medicationStartDate, Medication EndDate: $medicationEndDate")
 
         if (medicationEndDate != null && now.toLocalDate().isAfter(medicationEndDate)) {

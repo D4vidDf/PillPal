@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.d4viddf.medicationreminder.utils.DateUtils
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -29,8 +30,8 @@ class MedicationDurationViewModel @Inject constructor(
             medicationRepository.getMedicationByIdFlow(medicationId).collectLatest { medication ->
                 medication?.let {
                     _uiState.value = MedicationDurationState(
-                        startDate = it.startDate?.let { LocalDate.parse(it) },
-                        endDate = it.endDate?.let { LocalDate.parse(it) }
+                        startDate = it.startDate?.let { DateUtils.parseDate(it) },
+                        endDate = it.endDate?.let { DateUtils.parseDate(it) }
                     )
                 }
             }
@@ -41,7 +42,7 @@ class MedicationDurationViewModel @Inject constructor(
         viewModelScope.launch {
             val medication = medicationRepository.getMedicationById(medicationId)
             medication?.let {
-                val updatedMedication = it.copy(startDate = date.toString())
+                val updatedMedication = it.copy(startDate = DateUtils.formatDate(date))
                 medicationRepository.updateMedication(updatedMedication)
             }
         }
@@ -51,7 +52,7 @@ class MedicationDurationViewModel @Inject constructor(
         viewModelScope.launch {
             val medication = medicationRepository.getMedicationById(medicationId)
             medication?.let {
-                val updatedMedication = it.copy(endDate = date?.toString())
+                val updatedMedication = it.copy(endDate = date?.let { DateUtils.formatDate(it) })
                 medicationRepository.updateMedication(updatedMedication)
             }
         }
