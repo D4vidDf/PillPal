@@ -846,6 +846,18 @@
     <string name="low_stock_reminder_title">¿Cuántos días antes de que se agote te gustaría recibir un recordatorio?</string>
     <string name="low_stock_reminder_runs_out">%1$s se agota en %2$d días</string>
     <string name="disable">Desactivar</string>
+    <string name="low_stock_reminder_dialog_title">Introducir días</string>
+    <string name="days_before">días antes</string>
+
+    <!-- Empty Stock Reminder Screen -->
+    <string name="empty_stock_reminder_title">¿Con qué frecuencia te gustaría recibir un recordatorio cuando el inventario esté vacío?</string>
+    <string name="days">días</string>
+
+    <!-- Stock Reminder Notification -->
+    <string name="stock_reminder_notification_low_title">Recordatorio de Inventario Bajo</string>
+    <string name="stock_reminder_notification_low_text">Tu suministro de %1$s se está agotando. Te quedan aproximadamente %2$d días.</string>
+    <string name="stock_reminder_notification_empty_title">Recordatorio de Inventario Vacío</string>
+    <string name="stock_reminder_notification_empty_text">Tu suministro de %1$s está vacío. Por favor, recarga.</string>
 
     <!-- Medication Forms -->
     <string name="medication_form_tablet">Tableta</string>

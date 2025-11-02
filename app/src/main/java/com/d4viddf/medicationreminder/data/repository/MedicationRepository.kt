@@ -96,5 +96,6 @@ open class MedicationRepository @Inject constructor(
         val intent = Intent(IntentActionConstants.ACTION_DATA_CHANGED)
         context.sendBroadcast(intent)
     }
+
 }
 

@@ -21,13 +21,18 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 @Database(
     entities = [Medication::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
         WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class, Notification::class],
-    version = 16,
+    version = 17,
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class, Converters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medications ADD COLUMN emptyStockReminderDays INTEGER")
+            }
+        }
         val MIGRATION_15_16 = object : Migration(15, 16) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE medications ADD COLUMN medicationForm TEXT NOT NULL DEFAULT 'PILL'")

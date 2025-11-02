@@ -18,4 +18,9 @@ object IntentExtraConstants {
 
     // Note: Extras specific to Notification display like EXTRA_MED_COLOR_HEX, EXTRA_MED_TYPE_NAME
     // are in NotificationConstants.kt
+
+    // Extras for stock reminders
+    const val EXTRA_MEDICATION_ID = "extra_medication_id"
+    const val EXTRA_STOCK_REMINDER_TYPE = "extra_stock_reminder_type"
+    const val EXTRA_STOCK_REMINDER_DAYS = "extra_stock_reminder_days"
 }

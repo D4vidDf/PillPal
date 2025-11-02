@@ -15,4 +15,7 @@ object IntentActionConstants {
 
     // Action for opening the notifications screen from a notification
     const val ACTION_OPEN_NOTIFICATIONS_SCREEN = "com.d4viddf.medicationreminder.ACTION_OPEN_NOTIFICATIONS_SCREEN"
+
+    // Action for stock reminders
+    const val ACTION_SHOW_STOCK_REMINDER = "com.d4viddf.medicationreminder.ACTION_SHOW_STOCK_REMINDER"
 }

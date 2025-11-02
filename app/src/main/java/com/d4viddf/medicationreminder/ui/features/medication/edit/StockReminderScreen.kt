@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,13 +39,20 @@ import com.d4viddf.medicationreminder.ui.theme.AppTheme
 fun StockReminderScreen(
     viewModel: StockReminderViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToLowStockSettings: (Int) -> Unit
+    onNavigateToLowStockSettings: (Int) -> Unit,
+    onNavigateToEmptyStockSettings: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadInitialData()
+    }
+
     StockReminderScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
-        onNavigateToLowStockSettings = { onNavigateToLowStockSettings(viewModel.medicationId) }
+        onNavigateToLowStockSettings = { onNavigateToLowStockSettings(viewModel.medicationId) },
+        onNavigateToEmptyStockSettings = { onNavigateToEmptyStockSettings(viewModel.medicationId) }
     )
 }
 
@@ -53,7 +61,8 @@ fun StockReminderScreen(
 fun StockReminderScreenContent(
     uiState: StockReminderState,
     onNavigateBack: () -> Unit,
-    onNavigateToLowStockSettings: () -> Unit
+    onNavigateToLowStockSettings: () -> Unit,
+    onNavigateToEmptyStockSettings: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -77,6 +86,17 @@ fun StockReminderScreenContent(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            val lowStockValue = if (uiState.lowStockReminderValue != null || uiState.lowStockReminderValue != "" || uiState.lowStockReminderValue != "0") {
+                "${uiState.lowStockReminderValue} ${stringResource(id = R.string.days)}"
+            } else {
+                stringResource(id = R.string.none)
+            }
+            val emptyStockValue = if (uiState.emptyStockReminderValue != null || uiState.emptyStockReminderValue != "" || uiState.emptyStockReminderValue != "0") {
+                "${uiState.emptyStockReminderValue} ${stringResource(id = R.string.days)}"
+            } else {
+                stringResource(id = R.string.none)
+            }
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp,12.dp,6.dp,6.dp)
@@ -85,7 +105,7 @@ fun StockReminderScreenContent(
                     ReminderRow(
                         title = stringResource(R.string.stock_reminder_low_stock_title),
                         subtitle = stringResource(R.string.stock_reminder_low_stock_subtitle),
-                        value = uiState.lowStockReminderValue,
+                        value = lowStockValue,
                         onClick = onNavigateToLowStockSettings
                     )
 
@@ -99,8 +119,8 @@ fun StockReminderScreenContent(
                     ReminderRow(
                         title = stringResource(R.string.stock_reminder_empty_stock_title),
                         subtitle = stringResource(R.string.stock_reminder_empty_stock_subtitle),
-                        value = uiState.emptyStockReminderValue,
-                        onClick = { /* Not implemented */ }
+                        value = emptyStockValue,
+                        onClick = onNavigateToEmptyStockSettings
                     )
 
             }
@@ -113,13 +133,14 @@ fun StockReminderScreenContent(
 fun StockReminderScreenPreview() {
     AppTheme {
         val previewState = StockReminderState(
-            lowStockReminderValue = "7 days",
-            emptyStockReminderValue = "None"
+            lowStockReminderValue = "7",
+            emptyStockReminderValue = ""
         )
         StockReminderScreenContent(
             uiState = previewState,
             onNavigateBack = {},
-            onNavigateToLowStockSettings = {}
+            onNavigateToLowStockSettings = {},
+            onNavigateToEmptyStockSettings = {}
         )
     }
 }

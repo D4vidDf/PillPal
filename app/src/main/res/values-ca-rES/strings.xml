@@ -766,12 +766,24 @@
     <string name="stock_reminder_low_stock_subtitle">Notificar abans de quedar-se sense inventari</string>
     <string name="stock_reminder_empty_stock_title">Inventari esgotat</string>
     <string name="stock_reminder_empty_stock_subtitle">Notificar després de quedar-se sense inventari</string>
-    <string name="none">Cap</string>
 
     <!-- Low Stock Reminder Screen -->
     <string name="low_stock_reminder_title">Quants dies abans que s\'esgoti t\'agradaria rebre un recordatori?</string>
     <string name="low_stock_reminder_runs_out">%1$s s\'esgota en %2$d dies</string>
     <string name="disable">Desactivar</string>
+    <string name="low_stock_reminder_dialog_title">Introduir dies</string>
+    <string name="days_before">dies abans</string>
+
+    <!-- Empty Stock Reminder Screen -->
+    <string name="empty_stock_reminder_title">Amb quina freqüència t\'agradaria rebre un recordatori quan l\'inventari estigui buit?</string>
+    <string name="days">dies</string>
+    <string name="none">Cap</string>
+
+    <!-- Stock Reminder Notification -->
+    <string name="stock_reminder_notification_low_title">Recordatori d\'Inventari Baix</string>
+    <string name="stock_reminder_notification_low_text">El teu subministrament de %1$s s\'està esgotant. Et queden aproximadament %2$d dies.</string>
+    <string name="stock_reminder_notification_empty_title">Recordatori d\'Inventari Buit</string>
+    <string name="stock_reminder_notification_empty_text">El teu subministrament de %1$s està buit. Si us plau, recarrega.</string>
 
     <!-- Medication Forms -->
     <string name="medication_form_tablet">Tauleta</string>

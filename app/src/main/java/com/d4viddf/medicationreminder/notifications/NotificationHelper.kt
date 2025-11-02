@@ -286,4 +286,32 @@ object NotificationHelper {
         notificationManager.cancel(notificationId)
         Log.d(TAG, "Cancelled UI notification for ID: $notificationId")
     }
+
+    fun showStockReminderNotification(
+        context: Context,
+        medicationId: Int,
+        medicationName: String,
+        reminderType: String,
+        days: Int
+    ) {
+        val title: String
+        val text: String
+        if (reminderType == "low") {
+            title = context.getString(R.string.stock_reminder_notification_low_title)
+            text = context.getString(R.string.stock_reminder_notification_low_text, medicationName, days)
+        } else {
+            title = context.getString(R.string.stock_reminder_notification_empty_title)
+            text = context.getString(R.string.stock_reminder_notification_empty_text, medicationName)
+        }
+
+        val notificationCompatBuilder = NotificationCompat.Builder(context, NotificationConstants.LOW_MEDICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_medication)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+
+        val notification = notificationCompatBuilder.build()
+        showNotificationInternal(context, medicationId, notification)
+    }
 }

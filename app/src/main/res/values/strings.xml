@@ -688,7 +688,7 @@
     <!-- Missing resources added by Agent -->
     <string name="all_reminders_header">All Reminders</string>
     <string name="medication_vault_title">Vault</string>
-    <string name="analysis_screen_title" translatable="false">Analysis</string>
+    <string name="analysis_screen_title">Analysis</string>
     <string name="notification_action_snooze">Snooze (10 min)</string>
     <string name="settings_category_connected_devices_cd">Navigate to connected devices screen</string>
     <string name="next_dose_card_cd">Next dose card</string>
@@ -860,6 +860,18 @@
     <string name="low_stock_reminder_title">How many days before empty would you like to get a reminder?</string>
     <string name="low_stock_reminder_runs_out">%1$s runs out in %2$d days</string>
     <string name="disable">Disable</string>
+    <string name="days_before">days before</string>
+    <string name="low_stock_reminder_dialog_title">Enter days</string>
+
+    <!-- Empty Stock Reminder Screen -->
+    <string name="empty_stock_reminder_title">How often would you like to get a reminder when the stock is empty?</string>
+    <string name="days">days</string>
+
+    <!-- Stock Reminder Notification -->
+    <string name="stock_reminder_notification_low_title">Low Stock Reminder</string>
+    <string name="stock_reminder_notification_low_text">Your supply of %1$s is running low. You have approximately %2$d days left.</string>
+    <string name="stock_reminder_notification_empty_title">Empty Stock Reminder</string>
+    <string name="stock_reminder_notification_empty_text">Your supply of %1$s is empty. Please refill.</string>
 
     <!-- Medication Forms -->
     <string name="medication_form_tablet">Tablet</string>
@@ -872,4 +884,5 @@
     <string name="medication_form_suppository">Suppository</string>
     <string name="medication_form_drops">Drops</string>
     <string name="medication_form_other">Other</string>
+
 </resources>

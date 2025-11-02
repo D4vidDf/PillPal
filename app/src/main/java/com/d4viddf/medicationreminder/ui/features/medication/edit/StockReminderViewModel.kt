@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,29 +29,16 @@ class StockReminderViewModel @Inject constructor(
         loadInitialData()
     }
 
-    private fun loadInitialData() {
+    fun loadInitialData() {
         viewModelScope.launch {
-            val medication = medicationRepository.getMedicationById(medicationId)
-            medication?.let {
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        lowStockReminderValue = it.lowStockReminderDays?.toString() ?: "None"
-                    )
-                }
-            }
-        }
-    }
-
-    fun saveLowStockReminder(days: Int?) {
-        viewModelScope.launch {
-            val medication = medicationRepository.getMedicationById(medicationId)
-            medication?.let {
-                val updatedMedication = it.copy(lowStockReminderDays = days)
-                medicationRepository.updateMedication(updatedMedication)
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        lowStockReminderValue = days?.toString() ?: "None"
-                    )
+            medicationRepository.getMedicationByIdFlow(medicationId).collectLatest { medication ->
+                medication?.let {
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            lowStockReminderValue = it.lowStockReminderDays.toString(),
+                            emptyStockReminderValue = it.emptyStockReminderDays.toString()
+                        )
+                    }
                 }
             }
         }

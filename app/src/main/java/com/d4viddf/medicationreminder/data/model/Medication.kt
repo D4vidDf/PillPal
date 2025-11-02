@@ -19,6 +19,7 @@ data class Medication(
     val nregistro: String? = null, // CIMA registration number
     val lowStockThreshold: Int? = null,
     val lowStockReminderDays: Int? = null,
+    val emptyStockReminderDays: Int? = null,
     val isArchived: Boolean = false,
     val isSuspended: Boolean = false
 )

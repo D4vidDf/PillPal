@@ -26,6 +26,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import kotlin.math.ceil
 
 class ReminderSchedulingWorker constructor(
     appContext: Context,
@@ -38,7 +39,6 @@ class ReminderSchedulingWorker constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
-        // Constants moved to WorkerConstants.kt
         private const val TAG = "ReminderSchedWorker"
         private val storableDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     }
@@ -52,6 +52,7 @@ class ReminderSchedulingWorker constructor(
         return try {
             if (isDailyRefresh) {
                 Log.d(TAG, "Performing daily refresh for all active medications.")
+                scheduleStockReminders()
                 val allMedications = medicationRepository.getAllMedications().firstOrNull() ?: emptyList()
                 Log.i(TAG, "Daily refresh: Found ${allMedications.size} medications to process.")
                 if (allMedications.isEmpty()) {
@@ -76,7 +77,6 @@ class ReminderSchedulingWorker constructor(
                 Log.w(TAG, "Worker run without medication ID and not a daily refresh.")
             }
             Log.i(TAG, "ReminderSchedulingWorker (CustomFactory) finished successfully")
-            // Check if stopped even on success path, as it might be a graceful stop
             if (isStopped) {
                 Log.w(TAG, "Worker finished but was stopped. Stop reason: ${getStopReason()}")
             }
@@ -88,8 +88,6 @@ class ReminderSchedulingWorker constructor(
             }
             Result.failure()
         } finally {
-            // This block executes regardless of whether an exception occurred or not.
-            // Useful for final check if the worker was stopped for reasons not caught by the main try-catch.
             if (isStopped) {
                 Log.w(TAG, "ReminderSchedulingWorker isStopped in finally block. Stop reason: ${getStopReason()}")
             }
@@ -106,7 +104,7 @@ class ReminderSchedulingWorker constructor(
 
         existingFutureReminders?.forEach { existingReminder ->
             Log.d(TAG, "Cleaning up (medication ended): Cancelling reminder ID: ${existingReminder.id} for med ID: $medicationId")
-            notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingReminder.id) // Cancelar principal y previa
+            notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingReminder.id)
             medicationReminderRepository.deleteReminderById(existingReminder.id)
         }
     }
@@ -137,7 +135,6 @@ class ReminderSchedulingWorker constructor(
             return
         }
 
-        // 1. Determine Search Window for ideal reminder calculation
         val isDailyRefresh = inputData.getBoolean(KEY_IS_DAILY_REFRESH, false)
         val effectiveSearchStartDateTime = if (medicationStartDate.isAfter(now.toLocalDate())) {
             medicationStartDate.atStartOfDay()
@@ -176,7 +173,6 @@ class ReminderSchedulingWorker constructor(
         }
         Log.d(funcTag, "DB Query Start DateTime for allExistingRemindersForPeriodMap: $dbQueryStartDateTime")
 
-        // 2. Fetch ALL Existing Reminders for the defined period
         val dbQueryWindowStartStr = dbQueryStartDateTime.format(storableDateTimeFormatter)
         val dbQueryWindowEndStr = calculationWindowEndDate.atTime(23, 59, 59).format(storableDateTimeFormatter)
         Log.d(funcTag, "DB Query Window for allExistingReminders: Start: $dbQueryWindowStartStr, End: $dbQueryWindowEndStr for MedId: ${medication.id}")
@@ -200,7 +196,6 @@ class ReminderSchedulingWorker constructor(
         val allExistingRemindersForPeriodMap = tempMap.toMap()
         Log.d(funcTag, "Finished building allExistingRemindersForPeriodMap. Size: ${allExistingRemindersForPeriodMap.size}")
 
-        // Fetch Existing Future Untaken Reminders
         Log.d(funcTag, "Fetching existing future untaken reminders for medication ID: ${medication.id} for stale cleanup.")
         val existingFutureUntakenRemindersDb = medicationReminderRepository.getFutureUntakenRemindersForMedication(
             medication.id, now.format(storableDateTimeFormatter)
@@ -210,7 +205,6 @@ class ReminderSchedulingWorker constructor(
         }.filterKeys { it != null } as Map<LocalDateTime, MedicationReminder>
         Log.d(funcTag, "Found ${existingFutureUntakenRemindersMap.size} existing future untaken reminders (for stale cleanup).")
 
-        // 3. Get Ideal Reminders for the period
         var lastTakenForIntervalCalc: LocalDateTime? = null
         if (schedule.scheduleType == ScheduleType.INTERVAL) {
             val mostRecentTakenReminder = medicationReminderRepository.getMostRecentTakenReminder(medication.id)
@@ -265,7 +259,6 @@ class ReminderSchedulingWorker constructor(
         val sortedIdealFutureDateTimes = idealFutureDateTimesSet.toList().sorted()
         Log.d(funcTag, "Final sortedIdealFutureDateTimes (size ${sortedIdealFutureDateTimes.size}): ${sortedIdealFutureDateTimes.map { it.toString() }}")
 
-        // 4. Schedule New/Missing Reminders
         for ((index, idealDateTime) in sortedIdealFutureDateTimes.withIndex()) {
             val existingReminderForThisTime = allExistingRemindersForPeriodMap[idealDateTime]
 
@@ -331,7 +324,6 @@ class ReminderSchedulingWorker constructor(
             }
         }
 
-        // 5. Cleanup Stale Reminders
         existingFutureUntakenRemindersMap.forEach { (dateTime, existingUntakenReminder) ->
             if (!idealFutureDateTimesSet.contains(dateTime)) {
                 Log.i(funcTag, "STALE UNTAKEN reminder check: DateTime $dateTime (ReminderId: ${existingUntakenReminder.id}) is NOT in idealFutureDateTimesSet. Proceeding with deletion.")
@@ -341,5 +333,62 @@ class ReminderSchedulingWorker constructor(
             }
         }
         Log.i(funcTag, "Reminder scheduling/synchronization complete.")
+    }
+
+    private suspend fun scheduleStockReminders() {
+        val medications = medicationRepository.getAllMedications().firstOrNull() ?: return
+
+        for (medication in medications) {
+            medication.lowStockReminderDays?.let { days ->
+                val dosesPerDay = calculateDosesPerDay(medication)
+                if (dosesPerDay > 0) {
+                    val runsOutInDays = ceil(medication.remainingDoses / dosesPerDay).toInt()
+                    if (runsOutInDays <= days) {
+                        notificationScheduler.scheduleStockReminder(
+                            applicationContext,
+                            medication.id,
+                            medication.name,
+                            "low",
+                            runsOutInDays
+                        )
+                    }
+                }
+            }
+
+            medication.emptyStockReminderDays?.let { days ->
+                if (medication.remainingDoses <= 0) {
+                    notificationScheduler.scheduleStockReminder(
+                        applicationContext,
+                        medication.id,
+                        medication.name,
+                        "empty",
+                        days
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun calculateDosesPerDay(medication: Medication): Double {
+        val schedule = medicationScheduleRepository.getSchedulesForMedication(medication.id).firstOrNull()?.firstOrNull() ?: return 0.0
+        val dosage = medicationDosageRepository.getActiveDosage(medication.id) ?: return 0.0
+        val dosageAmount = dosage.dosage.filter { it.isDigit() || it == '.' }.toDoubleOrNull() ?: 1.0
+
+        return when (schedule.scheduleType) {
+            ScheduleType.DAILY, ScheduleType.CUSTOM_ALARMS -> (schedule.specificTimes?.size ?: 0) * dosageAmount
+            ScheduleType.WEEKLY -> ((schedule.specificTimes?.size ?: 0) * (schedule.daysOfWeek?.size ?: 0) / 7.0) * dosageAmount
+            ScheduleType.INTERVAL -> {
+                val startTime = schedule.intervalStartTime?.let { java.time.LocalTime.parse(it) } ?: return 0.0
+                val endTime = schedule.intervalEndTime?.let { java.time.LocalTime.parse(it) } ?: return 0.0
+                val intervalHours = schedule.intervalHours ?: 0
+                val intervalMinutes = schedule.intervalMinutes ?: 0
+                val totalIntervalMinutes = intervalHours * 60 + intervalMinutes
+                if (totalIntervalMinutes == 0) return 0.0
+
+                val durationMinutes = java.time.Duration.between(startTime, endTime).toMinutes()
+                (durationMinutes / totalIntervalMinutes.toDouble()) * dosageAmount
+            }
+            ScheduleType.AS_NEEDED -> 0.0
+        }
     }
 }

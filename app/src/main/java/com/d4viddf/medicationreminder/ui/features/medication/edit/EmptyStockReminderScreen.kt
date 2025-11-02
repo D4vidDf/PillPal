@@ -1,34 +1,10 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,8 +16,8 @@ import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 
 @Composable
-fun LowStockReminderScreen(
-    viewModel: LowStockReminderViewModel = hiltViewModel(),
+fun EmptyStockReminderScreen(
+    viewModel: EmptyStockReminderViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -55,11 +31,11 @@ fun LowStockReminderScreen(
                 showDialog = false
             },
             initialValue = uiState.selectedDays,
-            range = 1..31
+            range = 0..31
         )
     }
 
-    LowStockReminderScreenContent(
+    EmptyStockReminderScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onDaysChanged = viewModel::onDaysChanged,
@@ -73,8 +49,8 @@ fun LowStockReminderScreen(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun LowStockReminderScreenContent(
-    uiState: LowStockReminderState,
+fun EmptyStockReminderScreenContent(
+    uiState: EmptyStockReminderState,
     onNavigateBack: () -> Unit,
     onDaysChanged: (Int) -> Unit,
     onSave: () -> Unit,
@@ -111,8 +87,8 @@ fun LowStockReminderScreenContent(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = stringResource(R.string.low_stock_reminder_title),
-                        style = MaterialTheme.typography.headlineSmallEmphasized,
+                        text = stringResource(R.string.empty_stock_reminder_title),
+                        style = MaterialTheme.typography.headlineMedium,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(32.dp))
@@ -122,27 +98,18 @@ fun LowStockReminderScreenContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Box (modifier = Modifier.fillMaxWidth(0.4f)) {
+                        Box(modifier = Modifier.fillMaxWidth(0.4f)) {
                             StockReminderScroller(
                                 selectedDays = uiState.selectedDays,
-                                range = 1..31,
+                                range = 0..31,
                                 onDaysChanged = onDaysChanged,
                                 onNumberClick = onNumberClick
                             )
                         }
                         Text(
-                            text = stringResource(R.string.days_before),
-                            style = MaterialTheme.typography.headlineSmall,
+                            text = stringResource(R.string.days),
+                            style = MaterialTheme.typography.headlineSmallEmphasized,
                             modifier = Modifier.padding(start = 16.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    uiState.runsOutInDays?.let {
-                        val medicationFirstName = uiState.medicationName.substringBefore(" ")
-                        Text(
-                            text = stringResource(R.string.low_stock_reminder_runs_out, medicationFirstName, it),
-                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 }
@@ -182,15 +149,14 @@ fun LowStockReminderScreenContent(
 
 @Preview(showBackground = true)
 @Composable
-fun LowStockReminderScreenPreview() {
+fun EmptyStockReminderScreenPreview() {
     AppTheme {
-        val previewState = LowStockReminderState(
+        val previewState = EmptyStockReminderState(
             isLoading = false,
             medicationName = "Mestinon",
-            runsOutInDays = 18,
-            selectedDays = 9
+            selectedDays = 2
         )
-        LowStockReminderScreenContent(
+        EmptyStockReminderScreenContent(
             uiState = previewState,
             onNavigateBack = {},
             onDaysChanged = {},
