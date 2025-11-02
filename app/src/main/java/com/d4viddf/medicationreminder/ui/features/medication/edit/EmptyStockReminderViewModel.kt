@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,17 +32,18 @@ class EmptyStockReminderViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val medication = medicationRepository.getMedicationById(medicationId)
-            if (medication != null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        medicationName = medication.name,
-                        selectedDays = medication.emptyStockReminderDays ?: it.selectedDays
-                    )
+            medicationRepository.getMedicationByIdFlow(medicationId).collectLatest { medication ->
+                if (medication != null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            medicationName = medication.name,
+                            selectedDays = medication.emptyStockReminderDays ?: it.selectedDays
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
-            } else {
-                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

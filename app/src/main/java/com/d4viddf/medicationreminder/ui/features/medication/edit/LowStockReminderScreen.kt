@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -8,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -84,21 +86,42 @@ fun LowStockReminderScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                StockReminderScroller(
-                    title = stringResource(R.string.low_stock_reminder_title),
-                    subtitle = stringResource(R.string.days_before),
-                    selectedDays = uiState.selectedDays,
-                    range = 1..31,
-                    onDaysChanged = onDaysChanged,
-                    onNumberClick = onNumberClick
-                )
-
-                uiState.runsOutInDays?.let {
-                    val medicationFirstName = uiState.medicationName.substringBefore(" ")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = stringResource(R.string.low_stock_reminder_runs_out, medicationFirstName, it),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(R.string.low_stock_reminder_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        textAlign = TextAlign.Center
                     )
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Box (modifier = Modifier.fillMaxWidth(0.4f)) {
+                            StockReminderScroller(
+                                selectedDays = uiState.selectedDays,
+                                range = 1..31,
+                                onDaysChanged = onDaysChanged,
+                                onNumberClick = onNumberClick
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.days_before),
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    uiState.runsOutInDays?.let {
+                        val medicationFirstName = uiState.medicationName.substringBefore(" ")
+                        Text(
+                            text = stringResource(R.string.low_stock_reminder_runs_out, medicationFirstName, it),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
 
                 Row(
@@ -110,7 +133,9 @@ fun LowStockReminderScreenContent(
                             onDisable()
                             onNavigateBack()
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(ButtonDefaults.MinHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Text(stringResource(R.string.disable))
@@ -120,7 +145,9 @@ fun LowStockReminderScreenContent(
                             onSave()
                             onNavigateBack()
                         },
-                        modifier = Modifier.weight(2f)
+                        modifier = Modifier
+                            .weight(2f)
+                            .heightIn(ButtonDefaults.MinHeight)
                     ) {
                         Text(stringResource(R.string.dialog_done_button))
                     }
@@ -138,7 +165,7 @@ fun LowStockReminderScreenPreview() {
             isLoading = false,
             medicationName = "Mestinon",
             runsOutInDays = 18,
-            selectedDays = 7
+            selectedDays = 9
         )
         LowStockReminderScreenContent(
             uiState = previewState,

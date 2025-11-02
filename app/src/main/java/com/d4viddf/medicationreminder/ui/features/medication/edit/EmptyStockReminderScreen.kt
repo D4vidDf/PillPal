@@ -1,33 +1,14 @@
 package com.d4viddf.medicationreminder.ui.features.medication.edit
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -104,14 +85,35 @@ fun EmptyStockReminderScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                StockReminderScroller(
-                    title = stringResource(R.string.empty_stock_reminder_title),
-                    subtitle = stringResource(R.string.days),
-                    selectedDays = uiState.selectedDays,
-                    range = 0..31,
-                    onDaysChanged = onDaysChanged,
-                    onNumberClick = onNumberClick
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(R.string.empty_stock_reminder_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Box(modifier = Modifier.fillMaxWidth(0.4f)) {
+                            StockReminderScroller(
+                                selectedDays = uiState.selectedDays,
+                                range = 0..31,
+                                onDaysChanged = onDaysChanged,
+                                onNumberClick = onNumberClick
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.days),
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -121,7 +123,9 @@ fun EmptyStockReminderScreenContent(
                             onDisable()
                             onNavigateBack()
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(ButtonDefaults.MinHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Text(stringResource(R.string.disable))
@@ -131,7 +135,9 @@ fun EmptyStockReminderScreenContent(
                             onSave()
                             onNavigateBack()
                         },
-                        modifier = Modifier.weight(2f)
+                        modifier = Modifier
+                            .weight(2f)
+                            .heightIn(ButtonDefaults.MinHeight)
                     ) {
                         Text(stringResource(R.string.dialog_done_button))
                     }

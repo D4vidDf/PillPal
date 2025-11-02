@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -40,28 +41,40 @@ class LowStockReminderViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val medication = medicationRepository.getMedicationById(medicationId)
-            val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
-            val dosage = dosageRepository.getActiveDosage(medicationId)
 
-            if (medication != null && schedule != null && dosage != null) {
-                val dosesPerDay = calculateDosesPerDay(schedule, dosage.dosage)
-                val runsOutInDays = if (dosesPerDay > 0) {
-                    ceil(medication.remainingDoses / dosesPerDay).toInt()
+            medicationRepository.getMedicationByIdFlow(medicationId).collectLatest { medication ->
+                val schedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
+                val dosage = dosageRepository.getActiveDosage(medicationId)
+
+                if (medication != null && schedule != null && dosage != null) {
+                    val dosesPerDay = calculateDosesPerDay(schedule, dosage.dosage)
+                    val runsOutInDays = if (dosesPerDay > 0) {
+                        ceil(medication.remainingDoses / dosesPerDay).toInt()
+                    } else {
+                        null
+                    }
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            medicationName = medication.name,
+                            runsOutInDays = runsOutInDays,
+                            selectedDays = medication.lowStockReminderDays ?: it.selectedDays
+                        )
+                    }
+                } else if (medication != null) {
+                    // Handle case where schedule or dosage might not be set yet
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            medicationName = medication.name,
+                            runsOutInDays = null,
+                            selectedDays = medication.lowStockReminderDays ?: it.selectedDays
+                        )
+                    }
                 } else {
-                    null
+                    _uiState.update { it.copy(isLoading = false) }
                 }
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        medicationName = medication.name,
-                        runsOutInDays = runsOutInDays,
-                        selectedDays = medication.lowStockReminderDays ?: it.selectedDays
-                    )
-                }
-            } else {
-                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
