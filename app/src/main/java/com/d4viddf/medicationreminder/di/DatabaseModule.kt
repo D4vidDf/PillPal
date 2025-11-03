@@ -53,7 +53,7 @@ object DatabaseModule {
             MedicationDatabase::class.java,
             "medications.db"
         )
-            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10, MedicationDatabase.MIGRATION_10_11, MedicationDatabase.MIGRATION_11_12, MedicationDatabase.MIGRATION_12_13, MedicationDatabase.MIGRATION_13_14, MedicationDatabase.MIGRATION_14_15, MedicationDatabase.MIGRATION_15_16, MedicationDatabase.MIGRATION_16_17)
+            .addMigrations(MIGRATION_2_3, MedicationDatabase.MIGRATION_3_4, MedicationDatabase.MIGRATION_4_5, MedicationDatabase.MIGRATION_5_6, MedicationDatabase.MIGRATION_6_7, MedicationDatabase.MIGRATION_8_9, MedicationDatabase.MIGRATION_9_10, MedicationDatabase.MIGRATION_10_11, MedicationDatabase.MIGRATION_11_12, MedicationDatabase.MIGRATION_12_13, MedicationDatabase.MIGRATION_13_14, MedicationDatabase.MIGRATION_14_15, MedicationDatabase.MIGRATION_15_16, MedicationDatabase.MIGRATION_16_17, MedicationDatabase.MIGRATION_17_18)
             .fallbackToDestructiveMigration(false) // Added this line
             .build()
     }

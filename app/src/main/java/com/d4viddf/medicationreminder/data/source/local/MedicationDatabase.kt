@@ -21,13 +21,21 @@ import com.d4viddf.medicationreminder.data.model.healthdata.Weight
 @Database(
     entities = [Medication::class, MedicationSchedule::class, MedicationReminder::class, MedicationInfo::class, FirebaseSync::class, BodyTemperature::class, Weight::class,
         WaterIntake::class, WaterPreset::class, HeartRate::class, MedicationDosage::class, Notification::class],
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 @TypeConverters(DateTimeConverters::class, Converters::class)
 abstract class MedicationDatabase : RoomDatabase() {
 
     companion object {
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Update start and end dates in the medications table
+                db.execSQL("UPDATE medications SET startDate = SUBSTR(startDate, 9, 2) || '/' || SUBSTR(startDate, 6, 2) || '/' || SUBSTR(startDate, 1, 4) WHERE startDate LIKE '____-__-__'")
+                db.execSQL("UPDATE medications SET endDate = SUBSTR(endDate, 9, 2) || '/' || SUBSTR(endDate, 6, 2) || '/' || SUBSTR(endDate, 1, 4) WHERE endDate LIKE '____-__-__'")
+                db.execSQL("UPDATE medication_schedule SET startDate = SUBSTR(startDate, 9, 2) || '/' || SUBSTR(startDate, 6, 2) || '/' || SUBSTR(startDate, 1, 4) WHERE startDate LIKE '____-__-__'")
+            }
+        }
         val MIGRATION_16_17 = object : Migration(16, 17) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE medications ADD COLUMN emptyStockReminderDays INTEGER")
