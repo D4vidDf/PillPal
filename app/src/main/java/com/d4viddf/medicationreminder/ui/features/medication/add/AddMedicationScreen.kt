@@ -35,6 +35,7 @@ import com.d4viddf.medicationreminder.data.model.ScheduleType
 import com.d4viddf.medicationreminder.ui.features.medication.add.components.*
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
+import com.d4viddf.medicationreminder.utils.DateUtils
 import com.d4viddf.medicationreminder.workers.WorkerScheduler
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -154,11 +155,11 @@ fun AddMedicationScreen(
                         progress = (currentStep + 1) / 5f
                     } else if (currentStep == 4) {
                         coroutineScope.launch {
-                            val currentRegistrationDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            val currentRegistrationDate = DateUtils.formatDate(LocalDate.now())
                             val finalStartDate: String = if (startDate.isNotBlank() && startDate != selectStartDatePlaceholder) {
                                 startDate
                             } else {
-                                LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE).also {
+                                DateUtils.formatDate(LocalDate.now()).also {
                                     Log.d("AddMedScreen", "User did not select a start date. Defaulting to today: $it")
                                 }
                             }

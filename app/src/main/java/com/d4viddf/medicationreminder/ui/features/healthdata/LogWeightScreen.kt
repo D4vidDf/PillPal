@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.utils.DateUtils
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -206,7 +207,7 @@ private fun DateInputButton(
     val buttonText = if (selectedDate.isEqual(LocalDate.now())) {
         stringResource(id = R.string.today)
     } else {
-        selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+        DateUtils.formatDate(selectedDate)
     }
 
     Row(

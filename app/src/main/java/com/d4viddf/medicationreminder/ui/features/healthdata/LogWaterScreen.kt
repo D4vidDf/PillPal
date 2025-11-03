@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -313,7 +314,7 @@ private fun DateInputButton(
     val buttonText = if (selectedDate.isEqual(LocalDate.now())) {
         stringResource(id = R.string.today)
     } else {
-        selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+        DateUtils.formatDate(selectedDate)
     }
 
     Row(
