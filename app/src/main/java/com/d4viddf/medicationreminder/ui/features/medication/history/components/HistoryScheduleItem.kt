@@ -52,6 +52,7 @@ fun HistoryScheduleItem(
 
     val formattedTime = item.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
     val dayOfWeek = item.dateTaken.format(DateTimeFormatter.ofPattern("EEEE", Locale.getDefault()))
+    val numberdayOfWeek = item.dateTaken.format(DateTimeFormatter.ofPattern("d", Locale.getDefault()))
 
     val itemContentDescription = stringResource(
         R.string.today_schedule_item_card_cd,
@@ -94,7 +95,7 @@ fun HistoryScheduleItem(
         },
         supportingContent = {
             Text(
-                text = "${item.medicationDosage} - $dayOfWeek, $formattedTime",
+                text = "${item.medicationDosage} - $dayOfWeek $numberdayOfWeek, $formattedTime",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

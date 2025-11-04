@@ -9,8 +9,8 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedFilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,8 +41,8 @@ fun FilterControls(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
-            OutlinedFilterChip(
-                selected = true,
+            FilterChip(
+                selected = false,
                 onClick = { showDateFilterMenu = true },
                 label = { Text(stringResource(R.string.filter_by_date)) },
                 leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) }
@@ -82,8 +82,8 @@ fun FilterControls(
             }
         }
         item {
-            OutlinedFilterChip(
-                selected = true,
+            FilterChip(
+                selected = false,
                 onClick = { onSortOrderChange(!sortAscending) },
                 label = {
                     Text(

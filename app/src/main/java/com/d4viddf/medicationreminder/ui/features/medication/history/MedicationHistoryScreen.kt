@@ -1,7 +1,5 @@
 package com.d4viddf.medicationreminder.ui.features.medication.history
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,25 +12,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,7 +57,6 @@ import com.d4viddf.medicationreminder.ui.features.medication.history.components.
 import com.d4viddf.medicationreminder.ui.features.medication.history.components.HistoryScheduleItem
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
-import com.d4viddf.medicationreminder.ui.theme.MedicationSpecificTheme
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -69,7 +70,7 @@ import java.util.Locale
 
 data class HistoryGroup(val header: String, val entries: List<MedicationHistoryEntry>)
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MedicationHistoryScreen(
     medicationId: Int,
@@ -172,7 +173,7 @@ fun MedicationHistoryScreen(
         }
     }
 
-    MedicationSpecificTheme(medicationColor = medicationColor) {
+    AppTheme() {
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
         Scaffold(
             modifier = Modifier,
@@ -180,24 +181,15 @@ fun MedicationHistoryScreen(
                 TopAppBar(
                     title = { Text(stringResource(R.string.medHistory_screen_title)) },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
+                        FilledTonalIconButton (onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = stringResource(id = R.string.back_button_cd)
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back)
                             )
+
                         }
                     },
-                    actions = {
-                        IconButton(onClick = {
-                            val newGrouping = if (grouping == HistoryGrouping.BY_MONTH) HistoryGrouping.BY_WEEK else HistoryGrouping.BY_MONTH
-                            viewModel?.setGrouping(newGrouping)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.DateRange,
-                                contentDescription = stringResource(id = R.string.group_by)
-                            )
-                        }
-                    },
+
                     scrollBehavior = scrollBehavior,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
@@ -231,7 +223,8 @@ fun MedicationHistoryScreen(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                             ) {
                                 Column {
                                     Text(
@@ -286,6 +279,7 @@ private fun processHistoryEntriesIntoGroups(
     return groupedMap.map { (header, items) -> HistoryGroup(header, items) }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EmptyState(modifier: Modifier = Modifier, isFiltered: Boolean) {
     val message = if (isFiltered) {
@@ -304,7 +298,7 @@ private fun EmptyState(modifier: Modifier = Modifier, isFiltered: Boolean) {
     ) {
         Surface(
             modifier = Modifier.size(128.dp),
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = MaterialShapes.Pill.toShape(),
             color = MaterialTheme.colorScheme.secondaryContainer
         ) {
             Box(
@@ -362,7 +356,6 @@ fun MedicationHistoryListItemPreview() {
             onTakenStatusChange = {},
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
         )
     }
 }
