@@ -34,7 +34,6 @@ fun FilterControls(
     modifier: Modifier = Modifier
 ) {
     var showDateFilterMenu by remember { mutableStateOf(false) }
-    var showSortOrderMenu by remember { mutableStateOf(false) }
 
     LazyRow(
         modifier = modifier,
@@ -85,7 +84,7 @@ fun FilterControls(
         item {
             OutlinedFilterChip(
                 selected = true,
-                onClick = { showSortOrderMenu = true },
+                onClick = { onSortOrderChange(!sortAscending) },
                 label = {
                     Text(
                         text = if (sortAscending) stringResource(R.string.sort_by_oldest)
@@ -99,25 +98,6 @@ fun FilterControls(
                     )
                 }
             )
-            DropdownMenu(
-                expanded = showSortOrderMenu,
-                onDismissRequest = { showSortOrderMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_newest)) },
-                    onClick = {
-                        onSortOrderChange(false)
-                        showSortOrderMenu = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_oldest)) },
-                    onClick = {
-                        onSortOrderChange(true)
-                        showSortOrderMenu = false
-                    }
-                )
-            }
         }
     }
 }

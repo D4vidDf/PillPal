@@ -24,7 +24,7 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
@@ -177,7 +177,7 @@ fun MedicationHistoryScreen(
         Scaffold(
             modifier = Modifier,
             topBar = {
-                LargeTopAppBar(
+                TopAppBar(
                     title = { Text(stringResource(R.string.medHistory_screen_title)) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
