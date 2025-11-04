@@ -437,6 +437,9 @@ fun AppNavigation(
                 MedicationHistoryScreen(
                     medicationId = medicationId,
                     onNavigateBack = { navController.popBackStack() },
+                    onNavigateToDetails = { medicationId ->
+                        navController.navigate(Screen.MedicationDetails.createRoute(medicationId))
+                    },
                     colorName = colorName ?: MedicationColor.LIGHT_ORANGE.name,
                     selectedDate = selectedDate,
                     selectedMonth = selectedMonth
