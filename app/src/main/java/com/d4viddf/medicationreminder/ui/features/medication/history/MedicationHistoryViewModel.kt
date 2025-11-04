@@ -19,6 +19,11 @@ import java.time.YearMonth
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
+enum class HistoryGrouping {
+    BY_MONTH,
+    BY_WEEK
+}
+
 @HiltViewModel
 class MedicationHistoryViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
@@ -46,7 +51,14 @@ class MedicationHistoryViewModel @Inject constructor(
     private val _sortAscending = MutableStateFlow<Boolean>(false) // Default to descending
     val sortAscending: StateFlow<Boolean> = _sortAscending.asStateFlow()
 
+    private val _grouping = MutableStateFlow(HistoryGrouping.BY_MONTH)
+    val grouping: StateFlow<HistoryGrouping> = _grouping.asStateFlow()
+
     private val TAG = "MedHistoryVM"
+
+    fun setGrouping(grouping: HistoryGrouping) {
+        _grouping.value = grouping
+    }
 
     fun loadInitialHistory(medicationId: Int, filterDate: LocalDate? = null, filterMonth: YearMonth? = null) {
         Log.d(TAG, "loadInitialHistory called for medicationId: $medicationId, filterDate: $filterDate, filterMonth: $filterMonth")
@@ -105,6 +117,11 @@ class MedicationHistoryViewModel @Inject constructor(
         processHistory()
     }
 
+    fun setAllTimeFilter() {
+        _dateFilter.value = null
+        processHistory()
+    }
+
     private fun parseTakenAt(takenAtString: String?): LocalDateTime? {
         if (takenAtString.isNullOrEmpty()) return null
         return try {
@@ -122,7 +139,9 @@ class MedicationHistoryViewModel @Inject constructor(
 
             val currentRawHistory = _rawHistory.value
             val nameToUse = _medicationName.value.ifEmpty { "Unknown Medication" }
-
+            val medication = medicationRepository.getMedicationById(
+                _rawHistory.value.firstOrNull()?.medicationId ?: -1
+            )
             // Filter by date
             val dateFiltered = if (_dateFilter.value?.first != null || _dateFilter.value?.second != null) {
                 currentRawHistory.filter { reminder ->
@@ -156,8 +175,11 @@ class MedicationHistoryViewModel @Inject constructor(
             val transformedAndSorted = dateFiltered.mapNotNull { reminder ->
                 parseTakenAt(reminder.takenAt)?.let { originalDateTime ->
                     MedicationHistoryEntry(
-                        id = reminder.id.toString(), // Convert Int to String
+                        id = reminder.id.toString(),
                         medicationName = nameToUse,
+                        medicationDosage = medication?.dosage ?: "",
+                        medicationColorName = medication?.color ?: "LIGHT_ORANGE",
+                        medicationTypeName = medication?.type,
                         dateTaken = originalDateTime.toLocalDate(),
                         timeTaken = originalDateTime.toLocalTime(),
                         originalDateTimeTaken = originalDateTime
