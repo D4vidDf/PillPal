@@ -895,4 +895,6 @@
     <string name="sort_order">Sort order</string>
     <string name="sort_by_oldest">Sort by oldest</string>
     <string name="sort_by_newest">Sort by newest</string>
+    <string name="last_week">Last week</string>
+    <string name="last_30_days">Last 30 days</string>
 </resources>

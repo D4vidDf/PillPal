@@ -124,6 +124,38 @@ class MedicationHistoryViewModel @Inject constructor(
         processHistory()
     }
 
+    fun setLastWeekFilter() {
+        val today = LocalDate.now()
+        val startOfWeek = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+        _dateFilter.value = Pair(startOfWeek, today)
+        processHistory()
+    }
+
+    fun setLast30DaysFilter() {
+        val today = LocalDate.now()
+        val startOf30Days = today.minusDays(30)
+        _dateFilter.value = Pair(startOf30Days, today)
+        processHistory()
+    }
+
+    fun updateReminderStatus(reminderId: String, isTaken: Boolean) {
+        viewModelScope.launch {
+            val reminder = _rawHistory.value.find { it.id.toString() == reminderId }
+            if (reminder != null) {
+                val updatedReminder = reminder.copy(
+                    isTaken = isTaken,
+                    takenAt = if (isTaken) LocalDateTime.now().toString() else null
+                )
+                reminderRepository.updateReminder(updatedReminder)
+                // Refresh the history
+                val medicationId = _rawHistory.value.firstOrNull()?.medicationId
+                if (medicationId != null) {
+                    loadInitialHistory(medicationId)
+                }
+            }
+        }
+    }
+
     private suspend fun getCurrentDosageForMedication(medicationId: Int): String {
         val activeDosage = medicationDosageRepository.getActiveDosage(medicationId)
         return activeDosage?.dosage ?: ""
@@ -190,7 +222,8 @@ class MedicationHistoryViewModel @Inject constructor(
                         medicationTypeName = medication?.medicationForm?.name,
                         dateTaken = originalDateTime.toLocalDate(),
                         timeTaken = originalDateTime.toLocalTime(),
-                        originalDateTimeTaken = originalDateTime
+                        originalDateTimeTaken = originalDateTime,
+                        isTaken = reminder.isTaken
                     )
                 }
             }.let { list ->

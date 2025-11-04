@@ -12,6 +12,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,11 +35,13 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.Locale
 
 @Composable
 fun HistoryScheduleItem(
     item: MedicationHistoryEntry,
     onNavigateToDetails: () -> Unit,
+    onTakenStatusChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val medicationThemeColor = try {
@@ -47,8 +50,9 @@ fun HistoryScheduleItem(
         MedicationColor.LIGHT_ORANGE // Default color
     }
 
-    val firstWordMedicationName = item.medicationName.split(" ").firstOrNull() ?: item.medicationName
     val formattedTime = item.timeTaken.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+    val dayOfWeek = item.dateTaken.format(DateTimeFormatter.ofPattern("EEEE", Locale.getDefault()))
+
     val itemContentDescription = stringResource(
         R.string.today_schedule_item_card_cd,
         item.medicationName,
@@ -81,7 +85,7 @@ fun HistoryScheduleItem(
         },
         headlineContent = {
             Text(
-                text = firstWordMedicationName,
+                text = item.medicationName,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -90,11 +94,25 @@ fun HistoryScheduleItem(
         },
         supportingContent = {
             Text(
-                text = "${item.medicationDosage} - $formattedTime",
+                text = "${item.medicationDosage} - $dayOfWeek, $formattedTime",
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingContent = {
+            val switchContentDescription = if (item.isTaken) {
+                stringResource(R.string.switch_state_taken)
+            } else {
+                stringResource(R.string.switch_state_not_taken)
+            }
+            Switch(
+                checked = item.isTaken,
+                onCheckedChange = onTakenStatusChange,
+                modifier = Modifier.semantics {
+                    contentDescription = switchContentDescription
+                }
             )
         }
     )
@@ -111,13 +129,15 @@ fun HistoryScheduleItemPreview() {
         medicationTypeName = "Capsule",
         dateTaken = LocalDate.now(),
         timeTaken = LocalTime.of(8, 0),
-        originalDateTimeTaken = LocalDateTime.now()
+        originalDateTimeTaken = LocalDateTime.now(),
+        isTaken = true
     )
     MaterialTheme {
         Surface(color = MaterialTheme.colorScheme.surface) {
             HistoryScheduleItem(
                 item = sampleItem,
                 onNavigateToDetails = {},
+                onTakenStatusChange = {},
                 modifier = Modifier.padding(8.dp)
             )
         }

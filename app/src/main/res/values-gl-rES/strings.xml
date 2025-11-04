@@ -813,4 +813,6 @@
     <string name="sort_order">Orde de clasificación</string>
     <string name="sort_by_oldest">Ordenar por máis antigo</string>
     <string name="sort_by_newest">Ordenar por máis novo</string>
+    <string name="last_week">Última semana</string>
+    <string name="last_30_days">Últimos 30 días</string>
 </resources>

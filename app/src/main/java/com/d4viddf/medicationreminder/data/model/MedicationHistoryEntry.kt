@@ -12,5 +12,6 @@ data class MedicationHistoryEntry(
     val medicationTypeName: String?,
     val dateTaken: LocalDate,
     val timeTaken: LocalTime,
-    val originalDateTimeTaken: LocalDateTime // For precise sorting before formatting
+    val originalDateTimeTaken: LocalDateTime, // For precise sorting before formatting
+    val isTaken: Boolean
 )

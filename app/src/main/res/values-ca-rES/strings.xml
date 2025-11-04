@@ -812,4 +812,6 @@
     <string name="sort_order">Ordre de classificació</string>
     <string name="sort_by_oldest">Ordena per més antic</string>
     <string name="sort_by_newest">Ordena per més nou</string>
+    <string name="last_week">Última setmana</string>
+    <string name="last_30_days">Últims 30 dies</string>
 </resources>

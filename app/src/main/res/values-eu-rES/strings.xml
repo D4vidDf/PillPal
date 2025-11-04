@@ -820,4 +820,6 @@
     <string name="sort_order">Sailkapen ordena</string>
     <string name="sort_by_oldest">Sailkatu zaharrenaren arabera</string>
     <string name="sort_by_newest">Sailkatu berrienaren arabera</string>
+    <string name="last_week">Azken astea</string>
+    <string name="last_30_days">Azken 30 egunak</string>
 </resources>
