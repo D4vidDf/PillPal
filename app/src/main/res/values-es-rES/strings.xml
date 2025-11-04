@@ -876,4 +876,14 @@
     <string name="end_date_dialog_text">¿Qué te gustaría hacer con la fecha de fin?</string>
     <string name="duration_screen_title">Duración</string>
 
+    <!-- Medication History Screen -->
+    <string name="group_by">Agrupar por</string>
+    <string name="no_reminders_that_match_the_filters">No hay recordatorios que coincidan con los filtros</string>
+    <string name="no_history_for_this_medication">No hay historial para este medicamento</string>
+    <string name="filter_by_date">Filtrar por fecha</string>
+    <string name="all_time">Todo el tiempo</string>
+    <string name="custom_range">Rango personalizado</string>
+    <string name="sort_order">Orden de clasificación</string>
+    <string name="sort_by_oldest">Ordenar por más antiguo</string>
+    <string name="sort_by_newest">Ordenar por más nuevo</string>
 </resources>

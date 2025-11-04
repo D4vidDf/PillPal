@@ -803,4 +803,14 @@
     <string name="end_date_dialog_text">Que che gustaría facer coa data de fin?</string>
     <string name="duration_screen_title">Duración</string>
 
+    <!-- Medication History Screen -->
+    <string name="group_by">Agrupar por</string>
+    <string name="no_reminders_that_match_the_filters">Non hai recordatorios que coincidan cos filtros</string>
+    <string name="no_history_for_this_medication">Non hai historial para este medicamento</string>
+    <string name="filter_by_date">Filtrar por data</string>
+    <string name="all_time">Todo o tempo</string>
+    <string name="custom_range">Rango personalizado</string>
+    <string name="sort_order">Orde de clasificación</string>
+    <string name="sort_by_oldest">Ordenar por máis antigo</string>
+    <string name="sort_by_newest">Ordenar por máis novo</string>
 </resources>

@@ -802,4 +802,14 @@
     <string name="end_date_dialog_text">Què t\'agradaria fer amb la data de fi?</string>
     <string name="duration_screen_title">Durada</string>
 
+    <!-- Medication History Screen -->
+    <string name="group_by">Agrupa per</string>
+    <string name="no_reminders_that_match_the_filters">No hi ha recordatoris que coincideixin amb els filtres</string>
+    <string name="no_history_for_this_medication">No hi ha historial per a aquest medicament</string>
+    <string name="filter_by_date">Filtra per data</string>
+    <string name="all_time">Tot el temps</string>
+    <string name="custom_range">Rang personalitzat</string>
+    <string name="sort_order">Ordre de classificació</string>
+    <string name="sort_by_oldest">Ordena per més antic</string>
+    <string name="sort_by_newest">Ordena per més nou</string>
 </resources>
