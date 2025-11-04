@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.medicationreminder.data.model.MedicationHistoryEntry
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +28,8 @@ enum class HistoryGrouping {
 @HiltViewModel
 class MedicationHistoryViewModel @Inject constructor(
     private val reminderRepository: MedicationReminderRepository,
-    private val medicationRepository: MedicationRepository
+    private val medicationRepository: MedicationRepository,
+    private val medicationDosageRepository: MedicationDosageRepository
 ) : ViewModel() {
 
     private val _medicationName = MutableStateFlow<String>("")
@@ -123,8 +125,7 @@ class MedicationHistoryViewModel @Inject constructor(
     }
 
     private suspend fun getCurrentDosageForMedication(medicationId: Int): String {
-        val dosages = medicationRepository.getDosagesForMedication(medicationId).firstOrNull()
-        val activeDosage = dosages?.find { it.endDate == null }
+        val activeDosage = medicationDosageRepository.getActiveDosage(medicationId)
         return activeDosage?.dosage ?: ""
     }
 
@@ -145,9 +146,17 @@ class MedicationHistoryViewModel @Inject constructor(
 
             val currentRawHistory = _rawHistory.value
             val nameToUse = _medicationName.value.ifEmpty { "Unknown Medication" }
-            val medication = medicationRepository.getMedicationById(
-                _rawHistory.value.firstOrNull()?.medicationId ?: -1
-            )
+
+            val medicationId = _rawHistory.value.firstOrNull()?.medicationId
+            if (medicationId == null) {
+                _filteredAndSortedHistory.value = emptyList()
+                _isLoading.value = false
+                return@launch
+            }
+
+            val medication = medicationRepository.getMedicationById(medicationId)
+            val dosage = getCurrentDosageForMedication(medicationId)
+
             // Filter by date
             val dateFiltered = if (_dateFilter.value?.first != null || _dateFilter.value?.second != null) {
                 currentRawHistory.filter { reminder ->
@@ -156,19 +165,12 @@ class MedicationHistoryViewModel @Inject constructor(
                         Log.d(TAG, "Filtering reminderId ${reminder.id}: takenAt='${reminder.takenAt}'. Parse failed or null takenAt.")
                         return@filter false
                     }
-                    // Log 1: After parsing takenAt
-                    Log.d(TAG, "Filtering reminderId ${reminder.id}: takenAt='${reminder.takenAt}'. Parsed takenDateTime: $takenDateTime")
-
                     val startDate = _dateFilter.value?.first
                     val endDate = _dateFilter.value?.second
                     val takenDate = takenDateTime.toLocalDate()
-                    // Log 2: After extracting takenDate and getting filter dates
-                    Log.d(TAG, "ReminderId ${reminder.id}: takenDate=$takenDate, filterStartDate=$startDate, filterEndDate=$endDate")
 
                     val afterOrOnStartDate = startDate == null || !takenDate.isBefore(startDate)
                     val beforeOrOnEndDate = endDate == null || !takenDate.isAfter(endDate)
-                    // Log 3: After comparison logic
-                    Log.d(TAG, "ReminderId ${reminder.id}: afterOrOnStartDate=$afterOrOnStartDate, beforeOrOnEndDate=$beforeOrOnEndDate. Will be included: ${afterOrOnStartDate && beforeOrOnEndDate}")
 
                     afterOrOnStartDate && beforeOrOnEndDate
                 }
@@ -180,7 +182,6 @@ class MedicationHistoryViewModel @Inject constructor(
             // Transform and Sort
             val transformedAndSorted = dateFiltered.mapNotNull { reminder ->
                 parseTakenAt(reminder.takenAt)?.let { originalDateTime ->
-                    val dosage = getCurrentDosageForMedication(reminder.medicationId)
                     MedicationHistoryEntry(
                         id = reminder.id.toString(),
                         medicationName = nameToUse,
