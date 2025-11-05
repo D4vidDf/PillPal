@@ -30,6 +30,7 @@ fun FilterControls(
     onDateFilterSelected: () -> Unit,
     isDateFilterActive: Boolean,
     onClearDateFilter: () -> Unit,
+    dateFilterLabel: String?,
     modifier: Modifier = Modifier
 ) {
     LazyRow(
@@ -41,7 +42,7 @@ fun FilterControls(
             FilterChip(
                 selected = isDateFilterActive,
                 onClick = onDateFilterSelected,
-                label = { Text(stringResource(R.string.filter_by_date)) },
+                label = { Text(dateFilterLabel ?: stringResource(R.string.filter_by_date)) },
                 leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                 trailingIcon = {
                     if (isDateFilterActive) {

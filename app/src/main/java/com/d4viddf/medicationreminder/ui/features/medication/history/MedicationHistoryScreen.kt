@@ -202,12 +202,18 @@ fun MedicationHistoryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                val dateFilterLabel = currentFilter?.let {
+                    val formatter = DateTimeFormatter.ofPattern("d MMM")
+                    "${it.first?.format(formatter)} - ${it.second?.format(formatter)}"
+                }
+
                 FilterControls(
                     sortAscending = sortAscending,
                     onSortOrderChange = { viewModel?.setSortOrder(it) },
                     onDateFilterSelected = { showDateRangeDialog = true },
                     isDateFilterActive = currentFilter != null,
-                    onClearDateFilter = { viewModel?.clearDateFilter() }
+                    onClearDateFilter = { viewModel?.clearDateFilter() },
+                    dateFilterLabel = dateFilterLabel
                 )
                 if (historyEntries.isEmpty()) {
                     EmptyState(isFiltered = currentFilter != null)
