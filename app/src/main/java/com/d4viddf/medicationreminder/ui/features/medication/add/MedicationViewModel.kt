@@ -30,6 +30,16 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import com.d4viddf.medicationreminder.R
+
+sealed class CounterInfo {
+    data class Dose(val value: String, val unit: String) : CounterInfo()
+    data class RemainingDoses(val value: String, val labelResId: Int) : CounterInfo()
+    data class Frequency(val value: String, val unit: String) : CounterInfo()
+    data class Weekly(val days: List<Boolean>, val labelResId: Int) : CounterInfo()
+    data class Duration(val value: String, val unit: String) : CounterInfo()
+    data class Status(val iconResId: Int, val labelResId: Int) : CounterInfo()
+}
 
 @HiltViewModel
 class MedicationViewModel @Inject constructor(
@@ -57,6 +67,9 @@ class MedicationViewModel @Inject constructor(
 
     private val _activeDosage = MutableStateFlow<MedicationDosage?>(null)
     val activeDosage: StateFlow<MedicationDosage?> = _activeDosage.asStateFlow()
+
+    private val _counterInfo = MutableStateFlow<List<CounterInfo>>(emptyList())
+    val counterInfo: StateFlow<List<CounterInfo>> = _counterInfo.asStateFlow()
 
     init {
         observeMedications()
@@ -123,7 +136,9 @@ class MedicationViewModel @Inject constructor(
             reminderRepository.getRemindersForMedication(medicationId).collect { remindersList ->
                 val currentMedication = medicationRepository.getMedicationById(medicationId)
                 val currentSchedule = scheduleRepository.getSchedulesForMedication(medicationId).firstOrNull()?.firstOrNull()
+                val currentDosage = dosageRepository.getActiveDosage(medicationId)
                 calculateAndSetDailyProgressDetails(currentMedication, currentSchedule, remindersList)
+                updateCounterInfo(currentMedication, currentSchedule, currentDosage)
             }
         }
     }
@@ -239,5 +254,82 @@ class MedicationViewModel @Inject constructor(
             WorkerScheduler.scheduleRemindersForMedication(appContext, medication.id)
             Log.i("MedicationViewModel", "Scheduled medication-specific reminder scheduling for medId ${medication.id} after deleting medication.")
         }
+    }
+
+    fun updateCounterInfo(medication: Medication?, schedule: MedicationSchedule?, dosage: MedicationDosage?) {
+        val counters = mutableListOf<CounterInfo>()
+        if (medication == null || schedule == null || dosage == null) {
+            _counterInfo.value = emptyList()
+            return
+        }
+
+        // Slot 1: Dose
+        val medicationFormName = appContext.resources.getQuantityString(
+            medication.medicationForm.getPluralResId(),
+            if (dosage.dosage.toFloatOrNull() == 1f) 1 else 2,
+            dosage.dosage
+        )
+        counters.add(CounterInfo.Dose(dosage.dosage, medicationFormName))
+
+        // Slot 2: Remaining Doses
+        if (medication.packageSize > 0) {
+            val doseValue = dosage.dosage.toFloatOrNull() ?: 1f
+            if (doseValue > 0) {
+                val remainingDoses = (medication.stock / doseValue).toInt()
+                counters.add(CounterInfo.RemainingDoses(remainingDoses.toString(), R.string.remaining_doses))
+            }
+        }
+
+        // Slot 3: Schedule, Frequency, or Status
+        var slot3Info: CounterInfo? = null
+        if (medication.isSuspended) {
+            slot3Info = CounterInfo.Status(R.drawable.ic_suspended, R.string.suspended)
+        } else {
+            when (schedule.scheduleType) {
+                "DAILY" -> {
+                    val timesPerDay = schedule.timesPerDay ?: 0
+                    slot3Info = CounterInfo.Frequency(
+                        timesPerDay.toString(),
+                        appContext.resources.getQuantityString(R.plurals.times_a_day, timesPerDay, timesPerDay)
+                    )
+                }
+                "EVERY_X_HOURS" -> {
+                    val hours = schedule.hoursBetweenDoses ?: 0
+                    slot3Info = CounterInfo.Frequency(
+                        hours.toString(),
+                        appContext.resources.getQuantityString(R.plurals.every_x_hours, hours, hours)
+                    )
+                }
+                "WEEKLY" -> {
+                    val days = listOf(
+                        schedule.monday, schedule.tuesday, schedule.wednesday,
+                        schedule.thursday, schedule.friday, schedule.saturday, schedule.sunday
+                    )
+                    slot3Info = CounterInfo.Weekly(days, R.string.days)
+                }
+                "AS_NEEDED" -> slot3Info = CounterInfo.Status(R.drawable.ic_medication, R.string.as_needed)
+            }
+        }
+
+        // Fallback for Slot 3 if not yet filled
+        if (slot3Info == null) {
+            slot3Info = if (medication.endDate == null) {
+                CounterInfo.Status(R.drawable.ic_infinity, R.string.ongoing)
+            } else {
+                try {
+                    val endDate = LocalDate.parse(medication.endDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                    val remainingDays = LocalDate.now().until(endDate).days
+                    CounterInfo.Duration(remainingDays.toString(), "days left")
+                } catch (e: Exception) {
+                    null // or a default/error state
+                }
+            }
+        }
+
+        if (slot3Info != null) {
+            counters.add(slot3Info)
+        }
+
+        _counterInfo.value = counters.take(3)
     }
 }

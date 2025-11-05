@@ -200,6 +200,8 @@ fun MedicationDetailsScreen(
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
+    val counterInfo by viewModel.counterInfo.collectAsState()
+
     val medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
     val cimaMedicationInfo by medicationInfoViewModel.medicationInfo.collectAsState()
 
@@ -619,10 +621,7 @@ private fun MedicationHeaderAndProgress(
                             Spacer(modifier = Modifier.height(8.dp))
                             MedicationDetailCounters(
                                 colorScheme = color,
-                                activeDosage = activeDosage?.dosage,
-                                medication = medicationState,
-                                schedule = scheduleState,
-                                medicationForm = medicationState.medicationForm
+                                counters = counterInfo
                             )
                         }
                     }
@@ -646,10 +645,7 @@ private fun MedicationHeaderAndProgress(
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationDetailCounters(
                         colorScheme = color,
-                        activeDosage = activeDosage?.dosage,
-                        medication = medicationState,
-                        schedule = scheduleState,
-                        medicationForm = medicationState.medicationForm,
+                        counters = counterInfo,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }

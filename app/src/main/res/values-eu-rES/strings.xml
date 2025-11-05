@@ -822,4 +822,61 @@
     <string name="sort_by_newest">Sailkatu berrienaren arabera</string>
     <string name="last_week">Azken astea</string>
     <string name="last_30_days">Azken 30 egunak</string>
+
+    <!-- Medication Detail Counters -->
+    <string name="remaining_doses">Gainerako dosiak</string>
+    <string name="as_needed">Beharrezkoa denean</string>
+    <string name="suspended">Etena</string>
+
+    <plurals name="times_a_day">
+        <item quantity="one">%d aldiz egunean</item>
+        <item quantity="other">%d aldiz egunean</item>
+    </plurals>
+
+    <plurals name="every_x_hours">
+        <item quantity="one">Orduro</item>
+        <item quantity="other">%d orduro</item>
+    </plurals>
+
+    <plurals name="medication_form_tablet_plural">
+        <item quantity="one">%s tableta</item>
+        <item quantity="other">%s tableta</item>
+    </plurals>
+    <plurals name="medication_form_pill_plural">
+        <item quantity="one">%s pilula</item>
+        <item quantity="other">%s pilula</item>
+    </plurals>
+    <plurals name="medication_form_powder_plural">
+        <item quantity="one">%s dosi</item>
+        <item quantity="other">%s dosi</item>
+    </plurals>
+    <plurals name="medication_form_injection_plural">
+        <item quantity="one">%s injekzio</item>
+        <item quantity="other">%s injekzio</item>
+    </plurals>
+    <plurals name="medication_form_ointment_plural">
+        <item quantity="one">%s aplikazio</item>
+        <item quantity="other">%s aplikazio</item>
+    </plurals>
+    <plurals name="medication_form_inhaler_plural">
+        <item quantity="one">%s inhalazio</item>
+        <item quantity="other">%s inhalazio</item>
+    </plurals>
+    <plurals name="medication_form_liquid_plural">
+        <item quantity="one">%s dosi</item>
+        <item quantity="other">%s dosi</item>
+    </plurals>
+    <plurals name="medication_form_suppository_plural">
+        <item quantity="one">%s supositorio</item>
+        <item quantity="other">%s supositorio</item>
+    </plurals>
+    <plurals name="medication_form_drops_plural">
+        <item quantity="one">%s tanta</item>
+        <item quantity="other">%s tanta</item>
+    </plurals>
+    <plurals name="medication_form_other_plural">
+        <item quantity="one">%s dosi</item>
+        <item quantity="other">%s dosi</item>
+    </plurals>
+
 </resources>
