@@ -394,7 +394,6 @@ internal fun HomeScreenContent(
                 if (hasRegisteredMedications) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(

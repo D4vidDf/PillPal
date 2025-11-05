@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
-class TodaySchedulesViewModel @Inject constructor(
+open class TodaySchedulesViewModel @Inject constructor(
     private val medicationReminderRepository: MedicationReminderRepository,
     private val medicationRepository: MedicationRepository,
     private val dosageRepository: MedicationDosageRepository,
@@ -39,23 +39,23 @@ class TodaySchedulesViewModel @Inject constructor(
     // --- State & Configuration ---
 
     // Determines the screen's mode: showing missed doses or today's schedule.
-    val showMissed: StateFlow<Boolean> = savedStateHandle.getStateFlow(SHOW_MISSED_ARG, false)
+    open val showMissed: StateFlow<Boolean> = savedStateHandle.getStateFlow(SHOW_MISSED_ARG, false)
 
     private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    open val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     // --- State for Filter Controls ---
     private val _allMedications = MutableStateFlow<List<Medication>>(emptyList())
-    val allMedications: StateFlow<List<Medication>> = _allMedications.asStateFlow()
+    open val allMedications: StateFlow<List<Medication>> = _allMedications.asStateFlow()
 
     private val _selectedMedicationIds = MutableStateFlow<List<Int>>(emptyList())
-    val selectedMedicationIds: StateFlow<List<Int>> = _selectedMedicationIds.asStateFlow()
+    open val selectedMedicationIds: StateFlow<List<Int>> = _selectedMedicationIds.asStateFlow()
 
     private val _selectedColorName = MutableStateFlow<String?>(null)
-    val selectedColorName: StateFlow<String?> = _selectedColorName.asStateFlow()
+    open val selectedColorName: StateFlow<String?> = _selectedColorName.asStateFlow()
 
     private val _selectedTimeRange = MutableStateFlow<ClosedRange<LocalTime>?>(null)
-    val selectedTimeRange: StateFlow<ClosedRange<LocalTime>?> = _selectedTimeRange.asStateFlow()
+    open val selectedTimeRange: StateFlow<ClosedRange<LocalTime>?> = _selectedTimeRange.asStateFlow()
 
 
     // --- Core Reactive Data Flow ---
@@ -80,7 +80,7 @@ class TodaySchedulesViewModel @Inject constructor(
 
     // 2. Filtered flow: Combines the source data with all the filter states.
     //    This will re-evaluate and emit a new list whenever the data or any filter changes.
-    val scheduleItems: StateFlow<Map<String, List<TodayScheduleUiItem>>> = combine(
+    open val scheduleItems: StateFlow<Map<String, List<TodayScheduleUiItem>>> = combine(
         sourceReminders,
         selectedMedicationIds,
         selectedColorName,

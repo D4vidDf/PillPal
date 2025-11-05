@@ -7,7 +7,11 @@ import java.time.LocalTime
 data class MedicationHistoryEntry(
     val id: String, // Can be derived from MedicationReminder.id or a combination
     val medicationName: String,
+    val medicationDosage: String,
+    val medicationColorName: String,
+    val medicationTypeName: String?,
     val dateTaken: LocalDate,
     val timeTaken: LocalTime,
-    val originalDateTimeTaken: LocalDateTime // For precise sorting before formatting
+    val originalDateTimeTaken: LocalDateTime, // For precise sorting before formatting
+    val isTaken: Boolean
 )

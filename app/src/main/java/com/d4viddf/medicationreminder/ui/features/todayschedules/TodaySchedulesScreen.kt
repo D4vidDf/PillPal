@@ -61,6 +61,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.d4viddf.medicationreminder.R
@@ -72,6 +73,7 @@ import com.d4viddf.medicationreminder.ui.features.todayschedules.components.Medi
 import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodayScheduleItem
 import com.d4viddf.medicationreminder.ui.features.todayschedules.components.TodaySchedulesSkeletonLoader
 import com.d4viddf.medicationreminder.ui.features.todayschedules.model.TodayScheduleUiItem
+import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -203,6 +205,16 @@ fun TodaySchedulesScreen(
     }
 }
 
+
+@Preview
+@Composable
+fun TodaySchedulesScreenEmptyPreview() {
+    AppTheme {
+        EmptyState(isMissedMode = false, isFiltered = false)
+    }
+}
+
+
 @Composable
 private fun TimeGroupCard(
     time: String,
@@ -306,6 +318,7 @@ private fun FilterControls(
                 else -> stringResource(id = R.string.filter_by_medication_plural, selectedMedicationIds.size)
             }
             FilterChip(
+                modifier = Modifier.height(36.dp),
                 selected = selectedMedicationIds.isNotEmpty(),
                 onClick = { showMedicationFilter = true },
                 label = { Text(medicationLabel) },
@@ -322,6 +335,7 @@ private fun FilterControls(
                 R.string.filter_by_color
             }
             FilterChip(
+                modifier = Modifier.height(36.dp),
                 selected = selectedColorName != null,
                 onClick = { showColorFilter = true },
                 label = { Text(stringResource(id = colorResId)) },
@@ -337,6 +351,7 @@ private fun FilterControls(
                 stringResource(id = R.string.filter_by_time_range)
             }
             FilterChip(
+                modifier = Modifier.height(36.dp),
                 selected = selectedTimeRange != null,
                 onClick = { showTimeRangeDialog = true },
                 label = { Text(timeLabel) },
@@ -447,3 +462,63 @@ private fun EmptyState(modifier: Modifier = Modifier, isMissedMode: Boolean, isF
         )
     }
 }
+
+@Preview
+@Composable
+fun FilterControlsPreview() {
+    AppTheme {
+        FilterControls(
+            allMedications = emptyList(),
+            selectedMedicationIds = emptyList(),
+            selectedColorName = null,
+            selectedTimeRange = null,
+            onMedicationFilterChanged = {},
+            onColorFilterChanged = {},
+            onTimeRangeFilterChanged = { _, _ -> }
+        )
+    }
+}
+
+@Preview
+@Composable
+fun FilterControlsWithFiltersAppliedPreview() {
+    AppTheme {
+        FilterControls(
+            allMedications = emptyList(),
+            selectedMedicationIds = listOf(1, 2),
+            selectedColorName = "blue",
+            selectedTimeRange = LocalTime.of(8, 0)..LocalTime.of(12, 0),
+            onMedicationFilterChanged = {},
+            onColorFilterChanged = {},
+            onTimeRangeFilterChanged = { _, _ -> }
+        )
+    }
+}
+
+@Preview(name = "Empty State - No Reminders")
+@Composable
+private fun EmptyStateNoRemindersPreview() {
+    AppTheme {
+        EmptyState(isMissedMode = false, isFiltered = false)
+    }
+}
+
+@Preview(name = "Empty State - No Reminders with Filter")
+@Composable
+private fun EmptyStateFilteredPreview() {
+    AppTheme {
+        EmptyState(isMissedMode = false, isFiltered = true)
+    }
+}
+
+@Preview(name = "Empty State - No Missed Reminders")
+@Composable
+private fun EmptyStateMissedModePreview() {
+    AppTheme {
+        EmptyState(isMissedMode = true, isFiltered = false)
+    }
+}
+
+
+
+

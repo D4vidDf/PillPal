@@ -885,4 +885,17 @@
     <string name="medication_form_drops">Drops</string>
     <string name="medication_form_other">Other</string>
 
+    <!-- Medication History Screen -->
+    <string name="group_by">Group by</string>
+    <string name="no_reminders_that_match_the_filters">No reminders that match the filters</string>
+    <string name="no_history_for_this_medication">No history for this medication</string>
+    <string name="filter_by_date">Filter by date</string>
+    <string name="all_time">All time</string>
+    <string name="custom_range">Custom range</string>
+    <string name="sort_order">Sort order</string>
+    <string name="sort_by_oldest">Sort by oldest</string>
+    <string name="sort_by_newest">Sort by newest</string>
+    <string name="last_week">Last week</string>
+    <string name="last_30_days">Last 30 days</string>
+    <string name="clear_filter">Clear filter</string>
 </resources>

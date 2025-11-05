@@ -809,4 +809,17 @@
     <string name="end_date_dialog_text">Zer egin nahi duzu amaiera-datarekin?</string>
 
     <string name="duration_screen_title">Iraupena</string>
+
+    <!-- Medication History Screen -->
+    <string name="group_by">Taldekatu</string>
+    <string name="no_reminders_that_match_the_filters">Ez dago iragazkiekin bat datorren abisurik</string>
+    <string name="no_history_for_this_medication">Ez dago botika honen historiarik</string>
+    <string name="filter_by_date">Iragazi dataren arabera</string>
+    <string name="all_time">Denbora guztia</string>
+    <string name="custom_range">Tarte pertsonalizatua</string>
+    <string name="sort_order">Sailkapen ordena</string>
+    <string name="sort_by_oldest">Sailkatu zaharrenaren arabera</string>
+    <string name="sort_by_newest">Sailkatu berrienaren arabera</string>
+    <string name="last_week">Azken astea</string>
+    <string name="last_30_days">Azken 30 egunak</string>
 </resources>
