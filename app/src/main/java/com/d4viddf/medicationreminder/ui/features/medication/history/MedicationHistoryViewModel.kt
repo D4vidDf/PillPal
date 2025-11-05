@@ -133,26 +133,32 @@ class MedicationHistoryViewModel @Inject constructor(
 
     fun updateReminderStatus(reminderId: String, isTaken: Boolean) {
         viewModelScope.launch {
-            val historyEntry = _filteredAndSortedHistory.value.find { it.id == reminderId }
-            val reminder = _rawHistory.value.find { it.id.toString() == reminderId }
+            val reminderToUpdate = _rawHistory.value.find { it.id.toString() == reminderId }
+            if (reminderToUpdate == null) {
+                Log.e(TAG, "Reminder with id $reminderId not found in raw history.")
+                return@launch
+            }
 
-            if (reminder != null && historyEntry != null) {
-                val updatedReminder = reminder.copy(
-                    isTaken = isTaken,
-                    takenAt = if (isTaken) LocalDateTime.now().toString() else null
-                )
-                reminderRepository.updateReminder(updatedReminder)
+            val updatedReminder = reminderToUpdate.copy(
+                isTaken = isTaken,
+                takenAt = if (isTaken) LocalDateTime.now().toString() else null
+            )
+            reminderRepository.updateReminder(updatedReminder)
 
-                if (isTaken) {
-                    // Update the item in the list
-                    val updatedEntry = historyEntry.copy(isTaken = true)
-                    _filteredAndSortedHistory.value = _filteredAndSortedHistory.value.map {
-                        if (it.id == reminderId) updatedEntry else it
-                    }
-                } else {
-                    // Remove the item from the list for animation
-                    _filteredAndSortedHistory.value = _filteredAndSortedHistory.value.filterNot { it.id == reminderId }
-                }
+            // Update the raw history list to maintain a consistent source of truth
+            _rawHistory.value = _rawHistory.value.map {
+                if (it.id.toString() == reminderId) updatedReminder else it
+            }.filter { it.isTaken } // Keep only 'taken' items in the raw history view
+
+            // Now, update the displayed list for the animation
+            if (isTaken) {
+                // This case is tricky because the item might not have been in the filtered list before.
+                // A full re-process is safer to ensure it appears in the correct sorted/filtered position.
+                processHistory()
+            } else {
+                // If it's marked as 'not taken', it should be removed from both lists.
+                // The animation will be driven by the change in the filtered list.
+                _filteredAndSortedHistory.value = _filteredAndSortedHistory.value.filterNot { it.id == reminderId }
             }
         }
     }

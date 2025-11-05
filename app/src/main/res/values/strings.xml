@@ -897,4 +897,5 @@
     <string name="sort_by_newest">Sort by newest</string>
     <string name="last_week">Last week</string>
     <string name="last_30_days">Last 30 days</string>
+    <string name="clear_filter">Clear filter</string>
 </resources>
