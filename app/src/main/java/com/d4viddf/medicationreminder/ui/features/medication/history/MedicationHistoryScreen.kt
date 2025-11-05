@@ -1,5 +1,6 @@
 package com.d4viddf.medicationreminder.ui.features.medication.history
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,12 +66,9 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.time.temporal.WeekFields
 import java.util.Locale
 
-data class HistoryGroup(val header: String, val entries: List<MedicationHistoryEntry>)
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MedicationHistoryScreen(
     medicationId: Int,
@@ -94,7 +92,6 @@ fun MedicationHistoryScreen(
     }
     val currentFilter by viewModel?.dateFilter?.collectAsState() ?: remember { mutableStateOf<Pair<LocalDate?, LocalDate?>?>(null) }
     val sortAscending by viewModel?.sortAscending?.collectAsState() ?: remember { mutableStateOf(false) }
-    val grouping by viewModel?.grouping?.collectAsState() ?: remember { mutableStateOf(HistoryGrouping.BY_MONTH) }
 
     var showDateRangeDialog by remember { mutableStateOf(false) }
 
@@ -208,41 +205,57 @@ fun MedicationHistoryScreen(
                     sortAscending = sortAscending,
                     onSortOrderChange = { viewModel?.setSortOrder(it) },
                     onDateFilterSelected = { showDateRangeDialog = true },
-                    onAllTimeSelected = { viewModel?.setAllTimeFilter() },
-                    onLastWeekSelected = { viewModel?.setLastWeekFilter() },
-                    onLast30DaysSelected = { viewModel?.setLast30DaysFilter() }
+                    isDateFilterActive = currentFilter != null,
+                    onClearDateFilter = { viewModel?.clearDateFilter() }
                 )
                 if (historyEntries.isEmpty()) {
                     EmptyState(isFiltered = currentFilter != null)
                 } else {
-                    val groupedItems = remember(historyEntries, grouping) {
-                        processHistoryEntriesIntoGroups(historyEntries, grouping)
+                    val groupedByMonth = historyEntries.groupBy {
+                        it.originalDateTimeTaken.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
                     }
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(groupedItems, key = { it.header }) { group ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                            ) {
-                                Column {
-                                    Text(
-                                        text = group.header.uppercase(Locale.getDefault()),
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp)
-                                    )
-                                    group.entries.forEach { entry ->
-                                        HistoryScheduleItem(
-                                            item = entry,
-                                            onNavigateToDetails = { onNavigateToDetails(medicationId) },
-                                            onTakenStatusChange = { isTaken ->
-                                                viewModel?.updateReminderStatus(entry.id, isTaken)
-                                            },
-                                            modifier = Modifier.padding(horizontal = 16.dp)
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        groupedByMonth.forEach { (month, entries) ->
+                            item {
+                                Text(
+                                    text = month.uppercase(Locale.getDefault()),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                )
+                            }
+                            val groupedByDay = entries.groupBy { it.dateTaken }
+                            items(groupedByDay.entries.toList(), key = { it.key }) { (day, dayEntries) ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        .animateItemPlacement(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = day.format(DateTimeFormatter.ofPattern("EEEE, d")),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp)
                                         )
+                                        dayEntries.forEach { entry ->
+                                            HistoryScheduleItem(
+                                                item = entry,
+                                                onNavigateToDetails = { onNavigateToDetails(medicationId) },
+                                                onTakenStatusChange = { isTaken ->
+                                                    viewModel?.updateReminderStatus(entry.id, isTaken)
+                                                },
+                                                modifier = Modifier.padding(horizontal = 16.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -252,31 +265,6 @@ fun MedicationHistoryScreen(
             }
         }
     }
-}
-
-private fun processHistoryEntriesIntoGroups(
-    entries: List<MedicationHistoryEntry>,
-    grouping: HistoryGrouping
-): List<HistoryGroup> {
-    if (entries.isEmpty()) return emptyList()
-
-    val groupedMap = when (grouping) {
-        HistoryGrouping.BY_MONTH -> {
-            val monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
-            entries.groupBy { it.originalDateTimeTaken.format(monthYearFormatter) }
-        }
-        HistoryGrouping.BY_WEEK -> {
-            val weekFields = WeekFields.of(Locale.getDefault())
-            val weekFormatter = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
-            entries.groupBy {
-                val date = it.originalDateTimeTaken.toLocalDate()
-                val startOfWeek = date.with(weekFields.dayOfWeek(), 1)
-                val endOfWeek = startOfWeek.plusDays(6)
-                "${startOfWeek.format(weekFormatter)} - ${endOfWeek.format(weekFormatter)}"
-            }
-        }
-    }
-    return groupedMap.map { (header, items) -> HistoryGroup(header, items) }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

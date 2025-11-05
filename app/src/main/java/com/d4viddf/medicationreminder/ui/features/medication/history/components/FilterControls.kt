@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,13 +28,10 @@ fun FilterControls(
     sortAscending: Boolean,
     onSortOrderChange: (Boolean) -> Unit,
     onDateFilterSelected: () -> Unit,
-    onAllTimeSelected: () -> Unit,
-    onLastWeekSelected: () -> Unit,
-    onLast30DaysSelected: () -> Unit,
+    isDateFilterActive: Boolean,
+    onClearDateFilter: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showDateFilterMenu by remember { mutableStateOf(false) }
-
     LazyRow(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -42,44 +39,18 @@ fun FilterControls(
     ) {
         item {
             FilterChip(
-                selected = false,
-                onClick = { showDateFilterMenu = true },
+                selected = isDateFilterActive,
+                onClick = onDateFilterSelected,
                 label = { Text(stringResource(R.string.filter_by_date)) },
-                leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
+                trailingIcon = {
+                    if (isDateFilterActive) {
+                        IconButton(onClick = onClearDateFilter) {
+                            Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.clear_filter))
+                        }
+                    }
+                }
             )
-            DropdownMenu(
-                expanded = showDateFilterMenu,
-                onDismissRequest = { showDateFilterMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.all_time)) },
-                    onClick = {
-                        onAllTimeSelected()
-                        showDateFilterMenu = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.last_week)) },
-                    onClick = {
-                        onLastWeekSelected()
-                        showDateFilterMenu = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.last_30_days)) },
-                    onClick = {
-                        onLast30DaysSelected()
-                        showDateFilterMenu = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.custom_range)) },
-                    onClick = {
-                        onDateFilterSelected()
-                        showDateFilterMenu = false
-                    }
-                )
-            }
         }
         item {
             FilterChip(

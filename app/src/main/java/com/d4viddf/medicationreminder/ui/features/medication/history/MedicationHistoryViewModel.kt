@@ -20,10 +20,6 @@ import java.time.YearMonth
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
-enum class HistoryGrouping {
-    BY_MONTH,
-    BY_WEEK
-}
 
 @HiltViewModel
 class MedicationHistoryViewModel @Inject constructor(
@@ -53,14 +49,7 @@ class MedicationHistoryViewModel @Inject constructor(
     private val _sortAscending = MutableStateFlow<Boolean>(false) // Default to descending
     val sortAscending: StateFlow<Boolean> = _sortAscending.asStateFlow()
 
-    private val _grouping = MutableStateFlow(HistoryGrouping.BY_MONTH)
-    val grouping: StateFlow<HistoryGrouping> = _grouping.asStateFlow()
-
     private val TAG = "MedHistoryVM"
-
-    fun setGrouping(grouping: HistoryGrouping) {
-        _grouping.value = grouping
-    }
 
     fun loadInitialHistory(medicationId: Int, filterDate: LocalDate? = null, filterMonth: YearMonth? = null) {
         Log.d(TAG, "loadInitialHistory called for medicationId: $medicationId, filterDate: $filterDate, filterMonth: $filterMonth")
@@ -138,19 +127,31 @@ class MedicationHistoryViewModel @Inject constructor(
         processHistory()
     }
 
+    fun clearDateFilter() {
+        setAllTimeFilter()
+    }
+
     fun updateReminderStatus(reminderId: String, isTaken: Boolean) {
         viewModelScope.launch {
+            val historyEntry = _filteredAndSortedHistory.value.find { it.id == reminderId }
             val reminder = _rawHistory.value.find { it.id.toString() == reminderId }
-            if (reminder != null) {
+
+            if (reminder != null && historyEntry != null) {
                 val updatedReminder = reminder.copy(
                     isTaken = isTaken,
                     takenAt = if (isTaken) LocalDateTime.now().toString() else null
                 )
                 reminderRepository.updateReminder(updatedReminder)
-                // Refresh the history
-                val medicationId = _rawHistory.value.firstOrNull()?.medicationId
-                if (medicationId != null) {
-                    loadInitialHistory(medicationId)
+
+                if (isTaken) {
+                    // Update the item in the list
+                    val updatedEntry = historyEntry.copy(isTaken = true)
+                    _filteredAndSortedHistory.value = _filteredAndSortedHistory.value.map {
+                        if (it.id == reminderId) updatedEntry else it
+                    }
+                } else {
+                    // Remove the item from the list for animation
+                    _filteredAndSortedHistory.value = _filteredAndSortedHistory.value.filterNot { it.id == reminderId }
                 }
             }
         }
