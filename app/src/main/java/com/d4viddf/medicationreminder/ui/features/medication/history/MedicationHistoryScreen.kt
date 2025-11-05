@@ -232,37 +232,57 @@ fun MedicationHistoryScreen(
                             }
                             val groupedByDay = entries.groupBy { it.dateTaken }
                             items(groupedByDay.entries.toList(), key = { it.key }) { (day, dayEntries) ->
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        .animateItemPlacement(),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = day.format(DateTimeFormatter.ofPattern("EEEE, d")),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp)
-                                        )
-                                        dayEntries.forEach { entry ->
-                                            HistoryScheduleItem(
-                                                item = entry,
-                                                onNavigateToDetails = { onNavigateToDetails(medicationId) },
-                                                onTakenStatusChange = { isTaken ->
-                                                    viewModel?.updateReminderStatus(entry.id, isTaken)
-                                                },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                        }
-                                    }
-                                }
+                                HistoryDayCard(
+                                    day = day,
+                                    dayEntries = dayEntries,
+                                    onNavigateToDetails = { onNavigateToDetails(medicationId) },
+                                    onTakenStatusChange = { id, isTaken ->
+                                        viewModel?.updateReminderStatus(id, isTaken)
+                                    },
+                                    medicationId = medicationId,
+                                    modifier = Modifier.animateItemPlacement()
+                                )
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistoryDayCard(
+    day: LocalDate,
+    dayEntries: List<MedicationHistoryEntry>,
+    onNavigateToDetails: (Int) -> Unit,
+    onTakenStatusChange: (String, Boolean) -> Unit,
+    medicationId: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column {
+            Text(
+                text = day.format(DateTimeFormatter.ofPattern("EEEE, d")),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+            dayEntries.forEach { entry ->
+                HistoryScheduleItem(
+                    item = entry,
+                    onNavigateToDetails = { onNavigateToDetails(medicationId) },
+                    onTakenStatusChange = { isTaken ->
+                        onTakenStatusChange(entry.id, isTaken)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
@@ -307,6 +327,44 @@ private fun EmptyState(modifier: Modifier = Modifier, isFiltered: Boolean) {
             text = message,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "History Day Card")
+@Composable
+fun HistoryDayCardPreview() {
+    val sampleEntries = listOf(
+        MedicationHistoryEntry(
+            id = "1",
+            medicationName = "Ibuprofen",
+            medicationDosage = "200mg",
+            medicationColorName = "LIGHT_PINK",
+            medicationTypeName = "Tablet",
+            dateTaken = LocalDate.now(),
+            timeTaken = LocalTime.of(8, 0),
+            originalDateTimeTaken = LocalDateTime.now().withHour(8),
+            isTaken = true
+        ),
+        MedicationHistoryEntry(
+            id = "2",
+            medicationName = "Paracetamol",
+            medicationDosage = "500mg",
+            medicationColorName = "LIGHT_BLUE",
+            medicationTypeName = "Pill",
+            dateTaken = LocalDate.now(),
+            timeTaken = LocalTime.of(20, 0),
+            originalDateTimeTaken = LocalDateTime.now().withHour(20),
+            isTaken = true
+        )
+    )
+    AppTheme {
+        HistoryDayCard(
+            day = LocalDate.now(),
+            dayEntries = sampleEntries,
+            onNavigateToDetails = {},
+            onTakenStatusChange = { _, _ -> },
+            medicationId = 1
         )
     }
 }
