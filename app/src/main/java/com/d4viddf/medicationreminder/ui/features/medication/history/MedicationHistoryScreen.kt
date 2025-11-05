@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.animateItemPlacement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -246,7 +245,7 @@ fun MedicationHistoryScreen(
                                         viewModel?.updateReminderStatus(id, isTaken)
                                     },
                                     medicationId = medicationId,
-                                    modifier = Modifier.animateItemPlacement()
+                                    modifier = Modifier.animateItem()
                                 )
                             }
                         }
@@ -274,7 +273,7 @@ private fun HistoryDayCard(
     ) {
         Column {
             Text(
-                text = day.format(DateTimeFormatter.ofPattern("EEEE, d")),
+                text = day.format(DateTimeFormatter.ofPattern("EEEE, d")).uppercase(),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()

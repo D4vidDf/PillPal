@@ -318,6 +318,7 @@ private fun FilterControls(
                 else -> stringResource(id = R.string.filter_by_medication_plural, selectedMedicationIds.size)
             }
             FilterChip(
+                modifier = Modifier.height(36.dp),
                 selected = selectedMedicationIds.isNotEmpty(),
                 onClick = { showMedicationFilter = true },
                 label = { Text(medicationLabel) },
@@ -334,6 +335,7 @@ private fun FilterControls(
                 R.string.filter_by_color
             }
             FilterChip(
+                modifier = Modifier.height(36.dp),
                 selected = selectedColorName != null,
                 onClick = { showColorFilter = true },
                 label = { Text(stringResource(id = colorResId)) },
@@ -349,6 +351,7 @@ private fun FilterControls(
                 stringResource(id = R.string.filter_by_time_range)
             }
             FilterChip(
+                modifier = Modifier.height(36.dp),
                 selected = selectedTimeRange != null,
                 onClick = { showTimeRangeDialog = true },
                 label = { Text(timeLabel) },
