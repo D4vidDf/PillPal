@@ -347,7 +347,8 @@ fun MedicationDetailsScreen(
                                      makeAppBarTransparent = makeAppBarTransparent, // Pass the variable
                                     onNavigateToScheduleDosageChange = { medId ->
                                         navController.navigate(Screen.ScheduleDosageChange.createRoute(medId))
-                                    }
+                                    },
+                                    counters = counterInfo
                                 )
                             }
                             item {
@@ -413,7 +414,8 @@ fun MedicationDetailsScreen(
                                      makeAppBarTransparent = makeAppBarTransparent, // Pass the variable
                                     onNavigateToScheduleDosageChange = { medId ->
                                         navController.navigate(Screen.ScheduleDosageChange.createRoute(medId))
-                                    }
+                                    },
+                                    counters = counterInfo
                         )
                     }
                     item {
@@ -498,7 +500,8 @@ private fun MedicationHeaderAndProgress(
     medicationId: Int,
     scheduleState: MedicationSchedule?,
     makeAppBarTransparent: Boolean,
-    onNavigateToScheduleDosageChange: (Int) -> Unit
+    onNavigateToScheduleDosageChange: (Int) -> Unit,
+    counters: List<com.d4viddf.medicationreminder.ui.features.medication.add.CounterInfo>
 ) {
     val displayProgressDetails = if (medicationState.isPastEndDate()) {
         Log.d("MedDetailScreen", "Medication ${medicationState?.name} has ended. Displaying completed progress.")
@@ -620,7 +623,7 @@ private fun MedicationHeaderAndProgress(
                             Spacer(modifier = Modifier.height(8.dp))
                             MedicationDetailCounters(
                                 colorScheme = color,
-                                counters = counterInfo
+                                counters = counters
                             )
                         }
                     }
@@ -644,7 +647,7 @@ private fun MedicationHeaderAndProgress(
                     Spacer(modifier = Modifier.height(16.dp))
                     MedicationDetailCounters(
                         colorScheme = color,
-                        counters = counterInfo,
+                        counters = counters,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
