@@ -256,8 +256,11 @@ class MedicationViewModel @Inject constructor(
         }
     }
 
-    private fun extractNumericValue(dosage: String): Float? {
-        return dosage.trim().split(" ")[0].toFloatOrNull()
+    private fun parseDosageString(dosage: String): Pair<Float?, String?> {
+        val parts = dosage.trim().split(" ")
+        val numericPart = parts[0].toFloatOrNull()
+        val unitPart = if (parts.size > 1) parts.drop(1).joinToString(" ") else null
+        return Pair(numericPart, unitPart)
     }
 
     fun updateCounterInfo(medication: Medication?, schedule: MedicationSchedule?, dosage: MedicationDosage?) {
@@ -267,15 +270,20 @@ class MedicationViewModel @Inject constructor(
             return
         }
 
-        val numericDosage = extractNumericValue(dosage.dosage)
+        val (numericDosage, dosageUnit) = parseDosageString(dosage.dosage)
 
         // Slot 1: Dose
         if (numericDosage != null) {
-            val medicationFormName = appContext.resources.getQuantityString(
-                medication.medicationForm.getUnitPluralResId(),
-                if (numericDosage == 1f) 1 else 2
-            )
-            counters.add(CounterInfo.Dose(numericDosage.toString(), medicationFormName))
+            val unitLabel = when (medication.medicationForm) {
+                com.d4viddf.medicationreminder.data.model.MedicationForm.LIQUID,
+                com.d4viddf.medicationreminder.data.model.MedicationForm.INJECTION -> dosageUnit ?: ""
+                com.d4viddf.medicationreminder.data.model.MedicationForm.OINTMENT -> "$dosageUnit/application"
+                else -> appContext.resources.getQuantityString(
+                    medication.medicationForm.getUnitPluralResId(),
+                    if (numericDosage == 1f) 1 else 2
+                )
+            }
+            counters.add(CounterInfo.Dose(numericDosage.toString(), unitLabel))
         }
 
         // Slot 2: Remaining Doses

@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.ui.common.components.AutoSizeText
 import com.d4viddf.medicationreminder.ui.features.medication.add.CounterInfo
 import com.d4viddf.medicationreminder.ui.theme.AppTheme
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
@@ -40,7 +41,16 @@ fun CounterItem(value: String, label: String, valueColor: Color) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 4.dp)
     ) {
-        Text(text = value, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = valueColor)
+        AutoSizeText(
+            text = value,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            ),
+            color = valueColor,
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = label, fontSize = 14.sp, color = Color.White, textAlign = TextAlign.Center)
     }
