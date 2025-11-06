@@ -124,11 +124,16 @@ fun MedicationDetailCounters(
         } else {
             counters.forEachIndexed { index, counterInfo ->
                 when (counterInfo) {
-                    is CounterInfo.Dose -> CounterItem(
-                        value = NumberUtils.toFraction(counterInfo.value.toFloat()),
-                        label = counterInfo.unit,
-                        valueColor = colorScheme.onBackgroundColor
-                    )
+                    is CounterInfo.Dose -> {
+                        val numericValue = counterInfo.value.toFloatOrNull()
+                        if (numericValue != null) {
+                            CounterItem(
+                                value = NumberUtils.toFraction(numericValue),
+                                label = counterInfo.unit,
+                                valueColor = colorScheme.onBackgroundColor
+                            )
+                        }
+                    }
                     is CounterInfo.RemainingDoses -> CounterItem(
                         value = counterInfo.value,
                         label = stringResource(id = counterInfo.labelResId),

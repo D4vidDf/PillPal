@@ -969,4 +969,45 @@
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>
     </plurals>
+
+    <plurals name="unit_medication_form_tablet_plural">
+        <item quantity="one">tablet</item>
+        <item quantity="other">tablets</item>
+    </plurals>
+    <plurals name="unit_medication_form_pill_plural">
+        <item quantity="one">pill</item>
+        <item quantity="other">pills</item>
+    </plurals>
+    <plurals name="unit_medication_form_powder_plural">
+        <item quantity="one">dose</item>
+        <item quantity="other">doses</item>
+    </plurals>
+    <plurals name="unit_medication_form_injection_plural">
+        <item quantity="one">injection</item>
+        <item quantity="other">injections</item>
+    </plurals>
+    <plurals name="unit_medication_form_ointment_plural">
+        <item quantity="one">application</item>
+        <item quantity="other">applications</item>
+    </plurals>
+    <plurals name="unit_medication_form_inhaler_plural">
+        <item quantity="one">puff</item>
+        <item quantity="other">puffs</item>
+    </plurals>
+    <plurals name="unit_medication_form_liquid_plural">
+        <item quantity="one">dose</item>
+        <item quantity="other">doses</item>
+    </plurals>
+    <plurals name="unit_medication_form_suppository_plural">
+        <item quantity="one">suppository</item>
+        <item quantity="other">suppositories</item>
+    </plurals>
+    <plurals name="unit_medication_form_drops_plural">
+        <item quantity="one">drop</item>
+        <item quantity="other">drops</item>
+    </plurals>
+    <plurals name="unit_medication_form_other_plural">
+        <item quantity="one">dose</item>
+        <item quantity="other">doses</item>
+    </plurals>
 </resources>

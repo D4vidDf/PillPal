@@ -893,4 +893,45 @@
         <item quantity="one">ordu</item>
         <item quantity="other">ordu</item>
     </plurals>
+
+    <plurals name="unit_medication_form_tablet_plural">
+        <item quantity="one">tableta</item>
+        <item quantity="other">tabletak</item>
+    </plurals>
+    <plurals name="unit_medication_form_pill_plural">
+        <item quantity="one">pilula</item>
+        <item quantity="other">pilulak</item>
+    </plurals>
+    <plurals name="unit_medication_form_powder_plural">
+        <item quantity="one">dosi</item>
+        <item quantity="other">dosiak</item>
+    </plurals>
+    <plurals name="unit_medication_form_injection_plural">
+        <item quantity="one">injekzio</item>
+        <item quantity="other">injekzioak</item>
+    </plurals>
+    <plurals name="unit_medication_form_ointment_plural">
+        <item quantity="one">aplikazio</item>
+        <item quantity="other">aplikazioak</item>
+    </plurals>
+    <plurals name="unit_medication_form_inhaler_plural">
+        <item quantity="one">inhalazio</item>
+        <item quantity="other">inhalazioak</item>
+    </plurals>
+    <plurals name="unit_medication_form_liquid_plural">
+        <item quantity="one">dosi</item>
+        <item quantity="other">dosiak</item>
+    </plurals>
+    <plurals name="unit_medication_form_suppository_plural">
+        <item quantity="one">supositorio</item>
+        <item quantity="other">supositorioak</item>
+    </plurals>
+    <plurals name="unit_medication_form_drops_plural">
+        <item quantity="one">tanta</item>
+        <item quantity="other">tantak</item>
+    </plurals>
+    <plurals name="unit_medication_form_other_plural">
+        <item quantity="one">dosi</item>
+        <item quantity="other">dosiak</item>
+    </plurals>
 </resources>

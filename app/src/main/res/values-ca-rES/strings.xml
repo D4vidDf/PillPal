@@ -885,4 +885,45 @@
         <item quantity="one">hora</item>
         <item quantity="other">hores</item>
     </plurals>
+
+    <plurals name="unit_medication_form_tablet_plural">
+        <item quantity="one">tauleta</item>
+        <item quantity="other">tauletes</item>
+    </plurals>
+    <plurals name="unit_medication_form_pill_plural">
+        <item quantity="one">píndola</item>
+        <item quantity="other">píndoles</item>
+    </plurals>
+    <plurals name="unit_medication_form_powder_plural">
+        <item quantity="one">dosi</item>
+        <item quantity="other">dosis</item>
+    </plurals>
+    <plurals name="unit_medication_form_injection_plural">
+        <item quantity="one">injecció</item>
+        <item quantity="other">injeccions</item>
+    </plurals>
+    <plurals name="unit_medication_form_ointment_plural">
+        <item quantity="one">aplicació</item>
+        <item quantity="other">aplicacions</item>
+    </plurals>
+    <plurals name="unit_medication_form_inhaler_plural">
+        <item quantity="one">inhalació</item>
+        <item quantity="other">inhalacions</item>
+    </plurals>
+    <plurals name="unit_medication_form_liquid_plural">
+        <item quantity="one">dosi</item>
+        <item quantity="other">dosis</item>
+    </plurals>
+    <plurals name="unit_medication_form_suppository_plural">
+        <item quantity="one">supositori</item>
+        <item quantity="other">supositoris</item>
+    </plurals>
+    <plurals name="unit_medication_form_drops_plural">
+        <item quantity="one">gota</item>
+        <item quantity="other">gotes</item>
+    </plurals>
+    <plurals name="unit_medication_form_other_plural">
+        <item quantity="one">dosi</item>
+        <item quantity="other">dosis</item>
+    </plurals>
 </resources>

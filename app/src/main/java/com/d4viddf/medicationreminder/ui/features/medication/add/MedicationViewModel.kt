@@ -256,6 +256,10 @@ class MedicationViewModel @Inject constructor(
         }
     }
 
+    private fun extractNumericValue(dosage: String): Float? {
+        return dosage.trim().split(" ")[0].toFloatOrNull()
+    }
+
     fun updateCounterInfo(medication: Medication?, schedule: MedicationSchedule?, dosage: MedicationDosage?) {
         val counters = mutableListOf<CounterInfo>()
         if (medication == null || schedule == null || dosage == null) {
@@ -263,21 +267,21 @@ class MedicationViewModel @Inject constructor(
             return
         }
 
+        val numericDosage = extractNumericValue(dosage.dosage)
+
         // Slot 1: Dose
-        val medicationFormName = appContext.resources.getQuantityString(
-            medication.medicationForm.getPluralResId(),
-            if (dosage.dosage.toFloatOrNull() == 1f) 1 else 2,
-            dosage.dosage
-        )
-        counters.add(CounterInfo.Dose(dosage.dosage, medicationFormName))
+        if (numericDosage != null) {
+            val medicationFormName = appContext.resources.getQuantityString(
+                medication.medicationForm.getUnitPluralResId(),
+                if (numericDosage == 1f) 1 else 2
+            )
+            counters.add(CounterInfo.Dose(numericDosage.toString(), medicationFormName))
+        }
 
         // Slot 2: Remaining Doses
-        if (medication.packageSize > 0) {
-            val doseValue = dosage.dosage.toFloatOrNull() ?: 1f
-            if (doseValue > 0) {
-                val remainingDoses = (medication.remainingDoses / doseValue).toInt()
-                counters.add(CounterInfo.RemainingDoses(remainingDoses.toString(), R.string.remaining_doses))
-            }
+        if (medication.packageSize > 0 && numericDosage != null && numericDosage > 0) {
+            val remainingDoses = (medication.remainingDoses / numericDosage).toInt()
+            counters.add(CounterInfo.RemainingDoses(remainingDoses.toString(), R.string.remaining_doses))
         }
 
         // Slot 3: Schedule, Frequency, or Status
