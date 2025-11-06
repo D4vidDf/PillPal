@@ -319,7 +319,7 @@ class MedicationViewModel @Inject constructor(
         // Fallback for Slot 3 if not yet filled
         if (slot3Info == null) {
             slot3Info = if (medication.endDate == null) {
-                CounterInfo.Status(R.drawable.all_reminders_header, R.string.ongoing)
+                CounterInfo.Status(R.drawable.ic_stat_medication, R.string.ongoing)
             } else {
                 try {
                     val endDate = LocalDate.parse(medication.endDate, DateTimeFormatter.ISO_LOCAL_DATE)
