@@ -876,4 +876,14 @@
         <item quantity="one">%d día restante</item>
         <item quantity="other">%d días restantes</item>
     </plurals>
+
+    <plurals name="unit_times_a_day">
+        <item quantity="one">vez ao día</item>
+        <item quantity="other">veces ao día</item>
+    </plurals>
+
+    <plurals name="unit_every_x_hours">
+        <item quantity="one">hora</item>
+        <item quantity="other">horas</item>
+    </plurals>
 </resources>

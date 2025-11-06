@@ -883,4 +883,14 @@
         <item quantity="one">egun 1 geratzen da</item>
         <item quantity="other">%d egun geratzen dira</item>
     </plurals>
+
+    <plurals name="unit_times_a_day">
+        <item quantity="one">aldiz egunean</item>
+        <item quantity="other">aldiz egunean</item>
+    </plurals>
+
+    <plurals name="unit_every_x_hours">
+        <item quantity="one">ordu</item>
+        <item quantity="other">ordu</item>
+    </plurals>
 </resources>

@@ -959,4 +959,14 @@
         <item quantity="one">%d day left</item>
         <item quantity="other">%d days left</item>
     </plurals>
+
+    <plurals name="unit_times_a_day">
+        <item quantity="one">time a day</item>
+        <item quantity="other">times a day</item>
+    </plurals>
+
+    <plurals name="unit_every_x_hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
 </resources>

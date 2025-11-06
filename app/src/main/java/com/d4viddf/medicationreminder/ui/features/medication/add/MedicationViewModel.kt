@@ -290,14 +290,14 @@ class MedicationViewModel @Inject constructor(
                     val timesPerDay = schedule.specificTimes?.size ?: 0
                     slot3Info = CounterInfo.Frequency(
                         timesPerDay.toString(),
-                        appContext.resources.getQuantityString(R.plurals.times_a_day, timesPerDay, timesPerDay)
+                        appContext.resources.getQuantityString(R.plurals.unit_times_a_day, timesPerDay)
                     )
                 }
                 ScheduleType.INTERVAL -> {
                     val hours = schedule.intervalHours ?: 0
                     slot3Info = CounterInfo.Frequency(
                         hours.toString(),
-                        appContext.resources.getQuantityString(R.plurals.every_x_hours, hours, hours)
+                        appContext.resources.getQuantityString(R.plurals.unit_every_x_hours, hours)
                     )
                 }
                 ScheduleType.WEEKLY -> {
@@ -310,7 +310,7 @@ class MedicationViewModel @Inject constructor(
                     val timesPerDay = schedule.specificTimes?.size ?: 0
                     slot3Info = CounterInfo.Frequency(
                         timesPerDay.toString(),
-                        appContext.resources.getQuantityString(R.plurals.times_a_day, timesPerDay, timesPerDay)
+                        appContext.resources.getQuantityString(R.plurals.unit_times_a_day, timesPerDay)
                     )
                 }
             }
