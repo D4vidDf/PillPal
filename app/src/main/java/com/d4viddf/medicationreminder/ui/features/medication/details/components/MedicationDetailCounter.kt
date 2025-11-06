@@ -36,10 +36,10 @@ import com.d4viddf.medicationreminder.ui.theme.MedicationColor
 import com.d4viddf.medicationreminder.utils.NumberUtils
 
 @Composable
-fun CounterItem(value: String, label: String, valueColor: Color) {
+fun CounterItem(value: String, label: String, valueColor: Color, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        modifier = modifier.padding(horizontal = 4.dp)
     ) {
         AutoSizeText(
             text = value,
@@ -48,8 +48,7 @@ fun CounterItem(value: String, label: String, valueColor: Color) {
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             ),
-            color = valueColor,
-            modifier = Modifier.fillMaxWidth()
+            color = valueColor
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = label, fontSize = 14.sp, color = Color.White, textAlign = TextAlign.Center)
@@ -57,10 +56,15 @@ fun CounterItem(value: String, label: String, valueColor: Color) {
 }
 
 @Composable
-fun StatusCounter(iconResId: Int, labelResId: Int, valueColor: Color) {
+fun StatusCounter(
+    iconResId: Int,
+    labelResId: Int,
+    valueColor: Color,
+    modifier: Modifier = Modifier
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        modifier = modifier.padding(horizontal = 4.dp)
     ) {
         Icon(
             painter = painterResource(id = iconResId),
@@ -79,10 +83,15 @@ fun StatusCounter(iconResId: Int, labelResId: Int, valueColor: Color) {
 }
 
 @Composable
-fun WeeklyScheduleCounter(days: List<Boolean>, labelResId: Int, valueColor: Color) {
+fun WeeklyScheduleCounter(
+    days: List<Boolean>,
+    labelResId: Int,
+    valueColor: Color,
+    modifier: Modifier = Modifier
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        modifier = modifier.padding(horizontal = 4.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             days.forEach { isActive ->
@@ -133,6 +142,7 @@ fun MedicationDetailCounters(
             )
         } else {
             counters.forEachIndexed { index, counterInfo ->
+                val itemModifier = Modifier.weight(1f)
                 when (counterInfo) {
                     is CounterInfo.Dose -> {
                         val numericValue = counterInfo.value.toFloatOrNull()
@@ -140,34 +150,40 @@ fun MedicationDetailCounters(
                             CounterItem(
                                 value = NumberUtils.toFraction(numericValue),
                                 label = counterInfo.unit,
-                                valueColor = colorScheme.onBackgroundColor
+                                valueColor = colorScheme.onBackgroundColor,
+                                modifier = itemModifier
                             )
                         }
                     }
                     is CounterInfo.RemainingDoses -> CounterItem(
                         value = counterInfo.value,
                         label = stringResource(id = counterInfo.labelResId),
-                        valueColor = colorScheme.onBackgroundColor
+                        valueColor = colorScheme.onBackgroundColor,
+                        modifier = itemModifier
                     )
                     is CounterInfo.Frequency -> CounterItem(
                         value = counterInfo.value,
                         label = counterInfo.unit,
-                        valueColor = colorScheme.onBackgroundColor
+                        valueColor = colorScheme.onBackgroundColor,
+                        modifier = itemModifier
                     )
                     is CounterInfo.Weekly -> WeeklyScheduleCounter(
                         days = counterInfo.days,
                         labelResId = counterInfo.labelResId,
-                        valueColor = colorScheme.onBackgroundColor
+                        valueColor = colorScheme.onBackgroundColor,
+                        modifier = itemModifier
                     )
                     is CounterInfo.Duration -> CounterItem(
                         value = counterInfo.value,
                         label = counterInfo.unit,
-                        valueColor = colorScheme.onBackgroundColor
+                        valueColor = colorScheme.onBackgroundColor,
+                        modifier = itemModifier
                     )
                     is CounterInfo.Status -> StatusCounter(
                         iconResId = counterInfo.iconResId,
                         labelResId = counterInfo.labelResId,
-                        valueColor = colorScheme.onBackgroundColor
+                        valueColor = colorScheme.onBackgroundColor,
+                        modifier = itemModifier
                     )
                 }
                 if (index < counters.size - 1) {
