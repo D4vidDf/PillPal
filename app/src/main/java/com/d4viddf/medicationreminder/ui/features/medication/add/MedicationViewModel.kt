@@ -275,7 +275,7 @@ class MedicationViewModel @Inject constructor(
         if (medication.packageSize > 0) {
             val doseValue = dosage.dosage.toFloatOrNull() ?: 1f
             if (doseValue > 0) {
-                val remainingDoses = (medication.stock / doseValue).toInt()
+                val remainingDoses = (medication.remainingDoses / doseValue).toInt()
                 counters.add(CounterInfo.RemainingDoses(remainingDoses.toString(), R.string.remaining_doses))
             }
         }
@@ -283,43 +283,51 @@ class MedicationViewModel @Inject constructor(
         // Slot 3: Schedule, Frequency, or Status
         var slot3Info: CounterInfo? = null
         if (medication.isSuspended) {
-            slot3Info = CounterInfo.Status(R.drawable.ic_suspended, R.string.suspended)
+            slot3Info = CounterInfo.Status(R.drawable.ic_stat_medication, R.string.suspended)
         } else {
             when (schedule.scheduleType) {
-                "DAILY" -> {
-                    val timesPerDay = schedule.timesPerDay ?: 0
+                ScheduleType.DAILY -> {
+                    val timesPerDay = schedule.specificTimes?.size ?: 0
                     slot3Info = CounterInfo.Frequency(
                         timesPerDay.toString(),
                         appContext.resources.getQuantityString(R.plurals.times_a_day, timesPerDay, timesPerDay)
                     )
                 }
-                "EVERY_X_HOURS" -> {
-                    val hours = schedule.hoursBetweenDoses ?: 0
+                ScheduleType.INTERVAL -> {
+                    val hours = schedule.intervalHours ?: 0
                     slot3Info = CounterInfo.Frequency(
                         hours.toString(),
                         appContext.resources.getQuantityString(R.plurals.every_x_hours, hours, hours)
                     )
                 }
-                "WEEKLY" -> {
-                    val days = listOf(
-                        schedule.monday, schedule.tuesday, schedule.wednesday,
-                        schedule.thursday, schedule.friday, schedule.saturday, schedule.sunday
-                    )
+                ScheduleType.WEEKLY -> {
+                    val daysOfWeek = schedule.daysOfWeek ?: emptyList()
+                    val days = DayOfWeek.values().map { daysOfWeek.contains(it) }
                     slot3Info = CounterInfo.Weekly(days, R.string.days)
                 }
-                "AS_NEEDED" -> slot3Info = CounterInfo.Status(R.drawable.ic_medication, R.string.as_needed)
+                ScheduleType.AS_NEEDED -> slot3Info = CounterInfo.Status(R.drawable.rounded_medication_24, R.string.as_needed)
+                ScheduleType.CUSTOM_ALARMS -> {
+                    val timesPerDay = schedule.specificTimes?.size ?: 0
+                    slot3Info = CounterInfo.Frequency(
+                        timesPerDay.toString(),
+                        appContext.resources.getQuantityString(R.plurals.times_a_day, timesPerDay, timesPerDay)
+                    )
+                }
             }
         }
 
         // Fallback for Slot 3 if not yet filled
         if (slot3Info == null) {
             slot3Info = if (medication.endDate == null) {
-                CounterInfo.Status(R.drawable.ic_infinity, R.string.ongoing)
+                CounterInfo.Status(R.drawable.ic_stat_medication, R.string.ongoing)
             } else {
                 try {
                     val endDate = LocalDate.parse(medication.endDate, DateTimeFormatter.ISO_LOCAL_DATE)
                     val remainingDays = LocalDate.now().until(endDate).days
-                    CounterInfo.Duration(remainingDays.toString(), "days left")
+                    CounterInfo.Duration(
+                        remainingDays.toString(),
+                        appContext.resources.getQuantityString(R.plurals.days_left, remainingDays, remainingDays)
+                    )
                 } catch (e: Exception) {
                     null // or a default/error state
                 }

@@ -200,8 +200,6 @@ fun MedicationDetailsScreen(
     val todayScheduleItems by medicationReminderViewModel.todayScheduleItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val counterInfo by viewModel.counterInfo.collectAsState()
-
     val medicationInfoViewModel: MedicationInfoViewModel = hiltViewModel()
     val cimaMedicationInfo by medicationInfoViewModel.medicationInfo.collectAsState()
 
@@ -210,6 +208,7 @@ fun MedicationDetailsScreen(
     val currentWeekDaysForChart by (graphViewModel?.currentWeekDaysForWeeklyChart?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) })
     val isGraphLoading by graphViewModel?.isLoading?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
 
+    val counterInfo by viewModel.counterInfo.collectAsState()
 
     LaunchedEffect(medicationId) {
         medicationInfoViewModel.loadMedicationInfo(medicationId)

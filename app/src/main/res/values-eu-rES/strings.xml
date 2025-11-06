@@ -879,4 +879,8 @@
         <item quantity="other">%s dosi</item>
     </plurals>
 
+    <plurals name="days_left">
+        <item quantity="one">egun 1 geratzen da</item>
+        <item quantity="other">%d egun geratzen dira</item>
+    </plurals>
 </resources>

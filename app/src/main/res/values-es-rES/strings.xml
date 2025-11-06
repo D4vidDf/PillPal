@@ -945,4 +945,8 @@
         <item quantity="other">%s dosis</item>
     </plurals>
 
+    <plurals name="days_left">
+        <item quantity="one">%d día restante</item>
+        <item quantity="other">%d días restantes</item>
+    </plurals>
 </resources>
