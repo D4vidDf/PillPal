@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -20,7 +21,10 @@ object HyperIslandUtil {
     private const val HYPER_ISLAND_PROTOCOL_VERSION = 3
 
     private fun isSupported(context: Context): Boolean {
-        return isXiaomiDevice() && isHyperIslandProtocolSupported(context)
+        return isXiaomiDevice() &&
+                isHyperIslandProtocolSupported(context) &&
+                hasFocusPermission(context) &&
+                isSupportIsland()
     }
 
     private fun isXiaomiDevice(): Boolean {
@@ -36,6 +40,30 @@ object HyperIslandUtil {
             focusProtocolVersion >= HYPER_ISLAND_PROTOCOL_VERSION
         } catch (e: Exception) {
             Log.e(TAG, "Error checking HyperIsland protocol version", e)
+            false
+        }
+    }
+
+    private fun hasFocusPermission(context: Context): Boolean {
+        return try {
+            val uri = Uri.parse("content://miui.statusbar.notification.public")
+            val extras = Bundle()
+            extras.putString("package", context.packageName)
+            val bundle = context.contentResolver.call(uri, "canShowFocus", null, extras)
+            bundle?.getBoolean("canShowFocus", false) ?: false
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking focus permission", e)
+            false
+        }
+    }
+
+    private fun isSupportIsland(): Boolean {
+        return try {
+            val clazz = Class.forName("android.os.SystemProperties")
+            val method = clazz.getDeclaredMethod("getBoolean", String::class.java, Boolean::class.java)
+            method.invoke(null, "persist.sys.feature.island", false) as Boolean
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking island support", e)
             false
         }
     }
