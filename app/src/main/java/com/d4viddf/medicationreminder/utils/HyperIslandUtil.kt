@@ -24,13 +24,11 @@ object HyperIslandUtil {
         Log.d(TAG, "Checking HyperIsland support...")
         val isXiaomi = isXiaomiDevice()
         Log.d(TAG, "isXiaomiDevice: $isXiaomi")
-        val isProtocolSupported = isHyperIslandProtocolSupported(context)
-        Log.d(TAG, "isHyperIslandProtocolSupported: $isProtocolSupported")
         val hasPermission = hasFocusPermission(context)
         Log.d(TAG, "hasFocusPermission: $hasPermission")
         val supportsIsland = isSupportIsland()
         Log.d(TAG, "isSupportIsland: $supportsIsland")
-        val isSupported = isXiaomi && isProtocolSupported && hasPermission && supportsIsland
+        val isSupported = isXiaomi && hasPermission && supportsIsland
         Log.d(TAG, "isSupported: $isSupported")
         return isSupported
     }
