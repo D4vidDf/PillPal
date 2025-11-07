@@ -110,6 +110,7 @@ object HyperIslandUtil {
                             put("type", 1)
                             put("textInfo", JSONObject().apply {
                                 put("title", "$minutesRemaining min")
+                                put("content", "Next dose in")
                             })
                         })
                     })
@@ -118,7 +119,18 @@ object HyperIslandUtil {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
                         })
+                        put("textInfo", JSONObject().apply {
+                            put("title", "$minutesRemaining min")
+                        })
                     })
+                })
+                put("baseInfo", JSONObject().apply {
+                    put("title", "Next dose: $medicationName")
+                    put("content", "Your next scheduled dose is in $minutesRemaining minutes.")
+                    medicationColor?.let {
+                        put("colorTitle", it)
+                    }
+                    put("type", 2) // Type 2 is for standard notifications
                 })
             })
         }
