@@ -136,6 +136,15 @@ class PreReminderForegroundService : Service() {
         return START_STICKY
     }
 
+    private fun createContentIntent(): PendingIntent {
+        val notificationTapIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_PREREMINDER_ID, currentReminderId)
+        }
+        val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        return PendingIntent.getActivity(this, getNotificationId(currentReminderId) + 1, notificationTapIntent, pendingIntentFlags)
+    }
+
     private fun formatTimeRemaining(millis: Long): String {
         val totalMinutes = TimeUnit.MILLISECONDS.toMinutes(millis).coerceAtLeast(0)
         val hours = totalMinutes / 60
@@ -158,6 +167,7 @@ class PreReminderForegroundService : Service() {
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(titleText)
             .setContentText(contentText)
+            .setContentIntent(createContentIntent())
             // Note: No .setOngoing(true) or .setStyle() for HyperIsland compatibility
 
         val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, medicationNameForNotification, timeRemainingMillis, medicationColorForNotification, medicationFormForNotification)
@@ -180,6 +190,7 @@ class PreReminderForegroundService : Service() {
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(titleText)
             .setContentText(contentText)
+            .setContentIntent(createContentIntent())
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setShowWhen(true)
@@ -234,6 +245,7 @@ class PreReminderForegroundService : Service() {
             .setSmallIcon(R.drawable.ic_stat_medication)
             .setContentTitle(titleText)
             .setContentText(contentText)
+            .setContentIntent(createContentIntent())
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

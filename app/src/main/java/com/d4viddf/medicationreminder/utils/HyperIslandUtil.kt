@@ -103,9 +103,13 @@ object HyperIslandUtil {
                                 put("pic", "miui.focus.pic_imageText")
                             })
                             put("textInfo", JSONObject().apply {
-                                put("frontTitle", "Next dose")
+                                put("title", medicationName)
+                            })
+                        })
+                        put("imageTextInfoRight", JSONObject().apply {
+                            put("type", 1)
+                            put("textInfo", JSONObject().apply {
                                 put("title", "$minutesRemaining min")
-                                put("content", medicationName)
                             })
                         })
                     })
