@@ -165,7 +165,7 @@ object HyperIslandUtil {
             putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminderId)
         }
         val stopServicePendingIntent = PendingIntent.getService(context, reminderId + 1002, stopServiceIntent, pendingIntentFlags)
-        val stopAction = Notification.Action.Builder(Icon.createWithResource(context, R.drawable.ic_close), context.getString(R.string.stop), stopServicePendingIntent).build()
+        val stopAction = Notification.Action.Builder(Icon.createWithResource(context, R.drawable.rounded_close_24), context.getString(R.string.stop), stopServicePendingIntent).build()
         actionsBundle.putParcelable(ACTION_KEY_STOP_REMINDER, stopAction)
 
         bundle.putBundle("miui.focus.actions", actionsBundle)

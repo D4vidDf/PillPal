@@ -63,7 +63,12 @@ class PreReminderForegroundService : Service() {
             if (timeRemainingMillis <= TimeUnit.SECONDS.toMillis(20)) {
                 stopSelfService()
             } else {
-                updateNotificationContent(timeRemainingMillis)
+                // Only update the notification content if it's NOT a HyperIsland device
+                if (isHyperIslandDevice != true) {
+                    updateNotificationContent(timeRemainingMillis)
+                }
+
+                // Always reschedule the runnable to ensure the service stops correctly.
                 if (currentReminderId != -1) {
                     handler.postDelayed(this, TimeUnit.MINUTES.toMillis(1))
                 }
