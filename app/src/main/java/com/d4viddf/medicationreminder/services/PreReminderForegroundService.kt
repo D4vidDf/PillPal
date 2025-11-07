@@ -47,6 +47,7 @@ class PreReminderForegroundService : Service() {
     private var medicationColorForNotification: String? = null
     private var medicationFormForNotification: MedicationForm? = null
     private var actualTakeTimeMillis: Long = -1L
+    private var isHyperIslandDevice: Boolean? = null // Cache for the support check
 
     private val updateNotificationRunnable = object : Runnable {
         @RequiresApi(Build.VERSION_CODES.BAKLAVA)
@@ -99,6 +100,7 @@ class PreReminderForegroundService : Service() {
 
         if (currentReminderId != -1 && currentReminderId != reminderIdFromIntent) {
             handler.removeCallbacks(updateNotificationRunnable)
+            isHyperIslandDevice = null // Reset cache for new reminder
         }
 
         currentReminderId = reminderIdFromIntent
@@ -107,6 +109,12 @@ class PreReminderForegroundService : Service() {
         medicationColorForNotification = medColorFromIntent
         medicationFormForNotification = medFormFromIntent
 
+        // Perform the check only once when the service starts for a reminder
+        if (isHyperIslandDevice == null) {
+            isHyperIslandDevice = HyperIslandUtil.isSupported(this)
+            Log.d(TAG, "HyperIsland support check performed. Result: $isHyperIslandDevice")
+        }
+
         val initialTimeRemainingMillis = actualTakeTimeMillis - System.currentTimeMillis()
         if (initialTimeRemainingMillis <= TimeUnit.SECONDS.toMillis(20)) {
             stopSelf()
@@ -114,16 +122,16 @@ class PreReminderForegroundService : Service() {
         }
 
         val notificationToShow = when {
-            HyperIslandUtil.isSupported(this) -> {
-                Log.d(TAG, "Device supports HyperIsland. Building dedicated notification.")
+            isHyperIslandDevice == true -> {
+                Log.d(TAG, "Device supports HyperIsland (cached). Building dedicated notification.")
                 buildHyperIslandNotification(initialTimeRemainingMillis)
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA -> {
-                Log.d(TAG, "Device does not support HyperIsland. Building styled progress notification.")
+                Log.d(TAG, "Device does not support HyperIsland (cached). Building styled progress notification.")
                 buildStyledNotification(initialTimeRemainingMillis)
             }
             else -> {
-                Log.d(TAG, "Device does not support HyperIsland. Building compatibility notification.")
+                Log.d(TAG, "Device does not support HyperIsland (cached). Building compatibility notification.")
                 buildCompatNotification(initialTimeRemainingMillis)
             }
         }
@@ -168,7 +176,7 @@ class PreReminderForegroundService : Service() {
             .setContentTitle(titleText)
             .setContentText(contentText)
             .setContentIntent(createContentIntent())
-            // Note: No .setOngoing(true) or .setStyle() for HyperIsland compatibility
+            .setOngoing(true)
 
         val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, medicationNameForNotification, timeRemainingMillis, medicationColorForNotification, medicationFormForNotification)
         builder.addExtras(hyperIslandExtras)
@@ -268,8 +276,9 @@ class PreReminderForegroundService : Service() {
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
+            // Use the cached value, do not re-check
             val notification = when {
-                HyperIslandUtil.isSupported(this) -> buildHyperIslandNotification(timeRemainingMillis)
+                isHyperIslandDevice == true -> buildHyperIslandNotification(timeRemainingMillis)
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA -> buildStyledNotification(timeRemainingMillis)
                 else -> buildCompatNotification(timeRemainingMillis)
             }
@@ -295,6 +304,7 @@ class PreReminderForegroundService : Service() {
         stopSelf()
         currentReminderId = -1
         actualTakeTimeMillis = -1L
+        isHyperIslandDevice = null // Reset the cache
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

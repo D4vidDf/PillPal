@@ -110,7 +110,7 @@ object HyperIslandUtil {
                             put("type", 1)
                             put("textInfo", JSONObject().apply {
                                 put("title", "$minutesRemaining min")
-                                put("content", "Next dose in")
+                                put("content", "Next dose")
                             })
                         })
                     })
