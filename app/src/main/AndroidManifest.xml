@@ -151,7 +151,8 @@
         <service
             android:name=".services.PreReminderForegroundService"
             android:exported="false"
-            android:foregroundServiceType="dataSync"> </service>
+            android:foregroundServiceType="dataSync">
+        </service>
 
         <receiver
             android:name=".receivers.BootCompletedReceiver"
