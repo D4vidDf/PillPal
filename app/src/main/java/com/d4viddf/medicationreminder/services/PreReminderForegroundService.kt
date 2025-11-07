@@ -109,7 +109,6 @@ class PreReminderForegroundService : Service() {
         medicationColorForNotification = medColorFromIntent
         medicationFormForNotification = medFormFromIntent
 
-        // Perform the check only once when the service starts for a reminder
         if (isHyperIslandDevice == null) {
             isHyperIslandDevice = HyperIslandUtil.isSupported(this)
             Log.d(TAG, "HyperIsland support check performed. Result: $isHyperIslandDevice")
@@ -121,20 +120,7 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val notificationToShow = when {
-            isHyperIslandDevice == true -> {
-                Log.d(TAG, "Device supports HyperIsland (cached). Building dedicated notification.")
-                buildHyperIslandNotification(initialTimeRemainingMillis)
-            }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA -> {
-                Log.d(TAG, "Device does not support HyperIsland (cached). Building styled progress notification.")
-                buildStyledNotification(initialTimeRemainingMillis)
-            }
-            else -> {
-                Log.d(TAG, "Device does not support HyperIsland (cached). Building compatibility notification.")
-                buildCompatNotification(initialTimeRemainingMillis)
-            }
-        }
+        val notificationToShow = buildNotification(initialTimeRemainingMillis)
 
         startForeground(getNotificationId(currentReminderId), notificationToShow)
 
@@ -142,6 +128,24 @@ class PreReminderForegroundService : Service() {
         handler.post(updateNotificationRunnable)
 
         return START_STICKY
+    }
+
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    private fun buildNotification(timeRemainingMillis: Long): Notification {
+        return when {
+            isHyperIslandDevice == true -> {
+                Log.d(TAG, "Device supports HyperIsland (cached). Building dedicated notification.")
+                buildHyperIslandNotification(timeRemainingMillis)
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA -> {
+                Log.d(TAG, "Device does not support HyperIsland (cached). Building styled progress notification.")
+                buildStyledNotification(timeRemainingMillis)
+            }
+            else -> {
+                Log.d(TAG, "Device does not support HyperIsland (cached). Building compatibility notification.")
+                buildCompatNotification(timeRemainingMillis)
+            }
+        }
     }
 
     private fun createContentIntent(): PendingIntent {
@@ -168,7 +172,7 @@ class PreReminderForegroundService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun buildHyperIslandNotification(timeRemainingMillis: Long): Notification {
-        val titleText = getString(R.string.prereminder_title_medication, medicationNameForNotification)
+        val titleText = getString(R.string.prereminder_title_medication, medicationNameForNotification.split(" ").firstOrNull() ?: "")
         val contentText = formatTimeRemaining(timeRemainingMillis)
 
         val builder = Notification.Builder(this, NotificationConstants.PRE_REMINDER_CHANNEL_ID)
@@ -178,7 +182,7 @@ class PreReminderForegroundService : Service() {
             .setContentIntent(createContentIntent())
             .setOngoing(true)
 
-        val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, medicationNameForNotification, timeRemainingMillis, medicationColorForNotification, medicationFormForNotification)
+        val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, currentReminderId, medicationNameForNotification, actualTakeTimeMillis, medicationColorForNotification, medicationFormForNotification)
         builder.addExtras(hyperIslandExtras)
 
         return builder.build()
@@ -276,12 +280,7 @@ class PreReminderForegroundService : Service() {
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
-            // Use the cached value, do not re-check
-            val notification = when {
-                isHyperIslandDevice == true -> buildHyperIslandNotification(timeRemainingMillis)
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA -> buildStyledNotification(timeRemainingMillis)
-                else -> buildCompatNotification(timeRemainingMillis)
-            }
+            val notification = buildNotification(timeRemainingMillis)
             try {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                     notificationManager.notify(getNotificationId(currentReminderId), notification)
