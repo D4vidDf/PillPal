@@ -35,7 +35,7 @@ object HyperIslandUtil {
         val isXiaomi = isXiaomiDevice()
         val hasPermission = hasFocusPermission(context)
         val supportsIsland = isSupportIsland()
-        val isSupported = isXiaomi && hasPermission && supportsIsland
+        val isSupported = isXiaomi && supportsIsland
         Log.d(TAG, "isSupported: $isSupported")
         return isSupported
     }
@@ -76,27 +76,37 @@ object HyperIslandUtil {
         val firstWord = medicationName.split(" ").firstOrNull() ?: ""
         val islandParams = JSONObject().apply {
             put("param_v2", JSONObject().apply {
+                // REQUIRED FIELDS FOR PROTOCOL/DISPLAY
+                put("protocol", HYPER_ISLAND_PROTOCOL_VERSION)
+                put("enableFloat", true)
                 put("business", "medication_reminder")
                 put("updatable", true)
                 put("ticker", "Time for $medicationName")
+
                 put("param_island", JSONObject().apply {
                     put("islandProperty", 1)
                     medicationColor?.let { put("highlightColor", it) }
+
+                    // BIG ISLAND AREA (Expanded view)
                     put("bigIslandArea", JSONObject().apply {
+                        // Left: Icon (Medication Type)
                         put("picInfoLeft", JSONObject().apply {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
                         })
+                        // Right: Countdown Timer (Time Remaining)
                         put("textInfoRight", JSONObject().apply {
-                            put("title", firstWord)
                             put("type", 3) // Countdown timer type
                             put("targetTime", actualTakeTimeMillis)
                         })
+                        // Bottom Actions
                         put("actions", listOf(
                             JSONObject().apply { put("action", ACTION_KEY_MARK_AS_TAKEN) },
                             JSONObject().apply { put("action", ACTION_KEY_STOP_REMINDER) }
                         ))
                     })
+
+                    // SMALL ISLAND AREA (Collapsed/Dynamic Island View)
                     put("smallIslandArea", JSONObject().apply {
                         put("picInfoLeft", JSONObject().apply {
                             put("type", 1)
@@ -108,11 +118,23 @@ object HyperIslandUtil {
                         })
                     })
                 })
+
+                // BASE INFO (Standard notification content)
                 put("baseInfo", JSONObject().apply {
-                    put("title", "Next dose: $medicationName")
+                    put("title", "Next dose: $firstWord") // Only first word as requested
                     put("content", "Next dose in ${TimeUnit.MILLISECONDS.toMinutes(actualTakeTimeMillis - System.currentTimeMillis())} minutes")
                     medicationColor?.let { put("colorTitle", it) }
                     put("type", 2)
+                })
+
+                // HINT INFO (CRUCIAL for showing action button on collapsed standard notification)
+                put("hintInfo", JSONObject().apply {
+                    put("type", 1)
+                    put("title", firstWord) // Small descriptive text next to the action
+                    put("actionInfo", JSONObject().apply {
+                        // Link the action key defined in getHyperIslandExtrasBundle
+                        put("action", ACTION_KEY_MARK_AS_TAKEN)
+                    })
                 })
             })
         }
@@ -129,26 +151,24 @@ object HyperIslandUtil {
         }
     }
 
-    fun getHyperIslandExtrasBundle(context: Context, reminderId: Int, medicationName: String, actualTakeTimeMillis: Long, medicationColor: String?, medicationForm: MedicationForm?): Bundle {
+    fun getHyperIslandActionAndPicsBundle(context: Context, reminderId: Int, medicationForm: MedicationForm?): Bundle {
         val bundle = Bundle()
         if (!isSupported(context)) {
             return bundle
         }
 
-        val islandParams = buildHyperIslandJson(medicationName, actualTakeTimeMillis, medicationColor)
-        Log.d(TAG, "HyperIsland JSON Payload: $islandParams")
-        bundle.putString("miui.focus.param", islandParams)
-
         val picsBundle = Bundle()
         val iconResId = getIconForMedicationForm(medicationForm)
         getBitmapFromVectorDrawable(context, iconResId)?.let { bitmap ->
             val icon = Icon.createWithBitmap(bitmap)
+            // This key MUST match the "pic" value used in the JSON payload (miui.focus.pic_imageText)
             picsBundle.putParcelable("miui.focus.pic_imageText", icon)
         }
         bundle.putBundle("miui.focus.pics", picsBundle)
 
         // Actions
         val actionsBundle = Bundle()
+        // FLAG_IMMUTABLE is highly recommended for security/compatibility
         val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         // Mark as Taken Action
@@ -157,6 +177,7 @@ object HyperIslandUtil {
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminderId)
         }
         val markAsTakenPendingIntent = PendingIntent.getBroadcast(context, reminderId + 1001, markAsActionIntent, pendingIntentFlags)
+        // This key (ACTION_KEY_MARK_AS_TAKEN) MUST match the "action" value used in the JSON payload hintInfo block
         val markAsAction = Notification.Action.Builder(Icon.createWithResource(context, R.drawable.ic_check), context.getString(R.string.prereminder_action_taken), markAsTakenPendingIntent).build()
         actionsBundle.putParcelable(ACTION_KEY_MARK_AS_TAKEN, markAsAction)
 
@@ -166,9 +187,11 @@ object HyperIslandUtil {
             putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminderId)
         }
         val stopServicePendingIntent = PendingIntent.getService(context, reminderId + 1002, stopServiceIntent, pendingIntentFlags)
+        // This key (ACTION_KEY_STOP_REMINDER) MUST match the "action" value used in the JSON payload bigIslandArea actions
         val stopAction = Notification.Action.Builder(Icon.createWithResource(context, R.drawable.rounded_close_24), context.getString(R.string.stop), stopServicePendingIntent).build()
         actionsBundle.putParcelable(ACTION_KEY_STOP_REMINDER, stopAction)
 
+        // Add the actions bundle to the main bundle
         bundle.putBundle("miui.focus.actions", actionsBundle)
 
         return bundle

@@ -199,10 +199,21 @@ class PreReminderForegroundService : Service() {
             .setContentIntent(createContentIntent())
             .setOngoing(true)
 
-        val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, currentReminderId, medicationNameForNotification, actualTakeTimeMillis, medicationColorForNotification, medicationFormForNotification)
-        builder.addExtras(hyperIslandExtras)
+        // Following the Xiaomi example's build order
+        // 1. Get the bundle with actions and pictures
+        val actionAndPicsBundle = HyperIslandUtil.getHyperIslandActionAndPicsBundle(this, currentReminderId, medicationFormForNotification)
+        builder.addExtras(actionAndPicsBundle)
 
-        return builder.build()
+        // 2. Build the notification
+        val notification = builder.build()
+
+        // 3. Get the JSON payload and add it directly to the built notification's extras
+        val islandParams = HyperIslandUtil.buildHyperIslandJson(medicationNameForNotification, actualTakeTimeMillis, medicationColorForNotification)
+        notification.extras.putString("miui.focus.param", islandParams)
+        Log.d(TAG, "Final HyperIsland JSON Payload: $islandParams")
+
+
+        return notification
     }
 
     @SuppressLint("SuspiciousIndentation")
