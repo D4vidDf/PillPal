@@ -57,7 +57,7 @@ class PreReminderForegroundService : Service() {
     private val updateNotificationRunnable = object : Runnable {
         // Removed @RequiresApi(36) from here as the run method itself doesn't directly use API 36 features.
         // The call to updateNotificationContent handles the API level specific logic.
-        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+        @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -86,7 +86,7 @@ class PreReminderForegroundService : Service() {
         Log.d(TAG, "PreReminderForegroundService onCreate")
     }
 
-    @RequiresApi(36)
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
         val reminderIdFromIntent = intent?.getIntExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
@@ -159,7 +159,7 @@ class PreReminderForegroundService : Service() {
     }
 
     @SuppressLint("SuspiciousIndentation")
-    @RequiresApi(36)
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun buildStyledNotification(timeRemainingMillis: Long): Notification {
         val minutesRemainingOverall = TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis).coerceAtLeast(0)
         val elapsedMinutesInPrePeriod = (TOTAL_PRE_REMINDER_DURATION_MINUTES - minutesRemainingOverall)
@@ -196,43 +196,36 @@ class PreReminderForegroundService : Service() {
         val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, medicationNameForNotification, timeRemainingMillis, medicationColorForNotification, medicationFormForNotification)
         builder.addExtras(hyperIslandExtras)
 
-        if (Build.VERSION.SDK_INT >= 36) {
-            // builder.requestPromotedOngoing(true) // Replaced due to beta version issues
-            val extrasBundle = Bundle()
-            extrasBundle.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
-            builder.addExtras(extrasBundle)
-            builder.setColorized(false) // Explicitly set false for API 36+ Live Updates
+        val extrasBundle = Bundle()
+        extrasBundle.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
+        builder.addExtras(extrasBundle)
+        builder.setColorized(false) // Explicitly set false for API 36+ Live Updates
 
-            val progressStyle = Notification.ProgressStyle()
-                .setStyledByProgress(false) // Required for custom segments and tracker
-                .setProgress(elapsedMinutesInPrePeriod.toInt()) // Current progress
+        val progressStyle = Notification.ProgressStyle()
+            .setStyledByProgress(false) // Required for custom segments and tracker
+            .setProgress(elapsedMinutesInPrePeriod.toInt()) // Current progress
 
-            // Define segments for the progress bar
-            val segmentCount = 4 // Example: 4 segments
-            val segmentDuration = TOTAL_PRE_REMINDER_DURATION_MINUTES.toFloat() / segmentCount
-            val segments = mutableListOf<Notification.ProgressStyle.Segment>()
-            val colors = listOf("#A5D6A7", "#FFF59D", "#FFCC80", "#EF9A9A") // Green, Yellow, Orange, Red
+        // Define segments for the progress bar
+        val segmentCount = 4 // Example: 4 segments
+        val segmentDuration = TOTAL_PRE_REMINDER_DURATION_MINUTES.toFloat() / segmentCount
+        val segments = mutableListOf<Notification.ProgressStyle.Segment>()
+        val colors = listOf("#A5D6A7", "#FFF59D", "#FFCC80", "#EF9A9A") // Green, Yellow, Orange, Red
 
-            for (i in 0 until segmentCount) {
-                segments.add(
-                    Notification.ProgressStyle.Segment(segmentDuration.toInt()) // Corrected to use .toInt()
-                        .setColor(colors[i % colors.size].toColorInt())
-                )
-            }
-            progressStyle.setProgressSegments(segments)
-
-            try {
-                val trackerIcon = Icon.createWithResource(this, R.drawable.tracker_dot) // Ensure tracker_dot drawable exists
-                progressStyle.setProgressTrackerIcon(trackerIcon)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error setting tracker icon for ProgressStyle: ${e.message}")
-            }
-            builder.setStyle(progressStyle)
-
-        } else {
-            // For older versions, we might keep colorized if it was intended
-            builder.setColorized(true)
+        for (i in 0 until segmentCount) {
+            segments.add(
+                Notification.ProgressStyle.Segment(segmentDuration.toInt()) // Corrected to use .toInt()
+                    .setColor(colors[i % colors.size].toColorInt())
+            )
         }
+        progressStyle.setProgressSegments(segments)
+
+        try {
+            val trackerIcon = Icon.createWithResource(this, R.drawable.tracker_dot) // Ensure tracker_dot drawable exists
+            progressStyle.setProgressTrackerIcon(trackerIcon)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting tracker icon for ProgressStyle: ${e.message}")
+        }
+        builder.setStyle(progressStyle)
 
 
         try {
@@ -288,13 +281,13 @@ class PreReminderForegroundService : Service() {
         return compatBuilder.build()
     }
 
-    @RequiresApi(36) // This annotation might be too broad if the function body also handles <36
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE) // This annotation might be too broad if the function body also handles <36
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
             // The @RequiresApi(36) on the function might be misleading as the function itself
             // can be called on lower API levels, but the styled notification part is conditional.
             // It's better to ensure the internal checks are robust.
-            val notification = if (Build.VERSION.SDK_INT >= 36) {
+            val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 buildStyledNotification(timeRemainingMillis)
             } else {
                 buildCompatNotification(timeRemainingMillis)
