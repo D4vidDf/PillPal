@@ -57,7 +57,7 @@ class PreReminderForegroundService : Service() {
     private val updateNotificationRunnable = object : Runnable {
         // Removed @RequiresApi(36) from here as the run method itself doesn't directly use API 36 features.
         // The call to updateNotificationContent handles the API level specific logic.
-        @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
         override fun run() {
             if (actualTakeTimeMillis <= 0 || currentReminderId == -1) {
                 Log.w(TAG, "Invalid state (time or ID), stopping updates. actualTakeTimeMillis=$actualTakeTimeMillis, currentReminderId=$currentReminderId")
@@ -86,7 +86,7 @@ class PreReminderForegroundService : Service() {
         Log.d(TAG, "PreReminderForegroundService onCreate")
     }
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand received with action: ${intent?.action}")
         val reminderIdFromIntent = intent?.getIntExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
@@ -132,7 +132,7 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val notificationToShow = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34 for UpsideDownCake, but docs imply 36 for these features. Let's stick to 36 based on previous findings.
+        val notificationToShow = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) { // API 34 for UpsideDownCake, but docs imply 36 for these features. Let's stick to 36 based on previous findings.
             buildStyledNotification(initialTimeRemainingMillis)
         } else {
             buildCompatNotification(initialTimeRemainingMillis)
@@ -159,7 +159,7 @@ class PreReminderForegroundService : Service() {
     }
 
     @SuppressLint("SuspiciousIndentation")
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun buildStyledNotification(timeRemainingMillis: Long): Notification {
         val minutesRemainingOverall = TimeUnit.MILLISECONDS.toMinutes(timeRemainingMillis).coerceAtLeast(0)
         val elapsedMinutesInPrePeriod = (TOTAL_PRE_REMINDER_DURATION_MINUTES - minutesRemainingOverall)
@@ -281,13 +281,13 @@ class PreReminderForegroundService : Service() {
         return compatBuilder.build()
     }
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE) // This annotation might be too broad if the function body also handles <36
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA) // This annotation might be too broad if the function body also handles <36
     private fun updateNotificationContent(timeRemainingMillis: Long) {
         if (currentReminderId != -1) {
             // The @RequiresApi(36) on the function might be misleading as the function itself
             // can be called on lower API levels, but the styled notification part is conditional.
             // It's better to ensure the internal checks are robust.
-            val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
                 buildStyledNotification(timeRemainingMillis)
             } else {
                 buildCompatNotification(timeRemainingMillis)
