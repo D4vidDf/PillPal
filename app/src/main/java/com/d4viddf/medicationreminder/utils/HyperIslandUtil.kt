@@ -83,11 +83,11 @@ object HyperIslandUtil {
                     put("islandProperty", 1)
                     medicationColor?.let { put("highlightColor", it) }
                     put("bigIslandArea", JSONObject().apply {
-                        put("picInfo", JSONObject().apply {
+                        put("picInfoLeft", JSONObject().apply {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
                         })
-                        put("textInfo", JSONObject().apply {
+                        put("textInfoRight", JSONObject().apply {
                             put("title", firstWord)
                             put("type", 3) // Countdown timer type
                             put("targetTime", actualTakeTimeMillis)
@@ -98,11 +98,11 @@ object HyperIslandUtil {
                         ))
                     })
                     put("smallIslandArea", JSONObject().apply {
-                        put("picInfo", JSONObject().apply {
+                        put("picInfoLeft", JSONObject().apply {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
                         })
-                        put("textInfo", JSONObject().apply {
+                        put("textInfoRight", JSONObject().apply {
                             put("type", 3) // Countdown timer type
                             put("targetTime", actualTakeTimeMillis)
                         })
