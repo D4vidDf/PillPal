@@ -888,4 +888,116 @@
     <string name="sort_by_newest">Ordenar por más nuevo</string>
     <string name="last_week">Última semana</string>
     <string name="last_30_days">Últimos 30 días</string>
+
+    <!-- Medication Detail Counters -->
+    <string name="remaining_doses">Dosis restantes</string>
+    <string name="as_needed">Según necesidad</string>
+    <string name="suspended">Suspendido</string>
+
+    <plurals name="times_a_day">
+        <item quantity="one">%d vez al día</item>
+        <item quantity="other">%d veces al día</item>
+    </plurals>
+
+    <plurals name="every_x_hours">
+        <item quantity="one">Cada hora</item>
+        <item quantity="other">Cada %d horas</item>
+    </plurals>
+
+    <plurals name="medication_form_tablet_plural">
+        <item quantity="one">%s tableta</item>
+        <item quantity="other">%s tabletas</item>
+    </plurals>
+    <plurals name="medication_form_pill_plural">
+        <item quantity="one">%s píldora</item>
+        <item quantity="other">%s píldoras</item>
+    </plurals>
+    <plurals name="medication_form_powder_plural">
+        <item quantity="one">%s dosis</item>
+        <item quantity="other">%s dosis</item>
+    </plurals>
+    <plurals name="medication_form_injection_plural">
+        <item quantity="one">%s inyección</item>
+        <item quantity="other">%s inyecciones</item>
+    </plurals>
+    <plurals name="medication_form_ointment_plural">
+        <item quantity="one">%s aplicación</item>
+        <item quantity="other">%s aplicaciones</item>
+    </plurals>
+    <plurals name="medication_form_inhaler_plural">
+        <item quantity="one">%s inhalación</item>
+        <item quantity="other">%s inhalaciones</item>
+    </plurals>
+    <plurals name="medication_form_liquid_plural">
+        <item quantity="one">%s dosis</item>
+        <item quantity="other">%s dosis</item>
+    </plurals>
+    <plurals name="medication_form_suppository_plural">
+        <item quantity="one">%s supositorio</item>
+        <item quantity="other">%s supositorios</item>
+    </plurals>
+    <plurals name="medication_form_drops_plural">
+        <item quantity="one">%s gota</item>
+        <item quantity="other">%s gotas</item>
+    </plurals>
+    <plurals name="medication_form_other_plural">
+        <item quantity="one">%s dosis</item>
+        <item quantity="other">%s dosis</item>
+    </plurals>
+
+    <plurals name="days_left">
+        <item quantity="one">%d día restante</item>
+        <item quantity="other">%d días restantes</item>
+    </plurals>
+
+    <plurals name="unit_times_a_day">
+        <item quantity="one">vez al día</item>
+        <item quantity="other">veces al día</item>
+    </plurals>
+
+    <plurals name="unit_every_x_hours">
+        <item quantity="one">hora</item>
+        <item quantity="other">horas</item>
+    </plurals>
+
+    <plurals name="unit_medication_form_tablet_plural">
+        <item quantity="one">tableta</item>
+        <item quantity="other">tabletas</item>
+    </plurals>
+    <plurals name="unit_medication_form_pill_plural">
+        <item quantity="one">píldora</item>
+        <item quantity="other">píldoras</item>
+    </plurals>
+    <plurals name="unit_medication_form_powder_plural">
+        <item quantity="one">dosis</item>
+        <item quantity="other">dosis</item>
+    </plurals>
+    <plurals name="unit_medication_form_injection_plural">
+        <item quantity="one">inyección</item>
+        <item quantity="other">inyecciones</item>
+    </plurals>
+    <plurals name="unit_medication_form_ointment_plural">
+        <item quantity="one">aplicación</item>
+        <item quantity="other">aplicaciones</item>
+    </plurals>
+    <plurals name="unit_medication_form_inhaler_plural">
+        <item quantity="one">inhalación</item>
+        <item quantity="other">inhalaciones</item>
+    </plurals>
+    <plurals name="unit_medication_form_liquid_plural">
+        <item quantity="one">dosis</item>
+        <item quantity="other">dosis</item>
+    </plurals>
+    <plurals name="unit_medication_form_suppository_plural">
+        <item quantity="one">supositorio</item>
+        <item quantity="other">supositorios</item>
+    </plurals>
+    <plurals name="unit_medication_form_drops_plural">
+        <item quantity="one">gota</item>
+        <item quantity="other">gotas</item>
+    </plurals>
+    <plurals name="unit_medication_form_other_plural">
+        <item quantity="one">dosis</item>
+        <item quantity="other">dosis</item>
+    </plurals>
 </resources>
