@@ -21,10 +21,18 @@ object HyperIslandUtil {
     private const val HYPER_ISLAND_PROTOCOL_VERSION = 3
 
     private fun isSupported(context: Context): Boolean {
-        return isXiaomiDevice() &&
-                isHyperIslandProtocolSupported(context) &&
-                hasFocusPermission(context) &&
-                isSupportIsland()
+        Log.d(TAG, "Checking HyperIsland support...")
+        val isXiaomi = isXiaomiDevice()
+        Log.d(TAG, "isXiaomiDevice: $isXiaomi")
+        val isProtocolSupported = isHyperIslandProtocolSupported(context)
+        Log.d(TAG, "isHyperIslandProtocolSupported: $isProtocolSupported")
+        val hasPermission = hasFocusPermission(context)
+        Log.d(TAG, "hasFocusPermission: $hasPermission")
+        val supportsIsland = isSupportIsland()
+        Log.d(TAG, "isSupportIsland: $supportsIsland")
+        val isSupported = isXiaomi && isProtocolSupported && hasPermission && supportsIsland
+        Log.d(TAG, "isSupported: $isSupported")
+        return isSupported
     }
 
     private fun isXiaomiDevice(): Boolean {
@@ -37,6 +45,7 @@ object HyperIslandUtil {
                 context.contentResolver,
                 "miui_notification_focus_protocol", 0
             )
+            Log.d(TAG, "HyperIsland protocol version: $focusProtocolVersion")
             focusProtocolVersion >= HYPER_ISLAND_PROTOCOL_VERSION
         } catch (e: Exception) {
             Log.e(TAG, "Error checking HyperIsland protocol version", e)
@@ -50,7 +59,9 @@ object HyperIslandUtil {
             val extras = Bundle()
             extras.putString("package", context.packageName)
             val bundle = context.contentResolver.call(uri, "canShowFocus", null, extras)
-            bundle?.getBoolean("canShowFocus", false) ?: false
+            val canShowFocus = bundle?.getBoolean("canShowFocus", false) ?: false
+            Log.d(TAG, "Focus permission: $canShowFocus")
+            canShowFocus
         } catch (e: Exception) {
             Log.e(TAG, "Error checking focus permission", e)
             false
@@ -61,7 +72,9 @@ object HyperIslandUtil {
         return try {
             val clazz = Class.forName("android.os.SystemProperties")
             val method = clazz.getDeclaredMethod("getBoolean", String::class.java, Boolean::class.java)
-            method.invoke(null, "persist.sys.feature.island", false) as Boolean
+            val isSupported = method.invoke(null, "persist.sys.feature.island", false) as Boolean
+            Log.d(TAG, "Island support: $isSupported")
+            isSupported
         } catch (e: Exception) {
             Log.e(TAG, "Error checking island support", e)
             false
@@ -127,9 +140,11 @@ object HyperIslandUtil {
     fun getHyperIslandExtrasBundle(context: Context, medicationName: String, timeRemainingMillis: Long, medicationColor: String?, medicationForm: MedicationForm?): Bundle {
         val bundle = Bundle()
         if (!isSupported(context)) {
+            Log.d(TAG, "HyperIsland not supported on this device, returning empty bundle.")
             return bundle
         }
 
+        Log.d(TAG, "HyperIsland is supported, building extras bundle.")
         val islandParams = buildHyperIslandJson(medicationName, timeRemainingMillis, medicationColor)
         bundle.putString("miui.focus.param", islandParams)
 
