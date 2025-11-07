@@ -8,6 +8,8 @@ object IntentExtraConstants {
     const val EXTRA_ACTUAL_REMINDER_TIME_MILLIS = "extra_actual_reminder_time_millis"
     const val EXTRA_IS_INTERVAL = "extra_is_interval"
     const val EXTRA_NEXT_DOSE_TIME_MILLIS = "extra_next_dose_time_millis"
+    const val EXTRA_MEDICATION_COLOR = "extra_medication_color"
+    const val EXTRA_MEDICATION_FORM = "extra_medication_form"
 
     // Extras for PreReminderForegroundService (could be prefixed if shared, but seem specific enough)
     // Using more descriptive names to avoid clashes if these were ever less specific.

@@ -38,7 +38,7 @@ object HyperIslandUtil {
     }
 
     private fun getIconForMedicationForm(medicationForm: MedicationForm?): Int {
-        return medicationForm?.imageResId ?: R.drawable.ic_stat_medication
+        return medicationForm?.imageUrl ?: R.drawable.ic_stat_medication
     }
 
     private fun buildHyperIslandJson(medicationName: String, timeRemainingMillis: Long, medicationColor: String?): String {
