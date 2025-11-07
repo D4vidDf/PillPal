@@ -31,6 +31,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.ScheduleType
+import java.time.DayOfWeek
 
 sealed class CounterInfo {
     data class Dose(val value: String, val unit: String) : CounterInfo()
