@@ -155,6 +155,11 @@
         </service>
 
         <receiver
+            android:name=".receivers.PreReminderBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
             android:name=".receivers.BootCompletedReceiver"
             android:enabled="true"
             android:exported="true"> <intent-filter>

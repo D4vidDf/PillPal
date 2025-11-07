@@ -136,6 +136,7 @@ object HyperIslandUtil {
         }
 
         val islandParams = buildHyperIslandJson(medicationName, actualTakeTimeMillis, medicationColor)
+        Log.d(TAG, "HyperIsland JSON Payload: $islandParams")
         bundle.putString("miui.focus.param", islandParams)
 
         val picsBundle = Bundle()

@@ -83,6 +83,18 @@ class PreReminderForegroundService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand received. Intent: $intent")
+        if (intent != null) {
+            val extras = intent.extras
+            if (extras != null) {
+                for (key in extras.keySet()) {
+                    Log.d(TAG, "Extra: $key = ${extras.get(key)}")
+                }
+            } else {
+                Log.d(TAG, "Intent has no extras.")
+            }
+        }
+
         val reminderIdFromIntent = intent?.getIntExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, -1) ?: -1
 
         if (intent?.action == IntentActionConstants.ACTION_STOP_PRE_REMINDER) {

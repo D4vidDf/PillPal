@@ -7,9 +7,9 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.receivers.PreReminderBroadcastReceiver
 import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
 import com.d4viddf.medicationreminder.services.PreReminderForegroundService
-import com.d4viddf.medicationreminder.utils.FileLogger
 import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
 import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
 import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
@@ -25,7 +25,7 @@ import javax.inject.Singleton
 open class NotificationScheduler @Inject constructor() {
 
     companion object {
-        private const val TAG = "NotificationSchedLog" // Updated TAG
+        private const val TAG = "NotificationSchedLog"
         private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
         private fun formatMillisToDateTimeString(millis: Long?): String {
@@ -98,9 +98,8 @@ open class NotificationScheduler @Inject constructor() {
         }
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, PreReminderForegroundService::class.java).apply {
-            // Service intents don't need an action, but it can be useful for debugging
-            action = "START_PRE_REMINDER_SERVICE"
+        val intent = Intent(context, PreReminderBroadcastReceiver::class.java).apply {
+            action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
             putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminder.id)
             putExtra(IntentExtraConstants.EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, actualMainReminderTimeMillis)
             putExtra(IntentExtraConstants.EXTRA_SERVICE_MEDICATION_NAME, medicationName)
@@ -116,12 +115,8 @@ open class NotificationScheduler @Inject constructor() {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
 
-        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            PendingIntent.getForegroundService(context, preReminderRequestCode, intent, pendingIntentFlags)
-        } else {
-            // Fallback for older versions, though the service should handle startForeground itself.
-            PendingIntent.getService(context, preReminderRequestCode, intent, pendingIntentFlags)
-        }
+        val pendingIntent = PendingIntent.getBroadcast(context, preReminderRequestCode, intent, pendingIntentFlags)
+        Log.d(TAG, "Creating PendingIntent for BroadcastReceiver.")
 
         try {
             var setMethodUsed = "setExact"
@@ -166,10 +161,9 @@ open class NotificationScheduler @Inject constructor() {
     private fun cancelPreReminderServiceAlarm(context: Context, reminderId: Int) {
         val preReminderRequestCode = reminderId + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        // Intent must match the one used to create the alarm
-        val intent = Intent(context, PreReminderForegroundService::class.java).apply {
-             action = "START_PRE_REMINDER_SERVICE"
-             putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminderId)
+        val intent = Intent(context, PreReminderBroadcastReceiver::class.java).apply {
+            action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
+            putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminderId)
         }
 
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -178,11 +172,7 @@ open class NotificationScheduler @Inject constructor() {
             PendingIntent.FLAG_NO_CREATE
         }
 
-        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            PendingIntent.getForegroundService(context, preReminderRequestCode, intent, pendingIntentFlags)
-        } else {
-            PendingIntent.getService(context, preReminderRequestCode, intent, pendingIntentFlags)
-        }
+        val pendingIntent = PendingIntent.getBroadcast(context, preReminderRequestCode, intent, pendingIntentFlags)
 
         if (pendingIntent != null) {
             try{
