@@ -1,11 +1,14 @@
 package com.d4viddf.medicationreminder.utils
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.model.MedicationForm
 import java.util.concurrent.TimeUnit
@@ -79,6 +82,20 @@ object HyperIslandUtil {
         return islandParams.toString()
     }
 
+    private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap? {
+        return ContextCompat.getDrawable(context, drawableId)?.let { drawable ->
+            val bitmap = Bitmap.createBitmap(
+                drawable.intrinsicWidth,
+                drawable.intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmap
+        }
+    }
+
     fun getHyperIslandExtrasBundle(context: Context, medicationName: String, timeRemainingMillis: Long, medicationColor: String?, medicationForm: MedicationForm?): Bundle {
         val bundle = Bundle()
         if (!isSupported(context)) {
@@ -90,9 +107,11 @@ object HyperIslandUtil {
 
         val picsBundle = Bundle()
         val iconResId = getIconForMedicationForm(medicationForm)
-        val icon = Icon.createWithResource(context, iconResId)
-        picsBundle.putParcelable("miui.focus.pic_imageText", icon)
-        bundle.putBundle("miui.focus.pics", picsBundle)
+        getBitmapFromVectorDrawable(context, iconResId)?.let { bitmap ->
+            val icon = Icon.createWithBitmap(bitmap)
+            picsBundle.putParcelable("miui.focus.pic_imageText", icon)
+            bundle.putBundle("miui.focus.pics", picsBundle)
+        }
 
         return bundle
     }
