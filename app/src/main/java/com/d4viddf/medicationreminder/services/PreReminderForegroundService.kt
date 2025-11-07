@@ -23,10 +23,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import com.d4viddf.medicationreminder.MainActivity
 import com.d4viddf.medicationreminder.R
+import com.d4viddf.medicationreminder.data.model.MedicationForm
 import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
 import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
 import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
 import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
+import com.d4viddf.medicationreminder.utils.HyperIslandUtil
 // import com.d4viddf.medicationreminder.notifications.NotificationHelper // Direct refs replaced
 // import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Direct refs replaced
 // import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
@@ -48,6 +50,8 @@ class PreReminderForegroundService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var currentReminderId: Int = -1
     private var medicationNameForNotification: String = "Medication"
+    private var medicationColorForNotification: String? = null
+    private var medicationFormForNotification: MedicationForm? = null
     private var actualTakeTimeMillis: Long = -1L
 
     private val updateNotificationRunnable = object : Runnable {
@@ -97,6 +101,9 @@ class PreReminderForegroundService : Service() {
 
         val takeTimeFromIntent = intent?.getLongExtra(IntentExtraConstants.EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, -1L) ?: -1L
         val medNameFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_SERVICE_MEDICATION_NAME) ?: getString(R.string.medications_title)
+        val medColorFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_COLOR)
+        val medFormStringFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_FORM)
+        val medFormFromIntent = medFormStringFromIntent?.let { MedicationForm.valueOf(it) }
 
 
         if (reminderIdFromIntent == -1 || takeTimeFromIntent == -1L) {
@@ -113,6 +120,8 @@ class PreReminderForegroundService : Service() {
         currentReminderId = reminderIdFromIntent
         actualTakeTimeMillis = takeTimeFromIntent
         medicationNameForNotification = medNameFromIntent
+        medicationColorForNotification = medColorFromIntent
+        medicationFormForNotification = medFormFromIntent
 
         Log.i(TAG, "Starting/Updating PreReminderService for reminderId: $currentReminderId, med: $medicationNameForNotification, takeTime: $actualTakeTimeMillis")
 
@@ -183,6 +192,9 @@ class PreReminderForegroundService : Service() {
             .setShowWhen(true)
             .setWhen(actualTakeTimeMillis)
             .setCategory(Notification.CATEGORY_PROGRESS) // Changed to CATEGORY_PROGRESS for live updates
+
+        val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, medicationNameForNotification, timeRemainingMillis, medicationColorForNotification, medicationFormForNotification)
+        builder.addExtras(hyperIslandExtras)
 
         if (Build.VERSION.SDK_INT >= 36) {
             // builder.requestPromotedOngoing(true) // Replaced due to beta version issues
@@ -260,6 +272,8 @@ class PreReminderForegroundService : Service() {
             // Removed .setProgress from compat notification
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
 
+        val hyperIslandExtras = HyperIslandUtil.getHyperIslandExtrasBundle(this, medicationNameForNotification, timeRemainingMillis, medicationColorForNotification, medicationFormForNotification)
+        compatBuilder.addExtras(hyperIslandExtras)
 
         if (minutesRemaining <= 10) {
             val markAsActionIntent = Intent(this, com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver::class.java).apply { // FQDN for ReminderBroadcastReceiver

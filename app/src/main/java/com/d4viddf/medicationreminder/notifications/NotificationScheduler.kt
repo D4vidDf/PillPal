@@ -6,15 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import com.d4viddf.medicationreminder.data.model.MedicationReminder
+import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver
+import com.d4viddf.medicationreminder.services.PreReminderForegroundService
+import com.d4viddf.medicationreminder.utils.FileLogger
 import com.d4viddf.medicationreminder.utils.constants.IntentActionConstants
 import com.d4viddf.medicationreminder.utils.constants.IntentExtraConstants
 import com.d4viddf.medicationreminder.utils.constants.NotificationConstants
 import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
-import com.d4viddf.medicationreminder.data.model.MedicationReminder
-import com.d4viddf.medicationreminder.receivers.ReminderBroadcastReceiver // Keep for class name, specific constants removed
-import com.d4viddf.medicationreminder.services.PreReminderForegroundService // Keep for class name, specific constants removed
-import com.d4viddf.medicationreminder.utils.FileLogger // Import FileLogger
-// import com.d4viddf.medicationreminder.workers.ReminderSchedulingWorker // Now using WorkerConstants
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -124,7 +123,9 @@ open class NotificationScheduler @Inject constructor() {
         context: Context,
         reminder: MedicationReminder,
         actualMainReminderTimeMillis: Long,
-        medicationName: String
+        medicationName: String,
+        medicationColor: String?,
+        medicationForm: String?
     ) {
         val preReminderTimeMillis = actualMainReminderTimeMillis - TimeUnit.MINUTES.toMillis(WorkerConstants.PRE_REMINDER_OFFSET_MINUTES)
         val initialPreLog = "schedulePreReminderServiceTrigger called with: reminder.id=${reminder.id}, actualMainReminderTimeMillis=${formatMillisToDateTimeString(actualMainReminderTimeMillis)} ($actualMainReminderTimeMillis), medicationName='$medicationName'. Calculated preReminderTimeMillis=${formatMillisToDateTimeString(preReminderTimeMillis)} ($preReminderTimeMillis)"
@@ -148,6 +149,8 @@ open class NotificationScheduler @Inject constructor() {
             putExtra(IntentExtraConstants.EXTRA_REMINDER_ID, reminder.id)
             putExtra(IntentExtraConstants.EXTRA_ACTUAL_REMINDER_TIME_MILLIS, actualMainReminderTimeMillis)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_NAME, medicationName)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_COLOR, medicationColor)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_FORM, medicationForm)
         }
         val intentExtrasPreString = intent.extras?.let { bundle -> bundle.keySet().joinToString { key -> "$key=${bundle.get(key)}" } } ?: "null"
         val intentPreCreatedLog = "PRE-REMINDER Intent created: action=${intent.action}, extras=[$intentExtrasPreString]"
