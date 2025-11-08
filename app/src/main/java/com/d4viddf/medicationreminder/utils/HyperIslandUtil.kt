@@ -28,6 +28,7 @@ object HyperIslandUtil {
     private const val HYPER_ISLAND_PROTOCOL_VERSION = 3
     const val ACTION_KEY_MARK_AS_TAKEN = "miui.focus.action.mark_as_taken"
     const val ACTION_KEY_STOP_REMINDER = "miui.focus.action.stop_reminder"
+    const val ACTION_KEY_STOP_REMINDER_TEST = "miui.focus.action.stop_reminder_test"
 
 
     fun isSupported(context: Context): Boolean {
@@ -262,24 +263,29 @@ object HyperIslandUtil {
                         }
                     },
                     "baseInfo": {
-                        "title": "PillPal",
-                        "content": "Developed by D4vidDf",
-                        "type": 11
-                    },
-                    "hintInfo": {
-                        "type": 1,
-                        "title": "time left",
-                        "content": "34:00",
-
-                        "actionInfo": {
-                            "action": "miui.focus.action_test"
+                        "type": 11,
+                        "title": "PillPal Test",
+                        "content": "Test with progress button",
+                        "iconInfo": {
+                            "type": 1,
+                            "pic": "miui.focus.pic_imageText"
                         },
-                        "timerInfo": {
-                            "timerType":1,
-                            "timerTotal":360000,
-                            "timerWhen":360000,
-                            "timerCurrent":0
-                        }
+                        "buttonInfo": [
+                            {
+                                "type": 2,
+                                "action": "miui.focus.action_test",
+                                "timerInfo": {
+                                    "timerType": 1,
+                                    "timerTotal": 1800000,
+                                    "timerCurrent": 0,
+                                    "timerWhen": ${System.currentTimeMillis()}
+                                }
+                            },
+                            {
+                                "type": 1,
+                                "action": "$ACTION_KEY_STOP_REMINDER_TEST"
+                            }
+                        ]
                     }
                 }
             }
@@ -292,12 +298,23 @@ object HyperIslandUtil {
 
         val bundle = Bundle()
         val actions = Bundle()
-        val intent = Intent("miui.focus.action_test_clicked") // A unique action string for the broadcast
+
+        // Action 1 (Progress button)
+        val intent = Intent("miui.focus.action_test_clicked")
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val action = Notification.Action
             .Builder(Icon.createWithResource(context, R.drawable.ic_check), "Test Action", pendingIntent)
             .build()
         actions.putParcelable("miui.focus.action_test", action)
+
+        // Action 2 (Standard button)
+        val stopIntent = Intent("miui.focus.action_stop_test_clicked")
+        val stopPendingIntent = PendingIntent.getBroadcast(context, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val stopAction = Notification.Action
+            .Builder(Icon.createWithResource(context, R.drawable.rounded_close_24), "Stop Test", stopPendingIntent)
+            .build()
+        actions.putParcelable(ACTION_KEY_STOP_REMINDER_TEST, stopAction)
+
         bundle.putBundle("miui.focus.actions", actions)
 
         val pics = Bundle()
