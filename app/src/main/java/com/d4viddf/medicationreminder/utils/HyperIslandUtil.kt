@@ -208,13 +208,11 @@ object HyperIslandUtil {
             {
                 "param_v2": {
                     "protocol": 1,
-                    "business":"taxi",
+                    "business":"pillpal",
                     "enableFloat": true,
                     "updatable": true,
                     "ticker": "ticker",
                     "tickerPic": "miui.focus.pic_ticker",
-                    "aodTitle": "aodTitle",
-                    "aodPic": "miui.focus.pic_aod",
                     "param_island": {
                         "islandProperty": 1,
                         "bigIslandArea": {
@@ -225,13 +223,19 @@ object HyperIslandUtil {
                                     "pic": "miui.focus.pic_imageText"
                                 },
                                 "textInfo": {
-                                    "title": "24%",
+                                    "title": "",
                                     "useHighLight": false
                                 }
                             },
-                            "textInfo": {
-                                "title": "34:00",
-                                "useHighLight": false
+                            "sameWidthDigitInfo": {
+                                "timerInfo":{
+                                    "timerType":1,
+                                    "timerTotal":360000,
+                                    "timerWhen":360000,
+                                    "timerCurrent":0
+                                },
+                                "digit":"30:00",
+                                "showHighlightColor": true
                             }
                         },
                         "smallIslandArea": {
@@ -247,7 +251,7 @@ object HyperIslandUtil {
                     "baseInfo": {
                         "title": "PillPal",
                         "content": "Developed by D4vidDf",
-                        "type": 1
+                        "type": 11
                     },
                     "hintInfo": {
                         "type": 1,
@@ -258,13 +262,11 @@ object HyperIslandUtil {
                             "action": "miui.focus.action_test"
                         },
                         "timerInfo": {
-                            "type": 1,
-                            "timerLong": 3600000
+                            "timerType":1,
+                            "timerTotal":360000,
+                            "timerWhen":360000,
+                            "timerCurrent":0
                         }
-                    },
-                    "extraInfo": {
-                        "carType": "YU7",
-                        "carColor": "White"
                     }
                 }
             }
