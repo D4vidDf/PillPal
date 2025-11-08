@@ -246,16 +246,21 @@ object HyperIslandUtil {
                         }
                     },
                     "baseInfo": {
-                        "title": "Pending pickup",
-                        "content": "Anning Huating District 2, No. 8 Bottom Store Cainiao Yizhan",
-                        "colorTitle": "#006EFF",
-                        "type": 2
+                        "title": "PillPal",
+                        "content": "Developed by D4vidDf",
+                        "type": 1
                     },
                     "hintInfo": {
                         "type": 1,
-                        "title": "2 packages",
+                        "title": "time left",
+                        "content": "34:00",
+
                         "actionInfo": {
                             "action": "miui.focus.action_test"
+                        },
+                        "timerInfo": {
+                            "type": 1,
+                            "timerLong": 3600000
                         }
                     },
                     "extraInfo": {
@@ -282,11 +287,14 @@ object HyperIslandUtil {
         bundle.putBundle("miui.focus.actions", actions)
 
         val pics = Bundle()
-        getBitmapFromVectorDrawable(context, R.drawable.ic_stat_medication)?.let {
-            pics.putParcelable("miui.focus.pic_imageText", Icon.createWithBitmap(it))
-            pics.putParcelable("miui.focus.pic_highlight", Icon.createWithBitmap(it))
-             pics.putParcelable("miui.focus.pic_aod", Icon.createWithBitmap(it))
-              pics.putParcelable("miui.focus.pic_ticker", Icon.createWithBitmap(it))
+        // Use the app's full-color launcher icon instead of the black vector
+        val appIconBitmap = android.graphics.BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher_round)
+        if (appIconBitmap != null) {
+            val icon = Icon.createWithBitmap(appIconBitmap)
+            pics.putParcelable("miui.focus.pic_imageText", icon)
+            pics.putParcelable("miui.focus.pic_highlight", icon)
+            pics.putParcelable("miui.focus.pic_aod", icon)
+            pics.putParcelable("miui.focus.pic_ticker", icon)
         }
         bundle.putBundle("miui.focus.pics", pics)
 
