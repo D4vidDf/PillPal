@@ -76,9 +76,8 @@ object HyperIslandUtil {
         val firstWord = medicationName.split(" ").firstOrNull() ?: ""
         val islandParams = JSONObject().apply {
             put("param_v2", JSONObject().apply {
-                // REQUIRED FIELDS FOR PROTOCOL/DISPLAY
+                // Correctly set protocol and business info
                 put("protocol", HYPER_ISLAND_PROTOCOL_VERSION)
-                put("enableFloat", true)
                 put("business", "medication_reminder")
                 put("updatable", true)
                 put("ticker", "Time for $medicationName")
@@ -87,52 +86,52 @@ object HyperIslandUtil {
                     put("islandProperty", 1)
                     medicationColor?.let { put("highlightColor", it) }
 
-                    // BIG ISLAND AREA (Expanded view)
+                    // BIG ISLAND AREA (Template 6: Icon on Left, Timer on Right)
                     put("bigIslandArea", JSONObject().apply {
-                        // Left: Icon (Medication Type)
+                        // Left side: Medication Icon
                         put("picInfoLeft", JSONObject().apply {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
                         })
-                        // Right: Countdown Timer (Time Remaining)
+                        // Right side: Countdown Timer
                         put("textInfoRight", JSONObject().apply {
-                            put("type", 3) // Countdown timer type
+                            put("type", 3) // Type 3 is the native countdown timer
                             put("targetTime", actualTakeTimeMillis)
                         })
-                        // Bottom Actions
+                        // Add actions at the bottom
                         put("actions", listOf(
                             JSONObject().apply { put("action", ACTION_KEY_MARK_AS_TAKEN) },
                             JSONObject().apply { put("action", ACTION_KEY_STOP_REMINDER) }
                         ))
                     })
 
-                    // SMALL ISLAND AREA (Collapsed/Dynamic Island View)
+                    // SMALL ISLAND AREA (Dynamic Island)
                     put("smallIslandArea", JSONObject().apply {
                         put("picInfoLeft", JSONObject().apply {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
                         })
                         put("textInfoRight", JSONObject().apply {
-                            put("type", 3) // Countdown timer type
+                            put("type", 3) // Also use countdown for the small island
                             put("targetTime", actualTakeTimeMillis)
                         })
                     })
                 })
 
-                // BASE INFO (Standard notification content)
+                // BASE INFO (Standard notification view when not in island)
                 put("baseInfo", JSONObject().apply {
-                    put("title", "Next dose: $firstWord") // Only first word as requested
-                    put("content", "Next dose in ${TimeUnit.MILLISECONDS.toMinutes(actualTakeTimeMillis - System.currentTimeMillis())} minutes")
+                    put("title", "Next dose: $firstWord")
+                    val minutesRemaining = TimeUnit.MILLISECONDS.toMinutes(actualTakeTimeMillis - System.currentTimeMillis())
+                    put("content", "Next dose in $minutesRemaining minutes")
                     medicationColor?.let { put("colorTitle", it) }
                     put("type", 2)
                 })
 
-                // HINT INFO (CRUCIAL for showing action button on collapsed standard notification)
+                // HINT INFO (Shows an action in the standard notification view)
                 put("hintInfo", JSONObject().apply {
                     put("type", 1)
-                    put("title", firstWord) // Small descriptive text next to the action
+                    put("title", firstWord)
                     put("actionInfo", JSONObject().apply {
-                        // Link the action key defined in getHyperIslandExtrasBundle
                         put("action", ACTION_KEY_MARK_AS_TAKEN)
                     })
                 })
@@ -302,7 +301,10 @@ object HyperIslandUtil {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", islandParams)
 
-        notificationManager.notify(9999, notification) // Using a unique ID for the test notification
+        val notificationIdUsingTimestamp = System.currentTimeMillis().toInt()
+
+
+        notificationManager.notify(notificationIdUsingTimestamp, notification) // Using a unique ID for the test notification
         Log.d(TAG, "Test notification dispatched.")
     }
 }
