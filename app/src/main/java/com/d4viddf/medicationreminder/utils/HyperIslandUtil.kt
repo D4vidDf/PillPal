@@ -196,4 +196,107 @@ object HyperIslandUtil {
 
         return bundle
     }
+
+    fun showTestNotification(context: Context) {
+        if (!isSupported(context)) {
+            Log.d(TAG, "Test notification skipped: HyperIsland not supported on this device.")
+            return
+        }
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+
+        val islandParams = """
+            {
+                "param_v2": {
+                    "protocol": 1,
+                    "business":"taxi",
+                    "enableFloat": true,
+                    "updatable": true,
+                    "ticker": "ticker",
+                    "tickerPic": "miui.focus.pic_ticker",
+                    "aodTitle": "aodTitle",
+                    "aodPic": "miui.focus.pic_aod",
+                    "param_island": {
+                        "islandProperty": 1,
+                        "bigIslandArea": {
+                            "imageTextInfoLeft": {
+                                "type": 1,
+                                "picInfo": {
+                                    "type": 1,
+                                    "pic": "miui.focus.pic_imageText"
+                                },
+                                "textInfo": {
+                                    "frontTitle": "Charging",
+                                    "title": "24%",
+                                    "content": "5 minutes left",
+                                    "useHighLight": false
+                                }
+                            },
+                            "picInfo": {
+                                "type": 1,
+                                "pic": "miui.focus.pic_imageText"
+                            }
+                        },
+                        "smallIslandArea": {
+                            "picInfo": {
+                                "type": 1,
+                                "pic": "miui.focus.pic_imageText"
+                            }
+                        },
+                        "shareData": {
+                            "title": "share_title"
+                        }
+                    },
+                    "baseInfo": {
+                        "title": "Pending pickup",
+                        "content": "Anning Huating District 2, No. 8 Bottom Store Cainiao Yizhan",
+                        "colorTitle": "#006EFF",
+                        "type": 2
+                    },
+                    "hintInfo": {
+                        "type": 1,
+                        "title": "2 packages",
+                        "actionInfo": {
+                            "action": "miui.focus.action_test"
+                        }
+                    },
+                    "extraInfo": {
+                        "carType": "YU7",
+                        "carColor": "White"
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val builder = Notification.Builder(context, com.d4viddf.medicationreminder.utils.constants.NotificationConstants.PRE_REMINDER_CHANNEL_ID)
+            .setContentTitle("Test Title")
+            .setContentText("Test Text")
+            .setSmallIcon(R.drawable.ic_stat_medication)
+
+        val bundle = Bundle()
+        val actions = Bundle()
+        val intent = Intent("miui.focus.action_test_clicked") // A unique action string for the broadcast
+        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val action = Notification.Action
+            .Builder(Icon.createWithResource(context, R.drawable.ic_check), "Test Action", pendingIntent)
+            .build()
+        actions.putParcelable("miui.focus.action_test", action)
+        bundle.putBundle("miui.focus.actions", actions)
+
+        val pics = Bundle()
+        getBitmapFromVectorDrawable(context, R.drawable.ic_stat_medication)?.let {
+            pics.putParcelable("miui.focus.pic_imageText", Icon.createWithBitmap(it))
+            pics.putParcelable("miui.focus.pic_highlight", Icon.createWithBitmap(it))
+             pics.putParcelable("miui.focus.pic_aod", Icon.createWithBitmap(it))
+              pics.putParcelable("miui.focus.pic_ticker", Icon.createWithBitmap(it))
+        }
+        bundle.putBundle("miui.focus.pics", pics)
+
+        builder.addExtras(bundle)
+        val notification = builder.build()
+        notification.extras.putString("miui.focus.param", islandParams)
+
+        notificationManager.notify(9999, notification) // Using a unique ID for the test notification
+        Log.d(TAG, "Test notification dispatched.")
+    }
 }
