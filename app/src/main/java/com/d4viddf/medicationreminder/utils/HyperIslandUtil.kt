@@ -217,7 +217,7 @@ object HyperIslandUtil {
         }
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-
+        val currentTime = System.currentTimeMillis()
         val islandParams = """
             {
                 "param_v2": {
@@ -227,41 +227,9 @@ object HyperIslandUtil {
                     "updatable": true,
                     "ticker": "ticker",
                     "tickerPic": "miui.focus.pic_ticker",
-                    "param_island": {
-                        "islandProperty": 1,
-                        "bigIslandArea": {
-                            "imageTextInfoLeft": {
-                                "type": 1,
-                                "picInfo": {
-                                    "type": 1,
-                                    "pic": "miui.focus.pic_imageText"
-                                },
-                                "textInfo": {
-                                    "title": "",
-                                    "useHighLight": false
-                                }
-                            },
-                            "sameWidthDigitInfo": {
-                                "timerInfo":{
-                                    "timerType":1,
-                                    "timerTotal":360000,
-                                    "timerWhen":360000,
-                                    "timerCurrent":0
-                                },
-                                "digit":"30:00",
-                                "showHighlightColor": true
-                            }
-                        },
-                        "smallIslandArea": {
-                            "picInfo": {
-                                "type": 1,
-                                "pic": "miui.focus.pic_imageText"
-                            }
-                        },
-                        "shareData": {
-                            "title": "share_title"
-                        }
-                    },
+                     "param_island": {
+                        "islandProperty": 1
+                     },
                     "baseInfo": {
                         "type": 11,
                         "title": "PillPal Test",
@@ -278,7 +246,7 @@ object HyperIslandUtil {
                                     "timerType": 1,
                                     "timerTotal": 1800000,
                                     "timerCurrent": 0,
-                                    "timerWhen": ${System.currentTimeMillis()}
+                                    "timerWhen": $currentTime
                                 }
                             },
                             {
