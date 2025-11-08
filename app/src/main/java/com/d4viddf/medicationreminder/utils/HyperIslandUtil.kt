@@ -226,15 +226,13 @@ object HyperIslandUtil {
                                     "pic": "miui.focus.pic_imageText"
                                 },
                                 "textInfo": {
-                                    "frontTitle": "Charging",
                                     "title": "24%",
-                                    "content": "5 minutes left",
                                     "useHighLight": false
                                 }
                             },
-                            "picInfo": {
-                                "type": 1,
-                                "pic": "miui.focus.pic_imageText"
+                            "textInfo": {
+                                "title": "34:00",
+                                "useHighLight": false
                             }
                         },
                         "smallIslandArea": {
