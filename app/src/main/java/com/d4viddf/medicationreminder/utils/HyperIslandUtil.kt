@@ -83,6 +83,10 @@ object HyperIslandUtil {
                 put("updatable", true)
                 put("ticker", "Time for $medicationName")
 
+                put("smallWindowInfo", JSONObject().apply {
+                    put("targetPage", "com.d4viddf.medicationreminder.MainActivity")
+                })
+
                 put("param_island", JSONObject().apply {
                     put("islandProperty", 1)
                     medicationColor?.let { put("highlightColor", it) }
@@ -227,34 +231,81 @@ object HyperIslandUtil {
                     "updatable": true,
                     "ticker": "ticker",
                     "tickerPic": "miui.focus.pic_ticker",
+                    "smallWindowInfo": {
+                        "targetPage": "com.d4viddf.medicationreminder.MainActivity"
+                    },
+                    "isShownNotification": true,
+                    "islandFirstFloat": true,
+                    "enableFloat": true,
                      "param_island": {
-                        "islandProperty": 1
-                     },
-                    "baseInfo": {
-                        "type": 11,
-                        "title": "PillPal Test",
-                        "content": "Test with progress button",
-                        "iconInfo": {
-                            "type": 1,
-                            "pic": "miui.focus.pic_imageText"
+                        "islandProperty": 1,
+                        "bigIslandArea": {
+                            "imageTextInfoLeft": {
+                                "type": 1,
+                                "picInfo": {
+                                    "type": 1,
+                                    "pic": "miui.focus.pic_imageText"
+                                },
+                                "textInfo": {
+                                    "title": "",
+                                    "useHighLight": false
+                                }
+                            },
+                            "sameWidthDigitInfo": {
+                                "timerInfo":{
+                                    "timerType":1,
+                                    "timerTotal":360000,
+                                    "timerWhen":360000,
+                                    "timerCurrent":0
+                                },
+                                "digit":"30:00",
+                                "showHighlightColor": true
+                            }
                         },
-                        "buttonInfo": [
+                        "smallIslandArea": {
+                            "picInfo": {
+                                "type": 1,
+                                "pic": "miui.focus.pic_imageText"
+                            }
+                        },
+                        "shareData": {
+                            "title": "share_title"
+                        }
+                    },
+                    "chatInfo": {
+                        "type": 2,
+                        "title": "PillPal Test",
+                        "content": "Next dosage in 30 minutes",
+                        "picFunction": "miui.focus.pic_imageText",
+                        "actions": [
                             {
                                 "type": 2,
                                 "action": "miui.focus.action_test",
-                                "timerInfo": {
-                                    "timerType": 1,
-                                    "timerTotal": 1800000,
-                                    "timerCurrent": 0,
-                                    "timerWhen": $currentTime
-                                }
-                            },
-                            {
-                                "type": 1,
-                                "action": "$ACTION_KEY_STOP_REMINDER_TEST"
+
+                                "progressInfo": {
+                                    "progress":20,
+                                    "colorProgress":"#FF8514"
+                                },
+                                "actionIntent":"XXXX"
                             }
                         ]
-                    }
+                    },
+
+                    "actions": [
+                            {
+                                "type": 2,
+                                "action": "miui.focus.action_test",
+                                "actionIcon": "miui.focus.pic_imageText",
+                                "progressInfo": {
+                                    "progress":20,
+                                    "colorProgress":"#FF8514"
+                                },
+                                "actionTitle":"Taken",
+                                "actionIntent":"XXXX"
+                            }
+                        ]
+
+
                 }
             }
         """.trimIndent()
