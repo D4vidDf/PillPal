@@ -118,22 +118,35 @@ object HyperIslandUtil {
                     })
                 })
 
-                // BASE INFO (Standard notification view when not in island)
+                // BASE INFO (Type 11: Icon + two buttons, one with progress)
                 put("baseInfo", JSONObject().apply {
+                    put("type", 11)
                     put("title", "Next dose: $firstWord")
                     val minutesRemaining = TimeUnit.MILLISECONDS.toMinutes(actualTakeTimeMillis - System.currentTimeMillis())
                     put("content", "Next dose in $minutesRemaining minutes")
                     medicationColor?.let { put("colorTitle", it) }
-                    put("type", 2)
-                })
-
-                // HINT INFO (Shows an action in the standard notification view)
-                put("hintInfo", JSONObject().apply {
-                    put("type", 1)
-                    put("title", firstWord)
-                    put("actionInfo", JSONObject().apply {
-                        put("action", ACTION_KEY_MARK_AS_TAKEN)
+                    put("iconInfo", JSONObject().apply {
+                        put("type", 1) // 1 for pic
+                        put("pic", "miui.focus.pic_imageText")
                     })
+                    put("buttonInfo", listOf(
+                        JSONObject().apply {
+                            put("type", 2) // Type 2 is a progress button
+                            put("action", ACTION_KEY_MARK_AS_TAKEN)
+                            put("timerInfo", JSONObject().apply {
+                                put("timerType", 1) // Countdown
+                                val totalDurationMillis = TimeUnit.MINUTES.toMillis(30)
+                                val timePassedMillis = totalDurationMillis - (actualTakeTimeMillis - System.currentTimeMillis())
+                                put("timerTotal", totalDurationMillis)
+                                put("timerCurrent", timePassedMillis)
+                                put("timerWhen", System.currentTimeMillis())
+                            })
+                        },
+                        JSONObject().apply {
+                            put("type", 1) // Type 1 is a standard button
+                            put("action", ACTION_KEY_STOP_REMINDER)
+                        }
+                    ))
                 })
             })
         }
