@@ -37,12 +37,15 @@ class PreReminderForegroundService : Service() {
         private const val TAG = "PreReminderService"
         const val TOTAL_PRE_REMINDER_DURATION_MINUTES = WorkerConstants.PRE_REMINDER_OFFSET_MINUTES
 
-        fun getNotificationId(reminderId: Int) = reminderId + NotificationConstants.PRE_REMINDER_NOTIFICATION_ID_OFFSET
+        fun getNotificationId(medicationName: String, scheduledTimeMillis: Long): Int {
+            return (medicationName + scheduledTimeMillis).hashCode()
+        }
     }
 
     private lateinit var notificationManager: NotificationManager
     private val handler = Handler(Looper.getMainLooper())
     private var currentReminderId: Int = -1
+    private var currentMedicationId: Int = -1
     private var medicationNameForNotification: String = "Medication"
     private var medicationColorForNotification: String? = null
     private var medicationFormForNotification: MedicationForm? = null
@@ -104,13 +107,14 @@ class PreReminderForegroundService : Service() {
             return START_NOT_STICKY
         }
 
+        val medIdFromIntent = intent?.getIntExtra(IntentExtraConstants.EXTRA_MEDICATION_ID, -1) ?: -1
         val takeTimeFromIntent = intent?.getLongExtra(IntentExtraConstants.EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, -1L) ?: -1L
         val medNameFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_SERVICE_MEDICATION_NAME) ?: getString(R.string.medications_title)
         val medColorFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_COLOR)
         val medFormStringFromIntent = intent?.getStringExtra(IntentExtraConstants.EXTRA_MEDICATION_FORM)
         val medFormFromIntent = medFormStringFromIntent?.let { MedicationForm.valueOf(it) }
 
-        if (reminderIdFromIntent == -1 || takeTimeFromIntent == -1L) {
+        if (reminderIdFromIntent == -1 || takeTimeFromIntent == -1L || medIdFromIntent == -1) {
             stopSelfService()
             return START_NOT_STICKY
         }
@@ -121,6 +125,7 @@ class PreReminderForegroundService : Service() {
         }
 
         currentReminderId = reminderIdFromIntent
+        currentMedicationId = medIdFromIntent
         actualTakeTimeMillis = takeTimeFromIntent
         medicationNameForNotification = medNameFromIntent
         medicationColorForNotification = medColorFromIntent
@@ -139,7 +144,7 @@ class PreReminderForegroundService : Service() {
 
         val notificationToShow = buildNotification(initialTimeRemainingMillis)
 
-        startForeground(getNotificationId(currentReminderId), notificationToShow)
+        startForeground(getNotificationId(medicationNameForNotification, actualTakeTimeMillis), notificationToShow)
 
         handler.removeCallbacks(updateNotificationRunnable)
         handler.post(updateNotificationRunnable)
@@ -171,7 +176,7 @@ class PreReminderForegroundService : Service() {
             putExtra(NotificationConstants.EXTRA_NOTIFICATION_TAP_PREREMINDER_ID, currentReminderId)
         }
         val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        return PendingIntent.getActivity(this, getNotificationId(currentReminderId) + 1, notificationTapIntent, pendingIntentFlags)
+        return PendingIntent.getActivity(this, getNotificationId(medicationNameForNotification, actualTakeTimeMillis) + 1, notificationTapIntent, pendingIntentFlags)
     }
 
     private fun formatTimeRemaining(millis: Long): String {
@@ -208,7 +213,7 @@ class PreReminderForegroundService : Service() {
         val notification = builder.build()
 
         // 3. Get the JSON payload and add it directly to the built notification's extras
-        val islandParams = HyperIslandUtil.buildHyperIslandJson(this, medicationNameForNotification, actualTakeTimeMillis, medicationColorForNotification)
+        val islandParams = HyperIslandUtil.buildHyperIslandJson(this, currentMedicationId, medicationNameForNotification, actualTakeTimeMillis, medicationColorForNotification)
         notification.extras.putString("miui.focus.param", islandParams)
         Log.d(TAG, "Final HyperIsland JSON Payload: $islandParams")
 
@@ -311,7 +316,7 @@ class PreReminderForegroundService : Service() {
             val notification = buildNotification(timeRemainingMillis)
             try {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                    notificationManager.notify(getNotificationId(currentReminderId), notification)
+                    notificationManager.notify(getNotificationId(medicationNameForNotification, actualTakeTimeMillis), notification)
                 } else {
                     stopSelfService()
                 }
@@ -330,6 +335,7 @@ class PreReminderForegroundService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         currentReminderId = -1
+        currentMedicationId = -1
         actualTakeTimeMillis = -1L
         isHyperIslandDevice = null // Reset the cache
     }

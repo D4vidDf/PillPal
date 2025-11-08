@@ -73,7 +73,7 @@ object HyperIslandUtil {
         return medicationForm?.imageUrl ?: R.drawable.ic_stat_medication
     }
 
-    fun buildHyperIslandJson(context: Context, medicationName: String, actualTakeTimeMillis: Long, medicationColor: String?): String {
+    fun buildHyperIslandJson(context: Context, medicationId: Int, medicationName: String, actualTakeTimeMillis: Long, medicationColor: String?): String {
         val islandParams = JSONObject().apply {
             put("param_v2", JSONObject().apply {
                 put("protocol", HYPER_ISLAND_PROTOCOL_VERSION)
@@ -83,8 +83,9 @@ object HyperIslandUtil {
                 put("isShownNotification", true)
                 put("islandFirstFloat", true)
 
+                val deepLinkUri = "pillpal://medication/$medicationId"
                 put("smallWindowInfo", JSONObject().apply {
-                    put("targetPage", "com.d4viddf.medicationreminder.MainActivity")
+                    put("targetPage", deepLinkUri)
                 })
 
                 put("param_island", JSONObject().apply {

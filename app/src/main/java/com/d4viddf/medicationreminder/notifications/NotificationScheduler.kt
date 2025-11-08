@@ -87,6 +87,7 @@ open class NotificationScheduler @Inject constructor() {
         context: Context,
         reminder: MedicationReminder,
         actualMainReminderTimeMillis: Long,
+        medicationId: Int,
         medicationName: String,
         medicationColor: String?,
         medicationForm: String?
@@ -101,6 +102,7 @@ open class NotificationScheduler @Inject constructor() {
         val intent = Intent(context, PreReminderBroadcastReceiver::class.java).apply {
             action = IntentActionConstants.ACTION_TRIGGER_PRE_REMINDER_SERVICE
             putExtra(IntentExtraConstants.EXTRA_SERVICE_REMINDER_ID, reminder.id)
+            putExtra(IntentExtraConstants.EXTRA_MEDICATION_ID, medicationId)
             putExtra(IntentExtraConstants.EXTRA_SERVICE_ACTUAL_SCHEDULED_TIME_MILLIS, actualMainReminderTimeMillis)
             putExtra(IntentExtraConstants.EXTRA_SERVICE_MEDICATION_NAME, medicationName)
             putExtra(IntentExtraConstants.EXTRA_MEDICATION_COLOR, medicationColor)
@@ -185,12 +187,14 @@ open class NotificationScheduler @Inject constructor() {
         }
     }
 
-    fun cancelAllAlarmsForReminder(context: Context, reminderId: Int) {
+    fun cancelAllAlarmsForReminder(context: Context, reminderId: Int, medicationName: String? = null, scheduledTimeMillis: Long? = null) {
         cancelMainReminderAlarm(context, reminderId)
         cancelPreReminderServiceAlarm(context, reminderId)
 
         NotificationHelper.cancelNotification(context, reminderId)
-        NotificationHelper.cancelNotification(context, PreReminderForegroundService.getNotificationId(reminderId))
+        if (medicationName != null && scheduledTimeMillis != null) {
+            NotificationHelper.cancelNotification(context, PreReminderForegroundService.getNotificationId(medicationName, scheduledTimeMillis))
+        }
 
         val stopServiceIntent = Intent(context, PreReminderForegroundService::class.java).apply {
             action = IntentActionConstants.ACTION_STOP_PRE_REMINDER

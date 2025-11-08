@@ -313,6 +313,7 @@ class ReminderSchedulingWorker constructor(
                             applicationContext,
                             reminderWithActualId,
                             actualScheduledTimeMillis,
+                            medication.id,
                             medication.name,
                             medication.color,
                             medication.medicationForm.name
@@ -332,7 +333,8 @@ class ReminderSchedulingWorker constructor(
         existingFutureUntakenRemindersMap.forEach { (dateTime, existingUntakenReminder) ->
             if (!idealFutureDateTimesSet.contains(dateTime)) {
                 Log.i(funcTag, "STALE UNTAKEN reminder check: DateTime $dateTime (ReminderId: ${existingUntakenReminder.id}) is NOT in idealFutureDateTimesSet. Proceeding with deletion.")
-                notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingUntakenReminder.id)
+                val scheduledTimeMillis = dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingUntakenReminder.id, medication.name, scheduledTimeMillis)
                 medicationReminderRepository.deleteReminderById(existingUntakenReminder.id)
                 Log.i(funcTag, "Successfully cancelled and deleted STALE UNTAken reminder ID ${existingUntakenReminder.id} for datetime $dateTime.")
             }

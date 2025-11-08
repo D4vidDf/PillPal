@@ -29,6 +29,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.d4viddf.medicationreminder.R
 import com.d4viddf.medicationreminder.data.repository.UserPreferencesRepository
 import com.d4viddf.medicationreminder.ui.theme.MedicationColor
@@ -291,7 +292,8 @@ fun AppNavigation(
             }
             composable(
                 Screen.MedicationDetails.route,
-                arguments = listOf(navArgument("enableSharedTransition") { type = NavType.BoolType; defaultValue = true })
+                arguments = listOf(navArgument("enableSharedTransition") { type = NavType.BoolType; defaultValue = true }),
+                deepLinks = listOf(navDeepLink { uriPattern = "pillpal://medication/{$MEDICATION_ID_ARG}" })
             ) { backStackEntry ->
                 val medicationId = backStackEntry.arguments?.getString(MEDICATION_ID_ARG)?.toIntOrNull()
                 val enableSharedTransition = backStackEntry.arguments?.getBoolean("enableSharedTransition") ?: true
