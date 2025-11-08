@@ -73,15 +73,15 @@ object HyperIslandUtil {
         return medicationForm?.imageUrl ?: R.drawable.ic_stat_medication
     }
 
-    fun buildHyperIslandJson(medicationName: String, actualTakeTimeMillis: Long, medicationColor: String?): String {
-        val firstWord = medicationName.split(" ").firstOrNull() ?: ""
+    fun buildHyperIslandJson(context: Context, medicationName: String, actualTakeTimeMillis: Long, medicationColor: String?): String {
         val islandParams = JSONObject().apply {
             put("param_v2", JSONObject().apply {
-                // Correctly set protocol and business info
                 put("protocol", HYPER_ISLAND_PROTOCOL_VERSION)
                 put("business", "medication_reminder")
                 put("updatable", true)
                 put("ticker", "Time for $medicationName")
+                put("isShownNotification", true)
+                put("islandFirstFloat", true)
 
                 put("smallWindowInfo", JSONObject().apply {
                     put("targetPage", "com.d4viddf.medicationreminder.MainActivity")
@@ -91,65 +91,59 @@ object HyperIslandUtil {
                     put("islandProperty", 1)
                     medicationColor?.let { put("highlightColor", it) }
 
-                    // BIG ISLAND AREA (Template 6: Icon on Left, Timer on Right)
                     put("bigIslandArea", JSONObject().apply {
-                        // Left side: Medication Icon
-                        put("picInfoLeft", JSONObject().apply {
+                        put("imageTextInfoLeft", JSONObject().apply {
                             put("type", 1)
-                            put("pic", "miui.focus.pic_imageText")
+                            put("picInfo", JSONObject().apply {
+                                put("type", 1)
+                                put("pic", "miui.focus.pic_imageText")
+                            })
+                            put("textInfo", JSONObject().apply {
+                                put("title", "")
+                                put("useHighLight", false)
+                            })
                         })
-                        // Right side: Countdown Timer
-                        put("textInfoRight", JSONObject().apply {
-                            put("type", 3) // Type 3 is the native countdown timer
-                            put("targetTime", actualTakeTimeMillis)
+
+                        val remainingMillis = actualTakeTimeMillis - System.currentTimeMillis()
+                        val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60
+                        val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60
+                        val timeString = String.format("%02d:%02d", minutes, seconds)
+
+                        put("sameWidthDigitInfo", JSONObject().apply {
+                            put("timerInfo", JSONObject().apply {
+                                put("timerType", 1)
+                                put("timerTotal", TimeUnit.MINUTES.toMillis(30))
+                                put("timerWhen", actualTakeTimeMillis - TimeUnit.MINUTES.toMillis(30))
+                                put("timerCurrent", remainingMillis)
+                            })
+                            put("digit", timeString)
+                            put("showHighlightColor", true)
                         })
-                        // Add actions at the bottom
-                        put("actions", listOf(
-                            JSONObject().apply { put("action", ACTION_KEY_MARK_AS_TAKEN) },
-                            JSONObject().apply { put("action", ACTION_KEY_STOP_REMINDER) }
-                        ))
                     })
 
-                    // SMALL ISLAND AREA (Dynamic Island)
                     put("smallIslandArea", JSONObject().apply {
-                        put("picInfoLeft", JSONObject().apply {
+                        put("picInfo", JSONObject().apply {
                             put("type", 1)
                             put("pic", "miui.focus.pic_imageText")
-                        })
-                        put("textInfoRight", JSONObject().apply {
-                            put("type", 3) // Also use countdown for the small island
-                            put("targetTime", actualTakeTimeMillis)
                         })
                     })
                 })
 
-                // BASE INFO (Type 11: Icon + two buttons, one with progress)
-                put("baseInfo", JSONObject().apply {
-                    put("type", 11)
-                    put("title", "Next dose: $firstWord")
-                    val minutesRemaining = TimeUnit.MILLISECONDS.toMinutes(actualTakeTimeMillis - System.currentTimeMillis())
-                    put("content", "Next dose in $minutesRemaining minutes")
-                    medicationColor?.let { put("colorTitle", it) }
-                    put("iconInfo", JSONObject().apply {
-                        put("type", 1) // 1 for pic
-                        put("pic", "miui.focus.pic_imageText")
-                    })
-                    put("buttonInfo", listOf(
+                val minutesRemaining = TimeUnit.MILLISECONDS.toMinutes(actualTakeTimeMillis - System.currentTimeMillis())
+                put("chatInfo", JSONObject().apply {
+                    put("type", 2)
+                    put("title", medicationName)
+                    put("content", context.getString(R.string.prereminder_chat_content, minutesRemaining))
+                    put("picFunction", "miui.focus.pic_imageText")
+                    put("actions", listOf(
                         JSONObject().apply {
-                            put("type", 2) // Type 2 is a progress button
+                            put("type", 2)
                             put("action", ACTION_KEY_MARK_AS_TAKEN)
-                            put("timerInfo", JSONObject().apply {
-                                put("timerType", 1) // Countdown
-                                val totalDurationMillis = TimeUnit.MINUTES.toMillis(30)
-                                val timePassedMillis = totalDurationMillis - (actualTakeTimeMillis - System.currentTimeMillis())
-                                put("timerTotal", totalDurationMillis)
-                                put("timerCurrent", timePassedMillis)
-                                put("timerWhen", System.currentTimeMillis())
+                            put("progressInfo", JSONObject().apply {
+                                val progress = (100 - (minutesRemaining * 100 / 30)).coerceIn(0, 100)
+                                put("progress", progress)
+                                medicationColor?.let { put("colorProgress", it) }
                             })
-                        },
-                        JSONObject().apply {
-                            put("type", 1) // Type 1 is a standard button
-                            put("action", ACTION_KEY_STOP_REMINDER)
                         }
                     ))
                 })

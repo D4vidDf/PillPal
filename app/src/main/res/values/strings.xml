@@ -238,6 +238,7 @@
     <string name="prereminder_text_very_soon_singular">Very soon: %1$d min!</string>
     <string name="prereminder_text_about_time">It\'s about time!</string>
     <string name="prereminder_action_taken">Taken</string>
+    <string name="prereminder_chat_content">Next dosage in %1$d minutes</string>
 
     <string name="content_description_tick_mark">Confirmation tick</string>
     <string name="notification_actions_more_options">More options</string>
