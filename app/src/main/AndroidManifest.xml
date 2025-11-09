@@ -66,6 +66,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.App.Starting"> <!-- Changed this line -->
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -151,7 +152,13 @@
         <service
             android:name=".services.PreReminderForegroundService"
             android:exported="false"
-            android:foregroundServiceType="dataSync"> </service>
+            android:foregroundServiceType="dataSync">
+        </service>
+
+        <receiver
+            android:name=".receivers.PreReminderBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false" />
 
         <receiver
             android:name=".receivers.BootCompletedReceiver"

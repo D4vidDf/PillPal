@@ -6,27 +6,27 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
-import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.KEY_IS_DAILY_REFRESH
 import com.d4viddf.medicationreminder.data.model.Medication
 import com.d4viddf.medicationreminder.data.model.MedicationReminder
-import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
-import com.d4viddf.medicationreminder.data.repository.MedicationRepository
 import com.d4viddf.medicationreminder.data.model.MedicationSchedule
-import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.data.model.ScheduleType
+import com.d4viddf.medicationreminder.data.repository.MedicationDosageRepository
 import com.d4viddf.medicationreminder.data.repository.MedicationReminderRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationRepository
+import com.d4viddf.medicationreminder.data.repository.MedicationScheduleRepository
 import com.d4viddf.medicationreminder.domain.usecase.ReminderCalculator
 import com.d4viddf.medicationreminder.notifications.NotificationScheduler
 import com.d4viddf.medicationreminder.utils.DateUtils
 import com.d4viddf.medicationreminder.utils.constants.WorkerConstants
-import kotlinx.coroutines.flow.firstOrNull
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE
+import com.d4viddf.medicationreminder.utils.constants.WorkerConstants.KEY_IS_DAILY_REFRESH
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
+import kotlinx.coroutines.flow.firstOrNull
 
 class ReminderSchedulingWorker constructor(
     appContext: Context,
@@ -310,7 +310,13 @@ class ReminderSchedulingWorker constructor(
                     if (ENABLE_PRE_REMINDER_NOTIFICATION_FEATURE) {
                         Log.d(funcTag, "Scheduling pre-reminder for reminderId ${reminderWithActualId.id}")
                         notificationScheduler.schedulePreReminderServiceTrigger(
-                            applicationContext, reminderWithActualId, actualScheduledTimeMillis, medication.name
+                            applicationContext,
+                            reminderWithActualId,
+                            actualScheduledTimeMillis,
+                            medication.id,
+                            medication.name,
+                            medication.color,
+                            medication.medicationForm.name
                         )
                     }
                     Log.i(funcTag, "Successfully scheduled main alarm (and pre-reminder if applicable) for NEW reminder ID ${reminderWithActualId.id} at $idealDateTime.")
@@ -327,9 +333,10 @@ class ReminderSchedulingWorker constructor(
         existingFutureUntakenRemindersMap.forEach { (dateTime, existingUntakenReminder) ->
             if (!idealFutureDateTimesSet.contains(dateTime)) {
                 Log.i(funcTag, "STALE UNTAKEN reminder check: DateTime $dateTime (ReminderId: ${existingUntakenReminder.id}) is NOT in idealFutureDateTimesSet. Proceeding with deletion.")
-                notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingUntakenReminder.id)
+                val scheduledTimeMillis = dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                notificationScheduler.cancelAllAlarmsForReminder(applicationContext, existingUntakenReminder.id, medication.name, scheduledTimeMillis)
                 medicationReminderRepository.deleteReminderById(existingUntakenReminder.id)
-                Log.i(funcTag, "Successfully cancelled and deleted STALE UNTAKEN reminder ID ${existingUntakenReminder.id} for datetime $dateTime.")
+                Log.i(funcTag, "Successfully cancelled and deleted STALE UNTAken reminder ID ${existingUntakenReminder.id} for datetime $dateTime.")
             }
         }
         Log.i(funcTag, "Reminder scheduling/synchronization complete.")
