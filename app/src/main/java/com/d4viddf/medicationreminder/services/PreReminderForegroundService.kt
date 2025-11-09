@@ -67,9 +67,8 @@ class PreReminderForegroundService : Service() {
                 stopSelfService()
             } else {
                 // Only update the notification content if it's NOT a HyperIsland device
-                if (isHyperIslandDevice != true) {
+
                     updateNotificationContent(timeRemainingMillis)
-                }
 
                 // Always reschedule the runnable to ensure the service stops correctly.
                 if (currentReminderId != -1) {
@@ -202,7 +201,6 @@ class PreReminderForegroundService : Service() {
             .setContentTitle(titleText)
             .setContentText(contentText)
             .setContentIntent(createContentIntent())
-            .setOngoing(true)
 
         // Following the Xiaomi example's build order
         // 1. Get the bundle with actions and pictures

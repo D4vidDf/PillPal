@@ -90,7 +90,6 @@ object HyperIslandUtil {
 
                 put("param_island", JSONObject().apply {
                     put("islandProperty", 1)
-                    medicationColor?.let { put("highlightColor", it) }
 
                     put("bigIslandArea", JSONObject().apply {
                         put("imageTextInfoLeft", JSONObject().apply {
@@ -113,12 +112,11 @@ object HyperIslandUtil {
                         put("sameWidthDigitInfo", JSONObject().apply {
                             put("timerInfo", JSONObject().apply {
                                 put("timerType", 1)
-                                put("timerTotal", TimeUnit.MINUTES.toMillis(30))
-                                put("timerWhen", actualTakeTimeMillis - TimeUnit.MINUTES.toMillis(30))
-                                put("timerCurrent", remainingMillis)
+                                put("timerWhen", actualTakeTimeMillis)
+                                put("timerTotal", System.currentTimeMillis())
+                                put("timerSystemCurrent", System.currentTimeMillis())
                             })
-                            put("digit", timeString)
-                            put("showHighlightColor", true)
+                            put("showHighlightColor", false)
                         })
                     })
 
@@ -134,7 +132,6 @@ object HyperIslandUtil {
                 put("chatInfo", JSONObject().apply {
                     put("type", 2)
                     put("title", medicationName)
-                    put("content", context.getString(R.string.prereminder_chat_content, minutesRemaining))
                     put("picFunction", "miui.focus.pic_imageText")
                     put("actions", listOf(
                         JSONObject().apply {
@@ -147,10 +144,118 @@ object HyperIslandUtil {
                             })
                         }
                     ))
+                    put("timerInfo", JSONObject().apply {
+                        put("timerType", 1)
+                        put("timerTotal", actualTakeTimeMillis)
+                        put("timerWhen", System.currentTimeMillis())
+                        put("timerSystemCurrent", System.currentTimeMillis())
+                    })
                 })
+                put("actions", listOf(
+                    JSONObject().apply {
+                        put("type", 2)
+                        put("action", ACTION_KEY_MARK_AS_TAKEN)
+                        put("progressInfo", JSONObject().apply {
+                            val progress = (100 - (minutesRemaining * 100 / 30)).coerceIn(0, 100)
+                            put("progress", progress)
+                            medicationColor?.let { put("colorProgress", it) }
+                        })
+                    }
+                ))
             })
         }
-        return islandParams.toString()
+
+        val islandParamsV2 = """
+            {
+                "param_v2": {
+                    "protocol": 3,
+                    "business":"pillpal",
+                    "enableFloat": true,
+                    "updatable": true,
+                    "ticker": "ticker",
+                    "tickerPic": "miui.focus.pic_ticker",
+                    "smallWindowInfo": {
+                        "targetPage": "com.d4viddf.medicationreminder.MainActivity"
+                    },
+                    "isShownNotification": true,
+                    "islandFirstFloat": false,
+                    "enableFloat": true,
+                     "param_island": {
+                        "islandProperty": 1,
+                        "bigIslandArea": {
+                            "imageTextInfoLeft": {
+                                "type": 1,
+                                "picInfo": {
+                                    "type": 1,
+                                    "pic": "miui.focus.pic_imageText"
+                                },
+                                "textInfo": {
+                                    "title": "",
+                                    "useHighLight": false
+                                }
+                            },
+                            "sameWidthDigitInfo": {
+                                "timerInfo" : {
+                                    "timerType" : 1,
+                                    "timerWhen": $actualTakeTimeMillis,
+                                    "timerTotal": ${System.currentTimeMillis()},
+                                    "timerSystemCurrent":${System.currentTimeMillis()}
+                                },
+                                "showHighlightColor": true
+                            
+                           } 
+                        },
+                        "smallIslandArea": {
+                            "picInfo": {
+                                "type": 1,
+                                "pic": "miui.focus.pic_imageText"
+                            }
+                        },
+                        "shareData": {
+                            "title": "share_title"
+                        }
+                    },
+                    
+                    "chatInfo": {
+                        "type": 1,
+                        "title": "$medicationName",
+                        "picFunction": "miui.focus.pic_imageText",
+                        "actions": [
+                            {
+                                "type": 1,
+                                "action": "miui.focus.action_test",
+                                
+                                "progressInfo": {
+                                    "progress":20,
+                                    "colorProgress":"#FF8514"
+                                },
+                                "actionIntent":"$ACTION_KEY_MARK_AS_TAKEN"
+                            }
+                        ],
+                        "timerInfo" : {
+                                    "timerType" : 1,
+                                    "timerWhen": $actualTakeTimeMillis,
+                                    "timerTotal": ${System.currentTimeMillis()},
+                                    "timerSystemCurrent":${System.currentTimeMillis()}
+                                }
+                    },
+                    "actions": [
+                            {
+                                "type": 2,
+                                "action": "miui.focus.action_test",
+                                "actionIcon": "miui.focus.pic_imageText",
+                                "progressInfo": {
+                                    "progress":20,
+                                    "colorProgress":"#FF8514"
+                                },
+                                "actionTitle":"Taken",
+                                "actionIntent":"$ACTION_KEY_MARK_AS_TAKEN"
+                            }
+                    ]
+                }
+            }
+        """.trimIndent()
+        return islandParamsV2
     }
 
     private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap? {
@@ -217,10 +322,16 @@ object HyperIslandUtil {
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
         val currentTime = System.currentTimeMillis()
+        val progressTime = currentTime - TimeUnit.MINUTES.toMillis(20)
+        val whenTime = currentTime + TimeUnit.MINUTES.toMillis(30)
+        val totalTime = whenTime
+
+
+
         val islandParams = """
             {
                 "param_v2": {
-                    "protocol": 1,
+                    "protocol": 3,
                     "business":"pillpal",
                     "enableFloat": true,
                     "updatable": true,
@@ -247,15 +358,15 @@ object HyperIslandUtil {
                                 }
                             },
                             "sameWidthDigitInfo": {
-                                "timerInfo":{
-                                    "timerType":1,
-                                    "timerTotal":360000,
-                                    "timerWhen":360000,
-                                    "timerCurrent":0
+                                "timerInfo" : {
+                                    "timerType" : 1,
+                                    "timerWhen": $currentTime,
+                                    "timerTotal": $currentTime,
+                                    "timerSystemCurrent":$currentTime
                                 },
-                                "digit":"30:00",
                                 "showHighlightColor": true
-                            }
+                            
+                           } 
                         },
                         "smallIslandArea": {
                             "picInfo": {
@@ -267,25 +378,30 @@ object HyperIslandUtil {
                             "title": "share_title"
                         }
                     },
+                    
                     "chatInfo": {
-                        "type": 2,
-                        "title": "PillPal Test",
-                        "content": "Next dosage in 30 minutes",
+                        "type": 1,
+                        "title": "D4vidDf test",
                         "picFunction": "miui.focus.pic_imageText",
                         "actions": [
                             {
                                 "type": 2,
                                 "action": "miui.focus.action_test",
-
+                                
                                 "progressInfo": {
                                     "progress":20,
                                     "colorProgress":"#FF8514"
                                 },
                                 "actionIntent":"XXXX"
                             }
-                        ]
+                        ],
+                        "timerInfo" : {
+                                    "timerType" : 1,
+                                    "timerWhen": $currentTime,
+                                    "timerTotal": $currentTime,
+                                    "timerSystemCurrent":$currentTime
+                                }
                     },
-
                     "actions": [
                             {
                                 "type": 2,
@@ -298,16 +414,14 @@ object HyperIslandUtil {
                                 "actionTitle":"Taken",
                                 "actionIntent":"XXXX"
                             }
-                        ]
-
-
+                    ]
                 }
             }
         """.trimIndent()
 
         val builder = Notification.Builder(context, com.d4viddf.medicationreminder.utils.constants.NotificationConstants.PRE_REMINDER_CHANNEL_ID)
-            .setContentTitle("Test Title")
-            .setContentText("Test Text")
+            .setContentTitle("PillPal test")
+            .setContentText("Next dosage at 21:12")
             .setSmallIcon(R.drawable.ic_stat_medication)
 
         val bundle = Bundle()
